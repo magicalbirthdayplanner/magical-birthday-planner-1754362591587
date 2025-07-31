@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import GuestList, { Guest, Invitation } from "@/components/GuestList";
+import BulkInvitations from "@/components/BulkInvitations";
+import RSVPTracker from "@/components/RSVPTracker";
 import { 
   PartyPopper, 
   CheckCircle2, 
@@ -19,7 +22,8 @@ import {
   MapPin,
   Palette,
   Download,
-  Share2
+  Share2,
+  Mail
 } from "lucide-react";
 
 interface PartyData {
@@ -96,6 +100,8 @@ const themeData = {
 export default function PartyPlanPage() {
   const [partyData, setPartyData] = useState<PartyData | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [guests, setGuests] = useState<Guest[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
 
   useEffect(() => {
     // Load party data from localStorage
@@ -109,6 +115,17 @@ export default function PartyPlanPage() {
       
       // Generate checklist based on party data
       generateChecklist(data);
+    }
+
+    // Load guests and invitations from localStorage
+    const savedGuests = localStorage.getItem('partyGuests');
+    if (savedGuests) {
+      setGuests(JSON.parse(savedGuests));
+    }
+
+    const savedInvitations = localStorage.getItem('partyInvitations');
+    if (savedInvitations) {
+      setInvitations(JSON.parse(savedInvitations));
     }
   }, []);
 
@@ -149,6 +166,89 @@ export default function PartyPlanPage() {
         item.id === id ? { ...item, completed: !item.completed } : item
       )
     );
+  };
+
+  // Guest management functions
+  const handleAddGuest = (guestData: Omit<Guest, 'id'>) => {
+    const newGuest: Guest = {
+      ...guestData,
+      id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    };
+    
+    const updatedGuests = [...guests, newGuest];
+    setGuests(updatedGuests);
+    localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+  };
+
+  const handleEditGuest = (id: string, guestData: Partial<Guest>) => {
+    const updatedGuests = guests.map(guest => 
+      guest.id === id ? { ...guest, ...guestData } : guest
+    );
+    setGuests(updatedGuests);
+    localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+  };
+
+  const handleDeleteGuest = (id: string) => {
+    const updatedGuests = guests.filter(guest => guest.id !== id);
+    setGuests(updatedGuests);
+    localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+    
+    // Also remove any invitations for this guest
+    const updatedInvitations = invitations.filter(inv => inv.guestId !== id);
+    setInvitations(updatedInvitations);
+    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+  };
+
+  const handleSendInvitation = (guestId: string, message: string) => {
+    const newInvitation: Invitation = {
+      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      guestId,
+      status: 'SENT',
+      sentAt: new Date(),
+      message
+    };
+    
+    const updatedInvitations = [...invitations.filter(inv => inv.guestId !== guestId), newInvitation];
+    setInvitations(updatedInvitations);
+    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+  };
+
+  const handleSendBulkInvitations = (guestIds: string[], templateId: string, customMessage: string) => {
+    const newInvitations = guestIds.map(guestId => ({
+      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${guestId}`,
+      guestId,
+      status: 'SENT' as const,
+      sentAt: new Date(),
+      message: customMessage
+    }));
+    
+    const filteredExistingInvitations = invitations.filter(inv => !guestIds.includes(inv.guestId));
+    const updatedInvitations = [...filteredExistingInvitations, ...newInvitations];
+    setInvitations(updatedInvitations);
+    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+  };
+
+  const handleUpdateRSVP = (invitationId: string, status: Invitation['status'], notes?: string) => {
+    const updatedInvitations = invitations.map(inv => 
+      inv.id === invitationId 
+        ? { ...inv, status, notes, respondedAt: new Date() }
+        : inv
+    );
+    setInvitations(updatedInvitations);
+    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+  };
+
+  const handleSendReminder = (guestId: string, message: string) => {
+    // In a real app, this would send an email reminder
+    console.log(`Sending reminder to guest ${guestId}:`, message);
+    // For now, just update the sent date
+    const updatedInvitations = invitations.map(inv => 
+      inv.guestId === guestId 
+        ? { ...inv, sentAt: new Date() }
+        : inv
+    );
+    setInvitations(updatedInvitations);
+    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
   };
 
   const getThemeDetails = () => {
@@ -228,7 +328,7 @@ export default function PartyPlanPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <PartyPopper className="h-4 w-4" />
               Overview
@@ -236,6 +336,14 @@ export default function PartyPlanPage() {
             <TabsTrigger value="checklist" className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
               Checklist
+            </TabsTrigger>
+            <TabsTrigger value="guests" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Guests
+            </TabsTrigger>
+            <TabsTrigger value="invitations" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Invitations
             </TabsTrigger>
             <TabsTrigger value="inspiration" className="flex items-center gap-2">
               <Palette className="h-4 w-4" />
@@ -270,26 +378,36 @@ export default function PartyPlanPage() {
                 </CardContent>
               </Card>
 
-              {/* Quick Stats */}
+              {/* Guest Stats */}
               <Card className="border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    Party Details
+                    Guest Overview
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">Age-appropriate activities</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Total Guests</span>
+                    <Badge variant="secondary">{guests.length}</Badge>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">Indoor/Outdoor options</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Invitations Sent</span>
+                    <Badge variant="outline">
+                      {invitations.filter(inv => inv.status === 'SENT' || inv.status === 'ACCEPTED' || inv.status === 'DECLINED' || inv.status === 'MAYBE').length}
+                    </Badge>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Gift className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">Party favor ideas included</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">RSVPs Received</span>
+                    <Badge variant="default">
+                      {invitations.filter(inv => inv.status === 'ACCEPTED' || inv.status === 'DECLINED' || inv.status === 'MAYBE').length}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Confirmed Attendees</span>
+                    <Badge className="bg-green-600">
+                      {invitations.filter(inv => inv.status === 'ACCEPTED').length}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -308,9 +426,15 @@ export default function PartyPlanPage() {
                     <Download className="h-4 w-4 mr-2" />
                     Download PDF
                   </Button>
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                    onClick={() => {
+                      const guestsTab = document.querySelector('[value="guests"]') as HTMLButtonElement;
+                      if (guestsTab) guestsTab.click();
+                    }}
+                  >
                     <Users className="h-4 w-4 mr-2" />
-                    Manage Guests
+                    Manage Guests ({guests.length})
                   </Button>
                 </CardContent>
               </Card>
@@ -357,6 +481,57 @@ export default function PartyPlanPage() {
                 );
               })}
             </div>
+          </TabsContent>
+
+          {/* Guests Tab */}
+          <TabsContent value="guests" className="space-y-6">
+            <GuestList
+              partyId={partyData?.childName || 'party'}
+              guests={guests}
+              invitations={invitations}
+              onAddGuest={handleAddGuest}
+              onEditGuest={handleEditGuest}
+              onDeleteGuest={handleDeleteGuest}
+              onSendInvitation={handleSendInvitation}
+              onUpdateRSVP={handleUpdateRSVP}
+            />
+          </TabsContent>
+
+          {/* Invitations Tab */}
+          <TabsContent value="invitations" className="space-y-6">
+            <Tabs defaultValue="bulk" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="bulk">Bulk Invitations</TabsTrigger>
+                <TabsTrigger value="rsvp">RSVP Tracking</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="bulk" className="mt-6">
+                <BulkInvitations
+                  partyId={partyData?.childName || 'party'}
+                  childName={partyData?.childName || ''}
+                  childAge={parseInt(partyData?.childAge || '0')}
+                  partyDate={partyData?.partyDate.toISOString() || ''}
+                  partyTime="2:00 PM"
+                  partyLocation="TBD"
+                  theme={partyData?.selectedTheme || ''}
+                  guests={guests}
+                  invitations={invitations}
+                  onSendBulkInvitations={handleSendBulkInvitations}
+                />
+              </TabsContent>
+              
+              <TabsContent value="rsvp" className="mt-6">
+                <RSVPTracker
+                  partyId={partyData?.childName || 'party'}
+                  childName={partyData?.childName || ''}
+                  partyDate={partyData?.partyDate.toISOString() || ''}
+                  guests={guests}
+                  invitations={invitations}
+                  onUpdateRSVP={handleUpdateRSVP}
+                  onSendReminder={handleSendReminder}
+                />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           {/* Theme Board Tab */}

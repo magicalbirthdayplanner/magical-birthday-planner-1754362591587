@@ -9,3 +9,86 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  parties   Party[]
+  
+  @@map("users")
+}
+
+model Party {
+  id          String   @id @default(cuid())
+  childName   String
+  childAge    Int
+  partyDate   DateTime
+  theme       String
+  interests   String[] // Array of child's interests
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  guests      Guest[]
+  invitations Invitation[]
+  
+  @@map("parties")
+}
+
+model Guest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  type      GuestType @default(ADULT) // ADULT, CHILD
+  age       Int?     // For child guests
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  partyId     String
+  party       Party        @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  
+  invitations Invitation[]
+  
+  @@map("guests")
+}
+
+model Invitation {
+  id          String         @id @default(cuid())
+  status      InvitationStatus @default(PENDING)
+  sentAt      DateTime?
+  respondedAt DateTime?
+  message     String?        // Custom invitation message
+  notes       String?        // RSVP notes from guest
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  partyId     String
+  party       Party          @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  
+  guestId     String
+  guest       Guest          @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  
+  @@unique([partyId, guestId])
+  @@map("invitations")
+}
+
+enum GuestType {
+  ADULT
+  CHILD
+}
+
+enum InvitationStatus {
+  PENDING    // Not yet sent
+  SENT       // Invitation sent, awaiting response
+  ACCEPTED   // Guest accepted
+  DECLINED   // Guest declined
+  MAYBE      // Guest is unsure
+}
