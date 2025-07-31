@@ -56,15 +56,20 @@ export default function Home() {
               Create unforgettable birthday celebrations for kids aged 0-12 with AI-powered suggestions, beautiful themes, and stress-free planning tools designed for busy parents.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/create-party">
+              <Link href="/signup">
                 <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg">
-                  Start Planning Now
+                  Get Started Free
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50 px-8 py-3 text-lg">
-                View Themes
-              </Button>
+              <Link href="/create-party">
+                <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50 px-8 py-3 text-lg">
+                  Try Demo
+                </Button>
+              </Link>
             </div>
+            <p className="text-sm text-gray-500 mt-4">
+              Already have an account? <Link href="/signin" className="text-purple-600 hover:text-purple-700 font-medium">Sign in</Link>
+            </p>
           </div>
         </div>
       </section>
@@ -163,9 +168,9 @@ export default function Home() {
             Join thousands of parents who trust us to make their children's birthdays unforgettable
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/create-party">
+            <Link href="/signup">
               <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
-                Start Planning Now
+                Create Your Account
               </Button>
             </Link>
             <div className="flex items-center justify-center gap-2 text-white">

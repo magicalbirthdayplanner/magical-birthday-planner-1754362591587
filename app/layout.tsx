@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -20,10 +21,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ThemeProvider>
-          <Header />
-          <main className="pt-16">
-            {children}
-          </main>
+          <AuthProvider>
+            <Header />
+            <main className="pt-16">
+              {children}
+            </main>
+          </AuthProvider>
         </ThemeProvider>
         {/* TODO: Remove iframe-navigation.js in production, should never be removed by AI */}
         <script src="/scripts/iframe-navigation.js"></script>
