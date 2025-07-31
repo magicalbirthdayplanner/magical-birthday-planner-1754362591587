@@ -66,13 +66,13 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 p-4 pt-20">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 pt-20">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
               ))}
             </div>
           </div>
@@ -82,17 +82,17 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 p-4 pt-20">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 pt-20">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <PartyPopper className="w-8 h-8 text-purple-600" />
                 Welcome back{user?.user_metadata?.display_name ? `, ${user.user_metadata.display_name}` : ''}!
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-300 mt-1">
                 Let's create magical birthday memories for your little ones
               </p>
             </div>
@@ -110,53 +110,53 @@ export default function Dashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Parties</CardTitle>
+              <CardTitle className="text-sm font-medium dark:text-gray-200">Active Parties</CardTitle>
               <Calendar className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{upcomingParties.length}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold dark:text-gray-100">{upcomingParties.length}</div>
+              <p className="text-xs text-muted-foreground dark:text-gray-400">
                 {upcomingParties.length === 1 ? 'party' : 'parties'} in planning
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Guests</CardTitle>
+              <CardTitle className="text-sm font-medium dark:text-gray-200">Total Guests</CardTitle>
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalGuests}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold dark:text-gray-100">{totalGuests}</div>
+              <p className="text-xs text-muted-foreground dark:text-gray-400">
                 across all parties
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tasks Completed</CardTitle>
+              <CardTitle className="text-sm font-medium dark:text-gray-200">Tasks Completed</CardTitle>
               <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{completedTasks}/{totalTasks}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold dark:text-gray-100">{completedTasks}/{totalTasks}</div>
+              <p className="text-xs text-muted-foreground dark:text-gray-400">
                 {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% complete
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed Parties</CardTitle>
+              <CardTitle className="text-sm font-medium dark:text-gray-200">Completed Parties</CardTitle>
               <Sparkles className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{completedParties.length}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold dark:text-gray-100">{completedParties.length}</div>
+              <p className="text-xs text-muted-foreground dark:text-gray-400">
                 magical memories created
               </p>
             </CardContent>
@@ -165,7 +165,7 @@ export default function Dashboard() {
 
         {/* Parties Section */}
         <Tabs defaultValue="upcoming" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-md grid-cols-2 dark:bg-slate-800">
             <TabsTrigger value="upcoming" className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Upcoming ({upcomingParties.length})
@@ -184,11 +184,11 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-12">
+              <Card className="text-center py-12 dark:bg-slate-800 dark:border-slate-700">
                 <CardContent>
-                  <PartyPopper className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <CardTitle className="text-lg mb-2">No parties planned yet</CardTitle>
-                  <CardDescription className="mb-4">
+                  <PartyPopper className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <CardTitle className="text-lg mb-2 dark:text-gray-100">No parties planned yet</CardTitle>
+                  <CardDescription className="mb-4 dark:text-gray-300">
                     Ready to create your first magical birthday party?
                   </CardDescription>
                   <Button
@@ -213,11 +213,11 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-12">
+              <Card className="text-center py-12 dark:bg-slate-800 dark:border-slate-700">
                 <CardContent>
-                  <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <CardTitle className="text-lg mb-2">No completed parties yet</CardTitle>
-                  <CardDescription>
+                  <Sparkles className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <CardTitle className="text-lg mb-2 dark:text-gray-100">No completed parties yet</CardTitle>
+                  <CardDescription className="dark:text-gray-300">
                     Your magical memories will appear here once you've celebrated!
                   </CardDescription>
                 </CardContent>

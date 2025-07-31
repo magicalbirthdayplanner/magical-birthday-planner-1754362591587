@@ -70,17 +70,17 @@ export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
   const daysUntil = getDaysUntilParty(party.date)
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+    <Card className="hover:shadow-lg transition-shadow duration-200 overflow-hidden dark:bg-slate-800 dark:border-slate-700">
       {/* Theme Header */}
       <div className={`h-3 bg-gradient-to-r ${themeGradient}`} />
       
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg font-bold text-gray-900">
+            <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100">
               {party.childName}'s {party.age}th Birthday
             </CardTitle>
-            <p className="text-sm text-gray-600 capitalize mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-300 capitalize mt-1">
               {party.theme} Theme
             </p>
           </div>
@@ -95,13 +95,13 @@ export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
         <div className="flex items-center gap-2 text-sm">
           <Calendar className="w-4 h-4 text-purple-600" />
           <span className="font-medium">{format(party.date, 'MMM dd, yyyy')}</span>
-          <span className="text-gray-500">• {daysUntil}</span>
+          <span className="text-gray-500 dark:text-gray-400">• {daysUntil}</span>
         </div>
         
         {/* Guests */}
         <div className="flex items-center gap-2 text-sm">
           <Users className="w-4 h-4 text-blue-600" />
-          <span>{party.guestCount} guests invited</span>
+          <span className="dark:text-gray-300">{party.guestCount} guests invited</span>
         </div>
         
         {/* Progress */}
@@ -109,21 +109,21 @@ export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-600" />
-              <span>Planning Progress</span>
+              <span className="dark:text-gray-300">Planning Progress</span>
             </div>
-            <span className="font-medium">
+            <span className="font-medium dark:text-gray-200">
               {party.checkedTasks}/{party.totalTasks} tasks
             </span>
           </div>
           
           {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
               className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {Math.round(progressPercentage)}% complete
           </p>
         </div>
