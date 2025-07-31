@@ -10,6 +10,9 @@ interface AuthContextType {
   loading: boolean
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
+  signInWithGoogle: () => Promise<{ error: any }>
+  signInWithFacebook: () => Promise<{ error: any }>
+  signInWithApple: () => Promise<{ error: any }>
   signOut: () => Promise<void>
 }
 
@@ -69,6 +72,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }
 
+  const signInWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai'}/dashboard`
+      }
+    })
+    return { error }
+  }
+
+  const signInWithFacebook = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai'}/dashboard`
+      }
+    })
+    return { error }
+  }
+
+  const signInWithApple = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai'}/dashboard`
+      }
+    })
+    return { error }
+  }
+
   const signOut = async () => {
     await supabase.auth.signOut()
   }
@@ -79,6 +112,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
+    signInWithFacebook,
+    signInWithApple,
     signOut,
   }
 
