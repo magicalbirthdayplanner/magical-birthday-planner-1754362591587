@@ -75,27 +75,65 @@ export default function Home() {
       </section>
 
       {/* Popular Themes Preview */}
-      <section className="py-16 bg-white/50">
+      <section className="py-16 bg-white/50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Popular Party Themes</h2>
             <p className="text-lg text-gray-600">Choose from our collection of trending themes loved by kids</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {themes.map((theme, index) => (
-              <Card key={index} className="group cursor-pointer hover:scale-105 transition-transform duration-200 border-0 shadow-lg">
-                <CardContent className="p-0">
-                  <div className={`${theme.color} h-24 rounded-t-lg flex items-center justify-center text-4xl`}>
-                    {theme.emoji}
+          
+          {/* Ribbon-styled horizontal scrolling container */}
+          <div className="relative">
+            {/* Gradient overlays for ribbon effect */}
+            <div className="absolute left-0 top-0 w-20 h-full bg-gradient-to-r from-white/50 to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 w-20 h-full bg-gradient-to-l from-white/50 to-transparent z-10 pointer-events-none"></div>
+            
+            {/* Scrolling container */}
+            <div className="overflow-hidden rounded-xl shadow-inner bg-gradient-to-r from-purple-100/50 via-pink-100/50 to-yellow-100/50 py-6">
+              <div className="flex gap-6 animate-scroll-ribbon">
+                {/* First set of themes */}
+                {themes.map((theme, index) => (
+                  <div key={`first-${index}`} className="flex-shrink-0">
+                    <Card className="group cursor-pointer hover:scale-105 transition-all duration-300 border-0 shadow-lg hover:shadow-xl w-40">
+                      <CardContent className="p-0">
+                        <div className={`${theme.color} h-24 rounded-t-lg flex items-center justify-center text-4xl shadow-inner`}>
+                          {theme.emoji}
+                        </div>
+                        <div className="p-4 text-center bg-white/80 backdrop-blur-sm">
+                          <h3 className="font-semibold text-gray-900 text-sm">{theme.name}</h3>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                  <div className="p-4 text-center">
-                    <h3 className="font-semibold text-gray-900">{theme.name}</h3>
+                ))}
+                {/* Duplicate set for seamless loop */}
+                {themes.map((theme, index) => (
+                  <div key={`second-${index}`} className="flex-shrink-0">
+                    <Card className="group cursor-pointer hover:scale-105 transition-all duration-300 border-0 shadow-lg hover:shadow-xl w-40">
+                      <CardContent className="p-0">
+                        <div className={`${theme.color} h-24 rounded-t-lg flex items-center justify-center text-4xl shadow-inner`}>
+                          {theme.emoji}
+                        </div>
+                        <div className="p-4 text-center bg-white/80 backdrop-blur-sm">
+                          <h3 className="font-semibold text-gray-900 text-sm">{theme.name}</h3>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-8">
+            <Link href="/create-party">
+              <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
+                Explore All Themes
+              </Button>
+            </Link>
           </div>
         </div>
+        
       </section>
 
       {/* Features Section */}

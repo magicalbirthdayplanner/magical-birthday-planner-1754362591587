@@ -80,3 +80,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom animations for ribbon scroll */
+@layer utilities {
+  @keyframes scroll-ribbon {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-scroll-ribbon {
+    animation: scroll-ribbon 20s linear infinite;
+    width: calc(200% + 24px);
+  }
+  
+  .animate-scroll-ribbon:hover {
+    animation-play-state: paused;
+  }
+}
