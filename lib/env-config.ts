@@ -17,6 +17,12 @@ export const ENV_VARIABLES: EnvVariable[] = [
     description: "Supabase anonymous/publishable key for client-side authentication",
     required: true,
     instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → API Keys → Copy 'Legacy API keys → anon public' key"
+  },
+  {
+    name: "OPENAI_API_KEY",
+    description: "OpenAI API key for AI-powered theme recommendations using GPT-4o",
+    required: false,
+    instructions: "Go to [OpenAI Platform](https://platform.openai.com/api-keys) → Create new secret key → Copy the API key (format: sk-...)"
   }
 ];
 
