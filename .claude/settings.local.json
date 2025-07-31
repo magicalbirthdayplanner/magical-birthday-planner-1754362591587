@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "MultiEdit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "LS(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "NotebookRead(*)",
+      "NotebookEdit(*)"
+    ],
+    "deny": []
+  },
+  "includeCoAuthoredBy": false,
+  "env": {
+    "IDEAVO_PROJECT": "true",
+    "DISABLE_TELEMETRY": "1"
+  }
+}
