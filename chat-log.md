@@ -1,3 +1,13 @@
+## [usr-1753935531813]
+**User Request:** Add a home page and a light and dark theme switch. Home page at the left top corner and theme switcher at right side just like it is there for ideavo.ai site
+**Response Summary:** Successfully implemented a comprehensive theme switching system with navigation header. Created a ThemeContext with React context for state management, supporting light/dark themes with automatic system preference detection and localStorage persistence. Built a ThemeSwitcher component with elegant moon/sun icons and smooth transitions. Added a fixed navigation Header component with home link positioned at left and theme switcher at right. Updated the root layout to wrap all pages with ThemeProvider and include the header with proper spacing (pt-16). The theme system is fully functional with CSS custom properties for both light and dark modes already configured in globals.css. Build completed successfully with no errors.
+**Files Modified:** 
+- contexts/ThemeContext.tsx (new theme context and provider with localStorage and system preference support)
+- components/ThemeSwitcher.tsx (new theme switcher component with moon/sun icons)
+- components/Header.tsx (new navigation header with home link and theme switcher)
+- app/layout.tsx (wrapped with ThemeProvider and added Header component)
+- README.md (updated features and completed sections to reflect new theme functionality)
+
 ## [usr-1753934790901]
 **User Request:** Quick Party Creation Wizard
 Collect child's age, name, party date, and interests

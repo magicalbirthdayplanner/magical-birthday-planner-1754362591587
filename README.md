@@ -6,6 +6,8 @@ A modern, responsive web application designed to help parents plan magical birth
 
 ### Current MVP Features
 - **🏠 Beautiful Landing Page**: Stunning gradient themes with bright colors targeting parents
+- **🌓 Light/Dark Theme Toggle**: Elegant theme switcher with automatic system preference detection
+- **🧭 Navigation Header**: Fixed header with home link (left) and theme switcher (right)
 - **🎨 8 Trending Themes**: Superhero, Princess, Dinosaur, Space, Safari, Ocean, Pirate, and Unicorn
 - **🧙‍♂️ Enhanced Party Creation Wizard**: 3-step process to create personalized party plans
   - Child information (name, age & interests collection)
@@ -109,6 +111,8 @@ npm start
 
 ### ✅ Completed Features
 - Modern, responsive landing page with gradient themes
+- Light/dark theme toggle with system preference detection and local storage persistence
+- Fixed navigation header with home link (left) and theme switcher (right)
 - Enhanced 3-step party creation wizard with AI recommendations
 - Interactive interests collection system (14 interest categories)
 - Smart AI theme recommendation engine based on age and interests
