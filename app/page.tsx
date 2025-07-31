@@ -38,10 +38,10 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-yellow-600/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-yellow-600/10 dark:from-purple-400/20 dark:via-pink-400/20 dark:to-yellow-400/20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <div className="flex justify-center mb-6">
@@ -52,7 +52,7 @@ export default function Home() {
             <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-6">
               Magical Birthday Parties
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
               Create unforgettable birthday celebrations for kids aged 0-12 with AI-powered suggestions, beautiful themes, and stress-free planning tools designed for busy parents.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -62,34 +62,34 @@ export default function Home() {
                 </Button>
               </Link>
               <Link href="/create-party">
-                <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50 px-8 py-3 text-lg">
+                <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-8 py-3 text-lg">
                   Try Demo
                 </Button>
               </Link>
             </div>
-            <p className="text-sm text-gray-500 mt-4">
-              Already have an account? <Link href="/signin" className="text-purple-600 hover:text-purple-700 font-medium">Sign in</Link>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+              Already have an account? <Link href="/signin" className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">Sign in</Link>
             </p>
           </div>
         </div>
       </section>
 
       {/* Popular Themes Preview */}
-      <section className="py-16 bg-white/50 overflow-hidden">
+      <section className="py-16 bg-white/50 dark:bg-slate-800/50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Popular Party Themes</h2>
-            <p className="text-lg text-gray-600">Choose from our collection of trending themes loved by kids</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Popular Party Themes</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">Choose from our collection of trending themes loved by kids</p>
           </div>
           
           {/* Ribbon-styled horizontal scrolling container */}
           <div className="relative">
             {/* Gradient overlays for ribbon effect */}
-            <div className="absolute left-0 top-0 w-20 h-full bg-gradient-to-r from-white/50 to-transparent z-10 pointer-events-none"></div>
-            <div className="absolute right-0 top-0 w-20 h-full bg-gradient-to-l from-white/50 to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute left-0 top-0 w-20 h-full bg-gradient-to-r from-white/50 to-transparent dark:from-slate-800/50 dark:to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 w-20 h-full bg-gradient-to-l from-white/50 to-transparent dark:from-slate-800/50 dark:to-transparent z-10 pointer-events-none"></div>
             
             {/* Scrolling container */}
-            <div className="overflow-hidden rounded-xl shadow-inner bg-gradient-to-r from-purple-100/50 via-pink-100/50 to-yellow-100/50 py-6">
+            <div className="overflow-hidden rounded-xl shadow-inner bg-gradient-to-r from-purple-100/50 via-pink-100/50 to-yellow-100/50 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-yellow-900/30 py-6">
               <div className="flex gap-6 animate-scroll-ribbon">
                 {/* First set of themes */}
                 {themes.map((theme, index) => (
@@ -99,8 +99,8 @@ export default function Home() {
                         <div className={`${theme.color} h-24 rounded-t-lg flex items-center justify-center text-4xl shadow-inner`}>
                           {theme.emoji}
                         </div>
-                        <div className="p-4 text-center bg-white/80 backdrop-blur-sm">
-                          <h3 className="font-semibold text-gray-900 text-sm">{theme.name}</h3>
+                        <div className="p-4 text-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{theme.name}</h3>
                         </div>
                       </CardContent>
                     </Card>
@@ -114,8 +114,8 @@ export default function Home() {
                         <div className={`${theme.color} h-24 rounded-t-lg flex items-center justify-center text-4xl shadow-inner`}>
                           {theme.emoji}
                         </div>
-                        <div className="p-4 text-center bg-white/80 backdrop-blur-sm">
-                          <h3 className="font-semibold text-gray-900 text-sm">{theme.name}</h3>
+                        <div className="p-4 text-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{theme.name}</h3>
                         </div>
                       </CardContent>
                     </Card>
@@ -127,7 +127,7 @@ export default function Home() {
           
           <div className="text-center mt-8">
             <Link href="/create-party">
-              <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
+              <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20">
                 Explore All Themes
               </Button>
             </Link>
@@ -140,8 +140,8 @@ export default function Home() {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Everything You Need</h2>
-            <p className="text-lg text-gray-600">Powerful features to make party planning effortless</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Everything You Need</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">Powerful features to make party planning effortless</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
@@ -153,7 +153,7 @@ export default function Home() {
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600">
+                  <CardDescription className="text-gray-600 dark:text-gray-300">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
@@ -164,33 +164,33 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 bg-gradient-to-r from-purple-50 to-pink-50">
+      <section className="py-16 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-lg text-gray-600">Simple steps to create the perfect party</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">How It Works</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">Simple steps to create the perfect party</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
                 1
               </div>
-              <h3 className="text-xl font-semibold mb-2">Tell Us About Your Child</h3>
-              <p className="text-gray-600">Share your child's name, age, and party date to get started</p>
+              <h3 className="text-xl font-semibold mb-2 dark:text-gray-100">Tell Us About Your Child</h3>
+              <p className="text-gray-600 dark:text-gray-300">Share your child's name, age, and party date to get started</p>
             </div>
             <div className="text-center">
               <div className="bg-gradient-to-r from-pink-600 to-yellow-600 w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
                 2
               </div>
-              <h3 className="text-xl font-semibold mb-2">Pick a Theme</h3>
-              <p className="text-gray-600">Choose from our curated collection of kid-friendly themes</p>
+              <h3 className="text-xl font-semibold mb-2 dark:text-gray-100">Pick a Theme</h3>
+              <p className="text-gray-600 dark:text-gray-300">Choose from our curated collection of kid-friendly themes</p>
             </div>
             <div className="text-center">
               <div className="bg-gradient-to-r from-yellow-600 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
                 3
               </div>
-              <h3 className="text-xl font-semibold mb-2">Get Your Plan</h3>
-              <p className="text-gray-600">Receive personalized suggestions, checklists, and inspiration</p>
+              <h3 className="text-xl font-semibold mb-2 dark:text-gray-100">Get Your Plan</h3>
+              <p className="text-gray-600 dark:text-gray-300">Receive personalized suggestions, checklists, and inspiration</p>
             </div>
           </div>
         </div>
