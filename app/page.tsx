@@ -1,10 +1,14 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PartyPopper, Sparkles, Users, Calendar, CheckCircle2, Star } from "lucide-react";
+import { PartyPopper, Sparkles, Users, Calendar, CheckCircle2, Star, Calendar as CalendarIcon, User } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
+  const { user, loading } = useAuth();
   const themes = [
     { name: "Superhero", color: "bg-gradient-to-r from-red-500 to-blue-600", emoji: "🦸‍♂️" },
     { name: "Princess", color: "bg-gradient-to-r from-pink-400 to-purple-600", emoji: "👸" },
@@ -49,27 +53,71 @@ export default function Home() {
                 <PartyPopper className="h-12 w-12 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-6">
-              Magical Birthday Parties
-            </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-              Create unforgettable birthday celebrations for kids aged 0-12 with AI-powered suggestions, beautiful themes, and stress-free planning tools designed for busy parents.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/signup">
-                <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg">
-                  Get Started Free
-                </Button>
-              </Link>
-              <Link href="/create-party">
-                <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-8 py-3 text-lg">
-                  Try Demo
-                </Button>
-              </Link>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-              Already have an account? <Link href="/signin" className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">Sign in</Link>
-            </p>
+{user ? (
+              <>
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-full px-6 py-2 mb-6 inline-block">
+                  <p className="text-purple-700 dark:text-purple-300 font-medium">
+                    <User className="h-4 w-4 inline mr-2" />
+                    Welcome back, {user.user_metadata?.display_name || user.email?.split('@')[0]}!
+                  </p>
+                </div>
+                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-6">
+                  Ready for Another Magical Party?
+                </h1>
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+                  Continue planning amazing birthday celebrations or start a new party with our AI-powered suggestions and beautiful themes.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-6">
+                  Magical Birthday Parties
+                </h1>
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+                  Create unforgettable birthday celebrations for kids aged 0-12 with AI-powered suggestions, beautiful themes, and stress-free planning tools designed for busy parents.
+                </p>
+              </>
+            )}
+            {loading ? (
+              <div className="flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              </div>
+            ) : user ? (
+              // Authenticated user CTAs
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/dashboard">
+                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg">
+                    <CalendarIcon className="h-5 w-5 mr-2" />
+                    Go to Dashboard
+                  </Button>
+                </Link>
+                <Link href="/create-party">
+                  <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-8 py-3 text-lg">
+                    <PartyPopper className="h-5 w-5 mr-2" />
+                    Create New Party
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              // Unauthenticated user CTAs
+              <>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link href="/signup">
+                    <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg">
+                      Get Started Free
+                    </Button>
+                  </Link>
+                  <Link href="/create-party">
+                    <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-8 py-3 text-lg">
+                      Try Demo
+                    </Button>
+                  </Link>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                  Already have an account? <Link href="/signin" className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">Sign in</Link>
+                </p>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -128,7 +176,7 @@ export default function Home() {
           <div className="text-center mt-8">
             <Link href="/create-party">
               <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20">
-                Explore All Themes
+                {user ? "Create New Party" : "Explore All Themes"}
               </Button>
             </Link>
           </div>
@@ -199,27 +247,54 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Create Magic?
-          </h2>
-          <p className="text-xl text-purple-100 mb-8">
-            Join thousands of parents who trust us to make their children's birthdays unforgettable
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup">
-              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
-                Create Your Account
-              </Button>
-            </Link>
-            <div className="flex items-center justify-center gap-2 text-white">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-current" />
-                ))}
+          {user ? (
+            <>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                Let's Plan Your Next Celebration!
+              </h2>
+              <p className="text-xl text-purple-100 mb-8">
+                Your personalized dashboard is ready with all your party planning tools
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/dashboard">
+                  <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
+                    <CalendarIcon className="h-5 w-5 mr-2" />
+                    View My Dashboard
+                  </Button>
+                </Link>
+                <Link href="/create-party">
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-3 text-lg font-semibold">
+                    <PartyPopper className="h-5 w-5 mr-2" />
+                    Start New Party
+                  </Button>
+                </Link>
               </div>
-              <span className="text-purple-100">Trusted by 10,000+ parents</span>
-            </div>
-          </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                Ready to Create Magic?
+              </h2>
+              <p className="text-xl text-purple-100 mb-8">
+                Join thousands of parents who trust us to make their children's birthdays unforgettable
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/signup">
+                  <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
+                    Create Your Account
+                  </Button>
+                </Link>
+                <div className="flex items-center justify-center gap-2 text-white">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-current" />
+                    ))}
+                  </div>
+                  <span className="text-purple-100">Trusted by 10,000+ parents</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </section>
     </div>
