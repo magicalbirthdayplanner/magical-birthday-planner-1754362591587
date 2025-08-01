@@ -362,9 +362,9 @@ export default function CreatePartyPage() {
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2">
-            Create Your Party
+            Design Your Party
           </h1>
-          <p className="text-gray-600">Let's plan the perfect birthday celebration for your child!</p>
+          <p className="text-gray-600">Plan your child's dream birthday in just 4 simple steps!</p>
         </div>
 
         {/* Progress Indicator */}
