@@ -294,10 +294,10 @@ export default function CreatePartyPage() {
   useEffect(() => {
     if (!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && !showConfetti) {
       setShowConfetti(true);
-      // Hide confetti after 6 seconds
+      // Hide confetti after 4 seconds
       const confettiTimer = setTimeout(() => {
         setShowConfetti(false);
-      }, 6000);
+      }, 4000);
       return () => clearTimeout(confettiTimer);
     }
   }, [partyData.isLoadingAI, partyData.aiRecommendations, showConfetti]);
@@ -473,78 +473,102 @@ export default function CreatePartyPage() {
             {/* Step 1: Child Information */}
             {step === 1 && (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="childName" className="text-sm font-medium">
-                      Child's Name
-                    </Label>
-                    <Input
-                      id="childName"
-                      placeholder="Enter your child's name"
-                      value={partyData.childName}
-                      onChange={(e) => setPartyData({ ...partyData, childName: e.target.value })}
-                      className="text-lg h-12"
-                    />
+                <div className="space-y-2">
+                  <Label htmlFor="childName" className="text-sm font-medium">
+                    Child's Name
+                  </Label>
+                  <Input
+                    id="childName"
+                    placeholder="Enter your child's name"
+                    value={partyData.childName}
+                    onChange={(e) => setPartyData({ ...partyData, childName: e.target.value })}
+                    className="text-lg h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    Gender
+                  </Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant={partyData.childGender === "boy" ? "default" : "outline"}
+                      onClick={() => setPartyData({ ...partyData, childGender: "boy" })}
+                      className={cn(
+                        "h-12 flex items-center justify-center space-x-2 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
+                        partyData.childGender === "boy"
+                          ? "bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-700 text-white shadow-lg border-2 border-blue-400"
+                          : "hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50 hover:border-blue-300 hover:shadow-md"
+                      )}
+                    >
+                      <div className={cn(
+                        "absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transition-transform duration-700",
+                        partyData.childGender === "boy" 
+                          ? "translate-x-full group-hover:translate-x-[-200%]" 
+                          : "translate-x-[-200%]"
+                      )} />
+                      <User className={cn(
+                        "h-5 w-5 transition-transform duration-200",
+                        partyData.childGender === "boy" ? "scale-110" : "group-hover:scale-110"
+                      )} />
+                      <span className="font-medium">Boy</span>
+                      {partyData.childGender === "boy" && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={partyData.childGender === "girl" ? "default" : "outline"}
+                      onClick={() => setPartyData({ ...partyData, childGender: "girl" })}
+                      className={cn(
+                        "h-12 flex items-center justify-center space-x-2 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
+                        partyData.childGender === "girl"
+                          ? "bg-gradient-to-br from-pink-500 via-pink-600 to-rose-600 hover:from-pink-600 hover:via-pink-700 hover:to-rose-700 text-white shadow-lg border-2 border-pink-400"
+                          : "hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50 hover:border-pink-300 hover:shadow-md"
+                      )}
+                    >
+                      <div className={cn(
+                        "absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transition-transform duration-700",
+                        partyData.childGender === "girl" 
+                          ? "translate-x-full group-hover:translate-x-[-200%]" 
+                          : "translate-x-[-200%]"
+                      )} />
+                      <Users className={cn(
+                        "h-5 w-5 transition-transform duration-200",
+                        partyData.childGender === "girl" ? "scale-110" : "group-hover:scale-110"
+                      )} />
+                      <span className="font-medium">Girl</span>
+                      {partyData.childGender === "girl" && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+                      )}
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      Gender
-                    </Label>
-                    <div className="grid grid-cols-2 gap-2">
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">When is the party?</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
                       <Button
-                        type="button"
-                        variant={partyData.childGender === "boy" ? "default" : "outline"}
-                        onClick={() => setPartyData({ ...partyData, childGender: "boy" })}
+                        variant="outline"
                         className={cn(
-                          "h-12 flex items-center justify-center space-x-2 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
-                          partyData.childGender === "boy"
-                            ? "bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-700 text-white shadow-lg border-2 border-blue-400"
-                            : "hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50 hover:border-blue-300 hover:shadow-md"
+                          "w-full justify-start text-left font-normal text-lg py-6",
+                          !partyData.partyDate && "text-muted-foreground"
                         )}
                       >
-                        <div className={cn(
-                          "absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transition-transform duration-700",
-                          partyData.childGender === "boy" 
-                            ? "translate-x-full group-hover:translate-x-[-200%]" 
-                            : "translate-x-[-200%]"
-                        )} />
-                        <User className={cn(
-                          "h-5 w-5 transition-transform duration-200",
-                          partyData.childGender === "boy" ? "scale-110" : "group-hover:scale-110"
-                        )} />
-                        <span className="font-medium">Boy</span>
-                        {partyData.childGender === "boy" && (
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-                        )}
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {partyData.partyDate ? format(partyData.partyDate, "PPP") : "Pick a date"}
                       </Button>
-                      <Button
-                        type="button"
-                        variant={partyData.childGender === "girl" ? "default" : "outline"}
-                        onClick={() => setPartyData({ ...partyData, childGender: "girl" })}
-                        className={cn(
-                          "h-12 flex items-center justify-center space-x-2 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
-                          partyData.childGender === "girl"
-                            ? "bg-gradient-to-br from-pink-500 via-pink-600 to-rose-600 hover:from-pink-600 hover:via-pink-700 hover:to-rose-700 text-white shadow-lg border-2 border-pink-400"
-                            : "hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50 hover:border-pink-300 hover:shadow-md"
-                        )}
-                      >
-                        <div className={cn(
-                          "absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transition-transform duration-700",
-                          partyData.childGender === "girl" 
-                            ? "translate-x-full group-hover:translate-x-[-200%]" 
-                            : "translate-x-[-200%]"
-                        )} />
-                        <Users className={cn(
-                          "h-5 w-5 transition-transform duration-200",
-                          partyData.childGender === "girl" ? "scale-110" : "group-hover:scale-110"
-                        )} />
-                        <span className="font-medium">Girl</span>
-                        {partyData.childGender === "girl" && (
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={partyData.partyDate}
+                        onSelect={(date) => setPartyData({ ...partyData, partyDate: date })}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-4">
                   <Label htmlFor="childAge" className="text-sm font-medium">
@@ -666,32 +690,6 @@ export default function CreatePartyPage() {
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">When is the party?</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal text-lg py-6",
-                          !partyData.partyDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {partyData.partyDate ? format(partyData.partyDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={partyData.partyDate}
-                        onSelect={(date) => setPartyData({ ...partyData, partyDate: date })}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
                 </div>
               </div>
             )}
@@ -837,7 +835,7 @@ export default function CreatePartyPage() {
                         pointerEvents: 'none',
                         zIndex: 50
                       }}>
-                        <Fireworks autorun={{ speed: 3, duration: 6000 }} />
+                        <Fireworks autorun={{ speed: 3, duration: 4000 }} />
                       </div>
                     )}
                     <div className="flex items-center justify-center space-x-2 mb-4">
