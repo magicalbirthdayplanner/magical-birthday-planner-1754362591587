@@ -324,15 +324,8 @@ export default function CreatePartyPage() {
       // Check if we have child details (tell us more field) regardless of classic theme selection
       const hasChildDetails = partyData.childDetails && partyData.childDetails.trim() !== "";
       
-      // If classic theme is selected but no additional details provided, skip AI recommendations
-      if (partyData.classicTheme && !hasChildDetails) {
-        setStep(3);
-        return;
-      }
-      
-      // Generate AI recommendations if:
-      // 1. Custom themes with interests selected, OR
-      // 2. Classic theme selected WITH additional child details provided
+      // Always generate AI recommendations for both custom and classic themes
+      // For classic themes, we require additional child details to generate personalized variations
       if ((partyData.childAge && partyData.childInterests.length > 0) || 
           (partyData.classicTheme && hasChildDetails)) {
         // Start navigation loading animation
@@ -391,8 +384,12 @@ export default function CreatePartyPage() {
       case 1:
         return partyData.childName.trim() !== "" && partyData.childAge >= 1 && partyData.childGender !== "" && partyData.partyDate !== undefined;
       case 2:
-        // Valid if either classic theme is selected OR custom interests are selected
-        return partyData.classicTheme !== "" || partyData.childInterests.length > 0;
+        // For classic themes, require additional details for AI recommendations
+        // For custom themes, require interests
+        if (partyData.classicTheme !== "") {
+          return partyData.childDetails && partyData.childDetails.trim() !== "";
+        }
+        return partyData.childInterests.length > 0;
       case 3:
         return partyData.selectedTheme !== "";
       case 4:
@@ -831,7 +828,7 @@ export default function CreatePartyPage() {
                   {/* Tell us more section - appears for classic themes */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">
-                      What are your child's current favorites, movies, shows, or hobbies? (Optional, helps us recommend the perfect theme)
+                      What are your child's current favorites, movies, shows, or hobbies? {partyData.classicTheme ? '(Required for personalized theme variations)' : '(Optional, helps us recommend the perfect theme)'}
                     </Label>
                     <Textarea
                       placeholder={currentPlaceholder}
@@ -970,40 +967,6 @@ export default function CreatePartyPage() {
             {/* Step 3: Theme Selection */}
             {step === 3 && (
               <div className="space-y-6">
-                {/* Classic Theme Confirmation */}
-                {partyData.classicTheme && (
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                        🎉 Perfect Choice!
-                      </h3>
-                      <p className="text-gray-600">
-                        Your {classicThemes.find(t => t.id === partyData.classicTheme)?.name} theme is all set!
-                      </p>
-                    </div>
-                    
-                    <div className="max-w-md mx-auto">
-                      <div className="bg-white rounded-xl shadow-lg border-2 border-purple-200 p-6 text-center">
-                        <div className="text-6xl mb-4">
-                          {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji}
-                        </div>
-                        <h4 className="text-xl font-bold text-gray-800 mb-2">
-                          {classicThemes.find(t => t.id === partyData.classicTheme)?.name} Party
-                        </h4>
-                        <p className="text-sm text-gray-600 mb-4">
-                          Everything is ready for an amazing {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} adventure!
-                        </p>
-                        <div className="inline-flex items-center space-x-2 text-green-600">
-                          <span className="text-sm font-medium">✅ Theme Selected</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <p className="text-center text-sm text-gray-500">
-                      Ready to create your party plan? Click Next to continue!
-                    </p>
-                  </div>
-                )}
 
                 {/* Loading State for Custom Themes */}
                 {!partyData.classicTheme && partyData.isLoadingAI && (
