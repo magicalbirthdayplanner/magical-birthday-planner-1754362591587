@@ -8,7 +8,7 @@ import { Header } from '@/components/Header';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Party Planner - AI-Powered Kids Birthday Planner',
+  title: 'Magical Birthday Planner - AI-Powered Kids Birthday Planner',
   description: 'Create magical birthday parties for kids aged 0-12 with AI-generated suggestions, checklists, and themed inspiration boards.',
 };
 

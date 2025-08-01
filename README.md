@@ -1,4 +1,4 @@
-# 🎉 Party Planner - AI-Powered Kids Birthday Planner
+# 🎉 Magical Birthday Planner - AI-Powered Kids Birthday Planner
 
 A modern, responsive web application designed to help parents plan magical birthday parties for children aged 0-12. Built with Next.js 14, React, TypeScript, and Tailwind CSS with beautiful gradient themes and minimalistic design.
 
