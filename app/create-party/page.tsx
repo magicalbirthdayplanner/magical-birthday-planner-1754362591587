@@ -410,6 +410,43 @@ export default function CreatePartyPage() {
               {step === 3 && "Select a theme that your child will absolutely love"}
               {step === 4 && "Ready to create your magical party plan?"}
             </CardDescription>
+            
+            {/* Navigation Buttons at Top */}
+            <div className="flex justify-between pt-4 border-t border-gray-100 mt-4">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                disabled={step === 1}
+                className="px-8"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              
+              {step < 4 ? (
+                <Button
+                  onClick={handleNext}
+                  disabled={!isStepValid() || isNavigating}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 relative overflow-hidden"
+                >
+                  {isNavigating && step === 2 ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <span className="animate-pulse">Creating Magic...</span>
+                      <Sparkles className="ml-2 h-4 w-4 animate-pulse" />
+                    </>
+                  ) : (
+                    <>
+                      Next
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              ) : (
+                // For step 4, show a placeholder to maintain layout but make it invisible
+                <div className="px-8 py-2"></div>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Step 1: Child Information */}
@@ -721,7 +758,7 @@ export default function CreatePartyPage() {
                         />
                         <span className="text-sm">{color.name}</span>
                         {partyData.favoriteColors.includes(color.value) && (
-                          <Heart className="h-3 w-3 text-purple-600 fill-current" />
+                          <Heart className="h-3 w-3 text-red-600 fill-current" />
                         )}
                       </div>
                     ))}
@@ -992,42 +1029,6 @@ export default function CreatePartyPage() {
               </div>
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between pt-6">
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                disabled={step === 1}
-                className="px-8"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-              
-              {step < 4 ? (
-                <Button
-                  onClick={handleNext}
-                  disabled={!isStepValid() || isNavigating}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 relative overflow-hidden"
-                >
-                  {isNavigating && step === 2 ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      <span className="animate-pulse">Creating Magic...</span>
-                      <Sparkles className="ml-2 h-4 w-4 animate-pulse" />
-                    </>
-                  ) : (
-                    <>
-                      Next
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              ) : (
-                // For step 4, show a placeholder to maintain layout but make it invisible
-                <div className="px-8 py-2"></div>
-              )}
-            </div>
           </CardContent>
         </Card>
       </div>
