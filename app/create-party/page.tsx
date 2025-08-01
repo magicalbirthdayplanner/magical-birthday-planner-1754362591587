@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby } from "lucide-react";
+import Confetti from 'react-canvas-confetti/dist/presets/realistic';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -730,14 +731,39 @@ export default function CreatePartyPage() {
               <div className="space-y-6">
                 {/* Loading State */}
                 {partyData.isLoadingAI && (
-                  <div className="flex flex-col items-center justify-center py-12">
+                  <div className="flex flex-col items-center justify-center py-12 relative">
+                    <Confetti 
+                      autorun={{ speed: 3, duration: 3000 }}
+                      decorateOptions={(options) => ({
+                        ...options,
+                        particleCount: 100,
+                        spread: 90,
+                        startVelocity: 45,
+                        elementCount: 50,
+                        decay: 0.9,
+                        gravity: 0.6,
+                        drift: 0,
+                        ticks: 200,
+                        colors: ['#FF69B4', '#9370DB', '#FFD700', '#32CD32', '#FF8C00', '#4169E1'],
+                        shapes: ['square', 'circle'],
+                        scalar: 1.2
+                      })}
+                    />
+                    <div className="animate-bounce mb-4">
+                      <PartyPopper className="h-12 w-12 text-purple-600" />
+                    </div>
                     <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      Creating Personalized Themes for {partyData.childName}...
+                      🎉 Creating Personalized Themes for {partyData.childName}... 🎉
                     </h3>
-                    <p className="text-sm text-gray-500 text-center">
-                      Our AI is analyzing {partyData.childName}'s interests and creating magical theme suggestions
+                    <p className="text-sm text-gray-500 text-center max-w-md">
+                      Our AI is analyzing {partyData.childName}'s interests and creating magical theme suggestions just for them!
                     </p>
+                    <div className="mt-4 flex items-center space-x-2">
+                      <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
+                      <span className="text-xs text-purple-600 font-medium animate-pulse">Magic in progress...</span>
+                      <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
+                    </div>
                   </div>
                 )}
 
