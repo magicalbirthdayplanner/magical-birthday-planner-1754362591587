@@ -740,6 +740,19 @@ export default function CreatePartyPage() {
             {/* Step 3: Theme Selection */}
             {step === 3 && (
               <div className="space-y-6">
+                {/* Top Right Action Button for Step 3 */}
+                {!partyData.isLoadingAI && (
+                  <div className="flex justify-end mb-4">
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={!isStepValid()}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      Create My Party Plan
+                      <PartyPopper className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
                 {/* Loading State */}
                 {partyData.isLoadingAI && (
                   <div className="flex flex-col items-center justify-center py-12 relative">
@@ -944,14 +957,8 @@ export default function CreatePartyPage() {
                   )}
                 </Button>
               ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!isStepValid()}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8"
-                >
-                  Create My Party Plan
-                  <PartyPopper className="ml-2 h-4 w-4" />
-                </Button>
+                // For step 3, show a placeholder to maintain layout but make it invisible
+                <div className="px-8 py-2"></div>
               )}
             </div>
           </CardContent>
