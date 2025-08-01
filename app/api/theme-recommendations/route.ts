@@ -12,6 +12,8 @@ interface ThemeRequest {
   interests: string[];
   favoriteColors?: string[];
   activities?: string[];
+  childGender?: string;
+  childDetails?: string;
 }
 
 interface ThemeRecommendation {
@@ -31,7 +33,7 @@ interface ThemeRecommendation {
 export async function POST(request: NextRequest) {
   try {
     const body: ThemeRequest = await request.json();
-    const { childName, age, interests, favoriteColors = [], activities = [] } = body;
+    const { childName, age, interests, favoriteColors = [], activities = [], childGender, childDetails } = body;
 
     if (!openai || !process.env.OPENAI_API_KEY) {
       return NextResponse.json(
@@ -44,32 +46,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const prompt = `You are an expert party planner specializing in children's birthday parties. Generate 5 personalized, trending birthday party themes for ${childName}, who is ${age} years old and loves: ${interests.join(', ')}.
+    // Use the user's exact prompt specification
+    const prompt = `Based on the following inputs, suggest 3-5 creative and trending kids' birthday party themes. Each theme should directly reflect the child's age, gender, interests, favorite color, and anything from their current favorites or recent passions. For each theme, include: (1) theme name and short fun description, (2) why it matches this child (cite details!), (3) suggested activities or games for that theme, (4) suggested color palette and decorations, and (5) one or two printable ideas. Here are the child's details:
+- Name: ${childName}
+- Gender: ${childGender || 'Not specified'}
+- Age / DOB: ${age} years old
+- Interests: ${interests.join(', ')}
+- Favorite Color: ${favoriteColors.length > 0 ? favoriteColors.join(', ') : 'Not specified'}
+- Current Favorites / Recent Hobbies: ${childDetails || 'Not specified'}
 
-${favoriteColors.length > 0 ? `Favorite colors: ${favoriteColors.join(', ')}` : ''}
-${activities.length > 0 ? `Favorite activities: ${activities.join(', ')}` : ''}
+Themes must be age-appropriate, imaginative, and reflect current party trends. Personalize every suggestion fully for this child and explain the match.
 
-For each theme, provide:
-1. Theme name (creative and appealing)
-2. Brief fun description (1-2 sentences)
-3. Why it was picked specifically for ${childName} (personalized explanation)
-4. Color palette (4-5 hex colors)
-5. 3 decoration ideas
-6. 3 age-appropriate activities/games
-7. 2 printable/DIY ideas
-8. One representative emoji
-9. Age appropriateness score (1-10)
-10. Overall match score based on interests (1-100)
-
-Focus on current 2024-2025 trends and ensure themes are safe and appropriate for age ${age}. Make recommendations feel personal and exciting.
-
-Return ONLY a valid JSON array of 5 theme objects with the following structure:
+Return ONLY a valid JSON array of 3-5 theme objects with the following structure:
 [
   {
     "id": "unique-id",
     "name": "Theme Name",
-    "description": "Brief description",
-    "whyRecommended": "Personal explanation",
+    "description": "Short fun description",
+    "whyRecommended": "Why it matches this child (cite details!)",
     "colorPalette": ["#hex1", "#hex2", "#hex3", "#hex4"],
     "decorations": ["decoration1", "decoration2", "decoration3"],
     "activities": ["activity1", "activity2", "activity3"],
@@ -85,15 +79,15 @@ Return ONLY a valid JSON array of 5 theme objects with the following structure:
       messages: [
         {
           role: 'system',
-          content: 'You are a creative party planning expert. Always respond with valid JSON only, no additional text.'
+          content: 'You are an extremely creative and imaginative party planning expert specializing in personalized kids birthday parties. You create unique, trending, and highly personalized theme recommendations that perfectly match each child\'s specific interests and preferences. Always respond with valid JSON only, no additional text. Be very creative and imaginative with theme names and descriptions.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 0.8,
-      max_tokens: 2000,
+      temperature: 0.9,
+      max_tokens: 2500,
     });
 
     const responseText = completion.choices[0]?.message?.content;

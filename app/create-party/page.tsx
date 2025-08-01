@@ -164,7 +164,9 @@ const getAIRecommendations = async (
   childName: string,
   age: number,
   interests: string[],
-  favoriteColors: string[]
+  favoriteColors: string[],
+  childGender: string,
+  childDetails?: string
 ): Promise<ThemeRecommendation[]> => {
   try {
     const response = await fetch('/api/theme-recommendations', {
@@ -177,6 +179,8 @@ const getAIRecommendations = async (
         age,
         interests,
         favoriteColors,
+        childGender,
+        childDetails,
         activities: interests // Use interests as activities for now
       }),
     });
@@ -292,7 +296,9 @@ export default function CreatePartyPage() {
           partyData.childName,
           partyData.childAge,
           partyData.childInterests,
-          partyData.favoriteColors
+          partyData.favoriteColors,
+          partyData.childGender,
+          partyData.childDetails
         );
         setPartyData(prev => ({ 
           ...prev, 
