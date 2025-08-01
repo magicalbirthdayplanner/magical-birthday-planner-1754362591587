@@ -1005,7 +1005,7 @@ export default function CreatePartyPage() {
                   
                   {/* Visual Party Summary Cards - All in Single Line */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 max-w-7xl mx-auto">
-                    {/* Child Info Card */}
+                    {/* Card 1: Child Info */}
                     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
                       <div className="text-5xl mb-4">
                         {partyData.childGender === 'boy' ? '👦' : partyData.childGender === 'girl' ? '👧' : '🎂'}
@@ -1017,7 +1017,7 @@ export default function CreatePartyPage() {
                       </div>
                     </div>
 
-                    {/* Date Card */}
+                    {/* Card 2: Party Date */}
                     <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 p-6 rounded-xl border border-green-200 dark:border-green-700 shadow-lg transform hover:scale-105 transition-all duration-300">
                       <div className="text-5xl mb-4">📅</div>
                       <h3 className="font-bold text-green-800 dark:text-green-200 mb-2 text-lg">Party Date</h3>
@@ -1035,27 +1035,65 @@ export default function CreatePartyPage() {
                       </div>
                     </div>
 
-                    {/* Interests Card */}
-                    {partyData.childInterests.length > 0 && (
-                      <div className="bg-gradient-to-br from-orange-50 to-yellow-100 dark:from-orange-900/20 dark:to-yellow-900/30 p-6 rounded-xl border border-orange-200 dark:border-orange-700 shadow-lg transform hover:scale-105 transition-all duration-300">
-                        <div className="text-4xl mb-4 text-center">🎯</div>
-                        <h3 className="font-bold text-orange-800 dark:text-orange-200 mb-2 text-lg text-center">Child's Interests</h3>
+                    {/* Card 3: Combined Interests & Colors */}
+                    <div className="bg-gradient-to-br from-orange-50 to-yellow-100 dark:from-orange-900/20 dark:to-yellow-900/30 p-6 rounded-xl border border-orange-200 dark:border-orange-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                      <div className="text-4xl mb-3 text-center">🎯</div>
+                      <h3 className="font-bold text-orange-800 dark:text-orange-200 mb-3 text-lg text-center">Child's Interests & Colors</h3>
+                      
+                      {/* Interests Section */}
+                      {partyData.childInterests.length > 0 && (
+                        <div className="mb-3">
+                          <div className="flex flex-wrap gap-1 justify-center">
+                            {partyData.childInterests.slice(0, 2).map((interest, index) => (
+                              <span key={index} className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-medium border border-orange-300 dark:border-orange-600">
+                                {interest}
+                              </span>
+                            ))}
+                            {partyData.childInterests.length > 2 && (
+                              <span className="bg-orange-300 dark:bg-orange-700 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-bold border border-orange-400 dark:border-orange-500">
+                                +{partyData.childInterests.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Colors Section */}
+                      {partyData.favoriteColors.length > 0 && (
                         <div className="flex flex-wrap gap-2 justify-center">
-                          {partyData.childInterests.slice(0, 3).map((interest, index) => (
-                            <span key={index} className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-medium border border-orange-300 dark:border-orange-600">
-                              {interest}
-                            </span>
+                          {partyData.favoriteColors.slice(0, 3).map((color, index) => (
+                            <div key={index} className="flex items-center gap-1 bg-orange-100 dark:bg-orange-900 px-2 py-1 rounded-full text-xs">
+                              <div className={cn(
+                                "w-3 h-3 rounded-full border border-white shadow-sm",
+                                color === "Red" && "bg-red-500",
+                                color === "Blue" && "bg-blue-500",
+                                color === "Green" && "bg-green-500",
+                                color === "Yellow" && "bg-yellow-400",
+                                color === "Pink" && "bg-pink-500",
+                                color === "Purple" && "bg-purple-500",
+                                color === "Orange" && "bg-orange-500",
+                                color === "Rainbow" && "bg-gradient-to-r from-red-400 via-yellow-400 to-blue-400"
+                              )} />
+                              <span className="text-orange-800 dark:text-orange-200 text-xs">{color}</span>
+                            </div>
                           ))}
-                          {partyData.childInterests.length > 3 && (
-                            <span className="bg-orange-300 dark:bg-orange-700 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-bold border border-orange-400 dark:border-orange-500">
-                              +{partyData.childInterests.length - 3}
+                          {partyData.favoriteColors.length > 3 && (
+                            <span className="bg-orange-300 dark:bg-orange-700 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-bold">
+                              +{partyData.favoriteColors.length - 3}
                             </span>
                           )}
                         </div>
-                      </div>
-                    )}
+                      )}
+                      
+                      {/* Show message if no preferences */}
+                      {partyData.childInterests.length === 0 && partyData.favoriteColors.length === 0 && (
+                        <div className="text-orange-700 dark:text-orange-300 text-sm text-center italic">
+                          No preferences selected
+                        </div>
+                      )}
+                    </div>
 
-                    {/* Theme Card - Moved to last position */}
+                    {/* Card 4: Chosen Theme - Always last */}
                     <div className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/30 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300">
                       <div className="text-5xl mb-4">
                         {(() => {
@@ -1077,34 +1115,6 @@ export default function CreatePartyPage() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Additional Colors Card - Below main cards if needed */}
-                  {partyData.favoriteColors.length > 0 && (
-                    <div className="grid grid-cols-1 gap-6 mb-8 max-w-2xl mx-auto">
-                      <div className="bg-gradient-to-br from-rose-50 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/30 p-6 rounded-xl border border-rose-200 dark:border-rose-700 shadow-lg">
-                        <div className="text-4xl mb-4 text-center">🎨</div>
-                        <h3 className="font-bold text-rose-800 dark:text-rose-200 mb-4 text-lg text-center">Favorite Colors</h3>
-                        <div className="flex flex-wrap gap-3 justify-center">
-                          {partyData.favoriteColors.map((color, index) => (
-                            <div key={index} className="flex items-center gap-2 bg-rose-200 dark:bg-rose-800 text-rose-800 dark:text-rose-200 px-3 py-2 rounded-full text-sm font-medium border border-rose-300 dark:border-rose-600">
-                              <div className={cn(
-                                "w-4 h-4 rounded-full border-2 border-white shadow-sm",
-                                color === "Red" && "bg-red-500",
-                                color === "Blue" && "bg-blue-500",
-                                color === "Green" && "bg-green-500",
-                                color === "Yellow" && "bg-yellow-400",
-                                color === "Pink" && "bg-pink-500",
-                                color === "Purple" && "bg-purple-500",
-                                color === "Orange" && "bg-orange-500",
-                                color === "Rainbow" && "bg-gradient-to-r from-red-400 via-yellow-400 to-blue-400"
-                              )} />
-                              {color}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   {/* What's Included Preview */}
                   <div className="bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/20 dark:to-yellow-900/30 p-8 rounded-xl border border-amber-200 dark:border-amber-700 shadow-lg mb-8 max-w-5xl mx-auto">
