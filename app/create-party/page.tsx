@@ -321,11 +321,12 @@ export default function CreatePartyPage() {
 
   const handleNext = async () => {
     if (step === 2) {
-      // Check if we have child details (tell us more field) regardless of classic theme selection
+      // Check if we have child details (tell us more field) 
       const hasChildDetails = partyData.childDetails && partyData.childDetails.trim() !== "";
       
-      // Always generate AI recommendations for both custom and classic themes
-      // For classic themes, we require additional child details to generate personalized variations
+      // Generate AI recommendations for both custom and classic themes when possible
+      // For custom themes: require interests
+      // For classic themes: generate AI if child details provided, otherwise proceed without AI
       if ((partyData.childAge && partyData.childInterests.length > 0) || 
           (partyData.classicTheme && hasChildDetails)) {
         // Start navigation loading animation
@@ -362,6 +363,9 @@ export default function CreatePartyPage() {
           console.error('Error getting AI recommendations:', error);
           setPartyData(prev => ({ ...prev, isLoadingAI: false }));
         }
+      } else {
+        // For classic themes without child details, proceed directly to step 3 
+        if (step < 4) setStep(step + 1);
       }
     } else {
       if (step < 4) setStep(step + 1);
@@ -384,10 +388,10 @@ export default function CreatePartyPage() {
       case 1:
         return partyData.childName.trim() !== "" && partyData.childAge >= 1 && partyData.childGender !== "" && partyData.partyDate !== undefined;
       case 2:
-        // For classic themes, require additional details for AI recommendations
+        // For classic themes, just require theme selection
         // For custom themes, require interests
         if (partyData.classicTheme !== "") {
-          return partyData.childDetails && partyData.childDetails.trim() !== "";
+          return true; // Classic theme selected is sufficient
         }
         return partyData.childInterests.length > 0;
       case 3:
@@ -734,14 +738,84 @@ export default function CreatePartyPage() {
             {/* Step 2: Theme Selection Options */}
             {step === 2 && (
               <div className="space-y-6">
-                {/* Choice between Classic Themes or Custom Selection */}
-                <div className="text-center space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Choose Your Planning Style
+                {/* Theme Selection Header */}
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    Choose Your Theme Style
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Pick a classic theme or create a custom theme based on your child's interests
+                  <p className="text-gray-600">
+                    Select Classic Themes for quick setup or Custom Themes for personalized recommendations
                   </p>
+                </div>
+
+                {/* Main Theme Selection Options */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Classic Themes Option */}
+                  <div 
+                    className={cn(
+                      "relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105",
+                      partyData.classicTheme !== ""
+                        ? "border-purple-500 ring-2 ring-purple-200 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50"
+                        : "border-gray-200 hover:border-purple-300 hover:shadow-md bg-white"
+                    )}
+                    onClick={() => {
+                      if (partyData.classicTheme === "") {
+                        // Clear custom selections when switching to classic
+                        setPartyData({ 
+                          ...partyData, 
+                          childInterests: [],
+                          favoriteColors: [],
+                          selectedTheme: ""
+                        });
+                      }
+                    }}
+                  >
+                    <div className="text-center space-y-4">
+                      <div className="text-4xl">🎭</div>
+                      <h4 className="text-lg font-bold text-gray-800">Classic Themes</h4>
+                      <p className="text-sm text-gray-600">
+                        Choose from our popular pre-designed themes. Perfect for quick party planning!
+                      </p>
+                      {partyData.classicTheme !== "" && (
+                        <div className="text-xs text-purple-600 font-medium">
+                          ✨ Selected
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Custom Themes Option */}
+                  <div 
+                    className={cn(
+                      "relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105",
+                      partyData.childInterests.length > 0
+                        ? "border-purple-500 ring-2 ring-purple-200 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50"
+                        : "border-gray-200 hover:border-purple-300 hover:shadow-md bg-white"
+                    )}
+                    onClick={() => {
+                      if (partyData.childInterests.length === 0) {
+                        // Clear classic theme when switching to custom
+                        setPartyData({ 
+                          ...partyData, 
+                          classicTheme: "",
+                          selectedTheme: ""
+                        });
+                      }
+                    }}
+                  >
+                    <div className="text-center space-y-4">
+                      <div className="text-4xl">🎨</div>
+                      <h4 className="text-lg font-bold text-gray-800">Custom Themes</h4>
+                      <p className="text-sm text-gray-600">
+                        Tell us about your child's interests and get AI-powered personalized recommendations!
+                      </p>
+                      {partyData.childInterests.length > 0 && (
+                        <div className="text-xs text-purple-600 font-medium">
+                          ✨ Selected
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Classic Themes Section */}
@@ -828,8 +902,11 @@ export default function CreatePartyPage() {
                   {/* Tell us more section - appears for classic themes */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">
-                      What are your child's current favorites, movies, shows, or hobbies? {partyData.classicTheme ? '(Required for personalized theme variations)' : '(Optional, helps us recommend the perfect theme)'}
+                      What are your child's current favorites, movies, shows, or hobbies? (Optional)
                     </Label>
+                    <p className="text-xs text-gray-500 mb-2">
+                      This helps us recommend the perfect theme variations and personalize your party planning experience.
+                    </p>
                     <Textarea
                       placeholder={currentPlaceholder}
                       value={partyData.childDetails || ''}
@@ -949,8 +1026,11 @@ export default function CreatePartyPage() {
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">
-                          Tell us more! What are your child's current favorites, movies, shows, or hobbies? (Optional, helps us recommend the perfect theme)
+                          What are your child's current favorites, movies, shows, or hobbies? (Optional)
                         </Label>
+                        <p className="text-xs text-gray-500 mb-2">
+                          This helps us recommend the perfect theme variations and personalize your party planning experience.
+                        </p>
                         <Textarea
                           placeholder={currentPlaceholder}
                           value={partyData.childDetails || ''}
@@ -1232,6 +1312,55 @@ export default function CreatePartyPage() {
                           </CardContent>
                         </Card>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Classic Theme Display - Without AI Recommendations */}
+                {partyData.classicTheme && !partyData.isLoadingAI && (!partyData.aiRecommendations || partyData.aiRecommendations.length === 0) && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-center space-x-2 mb-6">
+                      <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        Your {classicThemes.find(t => t.id === partyData.classicTheme)?.name} Theme
+                      </h3>
+                    </div>
+                    
+                    <p className="text-center text-gray-600 mb-6">
+                      Perfect choice! Your {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} theme is ready to go.
+                    </p>
+                    
+                    <div className="flex justify-center">
+                      <Card
+                        className={cn(
+                          "cursor-pointer transition-all duration-200 hover:scale-105 max-w-md w-full",
+                          partyData.selectedTheme === partyData.classicTheme
+                            ? "ring-2 ring-purple-500 shadow-lg bg-purple-50"
+                            : "hover:shadow-lg border-2 border-purple-200"
+                        )}
+                        onClick={() => setPartyData({ ...partyData, selectedTheme: partyData.classicTheme || "" })}
+                      >
+                        <CardContent className="p-0">
+                          <div className={`${classicThemes.find(t => t.id === partyData.classicTheme)?.color} h-24 rounded-t-lg flex items-center justify-center text-4xl`}>
+                            {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji}
+                          </div>
+                          <div className="p-6">
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="font-bold text-xl">{classicThemes.find(t => t.id === partyData.classicTheme)?.name}</h3>
+                              {partyData.selectedTheme === partyData.classicTheme && (
+                                <Badge className="bg-purple-100 text-purple-700">Selected</Badge>
+                              )}
+                            </div>
+                            <p className="text-gray-600 mb-4">
+                              {themes.find(t => t.id === partyData.classicTheme)?.description}
+                            </p>
+                            <div className="text-sm text-gray-600 space-y-2">
+                              <div><strong>Popular Decorations:</strong> {themes.find(t => t.id === partyData.classicTheme)?.preview.decorations.slice(0, 2).join(", ")}</div>
+                              <div><strong>Fun Activities:</strong> {themes.find(t => t.id === partyData.classicTheme)?.preview.activities.slice(0, 2).join(", ")}</div>
+                              <div><strong>Themed Food:</strong> {themes.find(t => t.id === partyData.classicTheme)?.preview.food.slice(0, 2).join(", ")}</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 )}
