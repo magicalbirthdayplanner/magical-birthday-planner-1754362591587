@@ -1,3 +1,17 @@
+## [usr-1754069221894]
+**User Request:** Change the API key for Azure OpenAI with the below credentials 
+
+Api -  5bIYK6b6AxupUFeTXb9oqfDANAzp3IlPJd9kEjmfIzZgeZZa2Rp6JQQJ99BHACYeBjFXJ3w3AAABACOGT7es
+ 
+eastus
+ 
+https://smgbetatest.openai.azure.com/
+ 
+resource name - smgbetatest
+**Response Summary:** Successfully updated Azure OpenAI configuration with new credentials. Changed the API key from the previous "smgrosa" resource to the new "smgbetatest" resource. Updated the AZURE_OPENAI_API_KEY from 5qvihLgxrum8rFO4C7aM37EinlZ8d2ZwkIBUBFnlx4nM5aU5cCJsJQQJ99BCACYeBjFXJ3w3AAABACOGtnW2 to 5bIYK6b6AxupUFeTXb9oqfDANAzp3IlPJd9kEjmfIzZgeZZa2Rp6JQQJ99BHACYeBjFXJ3w3AAABACOGT7es and updated the endpoint from https://smgrosa.openai.azure.com/ to https://smgbetatest.openai.azure.com/. The deployment name remains gpt-4o-mini and API version stays 2024-02-01. Build completed successfully with no errors, confirming the new Azure OpenAI configuration is properly integrated and ready for AI-powered theme recommendations.
+**Files Modified:** 
+- .env (updated AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT with new smgbetatest resource credentials)
+
 ## [usr-1754025029565]
 **User Request:** in step 1., remove the age 0 - there are only 12 cards
 **Response Summary:** Successfully removed age 0 from the party creation wizard Step 1, reducing from 13 cards to 12 cards as requested. Updated the slider minimum value from 0 to 1, removed the age 0 "Select Age" card from the individual age cards array, updated slider labels to start from 1 instead of 0, and modified the initial childAge state from 0 to 1. Also updated the validation logic from childAge > 0 to childAge >= 1, simplified the age label display logic by removing the age 0 conditional, and cleaned up the current selection display by removing all age 0 references. The age selection now directly starts from age 1 (Little One) and goes up to age 12 (Almost Teen), providing exactly 12 age cards as specified. Build completed successfully with no errors.
