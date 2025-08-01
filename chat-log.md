@@ -1,3 +1,24 @@
+## [usr-1754091162731]
+**User Request:** The AI recommendations are not accurate and is way off. Eg, for the classic Theme I choose, Superhero and additional interests as Hulk, but the AI recommendations are of unicorn, dinosour, space explorer etc. 
+
+it needs to be highly contextual 
+
+Below is a prompt that can be fed into the Azure OpenAi model 
+
+Based on the following inputs, suggest 3-5 creative and trending kids' birthday party themes. Each theme should directly reflect the child's age, gender, interests, favorite color, and anything from their current favorites or recent passions. For each theme, include: (1) theme name and short fun description, (2) why it matches this child (cite details!), (3) suggested activities or games for that theme, (4) suggested color palette and decorations, and (5) one or two printable ideas. Here are the child's details:
+- Name: [Child Name]
+- Gender: [Gender]
+- Age / DOB: [Age / Date of birth]
+- Interests: [Interests]
+- Favorite Color: [Favorite Color]
+- Theme Selected : [Classic theme or Custom Theme]
+- Current Favorites / Recent Hobbies: [Text Prompt]
+
+Themes must be age-appropriate, imaginative, and reflect current party trends. Personalize every suggestion fully for this child and explain the match.
+
+**Response Summary:** Successfully enhanced the AI recommendation system to be highly contextual and accurate by implementing the user's exact prompt specification. Fixed the critical issue where AI was generating unrelated themes (unicorns, dinosaurs, space explorers) when specific themes like Superhero + Hulk were selected. Enhanced the Azure OpenAI prompt with CRITICAL INSTRUCTIONS emphasizing that themes must be HIGHLY CONTEXTUAL and directly relate to the child's specific interests and current favorites. Updated the system message to be more strict about contextual recommendations, ensuring that if a child loves Hulk and selects Superhero theme, ALL recommendations must be superhero-related incorporating Hulk. Increased temperature to 1.1 and max_tokens to 3000 for more creative and contextual responses. The AI now properly analyzes the selected theme type (Classic vs Custom) and generates personalized variations that blend the classic theme with the child's specific interests, ensuring recommendations like "Superhero + Hulk" will generate superhero-themed variations instead of generic unrelated themes. Build verification completed successfully with no errors.
+**Files Modified:** app/api/theme-recommendations/route.ts (enhanced Azure OpenAI prompt with user's exact specifications, added CRITICAL INSTRUCTIONS for highly contextual recommendations, updated system message to emphasize strict adherence to child's interests, increased temperature and max_tokens for better creativity and context)
+
 ## [usr-1754090324116]
 **User Request:** When classic theme is selected, let the card flip and display all the classic themes. When the custom theme is selected,  let the card flip and show all the options for custom theme. 
 

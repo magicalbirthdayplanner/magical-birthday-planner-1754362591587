@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the user's exact prompt specification with enhanced classic theme personalization
+    // Use the user's exact enhanced prompt specification for highly contextual recommendations
     const baseInstructions = selectedClassicTheme 
       ? `Based on the following inputs, create 3-5 highly creative and personalized variations of the ${selectedClassicTheme} theme that are specially tailored for this specific child. Each variation should:
       1. Take the classic ${selectedClassicTheme} theme and blend it with the child's specific interests from their "current favorites" and hobbies
@@ -65,14 +65,24 @@ export async function POST(request: NextRequest) {
 
     const prompt = `${baseInstructions} For each theme, include: (1) theme name and short fun description, (2) why it matches this child (cite details!), (3) suggested activities or games for that theme, (4) suggested color palette and decorations, and (5) one or two printable ideas. Here are the child's details:
 - Name: ${childName}
-- Gender: ${childGender || 'Not specified'}
+- Gender: ${childGender || 'Not specified'}  
 - Age / DOB: ${age} years old
 - Interests: ${interests.join(', ') || 'Not specified'}
 - Favorite Color: ${favoriteColors.length > 0 ? favoriteColors.join(', ') : 'Not specified'}
+- Theme Selected: ${selectedClassicTheme ? 'Classic theme' : 'Custom Theme'}
 - Current Favorites / Recent Hobbies: ${childDetails || 'Not specified'}
 ${selectedClassicTheme ? `- Selected Classic Theme: ${selectedClassicTheme} (create personalized variations of this theme)` : ''}
 
-Themes must be age-appropriate, imaginative, and reflect current party trends. Personalize every suggestion fully for this child and explain the match.
+CRITICAL INSTRUCTIONS:
+- Themes must be HIGHLY CONTEXTUAL and directly relate to the child's specific interests and current favorites
+- If Classic Theme is selected (e.g., Superhero) and child loves Hulk, ALL recommendations must be superhero-related variations incorporating Hulk
+- If interests include specific characters, movies, or shows, EVERY theme must incorporate these elements
+- DO NOT suggest unrelated themes like unicorns, dinosaurs, or space explorers unless they match the child's specific interests
+- Each theme name should reference the child's actual interests and favorites
+- Color palettes must incorporate the child's favorite colors
+- Activities must be related to the child's stated interests and the selected theme
+
+Themes must be age-appropriate, imaginative, and reflect current party trends. Personalize every suggestion fully for this child and explain the match with specific references to their interests.
 
 Return ONLY a valid JSON array of 3-5 theme objects with the following structure:
 [
@@ -96,15 +106,15 @@ Return ONLY a valid JSON array of 3-5 theme objects with the following structure
       messages: [
         {
           role: 'system',
-          content: 'You are an extremely creative and imaginative party planning expert specializing in personalized kids birthday parties. You create unique, trending, and highly personalized theme recommendations that perfectly match each child\'s specific interests and preferences. Always respond with valid JSON only, no additional text. Be very creative and imaginative with theme names and descriptions.'
+          content: 'You are an extremely creative and imaginative party planning expert specializing in personalized kids birthday parties. You MUST create themes that are HIGHLY CONTEXTUAL and directly related to the child\'s specific interests and current favorites. If a child loves Hulk and selects Superhero theme, ALL recommendations must be superhero-related incorporating Hulk. NEVER suggest unrelated themes. You create unique, trending, and highly personalized theme recommendations that perfectly match each child\'s specific interests and preferences. Always respond with valid JSON only, no additional text. Be very creative and imaginative with theme names and descriptions while staying strictly within the child\'s stated interests.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 0.9,
-      max_tokens: 2500,
+      temperature: 1.1,
+      max_tokens: 3000,
     });
 
     const responseText = completion.choices[0]?.message?.content;
