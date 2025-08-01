@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -146,7 +147,7 @@ interface ThemeRecommendation {
 
 interface PartyData {
   childName: string;
-  childAge: string;
+  childAge: number;
   childGender: string;
   childInterests: string[];
   favoriteColors: string[];
@@ -159,7 +160,7 @@ interface PartyData {
 // AI Theme Recommendation Logic with OpenAI Integration
 const getAIRecommendations = async (
   childName: string,
-  age: string,
+  age: number,
   interests: string[],
   favoriteColors: string[]
 ): Promise<ThemeRecommendation[]> => {
@@ -171,7 +172,7 @@ const getAIRecommendations = async (
       },
       body: JSON.stringify({
         childName,
-        age: parseInt(age),
+        age,
         interests,
         favoriteColors,
         activities: interests // Use interests as activities for now
@@ -192,8 +193,8 @@ const getAIRecommendations = async (
 };
 
 // Fallback recommendations when AI is unavailable
-const getFallbackRecommendations = (childName: string, age: string, interests: string[]): ThemeRecommendation[] => {
-  const ageNum = parseInt(age);
+const getFallbackRecommendations = (childName: string, age: number, interests: string[]): ThemeRecommendation[] => {
+  const ageNum = age;
   const fallbackThemes: ThemeRecommendation[] = [
     {
       id: 'superhero-local',
@@ -243,7 +244,7 @@ export default function CreatePartyPage() {
   const [step, setStep] = useState(1);
   const [partyData, setPartyData] = useState<PartyData>({
     childName: "",
-    childAge: "",
+    childAge: 3,
     childGender: "",
     childInterests: [],
     favoriteColors: [],
@@ -291,7 +292,7 @@ export default function CreatePartyPage() {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return partyData.childName.trim() !== "" && partyData.childAge !== "" && partyData.childGender !== "" && partyData.partyDate !== undefined;
+        return partyData.childName.trim() !== "" && partyData.childAge > 0 && partyData.childGender !== "" && partyData.partyDate !== undefined;
       case 2:
         return partyData.childInterests.length > 0;
       case 3:
@@ -375,38 +376,60 @@ export default function CreatePartyPage() {
                     className="text-lg py-6"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <Label htmlFor="childAge" className="text-sm font-medium">
-                    Child's Age
+                    Child's Age: {partyData.childAge === 0 ? "Under 1 year" : `${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}
                   </Label>
-                  <Select value={partyData.childAge} onValueChange={(value) => setPartyData({ ...partyData, childAge: value })}>
-                    <SelectTrigger className="text-lg py-6">
-                      <SelectValue placeholder="Select age" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 13 }, (_, i) => (
-                        <SelectItem key={i} value={i.toString()}>
-                          {i === 0 ? "Under 1 year" : `${i} year${i > 1 ? 's' : ''} old`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="px-3">
+                    <Slider
+                      value={[partyData.childAge]}
+                      onValueChange={(value) => setPartyData({ ...partyData, childAge: value[0] })}
+                      max={12}
+                      min={0}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-2">
+                      <span>Under 1</span>
+                      <span>6 years</span>
+                      <span>12 years</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="childGender" className="text-sm font-medium">
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">
                     Gender
                   </Label>
-                  <Select value={partyData.childGender} onValueChange={(value) => setPartyData({ ...partyData, childGender: value })}>
-                    <SelectTrigger className="text-lg py-6">
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="boy">Boy</SelectItem>
-                      <SelectItem value="girl">Girl</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant={partyData.childGender === "boy" ? "default" : "outline"}
+                      onClick={() => setPartyData({ ...partyData, childGender: "boy" })}
+                      className={cn(
+                        "h-20 flex flex-col items-center justify-center space-y-2 text-base",
+                        partyData.childGender === "boy"
+                          ? "bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white"
+                          : "hover:bg-blue-50 hover:border-blue-300"
+                      )}
+                    >
+                      <User className="h-6 w-6" />
+                      <span>Boy</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={partyData.childGender === "girl" ? "default" : "outline"}
+                      onClick={() => setPartyData({ ...partyData, childGender: "girl" })}
+                      className={cn(
+                        "h-20 flex flex-col items-center justify-center space-y-2 text-base",
+                        partyData.childGender === "girl"
+                          ? "bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
+                          : "hover:bg-pink-50 hover:border-pink-300"
+                      )}
+                    >
+                      <User className="h-6 w-6" />
+                      <span>Girl</span>
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">When is the party?</Label>
@@ -556,7 +579,7 @@ export default function CreatePartyPage() {
                       <Sparkles className="h-5 w-5 text-purple-600" />
                     </div>
                     <p className="text-center text-sm text-gray-600 mb-4">
-                      Based on {partyData.childName}'s age ({partyData.childAge === "0" ? "Under 1 year" : `${partyData.childAge} year${parseInt(partyData.childAge) > 1 ? 's' : ''} old`}), interests: {partyData.childInterests.join(", ")}
+                      Based on {partyData.childName}'s age ({partyData.childAge === 0 ? "Under 1 year" : `${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}), interests: {partyData.childInterests.join(", ")}
                       {partyData.favoriteColors.length > 0 && `, and favorite colors: ${partyData.favoriteColors.join(", ")}`}
                     </p>
                     <div className="grid grid-cols-1 gap-6">
