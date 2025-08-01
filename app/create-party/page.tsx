@@ -321,7 +321,7 @@ export default function CreatePartyPage() {
         setPartyData(prev => ({ ...prev, isLoadingAI: false }));
       }
     } else {
-      if (step < 3) setStep(step + 1);
+      if (step < 4) setStep(step + 1);
     }
   };
 
@@ -344,6 +344,8 @@ export default function CreatePartyPage() {
         return partyData.childInterests.length > 0;
       case 3:
         return partyData.selectedTheme !== "";
+      case 4:
+        return true; // Step 4 is always valid since it's just the summary/creation step
       default:
         return false;
     }
@@ -368,7 +370,7 @@ export default function CreatePartyPage() {
         {/* Progress Indicator */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center space-x-4">
-            {[1, 2, 3].map((stepNumber) => (
+            {[1, 2, 3, 4].map((stepNumber) => (
               <div key={stepNumber} className="flex items-center">
                 <div
                   className={cn(
@@ -380,7 +382,7 @@ export default function CreatePartyPage() {
                 >
                   {stepNumber}
                 </div>
-                {stepNumber < 3 && (
+                {stepNumber < 4 && (
                   <div
                     className={cn(
                       "w-16 h-1 mx-2 transition-colors",
@@ -400,11 +402,13 @@ export default function CreatePartyPage() {
               {step === 1 && "Tell us about your child"}
               {step === 2 && "What does your child love?"}
               {step === 3 && "Choose a theme"}
+              {step === 4 && "Create your party plan"}
             </CardTitle>
             <CardDescription>
               {step === 1 && "Basic information about your child and when the party will be"}
               {step === 2 && "Help us personalize themes based on your child's interests and favorite colors"}
               {step === 3 && "Select a theme that your child will absolutely love"}
+              {step === 4 && "Ready to create your magical party plan?"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -740,19 +744,6 @@ export default function CreatePartyPage() {
             {/* Step 3: Theme Selection */}
             {step === 3 && (
               <div className="space-y-6">
-                {/* Top Right Action Button for Step 3 */}
-                {!partyData.isLoadingAI && (
-                  <div className="flex justify-end mb-4">
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={!isStepValid()}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-200"
-                    >
-                      Create My Party Plan
-                      <PartyPopper className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
                 {/* Loading State */}
                 {partyData.isLoadingAI && (
                   <div className="flex flex-col items-center justify-center py-12 relative">
@@ -925,6 +916,82 @@ export default function CreatePartyPage() {
               </div>
             )}
 
+            {/* Step 4: Create Party Plan */}
+            {step === 4 && (
+              <div className="space-y-6">
+                <div className="text-center py-8">
+                  <div className="flex justify-center mb-6">
+                    <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full">
+                      <PartyPopper className="h-12 w-12 text-white" />
+                    </div>
+                  </div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-4">
+                    Ready to Create Your Magical Party Plan?
+                  </h2>
+                  
+                  {/* Party Summary */}
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200 mb-6 max-w-2xl mx-auto">
+                    <h3 className="font-semibold text-gray-800 mb-4">Party Summary</h3>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div className="flex justify-between">
+                        <span>Child's Name:</span>
+                        <span className="font-medium">{partyData.childName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Age:</span>
+                        <span className="font-medium">{partyData.childAge} years old</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Gender:</span>
+                        <span className="font-medium capitalize">{partyData.childGender}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Party Date:</span>
+                        <span className="font-medium">
+                          {partyData.partyDate ? format(partyData.partyDate, "PPP") : "Not selected"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Interests:</span>
+                        <span className="font-medium">{partyData.childInterests.slice(0, 3).join(", ")}{partyData.childInterests.length > 3 ? "..." : ""}</span>
+                      </div>
+                      {partyData.favoriteColors.length > 0 && (
+                        <div className="flex justify-between">
+                          <span>Favorite Colors:</span>
+                          <span className="font-medium">{partyData.favoriteColors.join(", ")}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span>Selected Theme:</span>
+                        <span className="font-medium">
+                          {(() => {
+                            // Find the selected theme name
+                            const aiTheme = partyData.aiRecommendations?.find(t => t.id === partyData.selectedTheme);
+                            const classicTheme = themes.find(t => t.id === partyData.selectedTheme);
+                            return aiTheme?.name || classicTheme?.name || "Not selected";
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+                    We'll create a comprehensive party plan with checklists, decorations, activities, 
+                    guest management tools, and everything you need for {partyData.childName}'s magical birthday celebration!
+                  </p>
+
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  >
+                    <PartyPopper className="mr-3 h-5 w-5" />
+                    Create My Party Plan
+                    <Sparkles className="ml-3 h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Navigation Buttons */}
             <div className="flex justify-between pt-6">
               <Button
@@ -937,7 +1004,7 @@ export default function CreatePartyPage() {
                 Back
               </Button>
               
-              {step < 3 ? (
+              {step < 4 ? (
                 <Button
                   onClick={handleNext}
                   disabled={!isStepValid() || isNavigating}
@@ -957,7 +1024,7 @@ export default function CreatePartyPage() {
                   )}
                 </Button>
               ) : (
-                // For step 3, show a placeholder to maintain layout but make it invisible
+                // For step 4, show a placeholder to maintain layout but make it invisible
                 <div className="px-8 py-2"></div>
               )}
             </div>
