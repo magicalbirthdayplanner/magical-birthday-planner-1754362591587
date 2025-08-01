@@ -816,13 +816,13 @@ export default function CreatePartyPage() {
                   </div>
 
                   {partyData.classicTheme && (
-                    <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                    <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
                       <div className="flex items-center justify-center space-x-2">
-                        <span className="text-green-600 text-lg">🎉</span>
-                        <span className="text-sm font-medium text-green-700">
-                          Perfect! Your <span className="font-bold">
+                        <span className="text-purple-600 text-lg">✨</span>
+                        <span className="text-sm font-medium text-purple-700">
+                          Great choice! Now let's make your <span className="font-bold">
                             {classicThemes.find(t => t.id === partyData.classicTheme)?.name}
-                          </span> theme is ready to go - no additional setup needed!
+                          </span> theme extra special for {partyData.childName}!
                         </span>
                       </div>
                     </div>
@@ -1067,20 +1067,16 @@ export default function CreatePartyPage() {
                       </div>
                     )}
                     
-                    <div className="flex items-center justify-center space-x-2 mb-6">
-                      <div className="text-2xl">
-                        {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji}
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800">
-                        Personalized {classicThemes.find(t => t.id === partyData.classicTheme)?.name} Variations for {partyData.childName}
+                    <div className="flex items-center justify-center space-x-2 mb-4">
+                      <Sparkles className="h-6 w-6 text-purple-600" />
+                      <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        Perfect Themes for {partyData.childName}
                       </h3>
-                      <div className="text-2xl">
-                        {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji}
-                      </div>
+                      <Sparkles className="h-6 w-6 text-purple-600" />
                     </div>
                     
                     <p className="text-center text-gray-600 mb-6">
-                      ✨ AI-crafted variations that blend your child's favorite {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} theme with their personal interests!
+                      🎯 Our AI created these magical {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} variations perfectly tailored to {partyData.childName}'s interests!
                     </p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1097,8 +1093,8 @@ export default function CreatePartyPage() {
                         >
                           {/* AI Badge */}
                           <div className="absolute top-3 right-3 z-10">
-                            <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold">
-                              ✨ AI Personalized
+                            <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white text-xs font-semibold animate-pulse">
+                              🎯 AI Recommended
                             </Badge>
                           </div>
                           
@@ -1153,6 +1149,44 @@ export default function CreatePartyPage() {
                           </CardContent>
                         </Card>
                       ))}
+                    </div>
+                    
+                    {/* Original Classic Theme as Backup Option */}
+                    <div className="mt-8 pt-6 border-t border-gray-200">
+                      <div className="text-center mb-4">
+                        <h4 className="text-sm font-medium text-gray-600 mb-2">
+                          Or stick with the original
+                        </h4>
+                      </div>
+                      
+                      <Card
+                        className={cn(
+                          "cursor-pointer transition-all duration-200 hover:scale-102 relative border",
+                          partyData.selectedTheme === partyData.classicTheme
+                            ? "ring-2 ring-purple-500 shadow-lg bg-purple-50 border-purple-300"
+                            : "hover:shadow-md border-gray-200 hover:border-gray-300"
+                        )}
+                        onClick={() => setPartyData({ ...partyData, selectedTheme: partyData.classicTheme || '' })}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="text-2xl">
+                              {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-800">
+                                Classic {classicThemes.find(t => t.id === partyData.classicTheme)?.name} Theme
+                              </h4>
+                              <p className="text-sm text-gray-600">
+                                The original {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} theme without personalization
+                              </p>
+                            </div>
+                            {partyData.selectedTheme === partyData.classicTheme && (
+                              <Badge className="bg-purple-100 text-purple-700">Selected</Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 )}
