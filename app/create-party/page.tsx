@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck } from "lucide-react";
+import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -374,7 +374,7 @@ export default function CreatePartyPage() {
                       placeholder="Enter your child's name"
                       value={partyData.childName}
                       onChange={(e) => setPartyData({ ...partyData, childName: e.target.value })}
-                      className="text-lg py-6"
+                      className="text-lg h-12"
                     />
                   </div>
                   <div className="space-y-2">
@@ -387,7 +387,7 @@ export default function CreatePartyPage() {
                         variant={partyData.childGender === "boy" ? "default" : "outline"}
                         onClick={() => setPartyData({ ...partyData, childGender: "boy" })}
                         className={cn(
-                          "h-16 flex flex-col items-center justify-center space-y-1 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
+                          "h-12 flex items-center justify-center space-x-2 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
                           partyData.childGender === "boy"
                             ? "bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-700 text-white shadow-lg border-2 border-blue-400"
                             : "hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50 hover:border-blue-300 hover:shadow-md"
@@ -399,13 +399,10 @@ export default function CreatePartyPage() {
                             ? "translate-x-full group-hover:translate-x-[-200%]" 
                             : "translate-x-[-200%]"
                         )} />
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">👦</span>
-                          <UserCheck className={cn(
-                            "h-4 w-4 transition-transform duration-200",
-                            partyData.childGender === "boy" ? "scale-110" : "group-hover:scale-110"
-                          )} />
-                        </div>
+                        <User className={cn(
+                          "h-5 w-5 transition-transform duration-200",
+                          partyData.childGender === "boy" ? "scale-110" : "group-hover:scale-110"
+                        )} />
                         <span className="font-medium">Boy</span>
                         {partyData.childGender === "boy" && (
                           <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
@@ -416,7 +413,7 @@ export default function CreatePartyPage() {
                         variant={partyData.childGender === "girl" ? "default" : "outline"}
                         onClick={() => setPartyData({ ...partyData, childGender: "girl" })}
                         className={cn(
-                          "h-16 flex flex-col items-center justify-center space-y-1 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
+                          "h-12 flex items-center justify-center space-x-2 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
                           partyData.childGender === "girl"
                             ? "bg-gradient-to-br from-pink-500 via-pink-600 to-rose-600 hover:from-pink-600 hover:via-pink-700 hover:to-rose-700 text-white shadow-lg border-2 border-pink-400"
                             : "hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50 hover:border-pink-300 hover:shadow-md"
@@ -428,13 +425,10 @@ export default function CreatePartyPage() {
                             ? "translate-x-full group-hover:translate-x-[-200%]" 
                             : "translate-x-[-200%]"
                         )} />
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">👧</span>
-                          <UserCheck className={cn(
-                            "h-4 w-4 transition-transform duration-200",
-                            partyData.childGender === "girl" ? "scale-110" : "group-hover:scale-110"
-                          )} />
-                        </div>
+                        <Users className={cn(
+                          "h-5 w-5 transition-transform duration-200",
+                          partyData.childGender === "girl" ? "scale-110" : "group-hover:scale-110"
+                        )} />
                         <span className="font-medium">Girl</span>
                         {partyData.childGender === "girl" && (
                           <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />

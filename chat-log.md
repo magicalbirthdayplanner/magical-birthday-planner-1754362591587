@@ -1,3 +1,9 @@
+## [usr-1754008905512]
+**User Request:** remove the emoji from the gender and just add some icons like from Google material design icon - The gender selection buttons are too cluttered and the height of this button to be small and aligned with the text box of the child name text box
+**Response Summary:** Successfully updated the gender selection buttons to remove emojis and replace them with clean Material Design-style icons. Replaced the Boy button emoji (👦) with a User icon and the Girl button emoji (👧) with a Users icon from Lucide React. Reduced the button height from h-16 to h-12 to match the child's name text box height (also updated from py-6 to h-12). The buttons now have a cleaner, more professional appearance with better alignment and reduced visual clutter while maintaining all existing gradient styling, animations, and interactive effects.
+**Files Modified:** 
+- app/create-party/page.tsx (removed gender button emojis, added Material Design-style User and Users icons, reduced button height to h-12, aligned with child name input height)
+
 ## [usr-1754008517035]
 **User Request:** In the gender tab, add nice icons for boy and girl - Try to bring is some animation effect. 
 
