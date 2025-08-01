@@ -443,8 +443,15 @@ export default function CreatePartyPage() {
                   )}
                 </Button>
               ) : (
-                // For step 4, show a placeholder to maintain layout but make it invisible
-                <div className="px-8 py-2"></div>
+                // For step 4, show Create My Party Plan button aligned with Back button
+                <Button
+                  onClick={handleSubmit}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  <PartyPopper className="mr-2 h-4 w-4" />
+                  Create My Party Plan
+                  <Sparkles className="ml-2 h-4 w-4" />
+                </Button>
               )}
             </div>
           </CardHeader>
@@ -1016,15 +1023,6 @@ export default function CreatePartyPage() {
                     We'll create a comprehensive party plan with checklists, decorations, activities, 
                     guest management tools, and everything you need for {partyData.childName}'s magical birthday celebration!
                   </p>
-
-                  <Button
-                    onClick={handleSubmit}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                  >
-                    <PartyPopper className="mr-3 h-5 w-5" />
-                    Create My Party Plan
-                    <Sparkles className="ml-3 h-5 w-5" />
-                  </Button>
                 </div>
               </div>
             )}
