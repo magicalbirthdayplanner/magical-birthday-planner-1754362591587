@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User } from "lucide-react";
+import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -387,28 +387,58 @@ export default function CreatePartyPage() {
                         variant={partyData.childGender === "boy" ? "default" : "outline"}
                         onClick={() => setPartyData({ ...partyData, childGender: "boy" })}
                         className={cn(
-                          "h-14 flex flex-col items-center justify-center space-y-1 text-sm",
+                          "h-16 flex flex-col items-center justify-center space-y-1 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
                           partyData.childGender === "boy"
-                            ? "bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white"
-                            : "hover:bg-blue-50 hover:border-blue-300"
+                            ? "bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-700 text-white shadow-lg border-2 border-blue-400"
+                            : "hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50 hover:border-blue-300 hover:shadow-md"
                         )}
                       >
-                        <User className="h-4 w-4" />
-                        <span>Boy</span>
+                        <div className={cn(
+                          "absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transition-transform duration-700",
+                          partyData.childGender === "boy" 
+                            ? "translate-x-full group-hover:translate-x-[-200%]" 
+                            : "translate-x-[-200%]"
+                        )} />
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">👦</span>
+                          <UserCheck className={cn(
+                            "h-4 w-4 transition-transform duration-200",
+                            partyData.childGender === "boy" ? "scale-110" : "group-hover:scale-110"
+                          )} />
+                        </div>
+                        <span className="font-medium">Boy</span>
+                        {partyData.childGender === "boy" && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+                        )}
                       </Button>
                       <Button
                         type="button"
                         variant={partyData.childGender === "girl" ? "default" : "outline"}
                         onClick={() => setPartyData({ ...partyData, childGender: "girl" })}
                         className={cn(
-                          "h-14 flex flex-col items-center justify-center space-y-1 text-sm",
+                          "h-16 flex flex-col items-center justify-center space-y-1 text-sm relative overflow-hidden group transition-all duration-300 transform hover:scale-105",
                           partyData.childGender === "girl"
-                            ? "bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
-                            : "hover:bg-pink-50 hover:border-pink-300"
+                            ? "bg-gradient-to-br from-pink-500 via-pink-600 to-rose-600 hover:from-pink-600 hover:via-pink-700 hover:to-rose-700 text-white shadow-lg border-2 border-pink-400"
+                            : "hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50 hover:border-pink-300 hover:shadow-md"
                         )}
                       >
-                        <User className="h-4 w-4" />
-                        <span>Girl</span>
+                        <div className={cn(
+                          "absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transition-transform duration-700",
+                          partyData.childGender === "girl" 
+                            ? "translate-x-full group-hover:translate-x-[-200%]" 
+                            : "translate-x-[-200%]"
+                        )} />
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">👧</span>
+                          <UserCheck className={cn(
+                            "h-4 w-4 transition-transform duration-200",
+                            partyData.childGender === "girl" ? "scale-110" : "group-hover:scale-110"
+                          )} />
+                        </div>
+                        <span className="font-medium">Girl</span>
+                        {partyData.childGender === "girl" && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -449,14 +479,14 @@ export default function CreatePartyPage() {
                         { age: 1, label: "Little One", emoji: "🚼" },
                         { age: 2, label: "Toddler", emoji: "🧸" },
                         { age: 3, label: "Preschooler", emoji: "🧒" },
-                        { age: 4, label: "Big Kid", emoji: "👦" },
+                        { age: 4, label: "Big Kid", emoji: "🧒" },
                         { age: 5, label: "Kindergarten", emoji: "🎒" },
                         { age: 6, label: "School Star", emoji: "📚" },
                         { age: 7, label: "Explorer", emoji: "🔍" },
                         { age: 8, label: "Adventurer", emoji: "🚀" },
                         { age: 9, label: "Tween", emoji: "⭐" },
                         { age: 10, label: "Double Digits", emoji: "🎉" },
-                        { age: 11, label: "Pre-teen", emoji: "👧" },
+                        { age: 11, label: "Pre-teen", emoji: "🧑" },
                         { age: 12, label: "Almost Teen", emoji: "🧑" }
                       ].map((ageCard) => {
                         const isActive = partyData.childAge === ageCard.age;
@@ -502,14 +532,14 @@ export default function CreatePartyPage() {
                           {partyData.childAge === 1 ? "🚼" :
                            partyData.childAge === 2 ? "🧸" :
                            partyData.childAge === 3 ? "🧒" :
-                           partyData.childAge === 4 ? "👦" :
+                           partyData.childAge === 4 ? "🧒" :
                            partyData.childAge === 5 ? "🎒" :
                            partyData.childAge === 6 ? "📚" :
                            partyData.childAge === 7 ? "🔍" :
                            partyData.childAge === 8 ? "🚀" :
                            partyData.childAge === 9 ? "⭐" :
                            partyData.childAge === 10 ? "🎉" :
-                           partyData.childAge === 11 ? "👧" :
+                           partyData.childAge === 11 ? "🧑" :
                            partyData.childAge === 12 ? "🧑" : "🎈"}
                         </span>
                         <span className="text-sm font-medium text-gray-700">
