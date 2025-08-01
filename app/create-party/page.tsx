@@ -261,6 +261,7 @@ export default function CreatePartyPage() {
     isLoadingAI: false
   });
   const [isNavigating, setIsNavigating] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Dynamic placeholder examples
   const placeholderExamples = [
@@ -288,6 +289,16 @@ export default function CreatePartyPage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Trigger confetti when AI recommendations are loaded and displayed
+  useEffect(() => {
+    if (!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0) {
+      setShowConfetti(true);
+      // Stop confetti after 3 seconds
+      const timer = setTimeout(() => setShowConfetti(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [partyData.isLoadingAI, partyData.aiRecommendations]);
 
   const handleNext = async () => {
     if (step === 2 && partyData.childAge && partyData.childInterests.length > 0) {
@@ -743,23 +754,6 @@ export default function CreatePartyPage() {
                 {/* Loading State */}
                 {partyData.isLoadingAI && (
                   <div className="flex flex-col items-center justify-center py-12 relative">
-                    <Confetti 
-                      autorun={{ speed: 3, duration: 3000 }}
-                      decorateOptions={(options) => ({
-                        ...options,
-                        particleCount: 100,
-                        spread: 90,
-                        startVelocity: 45,
-                        elementCount: 50,
-                        decay: 0.9,
-                        gravity: 0.6,
-                        drift: 0,
-                        ticks: 200,
-                        colors: ['#FF69B4', '#9370DB', '#FFD700', '#32CD32', '#FF8C00', '#4169E1'],
-                        shapes: ['square', 'circle'],
-                        scalar: 1.2
-                      })}
-                    />
                     <div className="animate-bounce mb-4">
                       <PartyPopper className="h-12 w-12 text-purple-600" />
                     </div>
@@ -780,7 +774,26 @@ export default function CreatePartyPage() {
 
                 {/* AI Recommendations Section */}
                 {!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && (
-                  <div className="space-y-4">
+                  <div className="space-y-4 relative">
+                    {showConfetti && (
+                      <Confetti 
+                        autorun={{ speed: 3, duration: 3000 }}
+                        decorateOptions={(options) => ({
+                          ...options,
+                          particleCount: 100,
+                          spread: 90,
+                          startVelocity: 45,
+                          elementCount: 50,
+                          decay: 0.9,
+                          gravity: 0.6,
+                          drift: 0,
+                          ticks: 200,
+                          colors: ['#FF69B4', '#9370DB', '#FFD700', '#32CD32', '#FF8C00', '#4169E1'],
+                          shapes: ['square', 'circle'],
+                          scalar: 1.2
+                        })}
+                      />
+                    )}
                     <div className="flex items-center justify-center space-x-2 mb-4">
                       <Sparkles className="h-5 w-5 text-purple-600" />
                       <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
