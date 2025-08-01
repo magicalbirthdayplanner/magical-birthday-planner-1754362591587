@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         { 
           error: 'Azure OpenAI API key not configured',
           fallback: true,
-          recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme)
+          recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme, childDetails)
         },
         { status: 200 }
       );
@@ -54,20 +54,21 @@ export async function POST(request: NextRequest) {
 
     // Use the user's exact enhanced prompt specification for highly contextual recommendations
     const baseInstructions = selectedClassicTheme 
-      ? `You are creating personalized variations of the ${selectedClassicTheme} theme ONLY. All 3-5 recommendations must be ${selectedClassicTheme}-based themes that incorporate this child's specific interests.
+      ? `ULTRA CRITICAL INSTRUCTION: You are creating personalized variations of the ${selectedClassicTheme} theme ONLY. All 3-5 recommendations must be ${selectedClassicTheme}-based themes that incorporate this child's specific interests.
 
-      CRITICAL REQUIREMENTS:
-      1. ALL themes must be variations of ${selectedClassicTheme} - no other theme types allowed
-      2. Each theme name must start with or clearly reference ${selectedClassicTheme} (e.g., "${selectedClassicTheme} Adventure with [Child's Interest]")
+      MANDATORY REQUIREMENTS - NO EXCEPTIONS:
+      1. ALL themes MUST be variations of ${selectedClassicTheme} - absolutely no other theme types allowed
+      2. Each theme name MUST start with or clearly reference ${selectedClassicTheme} 
       3. Blend the ${selectedClassicTheme} theme with the child's specific interests from their current favorites
-      4. If child mentions specific characters (e.g., Hulk), create ${selectedClassicTheme} variations featuring those characters
+      4. If child mentions specific characters (e.g., Iron Man, Hulk, Batman, Spider-Man), create ${selectedClassicTheme} variations featuring ONLY those characters
       5. Keep all decorations, activities, and colors within the ${selectedClassicTheme} universe while adding personal touches
 
-      Examples of what you should create:
-      - If ${selectedClassicTheme} = "Superhero" and child loves "Hulk": "Hulk Superhero Smash Party", "Green Guardian Superhero Adventure", "Incredible Hulk Hero Training"
+      SPECIFIC EXAMPLES - FOLLOW THESE PATTERNS EXACTLY:
+      - If ${selectedClassicTheme} = "Superhero" and child loves "Iron Man": "Iron Man Superhero Tech Party", "Iron Man Hero Workshop", "Stark Industries Superhero Training", "Iron Man Armor Building Party", "Tony Stark Superhero Academy"
+      - If ${selectedClassicTheme} = "Superhero" and child loves "Hulk": "Hulk Superhero Smash Party", "Green Guardian Superhero Adventure", "Incredible Hulk Hero Training", "Hulk Smash Superhero Academy"
       - If ${selectedClassicTheme} = "Princess" and child loves "Frozen": "Frozen Princess Ice Palace", "Elsa Princess Winter Wonderland", "Anna & Elsa Princess Adventure"
       
-      DO NOT create themes outside of ${selectedClassicTheme} context.`
+      ABSOLUTELY FORBIDDEN: Creating themes like unicorns, dinosaurs, space explorers, pirates, or any non-${selectedClassicTheme} themes. ONLY ${selectedClassicTheme} variations are allowed.`
       : `Based on the following inputs, suggest 3-5 creative and trending kids' birthday party themes. Each theme should directly reflect the child's age, gender, interests, favorite color, and anything from their current favorites or recent passions.`
 
     const prompt = `${baseInstructions} For each theme, include: (1) theme name and short fun description, (2) why it matches this child (cite details!), (3) suggested activities or games for that theme, (4) suggested color palette and decorations, and (5) one or two printable ideas. Here are the child's details:
@@ -80,13 +81,16 @@ export async function POST(request: NextRequest) {
 - Current Favorites / Recent Hobbies: ${childDetails || 'Not specified'}
 ${selectedClassicTheme ? `- Selected Classic Theme: ${selectedClassicTheme} (create personalized variations of this theme)` : ''}
 
-ULTRA CRITICAL CONTEXT ADHERENCE RULES:
+ULTRA CRITICAL CONTEXT ADHERENCE RULES - FOLLOW EXACTLY:
 ${selectedClassicTheme ? `
-- You are ONLY creating variations of ${selectedClassicTheme} theme - NO OTHER THEMES ALLOWED
-- If child loves specific characters (e.g., Hulk, Elsa, Batman), create ${selectedClassicTheme} variations featuring ONLY those characters
-- Theme names must clearly indicate they are ${selectedClassicTheme} variations (e.g., "Hulk ${selectedClassicTheme} Party", "${selectedClassicTheme} [Character] Adventure")
+- You are ONLY creating variations of ${selectedClassicTheme} theme - NO OTHER THEMES ALLOWED EVER
+- If child loves Iron Man, create ONLY Iron Man superhero variations: "Iron Man Superhero Tech Lab", "Iron Man Armor Building Party", "Stark Industries Superhero Academy"
+- If child loves Hulk, create ONLY Hulk superhero variations: "Hulk Superhero Smash Party", "Incredible Hulk Hero Training", "Green Guardian Superhero Adventure"
+- If child loves Batman, create ONLY Batman superhero variations: "Batman Superhero Gotham Academy", "Dark Knight Hero Training", "Batman Cave Superhero Party"
+- Theme names must clearly indicate they are ${selectedClassicTheme} variations with the child's favorite character
 - All decorations, activities, and colors must stay within ${selectedClassicTheme} universe while incorporating child's favorites
-- FORBIDDEN: Creating non-${selectedClassicTheme} themes like unicorns, dinosaurs, space unless child specifically mentions them AND they can be ${selectedClassicTheme}-themed
+- ABSOLUTELY FORBIDDEN: Creating unicorns, dinosaurs, space explorers, pirates, or any non-${selectedClassicTheme} themes - even if mentioned by child
+- EXAMPLE VIOLATION: If superhero theme is selected, NEVER suggest "Unicorn Magic Party" or "Dinosaur Adventure" - these are completely forbidden
 ` : `
 - Themes must be HIGHLY CONTEXTUAL and directly relate to the child's specific interests and current favorites
 - If interests include specific characters, movies, or shows, EVERY theme must incorporate these elements
@@ -123,13 +127,15 @@ Return ONLY a valid JSON array of 3-5 theme objects with the following structure
           role: 'system',
           content: `You are an extremely creative and imaginative party planning expert specializing in personalized kids birthday parties. 
 
-ABSOLUTE REQUIREMENTS:
+ABSOLUTE REQUIREMENTS - ZERO TOLERANCE FOR VIOLATIONS:
 ${selectedClassicTheme ? `
-- You are creating ONLY ${selectedClassicTheme} theme variations - NO EXCEPTIONS
-- If child mentions specific characters (like Hulk, Elsa, Batman), create ${selectedClassicTheme} variations featuring those exact characters
-- Theme names must clearly show they are ${selectedClassicTheme} variations
+- You are creating ONLY ${selectedClassicTheme} theme variations - NO EXCEPTIONS WHATSOEVER
+- If child mentions Iron Man, create ONLY superhero themes with Iron Man: "Iron Man Tech Superhero Party", "Tony Stark Superhero Lab", "Iron Man Armor Academy"
+- If child mentions Hulk, create ONLY superhero themes with Hulk: "Hulk Smash Superhero Training", "Green Giant Superhero Academy", "Incredible Hulk Hero Party"
+- Theme names must clearly show they are ${selectedClassicTheme} variations with the specific character
 - All suggestions must stay within ${selectedClassicTheme} universe while adding personal touches
-- FORBIDDEN: Suggesting unicorns, dinosaurs, space, or other themes unless they can be ${selectedClassicTheme}-themed
+- ZERO TOLERANCE: Suggesting unicorns, dinosaurs, space explorers, or other themes is COMPLETELY FORBIDDEN - even if child mentions them
+- VIOLATION EXAMPLES TO NEVER DO: "Unicorn Magic Party", "Dinosaur Discovery", "Space Explorer Mission" - these are banned when classic theme is selected
 ` : `
 - Create themes that are HIGHLY CONTEXTUAL and directly related to the child's specific interests
 - If child mentions specific characters, movies, or shows, incorporate those exact elements
@@ -161,7 +167,7 @@ ${selectedClassicTheme ? `
         throw new Error('Invalid recommendations format');
       }
 
-      // Additional validation for classic theme recommendations
+      // Additional validation for classic theme recommendations - ULTRA STRICT FILTERING
       let validatedRecommendations = recommendations;
       if (selectedClassicTheme) {
         validatedRecommendations = recommendations.filter(rec => {
@@ -170,17 +176,45 @@ ${selectedClassicTheme ? `
           const themeDescription = rec.description.toLowerCase();
           const selectedThemeLower = selectedClassicTheme.toLowerCase();
           
-          // Allow theme if it contains the selected theme name or is clearly a variation
-          return themeName.includes(selectedThemeLower) || 
-                 themeDescription.includes(selectedThemeLower) ||
-                 (selectedThemeLower === 'superhero' && (themeName.includes('hero') || themeName.includes('super'))) ||
-                 (selectedThemeLower === 'princess' && (themeName.includes('princess') || themeName.includes('royal'))) ||
-                 (selectedThemeLower === 'dinosaur' && themeName.includes('dino')) ||
-                 (selectedThemeLower === 'space' && (themeName.includes('space') || themeName.includes('astronaut') || themeName.includes('rocket'))) ||
-                 (selectedThemeLower === 'safari' && (themeName.includes('safari') || themeName.includes('jungle') || themeName.includes('animal'))) ||
-                 (selectedThemeLower === 'ocean' && (themeName.includes('ocean') || themeName.includes('sea') || themeName.includes('mermaid'))) ||
-                 (selectedThemeLower === 'pirate' && themeName.includes('pirate')) ||
-                 (selectedThemeLower === 'unicorn' && themeName.includes('unicorn'));
+          // STRICT VALIDATION: Must contain the classic theme or allowed variations
+          const isValidTheme = themeName.includes(selectedThemeLower) || 
+                              themeDescription.includes(selectedThemeLower) ||
+                              (selectedThemeLower === 'superhero' && (
+                                themeName.includes('hero') || 
+                                themeName.includes('super') ||
+                                themeName.includes('iron man') ||
+                                themeName.includes('hulk') ||
+                                themeName.includes('batman') ||
+                                themeName.includes('spider') ||
+                                themeName.includes('captain') ||
+                                themeName.includes('avenger') ||
+                                themeName.includes('stark') ||
+                                themeName.includes('marvel') ||
+                                themeName.includes('dc')
+                              )) ||
+                              (selectedThemeLower === 'princess' && (themeName.includes('princess') || themeName.includes('royal'))) ||
+                              (selectedThemeLower === 'dinosaur' && themeName.includes('dino')) ||
+                              (selectedThemeLower === 'space' && (themeName.includes('space') || themeName.includes('astronaut') || themeName.includes('rocket'))) ||
+                              (selectedThemeLower === 'safari' && (themeName.includes('safari') || themeName.includes('jungle') || themeName.includes('animal'))) ||
+                              (selectedThemeLower === 'ocean' && (themeName.includes('ocean') || themeName.includes('sea') || themeName.includes('mermaid'))) ||
+                              (selectedThemeLower === 'pirate' && themeName.includes('pirate')) ||
+                              (selectedThemeLower === 'unicorn' && themeName.includes('unicorn'));
+          
+          // AGGRESSIVE FILTERING: Remove any themes that contain forbidden keywords for the selected classic theme
+          const forbiddenKeywords: string[] = [];
+          if (selectedThemeLower === 'superhero') {
+            forbiddenKeywords.push('unicorn', 'dinosaur', 'dino', 'pirate', 'safari', 'jungle', 'ocean', 'mermaid', 'princess', 'royal');
+          } else if (selectedThemeLower === 'princess') {
+            forbiddenKeywords.push('superhero', 'hero', 'dinosaur', 'dino', 'pirate', 'safari', 'jungle', 'ocean', 'unicorn');
+          } else if (selectedThemeLower === 'dinosaur') {
+            forbiddenKeywords.push('superhero', 'hero', 'princess', 'unicorn', 'pirate', 'ocean', 'mermaid');
+          }
+          
+          const hasForbiddenKeywords = forbiddenKeywords.some(keyword => 
+            themeName.includes(keyword) || themeDescription.includes(keyword)
+          );
+          
+          return isValidTheme && !hasForbiddenKeywords;
         });
 
         // If no valid themes found, return fallback for classic theme
@@ -189,7 +223,7 @@ ${selectedClassicTheme ? `
           return NextResponse.json({
             error: `AI generated themes not matching ${selectedClassicTheme}`,
             fallback: true,
-            recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme)
+            recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme, childDetails)
           });
         }
       }
@@ -213,7 +247,7 @@ ${selectedClassicTheme ? `
       return NextResponse.json({
         error: 'Failed to parse AI response',
         fallback: true,
-        recommendations: getFallbackRecommendations(childName, age, interests)
+        recommendations: getFallbackRecommendations(childName, age, interests, undefined, childDetails)
       });
     }
 
@@ -230,17 +264,66 @@ ${selectedClassicTheme ? `
     return NextResponse.json({
       error: 'Failed to generate recommendations',
       fallback: true,
-      recommendations: getFallbackRecommendations(body.childName, body.age, body.interests, body.selectedClassicTheme)
+      recommendations: getFallbackRecommendations(body.childName, body.age, body.interests, body.selectedClassicTheme, body.childDetails)
     });
   }
 }
 
-function getFallbackRecommendations(childName: string, age: number, interests: string[], selectedClassicTheme?: string): ThemeRecommendation[] {
+function getFallbackRecommendations(childName: string, age: number, interests: string[], selectedClassicTheme?: string, childDetails?: string): ThemeRecommendation[] {
   // If a classic theme is selected, return fallback variations of that specific theme
   if (selectedClassicTheme) {
     const themeLower = selectedClassicTheme.toLowerCase();
     
     if (themeLower === 'superhero') {
+      // Check if Iron Man is mentioned in child details
+      const hasIronMan = (childDetails && childDetails.toLowerCase().includes('iron man')) || 
+                         interests.some(interest => interest.toLowerCase().includes('iron man'));
+      
+      if (hasIronMan) {
+        return [
+          {
+            id: 'ironman-superhero-1',
+            name: 'Iron Man Tech Superhero Party',
+            description: 'Step into Tony Stark\'s workshop and become a high-tech superhero with Iron Man!',
+            whyRecommended: `Perfect for ${childName} who loves Iron Man - featuring Tony Stark's amazing technology and superhero adventures!`,
+            colorPalette: ['#DC143C', '#FFD700', '#C0C0C0', '#000000'],
+            decorations: ['Arc reactor lights', 'Stark Industries banners', 'Iron Man suit displays', 'High-tech workshop setup'],
+            activities: ['Build your own arc reactor', 'Iron Man suit design challenge', 'Tony Stark invention workshop'],
+            printableIdeas: ['Iron Man mask templates', 'Stark Industries ID cards'],
+            emoji: '🤖',
+            ageAppropriate: age >= 3,
+            matchScore: 98
+          },
+          {
+            id: 'ironman-superhero-2',
+            name: 'Stark Industries Superhero Academy',
+            description: 'Train at Tony Stark\'s exclusive superhero academy and master Iron Man technology!',
+            whyRecommended: `Designed for ${childName} who loves Iron Man - combines superhero training with high-tech adventures!`,
+            colorPalette: ['#FF0000', '#FFD700', '#4169E1', '#C0C0C0'],
+            decorations: ['Stark Industries logo displays', 'High-tech training equipment', 'Iron Man workshop station'],
+            activities: ['Superhero tech training', 'Iron Man flight simulator', 'Arc reactor power tests'],
+            printableIdeas: ['Superhero tech certificates', 'Iron Man blueprint coloring pages'],
+            emoji: '⚡',
+            ageAppropriate: true,
+            matchScore: 96
+          },
+          {
+            id: 'ironman-superhero-3',
+            name: 'Iron Man Armor Building Party',
+            description: 'Design and build your own Iron Man armor with superhero engineering!',
+            whyRecommended: `Perfect for ${childName} who loves Iron Man - focuses on building and creating like Tony Stark!`,
+            colorPalette: ['#DC143C', '#FFD700', '#000000', '#C0C0C0'],
+            decorations: ['Iron Man armor displays', 'Building station setups', 'Superhero workshop theme'],
+            activities: ['Design custom Iron Man suit', 'Arc reactor building challenge', 'Superhero armor testing'],
+            printableIdeas: ['Iron Man suit blueprints', 'Superhero engineer certificates'],
+            emoji: '🔧',
+            ageAppropriate: true,
+            matchScore: 94
+          }
+        ];
+      }
+      
+      // Default superhero fallbacks if no Iron Man mentioned
       return [
         {
           id: 'superhero-classic-1',
