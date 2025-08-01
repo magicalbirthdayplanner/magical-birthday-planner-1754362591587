@@ -993,64 +993,164 @@ export default function CreatePartyPage() {
               <div className="space-y-6">
                 <div className="text-center py-8">
                   <div className="flex justify-center mb-6">
-                    <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full">
+                    <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full animate-pulse">
                       <PartyPopper className="h-12 w-12 text-white" />
                     </div>
                   </div>
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-4">
-                    Ready to Create Your Magical Party Plan?
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-8">
+                    Ready to Create Your Magical Party Plan? ✨
                   </h2>
                   
-                  {/* Party Summary */}
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200 mb-6 max-w-2xl mx-auto">
-                    <h3 className="font-semibold text-gray-800 mb-4">Party Summary</h3>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex justify-between">
-                        <span>Child's Name:</span>
-                        <span className="font-medium">{partyData.childName}</span>
+                  {/* Visual Party Summary Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 max-w-6xl mx-auto">
+                    {/* Child Info Card */}
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                      <div className="text-5xl mb-4">
+                        {partyData.childGender === 'boy' ? '👦' : '👧'}
                       </div>
-                      <div className="flex justify-between">
-                        <span>Age:</span>
-                        <span className="font-medium">{partyData.childAge} years old</span>
+                      <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Birthday Star</h3>
+                      <div className="text-blue-700 dark:text-blue-300 font-semibold text-xl">{partyData.childName}</div>
+                      <div className="text-blue-600 dark:text-blue-400 text-sm mt-2 flex items-center justify-center gap-2">
+                        <span className="bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">{partyData.childAge} years old</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Gender:</span>
-                        <span className="font-medium capitalize">{partyData.childGender}</span>
+                    </div>
+
+                    {/* Date Card */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 p-6 rounded-xl border border-green-200 dark:border-green-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                      <div className="text-5xl mb-4">📅</div>
+                      <h3 className="font-bold text-green-800 dark:text-green-200 mb-2 text-lg">Party Date</h3>
+                      <div className="text-green-700 dark:text-green-300 font-semibold text-lg">
+                        {partyData.partyDate ? format(partyData.partyDate, "MMM d, yyyy") : "Not selected"}
                       </div>
-                      <div className="flex justify-between">
-                        <span>Party Date:</span>
-                        <span className="font-medium">
-                          {partyData.partyDate ? format(partyData.partyDate, "PPP") : "Not selected"}
-                        </span>
+                      <div className="text-green-600 dark:text-green-400 text-sm mt-2">
+                        {partyData.partyDate ? (
+                          <span className="bg-green-200 dark:bg-green-800 px-2 py-1 rounded-full">
+                            {format(partyData.partyDate, "EEEE")}
+                          </span>
+                        ) : (
+                          "Choose your date"
+                        )}
                       </div>
-                      <div className="flex justify-between">
-                        <span>Interests:</span>
-                        <span className="font-medium">{partyData.childInterests.slice(0, 3).join(", ")}{partyData.childInterests.length > 3 ? "..." : ""}</span>
+                    </div>
+
+                    {/* Theme Card */}
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/30 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                      <div className="text-5xl mb-4">
+                        {(() => {
+                          const aiTheme = partyData.aiRecommendations?.find(t => t.id === partyData.selectedTheme);
+                          const classicTheme = themes.find(t => t.id === partyData.selectedTheme);
+                          return aiTheme?.emoji || classicTheme?.emoji || "🎉";
+                        })()}
                       </div>
-                      {partyData.favoriteColors.length > 0 && (
-                        <div className="flex justify-between">
-                          <span>Favorite Colors:</span>
-                          <span className="font-medium">{partyData.favoriteColors.join(", ")}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span>Selected Theme:</span>
-                        <span className="font-medium">
-                          {(() => {
-                            // Find the selected theme name
-                            const aiTheme = partyData.aiRecommendations?.find(t => t.id === partyData.selectedTheme);
-                            const classicTheme = themes.find(t => t.id === partyData.selectedTheme);
-                            return aiTheme?.name || classicTheme?.name || "Not selected";
-                          })()}
-                        </span>
+                      <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-2 text-lg">Chosen Theme</h3>
+                      <div className="text-purple-700 dark:text-purple-300 font-semibold text-lg">
+                        {(() => {
+                          const aiTheme = partyData.aiRecommendations?.find(t => t.id === partyData.selectedTheme);
+                          const classicTheme = themes.find(t => t.id === partyData.selectedTheme);
+                          return aiTheme?.name || classicTheme?.name || "Not selected";
+                        })()}
+                      </div>
+                      <div className="text-purple-600 dark:text-purple-400 text-sm mt-2">
+                        <span className="bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded-full">Perfect match! 🌟</span>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-                    We'll create a comprehensive party plan with checklists, decorations, activities, 
-                    guest management tools, and everything you need for {partyData.childName}'s magical birthday celebration!
-                  </p>
+                  {/* Interests & Colors Visual Display */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
+                    {/* Interests Card */}
+                    {partyData.childInterests.length > 0 && (
+                      <div className="bg-gradient-to-br from-orange-50 to-yellow-100 dark:from-orange-900/20 dark:to-yellow-900/30 p-6 rounded-xl border border-orange-200 dark:border-orange-700 shadow-lg">
+                        <div className="text-4xl mb-4 text-center">🎯</div>
+                        <h3 className="font-bold text-orange-800 dark:text-orange-200 mb-4 text-lg text-center">Child's Interests</h3>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {partyData.childInterests.slice(0, 6).map((interest, index) => (
+                            <span key={index} className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-3 py-2 rounded-full text-sm font-medium border border-orange-300 dark:border-orange-600">
+                              {interest}
+                            </span>
+                          ))}
+                          {partyData.childInterests.length > 6 && (
+                            <span className="bg-orange-300 dark:bg-orange-700 text-orange-800 dark:text-orange-200 px-3 py-2 rounded-full text-sm font-bold border border-orange-400 dark:border-orange-500">
+                              +{partyData.childInterests.length - 6} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Favorite Colors Card */}
+                    {partyData.favoriteColors.length > 0 && (
+                      <div className="bg-gradient-to-br from-rose-50 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/30 p-6 rounded-xl border border-rose-200 dark:border-rose-700 shadow-lg">
+                        <div className="text-4xl mb-4 text-center">🎨</div>
+                        <h3 className="font-bold text-rose-800 dark:text-rose-200 mb-4 text-lg text-center">Favorite Colors</h3>
+                        <div className="flex flex-wrap gap-3 justify-center">
+                          {partyData.favoriteColors.map((color, index) => (
+                            <div key={index} className="flex items-center gap-2 bg-rose-200 dark:bg-rose-800 text-rose-800 dark:text-rose-200 px-3 py-2 rounded-full text-sm font-medium border border-rose-300 dark:border-rose-600">
+                              <div className={cn(
+                                "w-4 h-4 rounded-full border-2 border-white shadow-sm",
+                                color === "Red" && "bg-red-500",
+                                color === "Blue" && "bg-blue-500",
+                                color === "Green" && "bg-green-500",
+                                color === "Yellow" && "bg-yellow-400",
+                                color === "Pink" && "bg-pink-500",
+                                color === "Purple" && "bg-purple-500",
+                                color === "Orange" && "bg-orange-500",
+                                color === "Rainbow" && "bg-gradient-to-r from-red-400 via-yellow-400 to-blue-400"
+                              )} />
+                              {color}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* What's Included Preview */}
+                  <div className="bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/20 dark:to-yellow-900/30 p-8 rounded-xl border border-amber-200 dark:border-amber-700 shadow-lg mb-8 max-w-5xl mx-auto">
+                    <h3 className="font-bold text-amber-800 dark:text-amber-200 mb-6 text-xl text-center">🎁 What's Included in Your Party Plan</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-amber-700 dark:text-amber-300">
+                      <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                        <span className="text-2xl">📋</span>
+                        <span className="text-sm font-medium text-center">Smart Checklists</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                        <span className="text-2xl">🎨</span>
+                        <span className="text-sm font-medium text-center">Decorations Guide</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                        <span className="text-2xl">🎮</span>
+                        <span className="text-sm font-medium text-center">Fun Activities</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                        <span className="text-2xl">👥</span>
+                        <span className="text-sm font-medium text-center">Guest Management</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                        <span className="text-2xl">📧</span>
+                        <span className="text-sm font-medium text-center">Invitations</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                        <span className="text-2xl">⏰</span>
+                        <span className="text-sm font-medium text-center">Timeline Tracker</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                        <span className="text-2xl">🍰</span>
+                        <span className="text-sm font-medium text-center">Food Ideas</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                        <span className="text-2xl">✨</span>
+                        <span className="text-sm font-medium text-center">Much More!</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-6 rounded-xl border border-purple-300 dark:border-purple-600 max-w-3xl mx-auto">
+                    <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
+                      🎉 Everything is perfectly planned for <span className="font-bold text-purple-600 dark:text-purple-400 text-xl">{partyData.childName}'s</span> magical birthday celebration! 
+                      <br />
+                      <span className="text-purple-700 dark:text-purple-300 font-medium">Let's create your comprehensive party plan and make this birthday unforgettable! 🌟</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
