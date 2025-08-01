@@ -294,8 +294,8 @@ export default function CreatePartyPage() {
   useEffect(() => {
     if (!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0) {
       setShowConfetti(true);
-      // Stop confetti after 3 seconds
-      const timer = setTimeout(() => setShowConfetti(false), 3000);
+      // Gradually stop confetti after 6 seconds (matching the animation duration)
+      const timer = setTimeout(() => setShowConfetti(false), 6000);
       return () => clearTimeout(timer);
     }
   }, [partyData.isLoadingAI, partyData.aiRecommendations]);
@@ -776,23 +776,26 @@ export default function CreatePartyPage() {
                 {!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && (
                   <div className="space-y-4 relative">
                     {showConfetti && (
-                      <Confetti 
-                        autorun={{ speed: 3, duration: 3000 }}
-                        decorateOptions={(options) => ({
-                          ...options,
-                          particleCount: 100,
-                          spread: 90,
-                          startVelocity: 45,
-                          elementCount: 50,
-                          decay: 0.9,
-                          gravity: 0.6,
-                          drift: 0,
-                          ticks: 200,
-                          colors: ['#FF69B4', '#9370DB', '#FFD700', '#32CD32', '#FF8C00', '#4169E1'],
-                          shapes: ['square', 'circle'],
-                          scalar: 1.2
-                        })}
-                      />
+                      <div className="fixed inset-0 pointer-events-none z-50">
+                        <Confetti 
+                          autorun={{ speed: 4, duration: 6000 }}
+                          decorateOptions={(options) => ({
+                            ...options,
+                            particleCount: 150,
+                            spread: 120,
+                            startVelocity: 50,
+                            elementCount: 80,
+                            decay: 0.94,
+                            gravity: 0.5,
+                            drift: 0.1,
+                            ticks: 400,
+                            colors: ['#FF69B4', '#9370DB', '#FFD700', '#32CD32', '#FF8C00', '#4169E1', '#FF6347', '#BA55D3', '#00CED1', '#98FB98'],
+                            shapes: ['square', 'circle'],
+                            scalar: 1.5,
+                            origin: { x: 0.5, y: -0.1 }
+                          })}
+                        />
+                      </div>
                     )}
                     <div className="flex items-center justify-center space-x-2 mb-4">
                       <Sparkles className="h-5 w-5 text-purple-600" />
@@ -962,23 +965,6 @@ export default function CreatePartyPage() {
                 >
                   {isNavigating && step === 2 ? (
                     <>
-                      <Confetti 
-                        autorun={{ speed: 2, duration: 800 }}
-                        decorateOptions={(options) => ({
-                          ...options,
-                          particleCount: 30,
-                          spread: 70,
-                          startVelocity: 25,
-                          elementCount: 20,
-                          decay: 0.95,
-                          gravity: 0.4,
-                          drift: 0,
-                          ticks: 100,
-                          colors: ['#FF69B4', '#9370DB', '#FFD700', '#32CD32', '#FF8C00'],
-                          shapes: ['square', 'circle'],
-                          scalar: 0.8
-                        })}
-                      />
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       <span className="animate-pulse">Creating Magic...</span>
                       <Sparkles className="ml-2 h-4 w-4 animate-pulse" />
