@@ -19,6 +19,7 @@ interface ThemeRequest {
   activities?: string[];
   childGender?: string;
   childDetails?: string;
+  selectedClassicTheme?: string;
 }
 
 interface ThemeRecommendation {
@@ -38,7 +39,7 @@ interface ThemeRecommendation {
 export async function POST(request: NextRequest) {
   try {
     const body: ThemeRequest = await request.json();
-    const { childName, age, interests, favoriteColors = [], activities = [], childGender, childDetails } = body;
+    const { childName, age, interests, favoriteColors = [], activities = [], childGender, childDetails, selectedClassicTheme } = body;
 
     if (!openai || !process.env.AZURE_OPENAI_API_KEY) {
       return NextResponse.json(
@@ -51,14 +52,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the user's exact prompt specification
-    const prompt = `Based on the following inputs, suggest 3-5 creative and trending kids' birthday party themes. Each theme should directly reflect the child's age, gender, interests, favorite color, and anything from their current favorites or recent passions. For each theme, include: (1) theme name and short fun description, (2) why it matches this child (cite details!), (3) suggested activities or games for that theme, (4) suggested color palette and decorations, and (5) one or two printable ideas. Here are the child's details:
+    // Use the user's exact prompt specification with classic theme personalization
+    const baseInstructions = selectedClassicTheme 
+      ? `Based on the following inputs, create 3-5 personalized variations of the ${selectedClassicTheme} theme for this specific child. Each variation should be a unique, creative take on the ${selectedClassicTheme} theme that incorporates the child's personal interests and preferences from their current favorites/hobbies. Focus on making the classic ${selectedClassicTheme} theme highly personalized and special for this child.`
+      : `Based on the following inputs, suggest 3-5 creative and trending kids' birthday party themes. Each theme should directly reflect the child's age, gender, interests, favorite color, and anything from their current favorites or recent passions.`
+
+    const prompt = `${baseInstructions} For each theme, include: (1) theme name and short fun description, (2) why it matches this child (cite details!), (3) suggested activities or games for that theme, (4) suggested color palette and decorations, and (5) one or two printable ideas. Here are the child's details:
 - Name: ${childName}
 - Gender: ${childGender || 'Not specified'}
 - Age / DOB: ${age} years old
-- Interests: ${interests.join(', ')}
+- Interests: ${interests.join(', ') || 'Not specified'}
 - Favorite Color: ${favoriteColors.length > 0 ? favoriteColors.join(', ') : 'Not specified'}
 - Current Favorites / Recent Hobbies: ${childDetails || 'Not specified'}
+${selectedClassicTheme ? `- Selected Classic Theme: ${selectedClassicTheme} (create personalized variations of this theme)` : ''}
 
 Themes must be age-appropriate, imaginative, and reflect current party trends. Personalize every suggestion fully for this child and explain the match.
 

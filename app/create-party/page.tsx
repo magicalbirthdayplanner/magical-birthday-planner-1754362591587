@@ -179,7 +179,8 @@ const getAIRecommendations = async (
   interests: string[],
   favoriteColors: string[],
   childGender: string,
-  childDetails?: string
+  childDetails?: string,
+  selectedClassicTheme?: string
 ): Promise<ThemeRecommendation[]> => {
   try {
     const response = await fetch('/api/theme-recommendations', {
@@ -194,6 +195,7 @@ const getAIRecommendations = async (
         favoriteColors,
         childGender,
         childDetails,
+        selectedClassicTheme,
         activities: interests // Use interests as activities for now
       }),
     });
@@ -345,13 +347,18 @@ export default function CreatePartyPage() {
         setStep(3);
         
         try {
+          // For classic themes, include the selected theme name in the request
+          const selectedClassicTheme = partyData.classicTheme ? 
+            classicThemes.find(t => t.id === partyData.classicTheme)?.name : undefined;
+          
           const recommendations = await getAIRecommendations(
             partyData.childName,
             partyData.childAge,
             partyData.childInterests,
             partyData.favoriteColors,
             partyData.childGender,
-            partyData.childDetails
+            partyData.childDetails,
+            selectedClassicTheme
           );
           setPartyData(prev => ({ 
             ...prev, 
@@ -776,10 +783,10 @@ export default function CreatePartyPage() {
                             ...partyData, 
                             classicTheme: theme.id,
                             selectedTheme: theme.id,
-                            // Clear custom selections when classic theme is chosen
+                            // Clear custom selections when classic theme is chosen, but preserve childDetails for personalization
                             childInterests: [],
-                            favoriteColors: [],
-                            childDetails: ""
+                            favoriteColors: []
+                            // Keep childDetails for AI personalization
                           });
                         }}
                         className={cn(
