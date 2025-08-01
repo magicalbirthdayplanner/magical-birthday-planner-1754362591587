@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
 import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -151,6 +152,7 @@ interface PartyData {
   childGender: string;
   childInterests: string[];
   favoriteColors: string[];
+  childDetails?: string;
   partyDate: Date | undefined;
   selectedTheme: string;
   aiRecommendations?: ThemeRecommendation[];
@@ -253,6 +255,33 @@ export default function CreatePartyPage() {
     aiRecommendations: [],
     isLoadingAI: false
   });
+
+  // Dynamic placeholder examples
+  const placeholderExamples = [
+    "She's obsessed with Frozen and unicorns this month...",
+    "He talks about astronauts and loves Pokémon.",
+    "Spiderman, magic tricks, and football!",
+    "Loves painting, fairy tales, and her pet hamster.",
+    "Always building with Legos and watching Minecraft videos.",
+    "Dinosaurs, dragons, and playing dress-up as a knight.",
+    "Dancing to Taylor Swift and collecting sparkly things."
+  ];
+
+  const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
+  const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholderExamples[0]);
+
+  // Rotate placeholder text every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentPlaceholderIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % placeholderExamples.length;
+        setCurrentPlaceholder(placeholderExamples[nextIndex]);
+        return nextIndex;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleNext = async () => {
     if (step === 2 && partyData.childAge && partyData.childInterests.length > 0) {
@@ -675,6 +704,17 @@ export default function CreatePartyPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    Tell us more! What are your child's current favorites, movies, shows, or hobbies? (Optional, helps us recommend the perfect theme)
+                  </Label>
+                  <Textarea
+                    placeholder={currentPlaceholder}
+                    value={partyData.childDetails || ''}
+                    onChange={(e) => setPartyData({ ...partyData, childDetails: e.target.value })}
+                    className="min-h-[100px] text-sm resize-none"
+                  />
                 </div>
               </div>
             )}
