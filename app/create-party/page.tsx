@@ -251,7 +251,7 @@ export default function CreatePartyPage() {
   const [step, setStep] = useState(1);
   const [partyData, setPartyData] = useState<PartyData>({
     childName: "",
-    childAge: 0,
+    childAge: 1,
     childGender: "",
     childInterests: [],
     favoriteColors: [],
@@ -354,7 +354,7 @@ export default function CreatePartyPage() {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return partyData.childName.trim() !== "" && partyData.childAge > 0 && partyData.childGender !== "" && partyData.partyDate !== undefined;
+        return partyData.childName.trim() !== "" && partyData.childAge >= 1 && partyData.childGender !== "" && partyData.partyDate !== undefined;
       case 2:
         return partyData.childInterests.length > 0;
       case 3:
@@ -576,19 +576,18 @@ export default function CreatePartyPage() {
                 </div>
                 <div className="space-y-4">
                   <Label htmlFor="childAge" className="text-sm font-medium">
-                    Child's Age: {partyData.childAge === 0 ? "Please select age" : `${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}
+                    Child's Age: {`${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}
                   </Label>
                   <div className="px-3">
                     <Slider
                       value={[partyData.childAge]}
                       onValueChange={(value) => setPartyData({ ...partyData, childAge: value[0] })}
                       max={12}
-                      min={0}
+                      min={1}
                       step={1}
                       className="w-full"
                     />
                     <div className="flex justify-between text-xs text-gray-500 mt-2">
-                      <span>0</span>
                       <span>1</span>
                       <span>2</span>
                       <span>3</span>
@@ -608,7 +607,6 @@ export default function CreatePartyPage() {
                   <div className="mt-6 space-y-3">
                     <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-2">
                       {[
-                        { age: 0, label: "Select Age", emoji: "❓" },
                         { age: 1, label: "Little One", emoji: "🍼" },
                         { age: 2, label: "Toddler", emoji: "🧸" },
                         { age: 3, label: "Preschooler", emoji: "🎈" },
@@ -662,8 +660,7 @@ export default function CreatePartyPage() {
                     <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
                       <div className="flex items-center justify-center space-x-2">
                         <span className="text-lg">
-                          {partyData.childAge === 0 ? "❓" :
-                           partyData.childAge === 1 ? "🍼" :
+                          {partyData.childAge === 1 ? "🍼" :
                            partyData.childAge === 2 ? "🧸" :
                            partyData.childAge === 3 ? "🎈" :
                            partyData.childAge === 4 ? "🎒" :
@@ -677,28 +674,22 @@ export default function CreatePartyPage() {
                            partyData.childAge === 12 ? "🎮" : "🎈"}
                         </span>
                         <span className="text-sm font-medium text-gray-700">
-                          {partyData.childAge === 0 ? (
-                            <span className="font-bold text-red-600">Please select your child's age to continue</span>
-                          ) : (
-                            <>
-                              Perfect for a{" "}
-                              <span className="font-bold text-orange-600">
-                                {partyData.childAge === 1 ? "Little One" :
-                                 partyData.childAge === 2 ? "Toddler" :
-                                 partyData.childAge === 3 ? "Preschooler" :
-                                 partyData.childAge === 4 ? "Big Kid" :
-                                 partyData.childAge === 5 ? "Kindergarten" :
-                                 partyData.childAge === 6 ? "School Star" :
-                                 partyData.childAge === 7 ? "Explorer" :
-                                 partyData.childAge === 8 ? "Adventurer" :
-                                 partyData.childAge === 9 ? "Tween" :
-                                 partyData.childAge === 10 ? "Double Digits" :
-                                 partyData.childAge === 11 ? "Pre-teen" :
-                                 partyData.childAge === 12 ? "Almost Teen" : "Young Child"}
-                              </span>{" "}
-                              celebration! 🎉
-                            </>
-                          )}
+                          Perfect for a{" "}
+                          <span className="font-bold text-orange-600">
+                            {partyData.childAge === 1 ? "Little One" :
+                             partyData.childAge === 2 ? "Toddler" :
+                             partyData.childAge === 3 ? "Preschooler" :
+                             partyData.childAge === 4 ? "Big Kid" :
+                             partyData.childAge === 5 ? "Kindergarten" :
+                             partyData.childAge === 6 ? "School Star" :
+                             partyData.childAge === 7 ? "Explorer" :
+                             partyData.childAge === 8 ? "Adventurer" :
+                             partyData.childAge === 9 ? "Tween" :
+                             partyData.childAge === 10 ? "Double Digits" :
+                             partyData.childAge === 11 ? "Pre-teen" :
+                             partyData.childAge === 12 ? "Almost Teen" : "Young Child"}
+                          </span>{" "}
+                          celebration! 🎉
                         </span>
                       </div>
                     </div>
