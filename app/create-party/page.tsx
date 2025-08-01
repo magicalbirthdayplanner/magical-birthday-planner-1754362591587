@@ -1151,43 +1151,6 @@ export default function CreatePartyPage() {
                       ))}
                     </div>
                     
-                    {/* Original Classic Theme as Backup Option */}
-                    <div className="mt-8 pt-6 border-t border-gray-200">
-                      <div className="text-center mb-4">
-                        <h4 className="text-sm font-medium text-gray-600 mb-2">
-                          Or stick with the original
-                        </h4>
-                      </div>
-                      
-                      <Card
-                        className={cn(
-                          "cursor-pointer transition-all duration-200 hover:scale-102 relative border",
-                          partyData.selectedTheme === partyData.classicTheme
-                            ? "ring-2 ring-purple-500 shadow-lg bg-purple-50 border-purple-300"
-                            : "hover:shadow-md border-gray-200 hover:border-gray-300"
-                        )}
-                        onClick={() => setPartyData({ ...partyData, selectedTheme: partyData.classicTheme || '' })}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-center space-x-4">
-                            <div className="text-2xl">
-                              {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji}
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-800">
-                                Classic {classicThemes.find(t => t.id === partyData.classicTheme)?.name} Theme
-                              </h4>
-                              <p className="text-sm text-gray-600">
-                                The original {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} theme without personalization
-                              </p>
-                            </div>
-                            {partyData.selectedTheme === partyData.classicTheme && (
-                              <Badge className="bg-purple-100 text-purple-700">Selected</Badge>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
                   </div>
                 )}
 
