@@ -209,12 +209,52 @@ const getAIRecommendations = async (
   } catch (error) {
     console.error('Error fetching AI recommendations:', error);
     // Return fallback recommendations on error
-    return getFallbackRecommendations(childName, age, interests);
+    return getFallbackRecommendations(childName, age, interests, selectedClassicTheme);
   }
 };
 
 // Fallback recommendations when AI is unavailable
-const getFallbackRecommendations = (childName: string, age: number, interests: string[]): ThemeRecommendation[] => {
+const getFallbackRecommendations = (childName: string, age: number, interests: string[], selectedClassicTheme?: string): ThemeRecommendation[] => {  
+  // If a classic theme is selected, return contextual variations
+  if (selectedClassicTheme) {
+    const themeLower = selectedClassicTheme.toLowerCase();
+    
+    if (themeLower === 'superhero') {
+      return [
+        {
+          id: 'superhero-contextual-1',
+          name: 'Superhero Action Adventure',
+          description: 'Transform into mighty heroes and save the day with action-packed adventures!',
+          whyRecommended: `Perfect for ${childName} who selected the Superhero theme - experience epic hero adventures!`,
+          colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
+          decorations: ['Hero cape station', 'City skyline backdrop', 'Comic book props'],
+          activities: ['Hero training course', 'Superhero logo design', 'Villain capture missions'],
+          printableIdeas: ['Superhero certificates', 'Hero comic pages'],
+          emoji: '🦸‍♂️',
+          ageAppropriate: true,
+          matchScore: 95
+        }
+      ];
+    }
+    
+    // Return contextual fallback for the selected classic theme
+    return [
+      {
+        id: `${themeLower}-contextual`,
+        name: `${selectedClassicTheme} Adventure`,
+        description: `Experience an amazing ${selectedClassicTheme.toLowerCase()} themed party adventure!`,
+        whyRecommended: `Perfect for ${childName} who chose the ${selectedClassicTheme} theme!`,
+        colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
+        decorations: [`${selectedClassicTheme} decorations`, `${selectedClassicTheme} backdrop`, 'Themed party props'],
+        activities: [`${selectedClassicTheme} games`, `${selectedClassicTheme} activities`, 'Theme exploration'],
+        printableIdeas: [`${selectedClassicTheme} coloring pages`, `${selectedClassicTheme} activity sheets`],
+        emoji: '🎉',
+        ageAppropriate: true,
+        matchScore: 90
+      }
+    ];
+  }
+  
   const ageNum = age;
   const fallbackThemes: ThemeRecommendation[] = [
     {

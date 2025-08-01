@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         { 
           error: 'Azure OpenAI API key not configured',
           fallback: true,
-          recommendations: getFallbackRecommendations(childName, age, interests)
+          recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme)
         },
         { status: 200 }
       );
@@ -54,13 +54,20 @@ export async function POST(request: NextRequest) {
 
     // Use the user's exact enhanced prompt specification for highly contextual recommendations
     const baseInstructions = selectedClassicTheme 
-      ? `Based on the following inputs, create 3-5 highly creative and personalized variations of the ${selectedClassicTheme} theme that are specially tailored for this specific child. Each variation should:
-      1. Take the classic ${selectedClassicTheme} theme and blend it with the child's specific interests from their "current favorites" and hobbies
-      2. Create unique theme names that combine ${selectedClassicTheme} with the child's interests (e.g., "Safari Explorer meets Lion King", "Dinosaur Detective Adventure", "Princess Unicorn Dreams")
-      3. Be completely different from generic ${selectedClassicTheme} themes - make them feel custom and personal
-      4. Incorporate the child's favorite colors into the ${selectedClassicTheme} color palette
-      5. Reference specific movies, shows, or hobbies mentioned in the child's current favorites
-      Make each variation feel like it was designed exclusively for this child, not just a standard ${selectedClassicTheme} party.`
+      ? `You are creating personalized variations of the ${selectedClassicTheme} theme ONLY. All 3-5 recommendations must be ${selectedClassicTheme}-based themes that incorporate this child's specific interests.
+
+      CRITICAL REQUIREMENTS:
+      1. ALL themes must be variations of ${selectedClassicTheme} - no other theme types allowed
+      2. Each theme name must start with or clearly reference ${selectedClassicTheme} (e.g., "${selectedClassicTheme} Adventure with [Child's Interest]")
+      3. Blend the ${selectedClassicTheme} theme with the child's specific interests from their current favorites
+      4. If child mentions specific characters (e.g., Hulk), create ${selectedClassicTheme} variations featuring those characters
+      5. Keep all decorations, activities, and colors within the ${selectedClassicTheme} universe while adding personal touches
+
+      Examples of what you should create:
+      - If ${selectedClassicTheme} = "Superhero" and child loves "Hulk": "Hulk Superhero Smash Party", "Green Guardian Superhero Adventure", "Incredible Hulk Hero Training"
+      - If ${selectedClassicTheme} = "Princess" and child loves "Frozen": "Frozen Princess Ice Palace", "Elsa Princess Winter Wonderland", "Anna & Elsa Princess Adventure"
+      
+      DO NOT create themes outside of ${selectedClassicTheme} context.`
       : `Based on the following inputs, suggest 3-5 creative and trending kids' birthday party themes. Each theme should directly reflect the child's age, gender, interests, favorite color, and anything from their current favorites or recent passions.`
 
     const prompt = `${baseInstructions} For each theme, include: (1) theme name and short fun description, (2) why it matches this child (cite details!), (3) suggested activities or games for that theme, (4) suggested color palette and decorations, and (5) one or two printable ideas. Here are the child's details:
@@ -73,14 +80,22 @@ export async function POST(request: NextRequest) {
 - Current Favorites / Recent Hobbies: ${childDetails || 'Not specified'}
 ${selectedClassicTheme ? `- Selected Classic Theme: ${selectedClassicTheme} (create personalized variations of this theme)` : ''}
 
-CRITICAL INSTRUCTIONS:
+ULTRA CRITICAL CONTEXT ADHERENCE RULES:
+${selectedClassicTheme ? `
+- You are ONLY creating variations of ${selectedClassicTheme} theme - NO OTHER THEMES ALLOWED
+- If child loves specific characters (e.g., Hulk, Elsa, Batman), create ${selectedClassicTheme} variations featuring ONLY those characters
+- Theme names must clearly indicate they are ${selectedClassicTheme} variations (e.g., "Hulk ${selectedClassicTheme} Party", "${selectedClassicTheme} [Character] Adventure")
+- All decorations, activities, and colors must stay within ${selectedClassicTheme} universe while incorporating child's favorites
+- FORBIDDEN: Creating non-${selectedClassicTheme} themes like unicorns, dinosaurs, space unless child specifically mentions them AND they can be ${selectedClassicTheme}-themed
+` : `
 - Themes must be HIGHLY CONTEXTUAL and directly relate to the child's specific interests and current favorites
-- If Classic Theme is selected (e.g., Superhero) and child loves Hulk, ALL recommendations must be superhero-related variations incorporating Hulk
 - If interests include specific characters, movies, or shows, EVERY theme must incorporate these elements
-- DO NOT suggest unrelated themes like unicorns, dinosaurs, or space explorers unless they match the child's specific interests
-- Each theme name should reference the child's actual interests and favorites
-- Color palettes must incorporate the child's favorite colors
-- Activities must be related to the child's stated interests and the selected theme
+- DO NOT suggest unrelated themes unless they directly match the child's specific interests
+`}
+- Each theme name should reference the child's actual interests and favorites mentioned in their details
+- Color palettes must incorporate the child's favorite colors where specified
+- Activities must be directly related to the child's stated interests and the theme context
+- Provide detailed explanations of why each theme matches this specific child's interests
 
 Themes must be age-appropriate, imaginative, and reflect current party trends. Personalize every suggestion fully for this child and explain the match with specific references to their interests.
 
@@ -106,7 +121,23 @@ Return ONLY a valid JSON array of 3-5 theme objects with the following structure
       messages: [
         {
           role: 'system',
-          content: 'You are an extremely creative and imaginative party planning expert specializing in personalized kids birthday parties. You MUST create themes that are HIGHLY CONTEXTUAL and directly related to the child\'s specific interests and current favorites. If a child loves Hulk and selects Superhero theme, ALL recommendations must be superhero-related incorporating Hulk. NEVER suggest unrelated themes. You create unique, trending, and highly personalized theme recommendations that perfectly match each child\'s specific interests and preferences. Always respond with valid JSON only, no additional text. Be very creative and imaginative with theme names and descriptions while staying strictly within the child\'s stated interests.'
+          content: `You are an extremely creative and imaginative party planning expert specializing in personalized kids birthday parties. 
+
+ABSOLUTE REQUIREMENTS:
+${selectedClassicTheme ? `
+- You are creating ONLY ${selectedClassicTheme} theme variations - NO EXCEPTIONS
+- If child mentions specific characters (like Hulk, Elsa, Batman), create ${selectedClassicTheme} variations featuring those exact characters
+- Theme names must clearly show they are ${selectedClassicTheme} variations
+- All suggestions must stay within ${selectedClassicTheme} universe while adding personal touches
+- FORBIDDEN: Suggesting unicorns, dinosaurs, space, or other themes unless they can be ${selectedClassicTheme}-themed
+` : `
+- Create themes that are HIGHLY CONTEXTUAL and directly related to the child's specific interests
+- If child mentions specific characters, movies, or shows, incorporate those exact elements
+- DO NOT suggest generic themes that don't match the child's stated interests
+`}
+- Always respond with valid JSON only, no additional text
+- Be extremely creative with personalization while staying strictly within the specified context
+- Match score should reflect how well the theme incorporates the child's specific interests`
         },
         {
           role: 'user',
@@ -125,13 +156,46 @@ Return ONLY a valid JSON array of 3-5 theme objects with the following structure
     try {
       const recommendations: ThemeRecommendation[] = JSON.parse(responseText);
       
-      // Validate and ensure we have 5 recommendations
+      // Validate and ensure we have 3-5 recommendations
       if (!Array.isArray(recommendations) || recommendations.length < 3) {
         throw new Error('Invalid recommendations format');
       }
 
+      // Additional validation for classic theme recommendations
+      let validatedRecommendations = recommendations;
+      if (selectedClassicTheme) {
+        validatedRecommendations = recommendations.filter(rec => {
+          // Check if theme name contains the selected classic theme or related keywords
+          const themeName = rec.name.toLowerCase();
+          const themeDescription = rec.description.toLowerCase();
+          const selectedThemeLower = selectedClassicTheme.toLowerCase();
+          
+          // Allow theme if it contains the selected theme name or is clearly a variation
+          return themeName.includes(selectedThemeLower) || 
+                 themeDescription.includes(selectedThemeLower) ||
+                 (selectedThemeLower === 'superhero' && (themeName.includes('hero') || themeName.includes('super'))) ||
+                 (selectedThemeLower === 'princess' && (themeName.includes('princess') || themeName.includes('royal'))) ||
+                 (selectedThemeLower === 'dinosaur' && themeName.includes('dino')) ||
+                 (selectedThemeLower === 'space' && (themeName.includes('space') || themeName.includes('astronaut') || themeName.includes('rocket'))) ||
+                 (selectedThemeLower === 'safari' && (themeName.includes('safari') || themeName.includes('jungle') || themeName.includes('animal'))) ||
+                 (selectedThemeLower === 'ocean' && (themeName.includes('ocean') || themeName.includes('sea') || themeName.includes('mermaid'))) ||
+                 (selectedThemeLower === 'pirate' && themeName.includes('pirate')) ||
+                 (selectedThemeLower === 'unicorn' && themeName.includes('unicorn'));
+        });
+
+        // If no valid themes found, return fallback for classic theme
+        if (validatedRecommendations.length === 0) {
+          console.log(`No valid ${selectedClassicTheme} variations found, using fallback`);
+          return NextResponse.json({
+            error: `AI generated themes not matching ${selectedClassicTheme}`,
+            fallback: true,
+            recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme)
+          });
+        }
+      }
+
       // Sort by match score and take top 5
-      const sortedRecommendations = recommendations
+      const sortedRecommendations = validatedRecommendations
         .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
         .slice(0, 5);
 
@@ -166,12 +230,127 @@ Return ONLY a valid JSON array of 3-5 theme objects with the following structure
     return NextResponse.json({
       error: 'Failed to generate recommendations',
       fallback: true,
-      recommendations: getFallbackRecommendations(body.childName, body.age, body.interests)
+      recommendations: getFallbackRecommendations(body.childName, body.age, body.interests, body.selectedClassicTheme)
     });
   }
 }
 
-function getFallbackRecommendations(childName: string, age: number, interests: string[]): ThemeRecommendation[] {
+function getFallbackRecommendations(childName: string, age: number, interests: string[], selectedClassicTheme?: string): ThemeRecommendation[] {
+  // If a classic theme is selected, return fallback variations of that specific theme
+  if (selectedClassicTheme) {
+    const themeLower = selectedClassicTheme.toLowerCase();
+    
+    if (themeLower === 'superhero') {
+      return [
+        {
+          id: 'superhero-classic-1',
+          name: 'Classic Superhero Adventure',
+          description: 'Transform into mighty heroes and save the day with action-packed adventures!',
+          whyRecommended: `Perfect for ${childName} who selected the Superhero theme - classic hero fun!`,
+          colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
+          decorations: ['Cape station with personalized capes', 'Cityscape backdrop with buildings', 'Comic book speech bubble props'],
+          activities: ['Hero training obstacle course', 'Design your own superhero logo', 'Villain capture game'],
+          printableIdeas: ['Superhero certificates', 'Comic book coloring pages'],
+          emoji: '🦸‍♂️',
+          ageAppropriate: age >= 3,
+          matchScore: 90
+        },
+        {
+          id: 'superhero-classic-2',
+          name: 'Super Hero Training Academy',
+          description: 'Train to become the ultimate superhero at our special hero academy!',
+          whyRecommended: `Designed for ${childName} who loves superhero adventures and wants to train like a real hero!`,
+          colorPalette: ['#DC143C', '#4169E1', '#FFD700', '#32CD32'],
+          decorations: ['Training course obstacles', 'Hero academy banners', 'Power-up stations'],
+          activities: ['Superhero fitness challenges', 'Power discovery games', 'Hero team missions'],
+          printableIdeas: ['Hero training certificates', 'Superhero ID cards'],
+          emoji: '💪',
+          ageAppropriate: true,
+          matchScore: 88
+        },
+        {
+          id: 'superhero-classic-3',
+          name: 'Marvel & DC Heroes Unite',
+          description: 'Celebrate with all your favorite superheroes from Marvel and DC universes!',
+          whyRecommended: `Perfect for ${childName} who loves all kinds of superheroes and comic book adventures!`,
+          colorPalette: ['#FF0000', '#0000FF', '#008000', '#FFFF00'],
+          decorations: ['Mixed superhero logos', 'Comic book panels', 'Hero vs villain scenes'],
+          activities: ['Design custom superhero', 'Save the city missions', 'Comic book creation'],
+          printableIdeas: ['Mixed hero coloring pages', 'Create your superhero worksheet'],
+          emoji: '🦸‍♀️',
+          ageAppropriate: true,
+          matchScore: 85
+        }
+      ];
+    }
+    
+    // Add similar patterns for other classic themes
+    const classicThemeTemplates = {
+      princess: {
+        name: 'Princess',
+        emoji: '👸',
+        colors: ['#FF69B4', '#9370DB', '#FFB6C1', '#F0E68C'],
+        baseActivities: ['Royal ball dancing', 'Crown decorating', 'Princess etiquette lessons']
+      },
+      dinosaur: {
+        name: 'Dinosaur',
+        emoji: '🦕',
+        colors: ['#228B22', '#8B4513', '#DAA520', '#CD853F'],
+        baseActivities: ['Fossil dig adventure', 'Dinosaur discovery games', 'Prehistoric exploration']
+      },
+      space: {
+        name: 'Space Explorer',
+        emoji: '🚀',
+        colors: ['#4B0082', '#000080', '#C0C0C0', '#FFD700'],
+        baseActivities: ['Rocket building', 'Planet exploration', 'Astronaut training']
+      },
+      safari: {
+        name: 'Safari Adventure',
+        emoji: '🦁',
+        colors: ['#228B22', '#DAA520', '#8B4513', '#CD853F'],
+        baseActivities: ['Animal tracking', 'Jungle exploration', 'Wildlife photography']
+      },
+      ocean: {
+        name: 'Ocean Adventure',
+        emoji: '🌊',
+        colors: ['#0000FF', '#00CED1', '#20B2AA', '#87CEEB'],
+        baseActivities: ['Deep sea diving', 'Marine life discovery', 'Treasure hunting']
+      },
+      pirate: {
+        name: 'Pirate Adventure',
+        emoji: '🏴‍☠️',
+        colors: ['#8B4513', '#FFD700', '#000000', '#FF0000'],
+        baseActivities: ['Treasure hunt', 'Pirate ship sailing', 'Map reading adventure']
+      },
+      unicorn: {
+        name: 'Unicorn Magic',
+        emoji: '🦄',
+        colors: ['#FF69B4', '#9370DB', '#FFB6C1', '#F0E68C'],
+        baseActivities: ['Magic spell casting', 'Rainbow creation', 'Unicorn care workshop']
+      }
+    };
+    
+    const template = classicThemeTemplates[themeLower as keyof typeof classicThemeTemplates];
+    if (template) {
+      return [
+        {
+          id: `${themeLower}-classic-1`,
+          name: `Classic ${template.name} Party`,
+          description: `Experience the magic of ${template.name.toLowerCase()} adventures!`,
+          whyRecommended: `Perfect for ${childName} who selected the ${selectedClassicTheme} theme!`,
+          colorPalette: template.colors,
+          decorations: [`${template.name} themed decorations`, `${template.name} backdrop`, `${template.name} party props`],
+          activities: template.baseActivities,
+          printableIdeas: [`${template.name} coloring pages`, `${template.name} activity sheets`],
+          emoji: template.emoji,
+          ageAppropriate: true,
+          matchScore: 90
+        }
+      ];
+    }
+  }
+  
+  // Default fallback themes for custom theme mode
   const fallbackThemes = [
     {
       id: 'superhero-adventure',
