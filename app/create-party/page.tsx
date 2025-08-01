@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
 
 const interestOptions = [
   "Animals", "Art & Crafts", "Cars", "Dancing", "Music", "Sports", "Science",
@@ -260,6 +261,7 @@ export default function CreatePartyPage() {
     isLoadingAI: false
   });
   const [isNavigating, setIsNavigating] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Dynamic placeholder examples
   const placeholderExamples = [
@@ -287,6 +289,18 @@ export default function CreatePartyPage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Trigger confetti when AI recommendations are loaded
+  useEffect(() => {
+    if (!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && !showConfetti) {
+      setShowConfetti(true);
+      // Hide confetti after 6 seconds
+      const confettiTimer = setTimeout(() => {
+        setShowConfetti(false);
+      }, 6000);
+      return () => clearTimeout(confettiTimer);
+    }
+  }, [partyData.isLoadingAI, partyData.aiRecommendations, showConfetti]);
 
 
   const handleNext = async () => {
@@ -812,6 +826,20 @@ export default function CreatePartyPage() {
                 {/* AI Recommendations Section */}
                 {!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && (
                   <div className="space-y-4 relative">
+                    {/* Confetti Effect */}
+                    {showConfetti && (
+                      <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        pointerEvents: 'none',
+                        zIndex: 50
+                      }}>
+                        <Fireworks autorun={{ speed: 3, duration: 6000 }} />
+                      </div>
+                    )}
                     <div className="flex items-center justify-center space-x-2 mb-4">
                       <Sparkles className="h-5 w-5 text-purple-600" />
                       <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
