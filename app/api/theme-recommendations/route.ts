@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize OpenAI client only if API key is available
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Initialize Azure OpenAI client only if credentials are available
+const openai = process.env.AZURE_OPENAI_API_KEY ? new OpenAI({
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
+  baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_NAME}`,
+  defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION },
+  defaultHeaders: {
+    'api-key': process.env.AZURE_OPENAI_API_KEY,
+  },
 }) : null;
 
 interface ThemeRequest {
@@ -35,10 +40,10 @@ export async function POST(request: NextRequest) {
     const body: ThemeRequest = await request.json();
     const { childName, age, interests, favoriteColors = [], activities = [], childGender, childDetails } = body;
 
-    if (!openai || !process.env.OPENAI_API_KEY) {
+    if (!openai || !process.env.AZURE_OPENAI_API_KEY) {
       return NextResponse.json(
         { 
-          error: 'OpenAI API key not configured',
+          error: 'Azure OpenAI API key not configured',
           fallback: true,
           recommendations: getFallbackRecommendations(childName, age, interests)
         },
@@ -75,7 +80,7 @@ Return ONLY a valid JSON array of 3-5 theme objects with the following structure
 ]`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4o-mini',
       messages: [
         {
           role: 'system',

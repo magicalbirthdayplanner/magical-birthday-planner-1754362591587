@@ -19,10 +19,28 @@ export const ENV_VARIABLES: EnvVariable[] = [
     instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → API Keys → Copy 'Legacy API keys → anon public' key"
   },
   {
-    name: "OPENAI_API_KEY",
-    description: "OpenAI API key for AI-powered theme recommendations using GPT-4o",
+    name: "AZURE_OPENAI_API_KEY",
+    description: "Azure OpenAI API key for AI-powered theme recommendations using GPT-4o mini",
     required: false,
-    instructions: "Go to [OpenAI Platform](https://platform.openai.com/api-keys) → Create new secret key → Copy the API key (format: sk-...)"
+    instructions: "Go to Azure Portal → Your OpenAI Resource → Keys and Endpoint → Copy 'Key 1' or 'Key 2'"
+  },
+  {
+    name: "AZURE_OPENAI_ENDPOINT",
+    description: "Azure OpenAI service endpoint URL",
+    required: false,
+    instructions: "Format: https://[resource-name].openai.azure.com/ (from Azure Portal → Your OpenAI Resource → Keys and Endpoint)"
+  },
+  {
+    name: "AZURE_OPENAI_DEPLOYMENT_NAME",
+    description: "Azure OpenAI deployment name for GPT-4o mini model",
+    required: false,
+    instructions: "The deployment name you created in Azure OpenAI Studio (e.g., 'gpt-4o-mini')"
+  },
+  {
+    name: "AZURE_OPENAI_API_VERSION",
+    description: "Azure OpenAI API version",
+    required: false,
+    instructions: "Use '2024-02-01' or latest available API version from Azure OpenAI documentation"
   }
 ];
 
