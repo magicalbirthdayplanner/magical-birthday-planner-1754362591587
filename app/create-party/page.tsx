@@ -277,6 +277,7 @@ export default function CreatePartyPage() {
   });
   const [isNavigating, setIsNavigating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [customThemeMode, setCustomThemeMode] = useState(false);
 
   // Dynamic placeholder examples
   const placeholderExamples = [
@@ -393,7 +394,10 @@ export default function CreatePartyPage() {
         if (partyData.classicTheme !== "") {
           return true; // Classic theme selected is sufficient
         }
-        return partyData.childInterests.length > 0;
+        if (customThemeMode) {
+          return partyData.childInterests.length > 0; // Custom theme requires interests
+        }
+        return true; // Default state is valid
       case 3:
         return partyData.selectedTheme !== "";
       case 4:
@@ -748,196 +752,186 @@ export default function CreatePartyPage() {
                   </p>
                 </div>
 
-                {/* Main Theme Selection Options */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Classic Themes Option */}
-                  <div 
-                    className={cn(
-                      "relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105",
-                      partyData.classicTheme !== ""
-                        ? "border-purple-500 ring-2 ring-purple-200 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50"
-                        : "border-gray-200 hover:border-purple-300 hover:shadow-md bg-white"
-                    )}
-                    onClick={() => {
-                      if (partyData.classicTheme === "") {
-                        // Clear custom selections when switching to classic
+                {/* Main Theme Selection Boxes - Only show if no selection made */}
+                {partyData.classicTheme === "" && partyData.childInterests.length === 0 && !customThemeMode && (
+                  <div className="grid md:grid-cols-2 gap-6 mb-8">
+                    {/* Classic Themes Option */}
+                    <div 
+                      className="relative p-8 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 border-gray-200 hover:border-purple-300 hover:shadow-md bg-white"
+                      onClick={() => {
+                        // Enable classic theme selection mode
                         setPartyData({ 
                           ...partyData, 
                           childInterests: [],
                           favoriteColors: [],
                           selectedTheme: ""
                         });
-                      }
-                    }}
-                  >
-                    <div className="text-center space-y-4">
-                      <div className="text-4xl">🎭</div>
-                      <h4 className="text-lg font-bold text-gray-800">Classic Themes</h4>
-                      <p className="text-sm text-gray-600">
-                        Choose from our popular pre-designed themes. Perfect for quick party planning!
-                      </p>
-                      {partyData.classicTheme !== "" && (
-                        <div className="text-xs text-purple-600 font-medium">
-                          ✨ Selected
+                      }}
+                    >
+                      <div className="text-center space-y-4">
+                        <div className="text-5xl">🎭</div>
+                        <h4 className="text-xl font-bold text-gray-800">Classic Themes</h4>
+                        <p className="text-sm text-gray-600">
+                          Choose from our popular pre-designed themes. Perfect for quick party planning!
+                        </p>
+                        <div className="pt-2">
+                          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+                            Select Classic Themes
+                          </Button>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Custom Themes Option */}
-                  <div 
-                    className={cn(
-                      "relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105",
-                      partyData.childInterests.length > 0
-                        ? "border-purple-500 ring-2 ring-purple-200 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50"
-                        : "border-gray-200 hover:border-purple-300 hover:shadow-md bg-white"
-                    )}
-                    onClick={() => {
-                      if (partyData.childInterests.length === 0) {
-                        // Clear classic theme when switching to custom
+                    {/* Custom Themes Option */}
+                    <div 
+                      className="relative p-8 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 border-gray-200 hover:border-purple-300 hover:shadow-md bg-white"
+                      onClick={() => {
+                        // Enable custom theme selection mode
+                        setCustomThemeMode(true);
                         setPartyData({ 
                           ...partyData, 
                           classicTheme: "",
                           selectedTheme: ""
                         });
-                      }
-                    }}
-                  >
-                    <div className="text-center space-y-4">
-                      <div className="text-4xl">🎨</div>
-                      <h4 className="text-lg font-bold text-gray-800">Custom Themes</h4>
-                      <p className="text-sm text-gray-600">
-                        Tell us about your child's interests and get AI-powered personalized recommendations!
-                      </p>
-                      {partyData.childInterests.length > 0 && (
-                        <div className="text-xs text-purple-600 font-medium">
-                          ✨ Selected
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Classic Themes Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-semibold text-gray-800">
-                      🎭 Classic Themes
-                    </Label>
-                    {partyData.classicTheme && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setPartyData({ 
-                            ...partyData, 
-                            classicTheme: "",
-                            selectedTheme: "" // Clear selected theme when switching
-                          });
-                        }}
-                        className="text-purple-600 hover:text-purple-700"
-                      >
-                        Clear Selection
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Quick & easy! Choose from our popular pre-designed themes - no additional selections needed.
-                  </p>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {classicThemes.map((theme) => (
-                      <div
-                        key={theme.id}
-                        onClick={() => {
-                          setPartyData({ 
-                            ...partyData, 
-                            classicTheme: theme.id,
-                            selectedTheme: theme.id,
-                            // Clear custom selections when classic theme is chosen, but preserve childDetails for personalization
-                            childInterests: [],
-                            favoriteColors: []
-                            // Keep childDetails for AI personalization
-                          });
-                        }}
-                        className={cn(
-                          "relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:scale-105",
-                          partyData.classicTheme === theme.id
-                            ? "border-purple-500 ring-2 ring-purple-200 shadow-lg"
-                            : "border-gray-200 hover:border-purple-300 hover:shadow-md"
-                        )}
-                      >
-                        <div className={cn(
-                          "absolute inset-0 rounded-xl opacity-10",
-                          theme.color.replace('bg-gradient-to-r', 'bg-gradient-to-br')
-                        )}></div>
-                        <div className="relative text-center space-y-2">
-                          <div className="text-3xl">{theme.emoji}</div>
-                          <div className="text-sm font-semibold text-gray-800">
-                            {theme.name}
-                          </div>
-                          {partyData.classicTheme === theme.id && (
-                            <div className="text-xs text-purple-600 font-medium">
-                              ✨ Selected
-                            </div>
-                          )}
+                      }}
+                    >
+                      <div className="text-center space-y-4">
+                        <div className="text-5xl">🎨</div>
+                        <h4 className="text-xl font-bold text-gray-800">Custom Themes</h4>
+                        <p className="text-sm text-gray-600">
+                          Tell us about your child's interests and get AI-powered personalized recommendations!
+                        </p>
+                        <div className="pt-2">
+                          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+                            Select Custom Themes
+                          </Button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-
-                  {partyData.classicTheme && (
-                    <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
-                      <div className="flex items-center justify-center space-x-2">
-                        <span className="text-purple-600 text-lg">✨</span>
-                        <span className="text-sm font-medium text-purple-700">
-                          Great choice! Now let's make your <span className="font-bold">
-                            {classicThemes.find(t => t.id === partyData.classicTheme)?.name}
-                          </span> theme extra special for {partyData.childName}!
-                        </span>
-                      </div>
                     </div>
-                  )}
-
-                  {/* Tell us more section - appears for classic themes */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      What are your child's current favorites, movies, shows, or hobbies? (Optional)
-                    </Label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      This helps us recommend the perfect theme variations and personalize your party planning experience.
-                    </p>
-                    <Textarea
-                      placeholder={currentPlaceholder}
-                      value={partyData.childDetails || ''}
-                      onChange={(e) => setPartyData({ ...partyData, childDetails: e.target.value })}
-                      className="min-h-[100px] text-sm resize-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Divider */}
-                {!partyData.classicTheme && (
-                  <div className="flex items-center space-x-4">
-                    <hr className="flex-1 border-gray-300" />
-                    <span className="text-sm text-gray-500 font-medium">OR</span>
-                    <hr className="flex-1 border-gray-300" />
                   </div>
                 )}
 
-                {/* Custom Theme Selection - Only show if no classic theme selected */}
-                {!partyData.classicTheme && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-base font-semibold text-gray-800">
-                        🎨 Custom Theme
-                      </Label>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Tell us about your child's interests and we'll create personalized theme recommendations!
-                    </p>
+                {/* Classic Themes Section - Show when classic theme is selected or default state */}
+                {!customThemeMode && partyData.childInterests.length === 0 && (
+                  <div className="space-y-6">
+                    {/* Back to selection button - only show if we're in the main two-box selection */}
+                    {partyData.classicTheme === "" && (partyData.classicTheme !== "" || partyData.childInterests.length > 0) && (
+                      <div className="text-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setCustomThemeMode(false);
+                            setPartyData({ 
+                              ...partyData, 
+                              classicTheme: "",
+                              selectedTheme: "",
+                              childInterests: [],
+                              favoriteColors: []
+                            });
+                          }}
+                          className="mb-4"
+                        >
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          Back to Theme Selection
+                        </Button>
+                      </div>
+                    )}
 
-                    <div className="space-y-4">
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">🎭 Classic Themes</h3>
+                      <p className="text-gray-600 mb-6">
+                        Choose from our popular pre-designed themes
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {classicThemes.map((theme) => (
+                        <div
+                          key={theme.id}
+                          onClick={() => {
+                            setPartyData({ 
+                              ...partyData, 
+                              classicTheme: theme.id,
+                              selectedTheme: theme.id,
+                              childInterests: [],
+                              favoriteColors: []
+                            });
+                          }}
+                          className={cn(
+                            "relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:scale-105",
+                            partyData.classicTheme === theme.id
+                              ? "border-purple-500 ring-2 ring-purple-200 shadow-lg"
+                              : "border-gray-200 hover:border-purple-300 hover:shadow-md"
+                          )}
+                        >
+                          <div className={cn(
+                            "absolute inset-0 rounded-xl opacity-10",
+                            theme.color.replace('bg-gradient-to-r', 'bg-gradient-to-br')
+                          )}></div>
+                          <div className="relative text-center space-y-2">
+                            <div className="text-3xl">{theme.emoji}</div>
+                            <div className="text-sm font-semibold text-gray-800">
+                              {theme.name}
+                            </div>
+                            {partyData.classicTheme === theme.id && (
+                              <div className="text-xs text-purple-600 font-medium">
+                                ✨ Selected
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Tell us more section for classic themes */}
+                    <div className="space-y-2 mt-6">
+                      <Label className="text-sm font-medium">
+                        What are your child's current favorites, movies, shows, or hobbies? (Optional)
+                      </Label>
+                      <p className="text-xs text-gray-500 mb-2">
+                        This helps us recommend the perfect theme variations and personalize your party planning experience.
+                      </p>
+                      <Textarea
+                        placeholder={currentPlaceholder}
+                        value={partyData.childDetails || ''}
+                        onChange={(e) => setPartyData({ ...partyData, childDetails: e.target.value })}
+                        className="min-h-[100px] text-sm resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Custom Theme Selection - Show when custom theme mode is active */}
+                {customThemeMode && (
+                  <div className="space-y-6">
+                    {/* Back to selection button */}
+                    <div className="text-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setCustomThemeMode(false);
+                          setPartyData({ 
+                            ...partyData, 
+                            selectedTheme: "",
+                            childInterests: [],
+                            favoriteColors: []
+                          });
+                        }}
+                        className="mb-4"
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Theme Selection
+                      </Button>
+                    </div>
+
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">🎨 Custom Themes</h3>
+                      <p className="text-gray-600 mb-6">
+                        Tell us about your child's interests and we'll create personalized theme recommendations!
+                      </p>
+                    </div>
+
+                    <div className="space-y-6">
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">
                           Child's Interests (Select at least one)
