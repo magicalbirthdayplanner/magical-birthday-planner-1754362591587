@@ -147,6 +147,7 @@ interface ThemeRecommendation {
 interface PartyData {
   childName: string;
   childAge: string;
+  childGender: string;
   childInterests: string[];
   favoriteColors: string[];
   partyDate: Date | undefined;
@@ -243,6 +244,7 @@ export default function CreatePartyPage() {
   const [partyData, setPartyData] = useState<PartyData>({
     childName: "",
     childAge: "",
+    childGender: "",
     childInterests: [],
     favoriteColors: [],
     partyDate: undefined,
@@ -252,8 +254,8 @@ export default function CreatePartyPage() {
   });
 
   const handleNext = async () => {
-    if (step === 1 && partyData.childAge && partyData.childInterests.length > 0) {
-      // Generate AI recommendations when moving from step 1 to step 2
+    if (step === 2 && partyData.childAge && partyData.childInterests.length > 0) {
+      // Generate AI recommendations when moving from step 2 to step 3
       setPartyData(prev => ({ ...prev, isLoadingAI: true }));
       try {
         const recommendations = await getAIRecommendations(
@@ -289,9 +291,9 @@ export default function CreatePartyPage() {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return partyData.childName.trim() !== "" && partyData.childAge !== "" && partyData.childInterests.length > 0;
+        return partyData.childName.trim() !== "" && partyData.childAge !== "" && partyData.childGender !== "" && partyData.partyDate !== undefined;
       case 2:
-        return partyData.partyDate !== undefined;
+        return partyData.childInterests.length > 0;
       case 3:
         return partyData.selectedTheme !== "";
       default:
@@ -348,12 +350,12 @@ export default function CreatePartyPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
               {step === 1 && "Tell us about your child"}
-              {step === 2 && "When's the party?"}
+              {step === 2 && "What does your child love?"}
               {step === 3 && "Choose a theme"}
             </CardTitle>
             <CardDescription>
-              {step === 1 && "We'll personalize everything based on your child's age and preferences"}
-              {step === 2 && "Pick the perfect date for your celebration"}
+              {step === 1 && "Basic information about your child and when the party will be"}
+              {step === 2 && "Help us personalize themes based on your child's interests and favorite colors"}
               {step === 3 && "Select a theme that your child will absolutely love"}
             </CardDescription>
           </CardHeader>
@@ -390,6 +392,54 @@ export default function CreatePartyPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="childGender" className="text-sm font-medium">
+                    Gender
+                  </Label>
+                  <Select value={partyData.childGender} onValueChange={(value) => setPartyData({ ...partyData, childGender: value })}>
+                    <SelectTrigger className="text-lg py-6">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="boy">Boy</SelectItem>
+                      <SelectItem value="girl">Girl</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">When is the party?</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal text-lg py-6",
+                          !partyData.partyDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {partyData.partyDate ? format(partyData.partyDate, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={partyData.partyDate}
+                        onSelect={(date) => setPartyData({ ...partyData, partyDate: date })}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Child's Interests & Favorite Colors */}
+            {step === 2 && (
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">
                     Child's Interests (Select at least one)
@@ -475,38 +525,6 @@ export default function CreatePartyPage() {
                       </div>
                     ))}
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Party Date */}
-            {step === 2 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Party Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal text-lg py-6",
-                          !partyData.partyDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {partyData.partyDate ? format(partyData.partyDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={partyData.partyDate}
-                        onSelect={(date) => setPartyData({ ...partyData, partyDate: date })}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
                 </div>
               </div>
             )}
