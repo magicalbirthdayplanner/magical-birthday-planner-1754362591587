@@ -1004,11 +1004,11 @@ export default function CreatePartyPage() {
                   </h2>
                   
                   {/* Visual Party Summary Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 max-w-6xl mx-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 max-w-6xl mx-auto">
                     {/* Child Info Card */}
                     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
                       <div className="text-5xl mb-4">
-                        {partyData.childGender === 'boy' ? '👦' : '👧'}
+                        {partyData.childGender === 'boy' ? '👦' : partyData.childGender === 'girl' ? '👧' : '🎂'}
                       </div>
                       <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Birthday Star</h3>
                       <div className="text-blue-700 dark:text-blue-300 font-semibold text-xl">{partyData.childName}</div>
