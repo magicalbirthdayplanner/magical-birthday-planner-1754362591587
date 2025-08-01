@@ -1,3 +1,9 @@
+## [usr-1754023146702]
+**User Request:** The date picker should close after picking the date - currently it is not closing after the date is selected 
+**Response Summary:** Successfully fixed the date picker closing issue in the party creation wizard. The problem was that the Calendar component's Popover was not configured to automatically close after date selection. Added controlled state management with `isDatePickerOpen` state and `onOpenChange` handler to the Popover component. Updated the Calendar's `onSelect` callback to both set the selected date and close the popover by setting `setIsDatePickerOpen(false)`. The date picker now properly closes immediately after a user selects a date, providing a much smoother user experience. Build completed successfully with no errors.
+**Files Modified:**
+- app/create-party/page.tsx (added isDatePickerOpen state, updated Popover with controlled open state, modified Calendar onSelect to close popover after selection)
+
 ## [usr-1754023109375]
 **User Request:** In Step 1 of the Wizard, move the When is the party and the date picker just below the Child`s name 
 

@@ -276,6 +276,7 @@ export default function CreatePartyPage() {
 
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholderExamples[0]);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Rotate placeholder text every 5 seconds
   useEffect(() => {
@@ -546,7 +547,7 @@ export default function CreatePartyPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">When is the party?</Label>
-                  <Popover>
+                  <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -563,7 +564,10 @@ export default function CreatePartyPage() {
                       <Calendar
                         mode="single"
                         selected={partyData.partyDate}
-                        onSelect={(date) => setPartyData({ ...partyData, partyDate: date })}
+                        onSelect={(date) => {
+                          setPartyData({ ...partyData, partyDate: date });
+                          setIsDatePickerOpen(false);
+                        }}
                         disabled={(date) => date < new Date()}
                         initialFocus
                       />
