@@ -260,6 +260,7 @@ export default function CreatePartyPage() {
     aiRecommendations: [],
     isLoadingAI: false
   });
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Dynamic placeholder examples
   const placeholderExamples = [
@@ -290,8 +291,17 @@ export default function CreatePartyPage() {
 
   const handleNext = async () => {
     if (step === 2 && partyData.childAge && partyData.childInterests.length > 0) {
+      // Start navigation loading animation
+      setIsNavigating(true);
+      
+      // Add a small delay to show the loading animation
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
       // Generate AI recommendations when moving from step 2 to step 3
       setPartyData(prev => ({ ...prev, isLoadingAI: true }));
+      setIsNavigating(false);
+      setStep(3);
+      
       try {
         const recommendations = await getAIRecommendations(
           partyData.childName,
@@ -310,8 +320,9 @@ export default function CreatePartyPage() {
         console.error('Error getting AI recommendations:', error);
         setPartyData(prev => ({ ...prev, isLoadingAI: false }));
       }
+    } else {
+      if (step < 3) setStep(step + 1);
     }
-    if (step < 3) setStep(step + 1);
   };
 
   const handleBack = () => {
@@ -933,11 +944,38 @@ export default function CreatePartyPage() {
               {step < 3 ? (
                 <Button
                   onClick={handleNext}
-                  disabled={!isStepValid()}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8"
+                  disabled={!isStepValid() || isNavigating}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 relative overflow-hidden"
                 >
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  {isNavigating && step === 2 ? (
+                    <>
+                      <Confetti 
+                        autorun={{ speed: 2, duration: 800 }}
+                        decorateOptions={(options) => ({
+                          ...options,
+                          particleCount: 30,
+                          spread: 70,
+                          startVelocity: 25,
+                          elementCount: 20,
+                          decay: 0.95,
+                          gravity: 0.4,
+                          drift: 0,
+                          ticks: 100,
+                          colors: ['#FF69B4', '#9370DB', '#FFD700', '#32CD32', '#FF8C00'],
+                          shapes: ['square', 'circle'],
+                          scalar: 0.8
+                        })}
+                      />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <span className="animate-pulse">Creating Magic...</span>
+                      <Sparkles className="ml-2 h-4 w-4 animate-pulse" />
+                    </>
+                  ) : (
+                    <>
+                      Next
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               ) : (
                 <Button
