@@ -244,7 +244,7 @@ export default function CreatePartyPage() {
   const [step, setStep] = useState(1);
   const [partyData, setPartyData] = useState<PartyData>({
     childName: "",
-    childAge: 3,
+    childAge: 1,
     childGender: "",
     childInterests: [],
     favoriteColors: [],
@@ -364,33 +364,69 @@ export default function CreatePartyPage() {
             {/* Step 1: Child Information */}
             {step === 1 && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="childName" className="text-sm font-medium">
-                    Child's Name
-                  </Label>
-                  <Input
-                    id="childName"
-                    placeholder="Enter your child's name"
-                    value={partyData.childName}
-                    onChange={(e) => setPartyData({ ...partyData, childName: e.target.value })}
-                    className="text-lg py-6"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="childName" className="text-sm font-medium">
+                      Child's Name
+                    </Label>
+                    <Input
+                      id="childName"
+                      placeholder="Enter your child's name"
+                      value={partyData.childName}
+                      onChange={(e) => setPartyData({ ...partyData, childName: e.target.value })}
+                      className="text-lg py-6"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Gender
+                    </Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant={partyData.childGender === "boy" ? "default" : "outline"}
+                        onClick={() => setPartyData({ ...partyData, childGender: "boy" })}
+                        className={cn(
+                          "h-14 flex flex-col items-center justify-center space-y-1 text-sm",
+                          partyData.childGender === "boy"
+                            ? "bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white"
+                            : "hover:bg-blue-50 hover:border-blue-300"
+                        )}
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Boy</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={partyData.childGender === "girl" ? "default" : "outline"}
+                        onClick={() => setPartyData({ ...partyData, childGender: "girl" })}
+                        className={cn(
+                          "h-14 flex flex-col items-center justify-center space-y-1 text-sm",
+                          partyData.childGender === "girl"
+                            ? "bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
+                            : "hover:bg-pink-50 hover:border-pink-300"
+                        )}
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Girl</span>
+                      </Button>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-4">
                   <Label htmlFor="childAge" className="text-sm font-medium">
-                    Child's Age: {partyData.childAge === 0 ? "Under 1 year" : `${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}
+                    Child's Age: {`${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}
                   </Label>
                   <div className="px-3">
                     <Slider
                       value={[partyData.childAge]}
                       onValueChange={(value) => setPartyData({ ...partyData, childAge: value[0] })}
                       max={12}
-                      min={0}
+                      min={1}
                       step={1}
                       className="w-full"
                     />
                     <div className="flex justify-between text-xs text-gray-500 mt-2">
-                      <span>0</span>
                       <span>1</span>
                       <span>2</span>
                       <span>3</span>
@@ -408,12 +444,8 @@ export default function CreatePartyPage() {
                   
                   {/* Individual Age Cards */}
                   <div className="mt-6 space-y-3">
-                    <Label className="text-sm font-medium text-gray-700">
-                      Individual Ages - Click any age card! 🎯
-                    </Label>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-2">
                       {[
-                        { age: 0, label: "Newborn", emoji: "🍼" },
                         { age: 1, label: "Little One", emoji: "🚼" },
                         { age: 2, label: "Toddler", emoji: "🧸" },
                         { age: 3, label: "Preschooler", emoji: "🧒" },
@@ -445,7 +477,7 @@ export default function CreatePartyPage() {
                               "text-lg font-bold",
                               isActive ? "text-purple-700" : "text-gray-600"
                             )}>
-                              {ageCard.age === 0 ? "0" : ageCard.age}
+                              {ageCard.age}
                             </div>
                             <div className={cn(
                               "text-xs font-medium mt-1",
@@ -467,8 +499,7 @@ export default function CreatePartyPage() {
                     <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
                       <div className="flex items-center justify-center space-x-2">
                         <span className="text-lg">
-                          {partyData.childAge === 0 ? "🍼" :
-                           partyData.childAge === 1 ? "🚼" :
+                          {partyData.childAge === 1 ? "🚼" :
                            partyData.childAge === 2 ? "🧸" :
                            partyData.childAge === 3 ? "🧒" :
                            partyData.childAge === 4 ? "👦" :
@@ -478,13 +509,13 @@ export default function CreatePartyPage() {
                            partyData.childAge === 8 ? "🚀" :
                            partyData.childAge === 9 ? "⭐" :
                            partyData.childAge === 10 ? "🎉" :
-                           partyData.childAge === 11 ? "👧" : "🧑"}
+                           partyData.childAge === 11 ? "👧" :
+                           partyData.childAge === 12 ? "🧑" : "🎈"}
                         </span>
                         <span className="text-sm font-medium text-gray-700">
                           Perfect for a{" "}
                           <span className="font-bold text-orange-600">
-                            {partyData.childAge === 0 ? "Newborn" :
-                             partyData.childAge === 1 ? "Little One" :
+                            {partyData.childAge === 1 ? "Little One" :
                              partyData.childAge === 2 ? "Toddler" :
                              partyData.childAge === 3 ? "Preschooler" :
                              partyData.childAge === 4 ? "Big Kid" :
@@ -494,47 +525,13 @@ export default function CreatePartyPage() {
                              partyData.childAge === 8 ? "Adventurer" :
                              partyData.childAge === 9 ? "Tween" :
                              partyData.childAge === 10 ? "Double Digits" :
-                             partyData.childAge === 11 ? "Pre-teen" : "Almost Teen"}
+                             partyData.childAge === 11 ? "Pre-teen" :
+                             partyData.childAge === 12 ? "Almost Teen" : "Young Child"}
                           </span>{" "}
                           celebration! 🎉
                         </span>
                       </div>
                     </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">
-                    Gender
-                  </Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      type="button"
-                      variant={partyData.childGender === "boy" ? "default" : "outline"}
-                      onClick={() => setPartyData({ ...partyData, childGender: "boy" })}
-                      className={cn(
-                        "h-20 flex flex-col items-center justify-center space-y-2 text-base",
-                        partyData.childGender === "boy"
-                          ? "bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white"
-                          : "hover:bg-blue-50 hover:border-blue-300"
-                      )}
-                    >
-                      <User className="h-6 w-6" />
-                      <span>Boy</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={partyData.childGender === "girl" ? "default" : "outline"}
-                      onClick={() => setPartyData({ ...partyData, childGender: "girl" })}
-                      className={cn(
-                        "h-20 flex flex-col items-center justify-center space-y-2 text-base",
-                        partyData.childGender === "girl"
-                          ? "bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
-                          : "hover:bg-pink-50 hover:border-pink-300"
-                      )}
-                    >
-                      <User className="h-6 w-6" />
-                      <span>Girl</span>
-                    </Button>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -685,7 +682,7 @@ export default function CreatePartyPage() {
                       <Sparkles className="h-5 w-5 text-purple-600" />
                     </div>
                     <p className="text-center text-sm text-gray-600 mb-4">
-                      Based on {partyData.childName}'s age ({partyData.childAge === 0 ? "Under 1 year" : `${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}), interests: {partyData.childInterests.join(", ")}
+                      Based on {partyData.childName}'s age ({`${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}), interests: {partyData.childInterests.join(", ")}
                       {partyData.favoriteColors.length > 0 && `, and favorite colors: ${partyData.favoriteColors.join(", ")}`}
                     </p>
                     <div className="grid grid-cols-1 gap-6">
