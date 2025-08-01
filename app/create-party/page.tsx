@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby } from "lucide-react";
-import Confetti from 'react-canvas-confetti/dist/presets/realistic';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -261,7 +260,6 @@ export default function CreatePartyPage() {
     isLoadingAI: false
   });
   const [isNavigating, setIsNavigating] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
 
   // Dynamic placeholder examples
   const placeholderExamples = [
@@ -290,15 +288,6 @@ export default function CreatePartyPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Trigger confetti when AI recommendations are loaded and displayed
-  useEffect(() => {
-    if (!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0) {
-      setShowConfetti(true);
-      // Gradually stop confetti after 6 seconds (matching the animation duration)
-      const timer = setTimeout(() => setShowConfetti(false), 6000);
-      return () => clearTimeout(timer);
-    }
-  }, [partyData.isLoadingAI, partyData.aiRecommendations]);
 
   const handleNext = async () => {
     if (step === 2 && partyData.childAge && partyData.childInterests.length > 0) {
@@ -775,28 +764,6 @@ export default function CreatePartyPage() {
                 {/* AI Recommendations Section */}
                 {!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && (
                   <div className="space-y-4 relative">
-                    {showConfetti && (
-                      <div className="fixed inset-0 pointer-events-none z-50">
-                        <Confetti 
-                          autorun={{ speed: 4, duration: 6000 }}
-                          decorateOptions={(options) => ({
-                            ...options,
-                            particleCount: 150,
-                            spread: 120,
-                            startVelocity: 50,
-                            elementCount: 80,
-                            decay: 0.94,
-                            gravity: 0.5,
-                            drift: 0.1,
-                            ticks: 400,
-                            colors: ['#FF69B4', '#9370DB', '#FFD700', '#32CD32', '#FF8C00', '#4169E1', '#FF6347', '#BA55D3', '#00CED1', '#98FB98'],
-                            shapes: ['square', 'circle'],
-                            scalar: 1.5,
-                            origin: { x: 0.5, y: -0.1 }
-                          })}
-                        />
-                      </div>
-                    )}
                     <div className="flex items-center justify-center space-x-2 mb-4">
                       <Sparkles className="h-5 w-5 text-purple-600" />
                       <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
