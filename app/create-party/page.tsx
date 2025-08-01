@@ -395,6 +395,98 @@ export default function CreatePartyPage() {
                       <span>12 years</span>
                     </div>
                   </div>
+                  
+                  {/* Fun Age Labels */}
+                  <div className="mt-6 space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">
+                      Age Groups - Click to jump to age! 🎯
+                    </Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                      {[
+                        { range: "0", label: "Newborn", emoji: "🍼", altLabels: ["Tiny Sprout", "Cuddle Bug"] },
+                        { range: "1-2", label: "Little Explorer", emoji: "🚼", altLabels: ["Infant", "Bundle of Joy"] },
+                        { range: "2-4", label: "Tiny Tornado", emoji: "🧸", altLabels: ["Toddler", "Busy Bee"] },
+                        { range: "4-6", label: "Imagination Champ", emoji: "🧒", altLabels: ["Preschooler", "Little Learner"] },
+                        { range: "6-8", label: "School Star", emoji: "👦", altLabels: ["Kiddo", "Big Kid"] },
+                        { range: "8-10", label: "Adventure Seeker", emoji: "👧", altLabels: ["Tween", "Trend Setter"] },
+                        { range: "10-12", label: "Mini Adult", emoji: "🧑", altLabels: ["Pre-teen", "Almost Teen"] }
+                      ].map((ageGroup) => {
+                        const isActive = 
+                          (ageGroup.range === "0" && partyData.childAge === 0) ||
+                          (ageGroup.range === "1-2" && partyData.childAge >= 1 && partyData.childAge <= 2) ||
+                          (ageGroup.range === "2-4" && partyData.childAge >= 2 && partyData.childAge <= 4) ||
+                          (ageGroup.range === "4-6" && partyData.childAge >= 4 && partyData.childAge <= 6) ||
+                          (ageGroup.range === "6-8" && partyData.childAge >= 6 && partyData.childAge <= 8) ||
+                          (ageGroup.range === "8-10" && partyData.childAge >= 8 && partyData.childAge <= 10) ||
+                          (ageGroup.range === "10-12" && partyData.childAge >= 10 && partyData.childAge <= 12);
+                        
+                        const targetAge = ageGroup.range === "0" ? 0 : 
+                          ageGroup.range === "1-2" ? 1 :
+                          ageGroup.range === "2-4" ? 3 :
+                          ageGroup.range === "4-6" ? 5 :
+                          ageGroup.range === "6-8" ? 7 :
+                          ageGroup.range === "8-10" ? 9 : 11;
+
+                        return (
+                          <div
+                            key={ageGroup.range}
+                            onClick={() => setPartyData({ ...partyData, childAge: targetAge })}
+                            className={cn(
+                              "p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 text-center",
+                              isActive 
+                                ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-md" 
+                                : "border-gray-200 hover:border-purple-300 hover:bg-purple-25"
+                            )}
+                          >
+                            <div className="text-2xl mb-1">{ageGroup.emoji}</div>
+                            <div className={cn(
+                              "text-xs font-semibold",
+                              isActive ? "text-purple-700" : "text-gray-600"
+                            )}>
+                              {ageGroup.range === "0" ? "Under 1" : `${ageGroup.range} years`}
+                            </div>
+                            <div className={cn(
+                              "text-xs font-medium mt-1",
+                              isActive ? "text-purple-600" : "text-gray-500"
+                            )}>
+                              {ageGroup.label}
+                            </div>
+                            {isActive && (
+                              <div className="text-xs text-purple-500 mt-1 italic">
+                                ✨ Active
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Current Selection Display */}
+                    <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-center justify-center space-x-2">
+                        <span className="text-lg">
+                          {partyData.childAge === 0 ? "🍼" :
+                           partyData.childAge >= 1 && partyData.childAge <= 2 ? "🚼" :
+                           partyData.childAge >= 2 && partyData.childAge <= 4 ? "🧸" :
+                           partyData.childAge >= 4 && partyData.childAge <= 6 ? "🧒" :
+                           partyData.childAge >= 6 && partyData.childAge <= 8 ? "👦" :
+                           partyData.childAge >= 8 && partyData.childAge <= 10 ? "👧" : "🧑"}
+                        </span>
+                        <span className="text-sm font-medium text-gray-700">
+                          Perfect for a{" "}
+                          <span className="font-bold text-orange-600">
+                            {partyData.childAge === 0 ? "Newborn/Tiny Sprout" :
+                             partyData.childAge >= 1 && partyData.childAge <= 2 ? "Little Explorer" :
+                             partyData.childAge >= 2 && partyData.childAge <= 4 ? "Tiny Tornado" :
+                             partyData.childAge >= 4 && partyData.childAge <= 6 ? "Imagination Champ" :
+                             partyData.childAge >= 6 && partyData.childAge <= 8 ? "School Star" :
+                             partyData.childAge >= 8 && partyData.childAge <= 10 ? "Adventure Seeker" : "Mini Adult"}
+                          </span>{" "}
+                          celebration! 🎉
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">
