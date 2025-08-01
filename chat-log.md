@@ -1,3 +1,13 @@
+## [usr-1754070000000]
+**User Request:** In step 2 of the wizard, add a section called classic themes and add themes like dinosaur, space, safari, ocean, princess, superhero etc .
+
+If a classic theme is choosen, then the custom selections like Child`s interests, favourite color and tell us more need not be selected. 
+
+The user either selects a classic theme or picks a custom theme and proceed with selections
+**Response Summary:** Successfully implemented a comprehensive classic themes section in Step 2 of the party creation wizard, providing users with a choice between quick classic themes or detailed custom personalization. Added 8 beautiful classic theme cards (Dinosaur, Space, Safari, Ocean, Princess, Superhero, Pirate, Unicorn) with gradient backgrounds, emojis, and hover effects. Implemented conditional logic so selecting a classic theme automatically bypasses all custom selections (interests, favorite colors, tell us more text) and jumps directly to Step 3 with theme confirmation. Updated Step 2 UI to show either classic themes OR custom selection flow with clear dividers and messaging. Modified Step 3 to display a beautiful theme confirmation card when classic themes are selected, skipping AI loading and recommendations. Updated Step 4 summary to properly handle both classic and custom theme flows. Enhanced validation logic to accept either classic theme selection or custom interests as valid for Step 2 progression. The wizard now offers two distinct paths: quick classic theme selection for busy parents or detailed custom personalization for unique themes, providing maximum flexibility while maintaining the magical user experience.
+**Files Modified:** 
+- app/create-party/page.tsx (added classicThemes array, updated PartyData interface with classicTheme field, redesigned Step 2 with classic themes section and conditional custom selection display, modified handleNext logic to skip AI for classic themes, updated Step 3 with classic theme confirmation, enhanced Step 4 summary card to handle both theme types, updated validation logic for dual-path flow)
+
 ## [usr-1754069221894]
 **User Request:** Change the API key for Azure OpenAI with the below credentials 
 
