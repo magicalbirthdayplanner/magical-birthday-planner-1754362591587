@@ -517,18 +517,18 @@ export default function CreatePartyPage() {
                   <div className="mt-6 space-y-3">
                     <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-2">
                       {[
-                        { age: 1, label: "Little One", emoji: "🚼" },
+                        { age: 1, label: "Little One", emoji: "🍼" },
                         { age: 2, label: "Toddler", emoji: "🧸" },
-                        { age: 3, label: "Preschooler", emoji: "🧒" },
-                        { age: 4, label: "Big Kid", emoji: "🧒" },
+                        { age: 3, label: "Preschooler", emoji: "🎈" },
+                        { age: 4, label: "Big Kid", emoji: "🎒" },
                         { age: 5, label: "Kindergarten", emoji: "🎒" },
                         { age: 6, label: "School Star", emoji: "📚" },
                         { age: 7, label: "Explorer", emoji: "🔍" },
                         { age: 8, label: "Adventurer", emoji: "🚀" },
                         { age: 9, label: "Tween", emoji: "⭐" },
                         { age: 10, label: "Double Digits", emoji: "🎉" },
-                        { age: 11, label: "Pre-teen", emoji: "🧑" },
-                        { age: 12, label: "Almost Teen", emoji: "🧑" }
+                        { age: 11, label: "Pre-teen", emoji: "🎯" },
+                        { age: 12, label: "Almost Teen", emoji: "🎮" }
                       ].map((ageCard) => {
                         const isActive = partyData.childAge === ageCard.age;
 
@@ -570,18 +570,18 @@ export default function CreatePartyPage() {
                     <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
                       <div className="flex items-center justify-center space-x-2">
                         <span className="text-lg">
-                          {partyData.childAge === 1 ? "🚼" :
+                          {partyData.childAge === 1 ? "🍼" :
                            partyData.childAge === 2 ? "🧸" :
-                           partyData.childAge === 3 ? "🧒" :
-                           partyData.childAge === 4 ? "🧒" :
+                           partyData.childAge === 3 ? "🎈" :
+                           partyData.childAge === 4 ? "🎒" :
                            partyData.childAge === 5 ? "🎒" :
                            partyData.childAge === 6 ? "📚" :
                            partyData.childAge === 7 ? "🔍" :
                            partyData.childAge === 8 ? "🚀" :
                            partyData.childAge === 9 ? "⭐" :
                            partyData.childAge === 10 ? "🎉" :
-                           partyData.childAge === 11 ? "🧑" :
-                           partyData.childAge === 12 ? "🧑" : "🎈"}
+                           partyData.childAge === 11 ? "🎯" :
+                           partyData.childAge === 12 ? "🎮" : "🎈"}
                         </span>
                         <span className="text-sm font-medium text-gray-700">
                           Perfect for a{" "}
