@@ -52,9 +52,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the user's exact prompt specification with classic theme personalization
+    // Use the user's exact prompt specification with enhanced classic theme personalization
     const baseInstructions = selectedClassicTheme 
-      ? `Based on the following inputs, create 3-5 personalized variations of the ${selectedClassicTheme} theme for this specific child. Each variation should be a unique, creative take on the ${selectedClassicTheme} theme that incorporates the child's personal interests and preferences from their current favorites/hobbies. Focus on making the classic ${selectedClassicTheme} theme highly personalized and special for this child.`
+      ? `Based on the following inputs, create 3-5 highly creative and personalized variations of the ${selectedClassicTheme} theme that are specially tailored for this specific child. Each variation should:
+      1. Take the classic ${selectedClassicTheme} theme and blend it with the child's specific interests from their "current favorites" and hobbies
+      2. Create unique theme names that combine ${selectedClassicTheme} with the child's interests (e.g., "Safari Explorer meets Lion King", "Dinosaur Detective Adventure", "Princess Unicorn Dreams")
+      3. Be completely different from generic ${selectedClassicTheme} themes - make them feel custom and personal
+      4. Incorporate the child's favorite colors into the ${selectedClassicTheme} color palette
+      5. Reference specific movies, shows, or hobbies mentioned in the child's current favorites
+      Make each variation feel like it was designed exclusively for this child, not just a standard ${selectedClassicTheme} party.`
       : `Based on the following inputs, suggest 3-5 creative and trending kids' birthday party themes. Each theme should directly reflect the child's age, gender, interests, favorite color, and anything from their current favorites or recent passions.`
 
     const prompt = `${baseInstructions} For each theme, include: (1) theme name and short fun description, (2) why it matches this child (cite details!), (3) suggested activities or games for that theme, (4) suggested color palette and decorations, and (5) one or two printable ideas. Here are the child's details:

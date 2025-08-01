@@ -1005,7 +1005,7 @@ export default function CreatePartyPage() {
                   </div>
                 )}
 
-                {/* Loading State */}
+                {/* Loading State for Custom Themes */}
                 {!partyData.classicTheme && partyData.isLoadingAI && (
                   <div className="flex flex-col items-center justify-center py-12 relative">
                     <div className="animate-bounce mb-4">
@@ -1026,7 +1026,138 @@ export default function CreatePartyPage() {
                   </div>
                 )}
 
-                {/* AI Recommendations Section */}
+                {/* Loading State for Classic Theme Personalization */}
+                {partyData.classicTheme && partyData.isLoadingAI && (
+                  <div className="flex flex-col items-center justify-center py-12 relative">
+                    <div className="animate-bounce mb-4">
+                      <div className="text-4xl">
+                        {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji || "🎊"}
+                      </div>
+                    </div>
+                    <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      ✨ Creating Magical {classicThemes.find(t => t.id === partyData.classicTheme)?.name} Variations for {partyData.childName}... ✨
+                    </h3>
+                    <p className="text-sm text-gray-500 text-center max-w-md">
+                      Our AI is analyzing {partyData.childName}'s interests and creating magical theme suggestions just for them!
+                    </p>
+                    <div className="mt-4 flex items-center space-x-2">
+                      <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
+                      <span className="text-xs text-purple-600 font-medium animate-pulse">Personalizing your {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} theme...</span>
+                      <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Recommendations Section for Classic Themes */}
+                {partyData.classicTheme && !partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && (
+                  <div className="space-y-4 relative">
+                    {/* Confetti Effect */}
+                    {showConfetti && (
+                      <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        pointerEvents: 'none',
+                        zIndex: 50
+                      }}>
+                        <Fireworks autorun={{ speed: 1, duration: 4000 }} />
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-center space-x-2 mb-6">
+                      <div className="text-2xl">
+                        {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji}
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-800">
+                        Personalized {classicThemes.find(t => t.id === partyData.classicTheme)?.name} Variations for {partyData.childName}
+                      </h3>
+                      <div className="text-2xl">
+                        {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji}
+                      </div>
+                    </div>
+                    
+                    <p className="text-center text-gray-600 mb-6">
+                      ✨ AI-crafted variations that blend your child's favorite {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} theme with their personal interests!
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {partyData.aiRecommendations.map((recommendation, index) => (
+                        <Card
+                          key={recommendation.id}
+                          className={cn(
+                            "cursor-pointer transition-all duration-300 border-2 hover:shadow-xl relative overflow-hidden",
+                            partyData.selectedTheme === recommendation.id
+                              ? "border-purple-500 bg-purple-50 ring-2 ring-purple-200 shadow-lg"
+                              : "border-gray-200 hover:border-purple-300 hover:bg-gray-50"
+                          )}
+                          onClick={() => setPartyData({ ...partyData, selectedTheme: recommendation.id })}
+                        >
+                          {/* AI Badge */}
+                          <div className="absolute top-3 right-3 z-10">
+                            <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold">
+                              ✨ AI Personalized
+                            </Badge>
+                          </div>
+                          
+                          <CardContent className="p-6">
+                            <div className="text-center mb-4">
+                              <div className="text-4xl mb-2">{recommendation.emoji}</div>
+                              <h4 className="text-lg font-bold text-gray-800 mb-2">
+                                {recommendation.name}
+                              </h4>
+                              <p className="text-sm text-gray-600 leading-relaxed">
+                                {recommendation.description}
+                              </p>
+                            </div>
+                            
+                            {/* Match Score */}
+                            <div className="flex items-center justify-center mb-4">
+                              <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-full px-3 py-1 border border-green-200">
+                                <span className="text-xs font-semibold text-green-700">
+                                  {recommendation.matchScore}% Perfect Match! 🎯
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Why Recommended */}
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 mb-4 border border-blue-100">
+                              <h5 className="text-xs font-semibold text-blue-800 mb-1">
+                                Why perfect for {partyData.childName}:
+                              </h5>
+                              <p className="text-xs text-blue-700 leading-relaxed">
+                                {recommendation.whyRecommended}
+                              </p>
+                            </div>
+                            
+                            {/* Quick Preview */}
+                            <div className="space-y-2">
+                              <div className="text-xs text-gray-600">
+                                <strong>Activities:</strong> {recommendation.activities.slice(0, 2).join(", ")}
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                <strong>Decorations:</strong> {recommendation.decorations.slice(0, 2).join(", ")}
+                              </div>
+                            </div>
+                            
+                            {/* Selection Indicator */}
+                            {partyData.selectedTheme === recommendation.id && (
+                              <div className="mt-4 text-center">
+                                <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                                  ✓ Selected
+                                </Badge>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Recommendations Section for Custom Themes */}
                 {!partyData.classicTheme && !partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && (
                   <div className="space-y-4 relative">
                     {/* Confetti Effect */}
