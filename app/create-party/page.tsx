@@ -319,14 +319,20 @@ export default function CreatePartyPage() {
 
   const handleNext = async () => {
     if (step === 2) {
-      // If classic theme is selected, skip AI recommendations and go directly to step 3
-      if (partyData.classicTheme) {
+      // Check if we have child details (tell us more field) regardless of classic theme selection
+      const hasChildDetails = partyData.childDetails && partyData.childDetails.trim() !== "";
+      
+      // If classic theme is selected but no additional details provided, skip AI recommendations
+      if (partyData.classicTheme && !hasChildDetails) {
         setStep(3);
         return;
       }
       
-      // For custom themes, generate AI recommendations
-      if (partyData.childAge && partyData.childInterests.length > 0) {
+      // Generate AI recommendations if:
+      // 1. Custom themes with interests selected, OR
+      // 2. Classic theme selected WITH additional child details provided
+      if ((partyData.childAge && partyData.childInterests.length > 0) || 
+          (partyData.classicTheme && hasChildDetails)) {
         // Start navigation loading animation
         setIsNavigating(true);
         
@@ -814,6 +820,19 @@ export default function CreatePartyPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Tell us more section - appears for classic themes */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      What are your child's current favorites, movies, shows, or hobbies? (Optional, helps us recommend the perfect theme)
+                    </Label>
+                    <Textarea
+                      placeholder={currentPlaceholder}
+                      value={partyData.childDetails || ''}
+                      onChange={(e) => setPartyData({ ...partyData, childDetails: e.target.value })}
+                      className="min-h-[100px] text-sm resize-none"
+                    />
+                  </div>
                 </div>
 
                 {/* Divider */}

@@ -1,3 +1,11 @@
+## [usr-1754072708638]
+**User Request:** In the step 2, under the classic themes options, we need a tell us more to capture 
+What are your child's current favorites, movies, shows, or hobbies? (Optional, helps us recommend the perfect theme)
+
+All the inputs captured goes into the azure openai model to bring specific recommendations on the step 3
+**Response Summary:** Successfully enhanced Step 2 of the party creation wizard by adding a "Tell us more" text area field under the classic themes section. Added the exact label requested: "What are your child's current favorites, movies, shows, or hobbies? (Optional, helps us recommend the perfect theme)". The field appears for all users regardless of theme selection, allowing additional personalization input. Enhanced the AI recommendation logic to trigger Azure OpenAI processing when classic themes are selected AND the user provides additional details in the "tell us more" field. Updated handleNext function to check for child details and generate AI recommendations in two scenarios: 1) Custom themes with interests selected, or 2) Classic theme selected with additional child details provided. This ensures all collected inputs (including the "tell us more" field) are properly integrated with the Azure OpenAI model to bring specific recommendations in Step 3, providing maximum personalization while maintaining the classic theme quick-selection option.
+**Files Modified:** app/create-party/page.tsx (added "Tell us more" text area field under classic themes section, enhanced handleNext logic to trigger AI recommendations when classic theme + child details are provided, integrated all collected inputs with Azure OpenAI model for Step 3 recommendations)
+
 ## [usr-1754070000000]
 **User Request:** In step 2 of the wizard, add a section called classic themes and add themes like dinosaur, space, safari, ocean, princess, superhero etc .
 
