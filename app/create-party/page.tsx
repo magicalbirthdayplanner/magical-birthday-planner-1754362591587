@@ -1003,8 +1003,8 @@ export default function CreatePartyPage() {
                     Ready to Create Your Magical Party Plan? ✨
                   </h2>
                   
-                  {/* Visual Party Summary Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 max-w-6xl mx-auto">
+                  {/* Visual Party Summary Cards - All in Single Line */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 max-w-7xl mx-auto">
                     {/* Child Info Card */}
                     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
                       <div className="text-5xl mb-4">
@@ -1035,7 +1035,27 @@ export default function CreatePartyPage() {
                       </div>
                     </div>
 
-                    {/* Theme Card */}
+                    {/* Interests Card */}
+                    {partyData.childInterests.length > 0 && (
+                      <div className="bg-gradient-to-br from-orange-50 to-yellow-100 dark:from-orange-900/20 dark:to-yellow-900/30 p-6 rounded-xl border border-orange-200 dark:border-orange-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                        <div className="text-4xl mb-4 text-center">🎯</div>
+                        <h3 className="font-bold text-orange-800 dark:text-orange-200 mb-2 text-lg text-center">Child's Interests</h3>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {partyData.childInterests.slice(0, 3).map((interest, index) => (
+                            <span key={index} className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-medium border border-orange-300 dark:border-orange-600">
+                              {interest}
+                            </span>
+                          ))}
+                          {partyData.childInterests.length > 3 && (
+                            <span className="bg-orange-300 dark:bg-orange-700 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-bold border border-orange-400 dark:border-orange-500">
+                              +{partyData.childInterests.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Theme Card - Moved to last position */}
                     <div className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/30 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300">
                       <div className="text-5xl mb-4">
                         {(() => {
@@ -1058,30 +1078,9 @@ export default function CreatePartyPage() {
                     </div>
                   </div>
 
-                  {/* Interests & Colors Visual Display */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
-                    {/* Interests Card */}
-                    {partyData.childInterests.length > 0 && (
-                      <div className="bg-gradient-to-br from-orange-50 to-yellow-100 dark:from-orange-900/20 dark:to-yellow-900/30 p-6 rounded-xl border border-orange-200 dark:border-orange-700 shadow-lg">
-                        <div className="text-4xl mb-4 text-center">🎯</div>
-                        <h3 className="font-bold text-orange-800 dark:text-orange-200 mb-4 text-lg text-center">Child's Interests</h3>
-                        <div className="flex flex-wrap gap-2 justify-center">
-                          {partyData.childInterests.slice(0, 6).map((interest, index) => (
-                            <span key={index} className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-3 py-2 rounded-full text-sm font-medium border border-orange-300 dark:border-orange-600">
-                              {interest}
-                            </span>
-                          ))}
-                          {partyData.childInterests.length > 6 && (
-                            <span className="bg-orange-300 dark:bg-orange-700 text-orange-800 dark:text-orange-200 px-3 py-2 rounded-full text-sm font-bold border border-orange-400 dark:border-orange-500">
-                              +{partyData.childInterests.length - 6} more
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Favorite Colors Card */}
-                    {partyData.favoriteColors.length > 0 && (
+                  {/* Additional Colors Card - Below main cards if needed */}
+                  {partyData.favoriteColors.length > 0 && (
+                    <div className="grid grid-cols-1 gap-6 mb-8 max-w-2xl mx-auto">
                       <div className="bg-gradient-to-br from-rose-50 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/30 p-6 rounded-xl border border-rose-200 dark:border-rose-700 shadow-lg">
                         <div className="text-4xl mb-4 text-center">🎨</div>
                         <h3 className="font-bold text-rose-800 dark:text-rose-200 mb-4 text-lg text-center">Favorite Colors</h3>
@@ -1104,8 +1103,8 @@ export default function CreatePartyPage() {
                           ))}
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {/* What's Included Preview */}
                   <div className="bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/20 dark:to-yellow-900/30 p-8 rounded-xl border border-amber-200 dark:border-amber-700 shadow-lg mb-8 max-w-5xl mx-auto">
