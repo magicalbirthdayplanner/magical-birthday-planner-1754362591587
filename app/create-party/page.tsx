@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby, AlertTriangle } from "lucide-react";
+import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby, AlertTriangle, DollarSign, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
@@ -183,6 +183,9 @@ interface PartyData {
   aiRecommendations?: ThemeRecommendation[];
   isLoadingAI?: boolean;
   classicTheme?: string; // New field for classic theme selection
+  budget?: number; // New field for party budget
+  zipCode?: string; // New field for zip code
+  guestCount?: number; // New field for number of guests
 }
 
 // Profanity detection state interface
@@ -333,7 +336,10 @@ export default function CreatePartyPage() {
     selectedTheme: "",
     aiRecommendations: [],
     isLoadingAI: false,
-    classicTheme: ""
+    classicTheme: "",
+    budget: undefined,
+    zipCode: "",
+    guestCount: undefined
   });
   const [isNavigating, setIsNavigating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -469,10 +475,10 @@ export default function CreatePartyPage() {
         }
       } else {
         // For classic themes without child details, proceed directly to step 3 
-        if (step < 4) setStep(step + 1);
+        if (step < 5) setStep(step + 1);
       }
     } else {
-      if (step < 4) setStep(step + 1);
+      if (step < 5) setStep(step + 1);
     }
   };
 
@@ -504,7 +510,9 @@ export default function CreatePartyPage() {
       case 3:
         return partyData.selectedTheme !== "";
       case 4:
-        return true; // Step 4 is always valid since it's just the summary/creation step
+        return partyData.budget !== undefined && partyData.zipCode !== "" && partyData.guestCount !== undefined; // Step 4 requires budget, zip code, and guest count
+      case 5:
+        return true; // Step 5 is always valid since it's just the summary/creation step
       default:
         return false;
     }
@@ -523,13 +531,13 @@ export default function CreatePartyPage() {
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2">
             Plan your Magical Birthday Party
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">Plan your child's dream birthday in just 4 simple steps!</p>
+          <p className="text-gray-600 dark:text-gray-300">Plan your child's dream birthday in just 5 simple steps!</p>
         </div>
 
         {/* Progress Indicator */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center space-x-4">
-            {[1, 2, 3, 4].map((stepNumber) => (
+            {[1, 2, 3, 4, 5].map((stepNumber) => (
               <div key={stepNumber} className="flex items-center">
                 <div
                   className={cn(
@@ -541,7 +549,7 @@ export default function CreatePartyPage() {
                 >
                   {stepNumber}
                 </div>
-                {stepNumber < 4 && (
+                {stepNumber < 5 && (
                   <div
                     className={cn(
                       "w-16 h-1 mx-2 transition-colors",
@@ -561,13 +569,15 @@ export default function CreatePartyPage() {
               {step === 1 && "Tell us about your child"}
               {step === 2 && "What does your child love?"}
               {step === 3 && "Choose a theme"}
-              {step === 4 && "Create your party plan"}
+              {step === 4 && "Party details"}
+              {step === 5 && "Create your party plan"}
             </CardTitle>
             <CardDescription>
               {step === 1 && "Basic information about your child and when the party will be"}
               {step === 2 && "Help us personalize themes based on your child's interests and favorite colors"}
               {step === 3 && "Select a theme that your child will absolutely love"}
-              {step === 4 && "Ready to create your magical party plan?"}
+              {step === 4 && "Budget, location, and guest count information"}
+              {step === 5 && "Ready to create your magical party plan?"}
             </CardDescription>
             
             {/* Navigation Buttons at Top */}
@@ -582,7 +592,7 @@ export default function CreatePartyPage() {
                 Back
               </Button>
               
-              {step < 4 ? (
+              {step < 5 ? (
                 <Button
                   onClick={handleNext}
                   disabled={!isStepValid() || isNavigating}
@@ -602,7 +612,7 @@ export default function CreatePartyPage() {
                   )}
                 </Button>
               ) : (
-                // For step 4, show Create My Party Plan button aligned with Back button
+                // For step 5, show Create My Party Plan button aligned with Back button
                 <Button
                   onClick={handleSubmit}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
@@ -1817,6 +1827,238 @@ export default function CreatePartyPage() {
                       <span className="text-purple-700 dark:text-purple-300 font-medium">Let's create your comprehensive party plan and make this birthday unforgettable! 🌟</span>
                     </p>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Party Details - Budget, Zip Code, Guest Count */}
+            {step === 4 && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Budget Input */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      Party Budget
+                    </Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="number"
+                        placeholder="Enter budget amount"
+                        value={partyData.budget || ''}
+                        onChange={(e) => setPartyData({ ...partyData, budget: e.target.value ? parseFloat(e.target.value) : undefined })}
+                        className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                        min="0"
+                        step="10"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">How much would you like to spend on the party?</p>
+                  </div>
+
+                  {/* Zip Code Input */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <MapPin className="h-4 w-4 text-blue-600" />
+                      Zip Code
+                    </Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder="Enter zip code"
+                        value={partyData.zipCode || ''}
+                        onChange={(e) => setPartyData({ ...partyData, zipCode: e.target.value })}
+                        className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                        maxLength={10}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">Help us suggest local vendors and activities</p>
+                  </div>
+
+                  {/* Guest Count Input */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <Users className="h-4 w-4 text-purple-600" />
+                      Number of Guests
+                    </Label>
+                    <div className="relative">
+                      <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="number"
+                        placeholder="Expected guests"
+                        value={partyData.guestCount || ''}
+                        onChange={(e) => setPartyData({ ...partyData, guestCount: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                        min="1"
+                        max="100"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">Including adults and children</p>
+                  </div>
+                </div>
+
+                {/* Visual Summary Preview */}
+                <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-yellow-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-700">
+                  <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-4 text-lg text-center">Party Summary Preview</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
+                      <div className="text-2xl mb-2">💰</div>
+                      <div className="font-semibold text-green-600">Budget</div>
+                      <div className="text-lg">{partyData.budget ? `$${partyData.budget}` : 'Not set'}</div>
+                    </div>
+                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
+                      <div className="text-2xl mb-2">👥</div>
+                      <div className="font-semibold text-purple-600">Guests</div>
+                      <div className="text-lg">{partyData.guestCount || 'Not set'}</div>
+                    </div>
+                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
+                      <div className="text-2xl mb-2">🗺️</div>
+                      <div className="font-semibold text-blue-600">Location</div>
+                      <div className="text-lg">{partyData.zipCode || 'Not set'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: Create Party Plan (previously step 4) */}
+            {step === 5 && (
+              <div className="space-y-8">
+                {/* Updated Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Card 1: Birthday Star */}
+                  <div className="bg-gradient-to-br from-yellow-50 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/30 p-6 rounded-xl border border-yellow-200 dark:border-yellow-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                    <div className="text-5xl mb-4">⭐</div>
+                    <h3 className="font-bold text-yellow-800 dark:text-yellow-200 mb-2 text-lg">Birthday Star</h3>
+                    <div className="text-yellow-700 dark:text-yellow-300 font-semibold text-lg">{partyData.childName}</div>
+                    <div className="text-yellow-600 dark:text-yellow-400 text-sm mt-2">
+                      <span className="bg-yellow-200 dark:bg-yellow-800 px-2 py-1 rounded-full">
+                        {partyData.childAge} years old 🎂
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Party Date */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                    <div className="text-5xl mb-4">📅</div>
+                    <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Party Date</h3>
+                    <div className="text-blue-700 dark:text-blue-300 font-semibold text-lg">
+                      {partyData.partyDate?.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </div>
+                    <div className="text-blue-600 dark:text-blue-400 text-sm mt-2">
+                      <span className="bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">Save the date! 📝</span>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Budget */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 p-6 rounded-xl border border-green-200 dark:border-green-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                    <div className="text-5xl mb-4">💰</div>
+                    <h3 className="font-bold text-green-800 dark:text-green-200 mb-2 text-lg">Budget</h3>
+                    <div className="text-green-700 dark:text-green-300 font-semibold text-lg">
+                      {partyData.budget ? `$${partyData.budget}` : 'Not set'}
+                    </div>
+                    <div className="text-green-600 dark:text-green-400 text-sm mt-2">
+                      <span className="bg-green-200 dark:bg-green-800 px-2 py-1 rounded-full">Party fund 💵</span>
+                    </div>
+                  </div>
+
+                  {/* Card 4: Guest Count */}
+                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                    <div className="text-5xl mb-4">👥</div>
+                    <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-2 text-lg">Guests</h3>
+                    <div className="text-purple-700 dark:text-purple-300 font-semibold text-lg">
+                      {partyData.guestCount || 'Not set'} people
+                    </div>
+                    <div className="text-purple-600 dark:text-purple-400 text-sm mt-2">
+                      <span className="bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded-full">Party crowd 🎉</span>
+                    </div>
+                  </div>
+
+                  {/* Card 5: Location */}
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                    <div className="text-5xl mb-4">🏴</div>
+                    <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Location</h3>
+                    <div className="text-blue-700 dark:text-blue-300 font-semibold text-lg">
+                      {partyData.zipCode || 'Not set'}
+                    </div>
+                    <div className="text-blue-600 dark:text-blue-400 text-sm mt-2">
+                      <span className="bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">Zip code 📍</span>
+                    </div>
+                  </div>
+
+                  {/* Card 6: Chosen Theme */}
+                  <div className="bg-gradient-to-br from-pink-50 to-rose-100 dark:from-pink-900/20 dark:to-rose-900/30 p-6 rounded-xl border border-pink-200 dark:border-pink-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                    <div className="text-5xl mb-4">
+                      {(() => {
+                        const aiTheme = partyData.aiRecommendations?.find(t => t.id === partyData.selectedTheme);
+                        const classicTheme = themes.find(t => t.id === partyData.selectedTheme);
+                        return aiTheme?.emoji || classicTheme?.emoji || "🎉";
+                      })()}
+                    </div>
+                    <h3 className="font-bold text-pink-800 dark:text-pink-200 mb-2 text-lg">Chosen Theme</h3>
+                    <div className="text-pink-700 dark:text-pink-300 font-semibold text-lg">
+                      {(() => {
+                        const aiTheme = partyData.aiRecommendations?.find(t => t.id === partyData.selectedTheme);
+                        const classicTheme = themes.find(t => t.id === partyData.selectedTheme);
+                        return aiTheme?.name || classicTheme?.name || "Not selected";
+                      })()}
+                    </div>
+                    <div className="text-pink-600 dark:text-pink-400 text-sm mt-2">
+                      <span className="bg-pink-200 dark:bg-pink-800 px-2 py-1 rounded-full">Perfect match! 🌟</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* What's Included Preview */}
+                <div className="bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/20 dark:to-yellow-900/30 p-8 rounded-xl border border-amber-200 dark:border-amber-700 shadow-lg mb-8 max-w-5xl mx-auto">
+                  <h3 className="font-bold text-amber-800 dark:text-amber-200 mb-6 text-xl text-center">🎁 What's Included in Your Party Plan</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-amber-700 dark:text-amber-300">
+                    <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                      <span className="text-2xl">📋</span>
+                      <span className="text-sm font-medium text-center">Smart Checklists</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                      <span className="text-2xl">🎨</span>
+                      <span className="text-sm font-medium text-center">Decorations Guide</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                      <span className="text-2xl">🎮</span>
+                      <span className="text-sm font-medium text-center">Fun Activities</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                      <span className="text-2xl">👥</span>
+                      <span className="text-sm font-medium text-center">Guest Management</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                      <span className="text-2xl">📧</span>
+                      <span className="text-sm font-medium text-center">Invitations</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                      <span className="text-2xl">⏰</span>
+                      <span className="text-sm font-medium text-center">Timeline Tracker</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                      <span className="text-2xl">🍰</span>
+                      <span className="text-sm font-medium text-center">Food Ideas</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 p-3 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                      <span className="text-2xl">✨</span>
+                      <span className="text-sm font-medium text-center">Much More!</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-6 rounded-xl border border-purple-300 dark:border-purple-600 max-w-3xl mx-auto">
+                  <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
+                    🎉 Everything is perfectly planned for <span className="font-bold text-purple-600 dark:text-purple-400 text-xl">{partyData.childName}'s</span> magical birthday celebration! 
+                    <br />
+                    <span className="text-purple-700 dark:text-purple-300 font-medium">Let's create your comprehensive party plan and make this birthday unforgettable! 🌟</span>
+                  </p>
                 </div>
               </div>
             )}
