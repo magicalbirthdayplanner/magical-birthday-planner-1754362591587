@@ -94,11 +94,20 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
 
   // Load saved budget data
   useEffect(() => {
-    const savedBudget = localStorage.getItem('partyBudget');
-    if (savedBudget) {
-      const budgetData = JSON.parse(savedBudget);
-      setTotalBudget(budgetData.total || 0);
-      setAllocations(budgetData.allocations || []);
+    // Check if we're on the client side to avoid hydration issues
+    if (typeof window !== 'undefined') {
+      const savedBudget = localStorage.getItem('partyBudget');
+      if (savedBudget) {
+        try {
+          const budgetData = JSON.parse(savedBudget);
+          setTotalBudget(budgetData.total || 0);
+          setAllocations(budgetData.allocations || []);
+        } catch (error) {
+          console.error('Error parsing saved budget data:', error);
+          // Clear corrupted data
+          localStorage.removeItem('partyBudget');
+        }
+      }
     }
   }, []);
 
@@ -174,10 +183,12 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
       setAllocations(updatedAllocations);
       
       // Save to localStorage
-      localStorage.setItem('partyBudget', JSON.stringify({
-        total: totalBudget,
-        allocations: updatedAllocations
-      }));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('partyBudget', JSON.stringify({
+          total: totalBudget,
+          allocations: updatedAllocations
+        }));
+      }
       
       setIsAIAllocating(false);
     }, 2000);
@@ -334,10 +345,12 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
     setAllocations(updatedAllocations);
     
     // Save to localStorage
-    localStorage.setItem('partyBudget', JSON.stringify({
-      total: totalBudget,
-      allocations: updatedAllocations
-    }));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('partyBudget', JSON.stringify({
+        total: totalBudget,
+        allocations: updatedAllocations
+      }));
+    }
   };
 
   const totalAllocated = allocations.reduce((sum, allocation) => sum + allocation.amount, 0);
