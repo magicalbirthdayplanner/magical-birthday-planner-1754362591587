@@ -694,47 +694,27 @@ export default function PartyPlanPage() {
                 </div>
               </div>
 
-              {/* Party Countdown Timeline */}
+              {/* Party Countdown */}
               <div>
                 <CardTitle className="flex items-center gap-2 mb-3">
                   <Timer className="h-5 w-5 text-blue-600" />
                   Party Countdown
                 </CardTitle>
                 
-                {/* Horizontal Timeline */}
+                {/* Days Until Party Display */}
                 <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-700">
-                  <div className="relative flex items-center justify-between mb-2">
-                    {/* TODAY Marker */}
-                    <div className="flex items-center gap-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
-                      <Flag className="h-3 w-3" />
-                      <span>TODAY</span>
-                      <span className="text-xs opacity-90">
-                        {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
+                  {/* Days Count */}
+                  <div className="text-center mb-3">
+                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      {Math.abs(daysUntilParty)}
                     </div>
-
-                    {/* Days Count Center */}
-                    <div className="text-center px-2">
-                      <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        {Math.abs(daysUntilParty)}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-300">
-                        {daysUntilParty === 1 ? 'day until party!' : daysUntilParty === 0 ? 'Party is today!' : daysUntilParty < 0 ? 'days ago' : 'days until party!'}
-                      </div>
-                    </div>
-
-                    {/* PARTY DAY Marker */}
-                    <div className="flex items-center gap-1 bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
-                      <Star className="h-3 w-3" />
-                      <span>PARTY DAY</span>
-                      <span className="text-xs opacity-90">
-                        {partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}
-                      </span>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {daysUntilParty === 1 ? 'day until party!' : daysUntilParty === 0 ? 'Party is today!' : daysUntilParty < 0 ? 'days ago' : 'days until party!'}
                     </div>
                   </div>
                   
-                  {/* Progress Timeline Bar */}
-                  <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  {/* Progress Bar */}
+                  <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 rounded-full transition-all duration-500"
                       style={{ 

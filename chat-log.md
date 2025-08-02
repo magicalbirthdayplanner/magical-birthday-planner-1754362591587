@@ -1,3 +1,34 @@
+## [usr-1754116360010]
+**User Request:** remove the green today box and party day box - just indicate how many days until party . 
+
+use gradient themed bar like the one for party countdown in the planning progress and budget tracker
+**Response Summary:** Successfully removed the green TODAY box and purple PARTY DAY box from the party countdown section and replaced them with a clean, minimalist design that focuses on showing the number of days until the party. The new implementation features:
+
+**1. Simplified Design:**
+- Removed the horizontal timeline with separate TODAY and PARTY DAY marker boxes
+- Centralized the countdown display to show just the essential information
+- Maintained the same gradient background container for visual consistency
+
+**2. Enhanced Days Display:**
+- Increased the countdown number size to text-3xl for better visibility
+- Kept the gradient text styling (blue to purple to pink) for visual appeal
+- Centered the days count with improved typography and spacing
+
+**3. Unified Progress Bar:**
+- Used the same gradient progress bar (green to blue to purple) as requested
+- Increased bar height from h-2 to h-3 to match planning progress and budget tracker styling
+- Maintained all existing progress calculation logic for accurate timeline representation
+
+**4. Consistent Styling:**
+- Preserved the gradient themed container background
+- Maintained border styling consistent with other sections
+- Used the same responsive design principles as the existing progress and budget sections
+
+The party countdown now provides a clean, focused display that emphasizes the days until party count with a visually appealing gradient progress bar, matching the design language of the planning progress and budget tracker sections.
+
+**Files Modified:** 
+- `/app/party-plan/page.tsx` (modified) - Removed TODAY/PARTY DAY boxes, simplified countdown layout to show just days until party with gradient progress bar matching other sections
+
 ## [usr-1754116149723]
 **User Request:** party countdown - make it a horizontal bar like the progress bar or the budget used bar and indicate 2 dates at the 2 ends and the number of days in between
 **Response Summary:** Confirmed that the party countdown is already implemented exactly as requested. The current implementation features a horizontal timeline that matches the progress and budget tracker styling, with TODAY marker on the left, PARTY DAY marker on the right, and the countdown number displayed prominently in the center with a gradient progress bar. The implementation is working correctly and provides an intuitive, visually appealing user experience consistent with the existing design system.
