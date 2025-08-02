@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { shouldBlockAISuggestions } from '@/lib/profanity-filter';
 
 // Initialize Azure OpenAI client only if credentials are available
 const openai = process.env.AZURE_OPENAI_API_KEY ? new OpenAI({
@@ -40,6 +41,18 @@ export async function POST(request: NextRequest) {
   try {
     const body: ThemeRequest = await request.json();
     const { childName, age, interests, favoriteColors = [], activities = [], childGender, childDetails, selectedClassicTheme } = body;
+
+    // Check for inappropriate content before processing
+    if (childDetails && shouldBlockAISuggestions(childDetails)) {
+      return NextResponse.json(
+        { 
+          error: 'Inappropriate content detected',
+          blocked: true,
+          message: 'Please use family-friendly language appropriate for children\'s parties.'
+        },
+        { status: 400 }
+      );
+    }
 
     if (!openai || !process.env.AZURE_OPENAI_API_KEY) {
       return NextResponse.json(

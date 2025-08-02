@@ -11,9 +11,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby } from "lucide-react";
+import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
 import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
 
 const interestOptions = [
@@ -184,6 +185,13 @@ interface PartyData {
   classicTheme?: string; // New field for classic theme selection
 }
 
+// Profanity detection state interface
+interface ProfanityState {
+  hasProfanity: boolean;
+  detectedWords: string[];
+  warningMessage: string;
+}
+
 // AI Theme Recommendation Logic with OpenAI Integration
 const getAIRecommendations = async (
   childName: string,
@@ -333,6 +341,13 @@ export default function CreatePartyPage() {
   const [showClassicThemes, setShowClassicThemes] = useState(false);
   const [showCustomOptions, setShowCustomOptions] = useState(false);
   
+  // Profanity detection state
+  const [profanityState, setProfanityState] = useState<ProfanityState>({
+    hasProfanity: false,
+    detectedWords: [],
+    warningMessage: ''
+  });
+  
   // Emoji animation state
   const [currentEmojiIndex, setCurrentEmojiIndex] = useState(0);
 
@@ -389,10 +404,29 @@ export default function CreatePartyPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Profanity validation function
+  const handleTextInputChange = (input: string) => {
+    const profanityResult = checkProfanity(input);
+    
+    setProfanityState({
+      hasProfanity: profanityResult.hasProfanity,
+      detectedWords: profanityResult.detectedWords,
+      warningMessage: profanityResult.hasProfanity ? getProfanityWarning(profanityResult.detectedWords) : ''
+    });
+
+    return profanityResult;
+  };
+
   const handleNext = async () => {
     if (step === 2) {
       // Check if we have child details (tell us more field) 
       const hasChildDetails = partyData.childDetails && partyData.childDetails.trim() !== "";
+      
+      // Check for profanity before proceeding
+      if (profanityState.hasProfanity) {
+        // Don't proceed if inappropriate content is detected
+        return;
+      }
       
       // Generate AI recommendations for both custom and classic themes when possible
       // For custom themes: require interests
@@ -997,17 +1031,35 @@ export default function CreatePartyPage() {
                             const input = e.target.value;
                             const words = input.trim().split(/\s+/).filter(word => word.length > 0);
                             
+                            let finalText = input;
+                            
                             // Limit to maximum 3 words
-                            if (words.length <= 3) {
-                              setPartyData({ ...partyData, childDetails: input });
-                            } else {
+                            if (words.length > 3) {
                               // Take only first 3 words
-                              const limitedText = words.slice(0, 3).join(' ');
-                              setPartyData({ ...partyData, childDetails: limitedText });
+                              finalText = words.slice(0, 3).join(' ');
                             }
+                            
+                            // Check for profanity
+                            handleTextInputChange(finalText);
+                            
+                            setPartyData({ ...partyData, childDetails: finalText });
                           }}
-                          className="min-h-[100px] text-sm resize-none bg-white/80 backdrop-blur-sm border-purple-200 focus:border-purple-400"
+                          className={cn(
+                            "min-h-[100px] text-sm resize-none bg-white/80 backdrop-blur-sm transition-colors",
+                            profanityState.hasProfanity 
+                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50" 
+                              : "border-purple-200 focus:border-purple-400"
+                          )}
                         />
+                        {/* Profanity warning message */}
+                        {profanityState.hasProfanity && (
+                          <div className="flex items-center space-x-2 p-3 bg-red-100 border border-red-300 rounded-lg">
+                            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                            <p className="text-sm text-red-700 font-medium">
+                              {profanityState.warningMessage}
+                            </p>
+                          </div>
+                        )}
                         <div className="flex justify-between items-center">
                           <p className="text-xs text-gray-500">
                             This helps us create magical theme variations just for {partyData.childName || 'your child'}!
@@ -1162,17 +1214,35 @@ export default function CreatePartyPage() {
                             const input = e.target.value;
                             const words = input.trim().split(/\s+/).filter(word => word.length > 0);
                             
+                            let finalText = input;
+                            
                             // Limit to maximum 3 words
-                            if (words.length <= 3) {
-                              setPartyData({ ...partyData, childDetails: input });
-                            } else {
+                            if (words.length > 3) {
                               // Take only first 3 words
-                              const limitedText = words.slice(0, 3).join(' ');
-                              setPartyData({ ...partyData, childDetails: limitedText });
+                              finalText = words.slice(0, 3).join(' ');
                             }
+                            
+                            // Check for profanity
+                            handleTextInputChange(finalText);
+                            
+                            setPartyData({ ...partyData, childDetails: finalText });
                           }}
-                          className="min-h-[100px] text-sm resize-none bg-white/80 backdrop-blur-sm border-purple-200 focus:border-purple-400"
+                          className={cn(
+                            "min-h-[100px] text-sm resize-none bg-white/80 backdrop-blur-sm transition-colors",
+                            profanityState.hasProfanity 
+                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50" 
+                              : "border-purple-200 focus:border-purple-400"
+                          )}
                         />
+                        {/* Profanity warning message */}
+                        {profanityState.hasProfanity && (
+                          <div className="flex items-center space-x-2 p-3 bg-red-100 border border-red-300 rounded-lg">
+                            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                            <p className="text-sm text-red-700 font-medium">
+                              {profanityState.warningMessage}
+                            </p>
+                          </div>
+                        )}
                         <div className="flex justify-between items-center">
                           <p className="text-xs text-gray-500">
                             This helps us create magical theme variations just for {partyData.childName || 'your child'}!
