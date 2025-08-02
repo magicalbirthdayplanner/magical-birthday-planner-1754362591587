@@ -1,3 +1,46 @@
+## [usr-1754115801839]
+**User Request:** the party countdown, can be make it similar to Planning progress and Budget Tracker - Make it a horizontal line showing todays date to party date and show number of days in between as shown in the image but small and fit 1/3rd  of the space in the top bar.  put a light divider between the 3 sections - planning progress, budget tracker and party countdown 
+
+Make it visually appealing and intuitive user experience 
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-02 at 2.21.15 AM.png
+
+**Response Summary:** Successfully implemented an enhanced party countdown timeline that integrates seamlessly with the existing Planning Progress and Budget Tracker sections. The implementation features:
+
+**1. Three-Section Layout with Dividers:**
+- Converted the top progress bar from 2 columns to 3 equal sections
+- Added light vertical dividers between Planning Progress, Budget Tracker, and Party Countdown sections
+- Each section occupies exactly 1/3rd of the available space as requested
+
+**2. Horizontal Timeline Design:**
+- Created a compact horizontal timeline similar to the screenshot with TODAY and PARTY DAY markers
+- TODAY marker: Green rounded badge with flag icon and current date (Aug 2)
+- PARTY DAY marker: Purple rounded badge with star icon and party date (Aug 27)
+- Center displays the countdown number (25 days) in large gradient text
+
+**3. Visual Progress Indicator:**
+- Added a horizontal progress bar beneath the markers showing timeline progression
+- Gradient color scheme from green to blue to purple matching the overall design
+- Progress calculation based on planning timeline (6 weeks before party to party day)
+- Smart progress calculation that shows 100% when party has passed
+
+**4. Responsive and Intuitive Design:**
+- Compact design fits perfectly in the allocated 1/3rd space
+- Maintains visual consistency with existing Planning Progress and Budget Tracker
+- Gradient backgrounds and professional styling matching the app's design system
+- Responsive layout that works on both desktop and mobile devices
+
+**5. Enhanced User Experience:**
+- Real-time countdown updates showing exact days until party
+- Handles edge cases (party today, party in the past) with appropriate messaging
+- Consistent with the existing interactive timeline in the Timeline tab but optimized for compact display
+- Visually appealing color gradients and modern UI elements
+
+The party countdown now provides an immediate visual representation of how much time remains until the party, seamlessly integrated with the planning progress tracking system.
+
+**Files Modified:** 
+- `/app/party-plan/page.tsx` (modified) - Enhanced progress card with horizontal party countdown timeline, added dividers between sections, implemented compact timeline design with TODAY/PARTY DAY markers and progress visualization
+
 ## [usr-1754115085137]
 **User Request:** We should be able to edit budget - back and forth. Currently not able to go back and edit. 
 

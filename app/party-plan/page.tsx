@@ -635,12 +635,12 @@ export default function PartyPlanPage() {
           </p>
         </div>
 
-        {/* Progress Card with Countdown */}
+        {/* Progress Card with Enhanced Countdown Timeline */}
         <Card className="mb-8 border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
           <CardHeader>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Planning Progress */}
-              <div>
+              <div className="border-r border-gray-200 dark:border-slate-600 pr-6">
                 <CardTitle className="flex items-center gap-2 mb-2">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                   Planning Progress
@@ -664,7 +664,7 @@ export default function PartyPlanPage() {
 
               {/* Budget Overview */}
               <div 
-                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-lg p-2 -m-2 transition-colors"
+                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-lg p-2 -m-2 transition-colors border-r border-gray-200 dark:border-slate-600 pr-6"
                 onClick={() => {
                   const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
                   if (budgetTab) budgetTab.click();
@@ -694,24 +694,75 @@ export default function PartyPlanPage() {
                 </div>
               </div>
 
-              {/* Countdown Timer */}
-              <div className="flex flex-col items-center justify-center">
-                <div className="flex items-center gap-2 mb-2">
+              {/* Party Countdown Timeline */}
+              <div>
+                <CardTitle className="flex items-center gap-2 mb-3">
                   <Timer className="h-5 w-5 text-blue-600" />
-                  <CardTitle className="text-lg">Party Countdown</CardTitle>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    {daysUntilParty}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {daysUntilParty === 1 ? 'day left' : daysUntilParty === 0 ? 'Today!' : 'days left'}
-                  </div>
-                  {daysUntilParty < 0 && (
-                    <div className="text-xs text-red-500 mt-1">
-                      Party was {Math.abs(daysUntilParty)} {Math.abs(daysUntilParty) === 1 ? 'day' : 'days'} ago
+                  Party Countdown
+                </CardTitle>
+                
+                {/* Horizontal Timeline */}
+                <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-700">
+                  <div className="relative flex items-center justify-between mb-2">
+                    {/* TODAY Marker */}
+                    <div className="flex items-center gap-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      <Flag className="h-3 w-3" />
+                      <span>TODAY</span>
+                      <span className="text-xs opacity-90">
+                        {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
                     </div>
-                  )}
+
+                    {/* Days Count Center */}
+                    <div className="text-center px-2">
+                      <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        {Math.abs(daysUntilParty)}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-300">
+                        {daysUntilParty === 1 ? 'day until party!' : daysUntilParty === 0 ? 'Party is today!' : daysUntilParty < 0 ? 'days ago' : 'days until party!'}
+                      </div>
+                    </div>
+
+                    {/* PARTY DAY Marker */}
+                    <div className="flex items-center gap-1 bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      <Star className="h-3 w-3" />
+                      <span>PARTY DAY</span>
+                      <span className="text-xs opacity-90">
+                        {partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Progress Timeline Bar */}
+                  <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${(() => {
+                          try {
+                            if (partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) && daysUntilParty > 0) {
+                              const today = new Date();
+                              const partyDate = new Date(partyData.partyDate);
+                              if (!isNaN(today.getTime()) && !isNaN(partyDate.getTime())) {
+                                // Calculate total duration from when planning started (assume 6 weeks ago)
+                                const planningStartDate = new Date(partyDate);
+                                planningStartDate.setDate(planningStartDate.getDate() - 42); // 6 weeks before
+                                const totalPlanningDays = Math.ceil((partyDate.getTime() - planningStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                                const daysPassed = Math.ceil((today.getTime() - planningStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                                return Math.max(0, Math.min(100, (daysPassed / totalPlanningDays) * 100));
+                              }
+                            } else if (daysUntilParty <= 0) {
+                              return 100; // Party has passed or is today
+                            }
+                            return 10; // Default small progress
+                          } catch (error) {
+                            console.error('Error calculating timeline progress:', error);
+                            return 10;
+                          }
+                        })()}%` 
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
