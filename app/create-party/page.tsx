@@ -1747,7 +1747,31 @@ export default function CreatePartyPage() {
                     </div>
                   </div>
 
-                  {/* Card 2: Party Date */}
+                  {/* Card 2: Location */}
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                    <div className="text-5xl mb-4">🏴</div>
+                    <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Location</h3>
+                    <div className="text-blue-700 dark:text-blue-300 font-semibold text-lg">
+                      {partyData.zipCode || 'Not set'}
+                    </div>
+                    <div className="text-blue-600 dark:text-blue-400 text-sm mt-2">
+                      <span className="bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">Zip code 📍</span>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Guest Count */}
+                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                    <div className="text-5xl mb-4">👥</div>
+                    <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-2 text-lg">Guests</h3>
+                    <div className="text-purple-700 dark:text-purple-300 font-semibold text-lg">
+                      {partyData.guestCount || 'Not set'} people
+                    </div>
+                    <div className="text-purple-600 dark:text-purple-400 text-sm mt-2">
+                      <span className="bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded-full">Party crowd 🎉</span>
+                    </div>
+                  </div>
+
+                  {/* Card 4: Party Date */}
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
                     <div className="text-5xl mb-4">📅</div>
                     <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Party Date</h3>
@@ -1763,7 +1787,7 @@ export default function CreatePartyPage() {
                     </div>
                   </div>
 
-                  {/* Card 3: Budget */}
+                  {/* Card 5: Budget */}
                   <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 p-6 rounded-xl border border-green-200 dark:border-green-700 shadow-lg transform hover:scale-105 transition-all duration-300">
                     <div className="text-5xl mb-4">💰</div>
                     <h3 className="font-bold text-green-800 dark:text-green-200 mb-2 text-lg">Budget</h3>
@@ -1772,30 +1796,6 @@ export default function CreatePartyPage() {
                     </div>
                     <div className="text-green-600 dark:text-green-400 text-sm mt-2">
                       <span className="bg-green-200 dark:bg-green-800 px-2 py-1 rounded-full">Party fund 💵</span>
-                    </div>
-                  </div>
-
-                  {/* Card 4: Guest Count */}
-                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300">
-                    <div className="text-5xl mb-4">👥</div>
-                    <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-2 text-lg">Guests</h3>
-                    <div className="text-purple-700 dark:text-purple-300 font-semibold text-lg">
-                      {partyData.guestCount || 'Not set'} people
-                    </div>
-                    <div className="text-purple-600 dark:text-purple-400 text-sm mt-2">
-                      <span className="bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded-full">Party crowd 🎉</span>
-                    </div>
-                  </div>
-
-                  {/* Card 5: Location */}
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
-                    <div className="text-5xl mb-4">🏴</div>
-                    <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Location</h3>
-                    <div className="text-blue-700 dark:text-blue-300 font-semibold text-lg">
-                      {partyData.zipCode || 'Not set'}
-                    </div>
-                    <div className="text-blue-600 dark:text-blue-400 text-sm mt-2">
-                      <span className="bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">Zip code 📍</span>
                     </div>
                   </div>
 
