@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import GuestList, { Guest, Invitation } from "@/components/GuestList";
 import BulkInvitations from "@/components/BulkInvitations";
 import RSVPTracker from "@/components/RSVPTracker";
+import SmartBudgetAssistant from "@/components/SmartBudgetAssistant";
 import { 
   PartyPopper, 
   CheckCircle2, 
@@ -42,6 +43,7 @@ import {
   Save,
   X,
   Info,
+  DollarSign,
 } from "lucide-react";
 
 interface PartyData {
@@ -656,10 +658,14 @@ export default function PartyPlanPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="grid w-full grid-cols-7 mb-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <PartyPopper className="h-4 w-4" />
               Overview
+            </TabsTrigger>
+            <TabsTrigger value="budget" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Budget
             </TabsTrigger>
             <TabsTrigger value="checklist" className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
@@ -769,7 +775,17 @@ export default function PartyPlanPage() {
             </div>
           </TabsContent>
 
-
+          {/* Budget Tab */}
+          <TabsContent value="budget" className="space-y-6">
+            <SmartBudgetAssistant
+              partyId={partyData?.childName || 'party'}
+              childName={partyData?.childName || ''}
+              childAge={parseInt(partyData?.childAge || '0')}
+              partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
+              theme={partyData?.selectedTheme || ''}
+              guestCount={guests.length}
+            />
+          </TabsContent>
 
           {/* Checklist Tab */}
           <TabsContent value="checklist" className="space-y-6">
