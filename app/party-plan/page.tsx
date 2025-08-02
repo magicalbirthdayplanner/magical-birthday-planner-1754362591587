@@ -28,7 +28,20 @@ import {
   Timer,
   AlertTriangle,
   CheckCircle,
-  CalendarDays
+  CalendarDays,
+  Flag,
+  Star,
+  Edit3,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  EyeOff,
+  MoreHorizontal,
+  Trash2,
+  Save,
+  X,
+  Info
 } from "lucide-react";
 
 interface PartyData {
@@ -111,6 +124,12 @@ export default function PartyPlanPage() {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [showCompleted, setShowCompleted] = useState(true);
+  const [editingTask, setEditingTask] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [editingDate, setEditingDate] = useState("");
+  const [timelineView, setTimelineView] = useState<'horizontal' | 'vertical'>('horizontal');
+  const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(false);
 
   useEffect(() => {
     // Load party data from localStorage
@@ -817,116 +836,408 @@ export default function PartyPlanPage() {
 
           {/* Timeline Tab */}
           <TabsContent value="timeline" className="space-y-6">
-            {/* Visual Timeline Chart */}
+            {/* Interactive Timeline */}
             <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CalendarDays className="h-5 w-5 text-blue-600" />
-                  Interactive Planning Timeline
-                </CardTitle>
-                <CardDescription>
-                  Visual timeline showing all tasks mapped between today and your party date
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5 text-blue-600" />
+                    <CardTitle>Interactive Planning Timeline</CardTitle>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCompleted(!showCompleted)}
+                      className="text-xs"
+                    >
+                      {showCompleted ? <EyeOff className="h-3 w-3 mr-1" /> : <Eye className="h-3 w-3 mr-1" />}
+                      {showCompleted ? 'Hide' : 'Show'} Completed
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTimelineView(timelineView === 'horizontal' ? 'vertical' : 'horizontal')}
+                      className="text-xs"
+                    >
+                      {timelineView === 'horizontal' ? 'Vertical' : 'Horizontal'} View
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-8 p-4 bg-gradient-to-r from-pink-50 via-purple-50 to-yellow-50 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-yellow-900/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Flag className="h-5 w-5 text-green-600" />
+                    <div className="text-center">
+                      <div className="text-sm font-bold text-green-600">TODAY</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-300">
+                        {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center px-4">
+                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      {daysUntilParty}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {daysUntilParty === 1 ? 'day until party!' : daysUntilParty === 0 ? 'Party is today!' : daysUntilParty < 0 ? 'days since party' : 'days until party!'}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Star className="h-5 w-5 text-purple-600" />
+                    <div className="text-center">
+                      <div className="text-sm font-bold text-purple-600">PARTY DAY</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-300">
+                        {partyData?.partyDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Timeline Header */}
-                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium">Today</span>
-                      <span className="text-xs text-gray-600 dark:text-gray-300">
-                        {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        {daysUntilParty} days
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-300">until party</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <PartyPopper className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm font-medium">Party Day</span>
-                      <span className="text-xs text-gray-600 dark:text-gray-300">
-                        {partyData?.partyDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Timeline Tasks */}
-                  <div className="space-y-4">
-                    {checklist
-                      .sort((a, b) => (b.weeksOrDaysBefore || 0) - (a.weeksOrDaysBefore || 0))
-                      .map((item, index) => {
-                        const today = new Date();
-                        const partyDate = new Date(partyData?.partyDate || new Date());
-                        const totalDays = Math.ceil((partyDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                        const taskDaysFromToday = totalDays - (item.weeksOrDaysBefore || 0);
-                        const positionPercentage = totalDays > 0 ? Math.max(0, Math.min(100, (taskDaysFromToday / totalDays) * 100)) : 0;
-
-                        const getTaskStatusColor = (status: string, completed: boolean) => {
-                          if (completed) return 'bg-green-600 border-green-600 text-white';
-                          switch (status) {
-                            case 'overdue': return 'bg-red-100 border-red-600 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-                            case 'due-soon': return 'bg-orange-100 border-orange-600 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
-                            default: return 'bg-blue-100 border-blue-600 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-                          }
-                        };
-
-                        return (
-                          <div key={item.id} className="relative">
-                            {/* Timeline line */}
-                            <div className="absolute left-0 top-0 w-full h-12 bg-gradient-to-r from-gray-200 via-gray-300 to-purple-200 dark:from-slate-700 dark:via-slate-600 dark:to-purple-800 rounded-lg opacity-30"></div>
-                            
-                            {/* Task marker */}
-                            <div 
-                              className="absolute top-2 transform -translate-x-1/2 z-10"
-                              style={{ left: `${positionPercentage}%` }}
-                            >
-                              <div 
-                                className={`p-2 rounded-lg border-2 shadow-md cursor-pointer transition-all duration-200 hover:scale-105 ${getTaskStatusColor(item.status || 'upcoming', item.completed)}`}
-                                onClick={() => toggleChecklistItem(item.id)}
-                              >
-                                <div className="flex items-center gap-2 min-w-max">
-                                  {item.completed ? (
-                                    <CheckCircle className="h-4 w-4" />
-                                  ) : item.status === 'overdue' ? (
-                                    <AlertTriangle className="h-4 w-4" />
-                                  ) : item.status === 'due-soon' ? (
-                                    <Timer className="h-4 w-4" />
-                                  ) : (
-                                    <Calendar className="h-4 w-4" />
-                                  )}
-                                  <span className="text-xs font-medium max-w-32 truncate">{item.task}</span>
-                                </div>
-                                <div className="text-xs opacity-75 mt-1">
-                                  {item.dueDate?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                </div>
-                              </div>
-                            </div>
+                  {/* Task Cards Timeline */}
+                  <div className={`space-y-4 ${timelineView === 'horizontal' ? 'overflow-x-auto pb-4' : ''}`}>
+                    {timelineView === 'horizontal' ? (
+                      /* Horizontal Timeline */
+                      <div className="relative min-h-[400px] p-4">
+                        {/* Timeline Road */}
+                        <div className="absolute left-0 right-0 top-1/2 h-8 bg-gradient-to-r from-green-200 via-blue-200 via-purple-200 to-pink-200 dark:from-green-800 dark:via-blue-800 dark:via-purple-800 dark:to-pink-800 rounded-lg opacity-50 transform -translate-y-1/2"></div>
+                        
+                        {/* Today Marker */}
+                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 z-20">
+                          <div className="flex flex-col items-center">
+                            <div className="w-4 h-16 bg-green-600 rounded-full shadow-lg"></div>
+                            <Flag className="h-6 w-6 text-green-600 -mt-2" />
+                            <div className="text-xs font-bold text-green-600 mt-1">TODAY</div>
                           </div>
-                        );
-                      })}
+                        </div>
+
+                        {/* Party Day Marker */}
+                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 z-20">
+                          <div className="flex flex-col items-center">
+                            <div className="w-4 h-16 bg-purple-600 rounded-full shadow-lg"></div>
+                            <Star className="h-6 w-6 text-purple-600 -mt-2" />
+                            <div className="text-xs font-bold text-purple-600 mt-1">PARTY</div>
+                          </div>
+                        </div>
+
+                        {/* Task Cards */}
+                        {checklist
+                          .filter(item => showCompleted || !item.completed)
+                          .sort((a, b) => (b.weeksOrDaysBefore || 0) - (a.weeksOrDaysBefore || 0))
+                          .map((item, index) => {
+                            const today = new Date();
+                            const partyDate = new Date(partyData?.partyDate || new Date());
+                            const totalDays = Math.max(1, Math.ceil((partyDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+                            const taskDaysFromToday = totalDays - (item.weeksOrDaysBefore || 0);
+                            const positionPercentage = Math.max(5, Math.min(95, (taskDaysFromToday / totalDays) * 90 + 5));
+
+                            const getTaskCardStyle = (status: string, completed: boolean) => {
+                              if (completed) return 'bg-gradient-to-br from-gray-100 to-gray-300 border-gray-400 text-gray-600 opacity-70 dark:from-slate-700 dark:to-slate-600 dark:border-slate-500 dark:text-gray-400';
+                              switch (status) {
+                                case 'overdue': return 'bg-gradient-to-br from-red-100 to-red-200 border-red-500 text-red-800 shadow-red-200 dark:from-red-900/40 dark:to-red-800/40 dark:border-red-600 dark:text-red-300';
+                                case 'due-soon': return 'bg-gradient-to-br from-orange-100 to-orange-200 border-orange-500 text-orange-800 shadow-orange-200 dark:from-orange-900/40 dark:to-orange-800/40 dark:border-orange-600 dark:text-orange-300';
+                                default: return 'bg-gradient-to-br from-blue-100 to-blue-200 border-blue-500 text-blue-800 shadow-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 dark:border-blue-600 dark:text-blue-300';
+                              }
+                            };
+
+                            const getTaskIcon = (category: string) => {
+                              switch (category.toLowerCase()) {
+                                case 'planning': return <Calendar className="h-4 w-4" />;
+                                case 'food': return <Utensils className="h-4 w-4" />; 
+                                case 'decorations': return <Palette className="h-4 w-4" />;
+                                case 'activities': return <Users className="h-4 w-4" />;
+                                case 'gifts': return <Gift className="h-4 w-4" />;
+                                case 'documentation': return <Camera className="h-4 w-4" />;
+                                case 'setup': return <CheckCircle2 className="h-4 w-4" />;
+                                default: return <Calendar className="h-4 w-4" />;
+                              }
+                            };
+
+                            return (
+                              <div
+                                key={item.id}
+                                className="absolute transform -translate-x-1/2 z-10"
+                                style={{ 
+                                  left: `${positionPercentage}%`,
+                                  top: index % 2 === 0 ? '20%' : '70%'
+                                }}
+                              >
+                                <div className={`relative p-3 rounded-xl border-2 shadow-lg cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl min-w-[180px] max-w-[220px] ${getTaskCardStyle(item.status || 'upcoming', item.completed)}`}>
+                                  {/* Edit/Complete Actions */}
+                                  <div className="absolute -top-2 -right-2 flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-6 w-6 p-0 rounded-full bg-white dark:bg-slate-800 shadow-md"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (editingTask === item.id) {
+                                          setEditingTask(null);
+                                          setEditingText("");
+                                          setEditingDate("");
+                                        } else {
+                                          setEditingTask(item.id);
+                                          setEditingText(item.task);
+                                          setEditingDate(item.dueDate?.toISOString().split('T')[0] || "");
+                                        }
+                                      }}
+                                    >
+                                      {editingTask === item.id ? <X className="h-3 w-3" /> : <Edit3 className="h-3 w-3" />}
+                                    </Button>
+                                  </div>
+
+                                  {/* Status Indicator */}
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      {getTaskIcon(item.category)}
+                                      {item.completed ? (
+                                        <CheckCircle className="h-4 w-4 text-green-600" />
+                                      ) : item.status === 'overdue' ? (
+                                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                                      ) : item.status === 'due-soon' ? (
+                                        <Timer className="h-4 w-4 text-orange-600" />
+                                      ) : (
+                                        <Calendar className="h-4 w-4 text-blue-600" />
+                                      )}
+                                    </div>
+                                    <Badge 
+                                      variant="secondary" 
+                                      className="text-xs px-2 py-0.5"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleChecklistItem(item.id);
+                                      }}
+                                    >
+                                      {item.completed ? 'Done' : item.status === 'overdue' ? 'Overdue' : item.status === 'due-soon' ? 'Due Soon' : 'Upcoming'}
+                                    </Badge>
+                                  </div>
+
+                                  {editingTask === item.id ? (
+                                    <div className="space-y-2">
+                                      <input
+                                        type="text"
+                                        value={editingText}
+                                        onChange={(e) => setEditingText(e.target.value)}
+                                        className="w-full text-sm p-1 border rounded bg-white dark:bg-slate-700 dark:border-slate-600"
+                                      />
+                                      <input
+                                        type="date"
+                                        value={editingDate}
+                                        onChange={(e) => setEditingDate(e.target.value)}
+                                        className="w-full text-xs p-1 border rounded bg-white dark:bg-slate-700 dark:border-slate-600"
+                                      />
+                                      <div className="flex gap-1">
+                                        <Button size="sm" className="h-6 text-xs px-2" onClick={() => {
+                                          setEditingTask(null);
+                                          setEditingText("");
+                                          setEditingDate("");
+                                        }}>
+                                          <Save className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div onClick={() => toggleChecklistItem(item.id)}>
+                                      <div className={`text-sm font-medium mb-1 ${item.completed ? 'line-through' : ''}`}>
+                                        {item.task}
+                                      </div>
+                                      <div className="text-xs opacity-75 mb-2">
+                                        Due: {item.dueDate?.toLocaleDateString('en-US', { 
+                                          weekday: 'short', 
+                                          month: 'short', 
+                                          day: 'numeric' 
+                                        })}
+                                      </div>
+                                      {item.dueDate && (
+                                        <div className="text-xs font-medium">
+                                          {Math.abs(Math.ceil((item.dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days {item.dueDate.getTime() > new Date().getTime() ? 'left' : 'ago'}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                {/* Connection line to timeline */}
+                                <div className={`absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-gray-400 dark:bg-slate-600 ${index % 2 === 0 ? 'top-full h-8' : 'bottom-full h-8'}`}></div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    ) : (
+                      /* Vertical Timeline */
+                      <div className="relative pl-8">
+                        {/* Vertical Timeline Line */}
+                        <div className="absolute left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 via-blue-400 via-purple-400 to-pink-400 rounded-full"></div>
+                        
+                        {/* Timeline Items */}
+                        <div className="space-y-6">
+                          {checklist
+                            .filter(item => showCompleted || !item.completed)
+                            .sort((a, b) => (b.weeksOrDaysBefore || 0) - (a.weeksOrDaysBefore || 0))
+                            .map((item, index) => {
+                              const getTaskCardStyle = (status: string, completed: boolean) => {
+                                if (completed) return 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-300 text-gray-600 dark:from-slate-800 dark:to-slate-700 dark:border-slate-600 dark:text-gray-400';
+                                switch (status) {
+                                  case 'overdue': return 'bg-gradient-to-r from-red-50 to-red-100 border-red-300 text-red-800 dark:from-red-900/30 dark:to-red-800/30 dark:border-red-600 dark:text-red-300';
+                                  case 'due-soon': return 'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-300 text-orange-800 dark:from-orange-900/30 dark:to-orange-800/30 dark:border-orange-600 dark:text-orange-300';
+                                  default: return 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300 text-blue-800 dark:from-blue-900/30 dark:to-blue-800/30 dark:border-blue-600 dark:text-blue-300';
+                                }
+                              };
+
+                              const getTaskIcon = (category: string) => {
+                                switch (category.toLowerCase()) {
+                                  case 'planning': return <Calendar className="h-5 w-5" />;
+                                  case 'food': return <Utensils className="h-5 w-5" />;
+                                  case 'decorations': return <Palette className="h-5 w-5" />;
+                                  case 'activities': return <Users className="h-5 w-5" />;
+                                  case 'gifts': return <Gift className="h-5 w-5" />;
+                                  case 'documentation': return <Camera className="h-5 w-5" />;
+                                  case 'setup': return <CheckCircle2 className="h-5 w-5" />;
+                                  default: return <Calendar className="h-5 w-5" />;
+                                }
+                              };
+
+                              return (
+                                <div key={item.id} className="relative flex items-start gap-4">
+                                  {/* Timeline Dot */}
+                                  <div className={`absolute -left-6 top-3 w-4 h-4 rounded-full border-4 z-10 ${
+                                    item.completed ? 'bg-green-500 border-green-600' :
+                                    item.status === 'overdue' ? 'bg-red-500 border-red-600' :
+                                    item.status === 'due-soon' ? 'bg-orange-500 border-orange-600' :
+                                    'bg-blue-500 border-blue-600'
+                                  }`}></div>
+
+                                  {/* Task Card */}
+                                  <div className={`flex-1 p-4 rounded-xl border-2 shadow-md transition-all duration-300 hover:shadow-lg ${getTaskCardStyle(item.status || 'upcoming', item.completed)}`}>
+                                    <div className="flex items-start justify-between mb-3">
+                                      <div className="flex items-center gap-3">
+                                        {getTaskIcon(item.category)}
+                                        <div>
+                                          <h3 className={`font-semibold text-base ${item.completed ? 'line-through' : ''}`}>
+                                            {item.task}
+                                          </h3>
+                                          <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                                            {item.category}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-8 w-8 p-0"
+                                          onClick={() => {
+                                            if (editingTask === item.id) {
+                                              setEditingTask(null);
+                                            } else {
+                                              setEditingTask(item.id);
+                                              setEditingText(item.task);
+                                              setEditingDate(item.dueDate?.toISOString().split('T')[0] || "");
+                                            }
+                                          }}
+                                        >
+                                          <Edit3 className="h-4 w-4" />
+                                        </Button>
+                                        <Badge 
+                                          variant="outline" 
+                                          className="cursor-pointer"
+                                          onClick={() => toggleChecklistItem(item.id)}
+                                        >
+                                          {item.completed ? <CheckCircle className="h-3 w-3 mr-1" /> : 
+                                           item.status === 'overdue' ? <AlertTriangle className="h-3 w-3 mr-1" /> :
+                                           item.status === 'due-soon' ? <Timer className="h-3 w-3 mr-1" /> :
+                                           <Calendar className="h-3 w-3 mr-1" />}
+                                          {item.completed ? 'Complete' : item.status === 'overdue' ? 'Overdue' : item.status === 'due-soon' ? 'Due Soon' : 'Upcoming'}
+                                        </Badge>
+                                      </div>
+                                    </div>
+
+                                    {editingTask === item.id ? (
+                                      <div className="space-y-3 border-t pt-3">
+                                        <input
+                                          type="text"
+                                          value={editingText}
+                                          onChange={(e) => setEditingText(e.target.value)}
+                                          className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600"
+                                          placeholder="Task description"
+                                        />
+                                        <input
+                                          type="date"
+                                          value={editingDate}
+                                          onChange={(e) => setEditingDate(e.target.value)}
+                                          className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600"
+                                        />
+                                        <div className="flex gap-2">
+                                          <Button size="sm" onClick={() => {
+                                            setEditingTask(null);
+                                            setEditingText("");
+                                            setEditingDate("");
+                                          }}>
+                                            <Save className="h-4 w-4 mr-1" />
+                                            Save
+                                          </Button>
+                                          <Button size="sm" variant="outline" onClick={() => {
+                                            setEditingTask(null);
+                                            setEditingText("");
+                                            setEditingDate("");
+                                          }}>
+                                            Cancel
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                        <div>
+                                          <span className="text-gray-600 dark:text-gray-400">Due Date:</span>
+                                          <div className="font-medium">
+                                            {item.dueDate?.toLocaleDateString('en-US', { 
+                                              weekday: 'short', 
+                                              month: 'short', 
+                                              day: 'numeric' 
+                                            })}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-600 dark:text-gray-400">Timeline:</span>
+                                          <div className="font-medium">{item.timeline}</div>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-600 dark:text-gray-400">Days:</span>
+                                          <div className="font-medium">
+                                            {item.dueDate ? (
+                                              Math.abs(Math.ceil((item.dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))) + " " +
+                                              (item.dueDate.getTime() > new Date().getTime() ? 'left' : 'ago')
+                                            ) : 'N/A'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Legend */}
-                  <div className="flex flex-wrap items-center justify-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-                      <span className="text-xs">Completed</span>
+                      <div className="w-4 h-4 bg-gray-400 rounded-full opacity-70"></div>
+                      <span className="text-sm font-medium">Completed</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                      <span className="text-xs">On Schedule</span>
+                      <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm font-medium">On Schedule</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
-                      <span className="text-xs">Due Soon (3 days)</span>
+                      <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+                      <span className="text-sm font-medium">Due Soon (3 days)</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-600 rounded-full"></div>
-                      <span className="text-xs">Overdue</span>
+                      <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                      <span className="text-sm font-medium">Overdue</span>
                     </div>
                   </div>
                 </div>
