@@ -130,6 +130,8 @@ export default function PartyPlanPage() {
   const [editingDate, setEditingDate] = useState("");
   const [timelineView, setTimelineView] = useState<'horizontal' | 'vertical'>('horizontal');
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(false);
+  const [timelineDensity, setTimelineDensity] = useState<'compact' | 'expanded'>('expanded');
+  const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Load party data from localStorage
@@ -844,7 +846,7 @@ export default function PartyPlanPage() {
                     <CalendarDays className="h-5 w-5 text-blue-600" />
                     <CardTitle>Interactive Planning Timeline</CardTitle>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
@@ -861,6 +863,15 @@ export default function PartyPlanPage() {
                       className="text-xs"
                     >
                       {timelineView === 'horizontal' ? 'Vertical' : 'Horizontal'} View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTimelineDensity(timelineDensity === 'compact' ? 'expanded' : 'compact')}
+                      className="text-xs"
+                    >
+                      {timelineDensity === 'compact' ? <Plus className="h-3 w-3 mr-1" /> : <MoreHorizontal className="h-3 w-3 mr-1" />}
+                      {timelineDensity === 'compact' ? 'Expand' : 'Compact'}
                     </Button>
                   </div>
                 </div>
@@ -894,353 +905,441 @@ export default function PartyPlanPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {/* Task Cards Timeline */}
-                  <div className={`space-y-4 ${timelineView === 'horizontal' ? 'overflow-x-auto pb-4' : ''}`}>
-                    {timelineView === 'horizontal' ? (
-                      /* Horizontal Timeline */
-                      <div className="relative min-h-[400px] p-4">
-                        {/* Timeline Road */}
-                        <div className="absolute left-0 right-0 top-1/2 h-8 bg-gradient-to-r from-green-200 via-blue-200 via-purple-200 to-pink-200 dark:from-green-800 dark:via-blue-800 dark:via-purple-800 dark:to-pink-800 rounded-lg opacity-50 transform -translate-y-1/2"></div>
+                {/* Enhanced Swimlane Timeline System */}
+                {(() => {
+                  // Group tasks by category (swimlanes)
+                  const swimlanes: { [key: string]: { icon: React.ReactElement, tasks: ChecklistItem[], color: string } } = {
+                    'Food': { icon: <Utensils className="h-4 w-4" />, tasks: [], color: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' },
+                    'Decorations': { icon: <Palette className="h-4 w-4" />, tasks: [], color: 'bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800' },
+                    'Activities': { icon: <Users className="h-4 w-4" />, tasks: [], color: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' },
+                    'Planning': { icon: <Calendar className="h-4 w-4" />, tasks: [], color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' },
+                    'Setup': { icon: <CheckCircle2 className="h-4 w-4" />, tasks: [], color: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' },
+                    'Gifts': { icon: <Gift className="h-4 w-4" />, tasks: [], color: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' },
+                    'Documentation': { icon: <Camera className="h-4 w-4" />, tasks: [], color: 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800' }
+                  };
+
+                  // Distribute tasks into appropriate swimlanes
+                  checklist
+                    .filter(item => showCompleted || !item.completed)
+                    .forEach(item => {
+                      const category = item.category;
+                      if (swimlanes[category]) {
+                        swimlanes[category].tasks.push(item);
+                      } else {
+                        // Fallback to Planning if category doesn't exist
+                        swimlanes['Planning'].tasks.push(item);
+                      }
+                    });
+
+                  // Helper functions
+                  const getStatusIcon = (item: ChecklistItem) => {
+                    if (item.completed) return <CheckCircle className="h-4 w-4 text-green-600" />;
+                    if (item.status === 'overdue') return <AlertTriangle className="h-4 w-4 text-red-500" />;
+                    if (item.status === 'due-soon') return <Timer className="h-4 w-4 text-orange-500" />;
+                    return <Clock className="h-4 w-4 text-blue-500" />;
+                  };
+
+                  const getTaskCardStyle = (item: ChecklistItem) => {
+                    if (item.completed) return 'bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 opacity-75';
+                    if (item.status === 'overdue') return 'bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-600';
+                    if (item.status === 'due-soon') return 'bg-orange-50 dark:bg-orange-900/30 border-orange-300 dark:border-orange-600';
+                    return 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600';
+                  };
+
+                  const calculatePosition = (item: ChecklistItem) => {
+                    const today = new Date();
+                    const partyDate = new Date(partyData?.partyDate || new Date());
+                    const totalDays = Math.max(1, Math.ceil((partyDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+                    const taskDaysFromToday = item.dueDate ? Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+                    return Math.max(5, Math.min(95, ((totalDays - taskDaysFromToday) / totalDays) * 90 + 5));
+                  };
+
+                  const toggleSwimlane = (swimlaneName: string) => {
+                    const newCollapsed = new Set(collapsedSwimlanes);
+                    if (newCollapsed.has(swimlaneName)) {
+                      newCollapsed.delete(swimlaneName);
+                    } else {
+                      newCollapsed.add(swimlaneName);
+                    }
+                    setCollapsedSwimlanes(newCollapsed);
+                  };
+
+                  // Group tasks by dates for smart collapsing
+                  const groupTasksByDate = (tasks: ChecklistItem[]) => {
+                    const groups: { [date: string]: ChecklistItem[] } = {};
+                    tasks.forEach(task => {
+                      if (task.dueDate) {
+                        const dateKey = task.dueDate.toDateString();
+                        if (!groups[dateKey]) groups[dateKey] = [];
+                        groups[dateKey].push(task);
+                      }
+                    });
+                    return groups;
+                  };
+
+                  return (
+                    <div className="space-y-1">
+                      {/* Fixed Timeline Header with TODAY and PARTY DAY markers */}
+                      <div className={`sticky top-0 z-30 bg-gradient-to-r from-green-100 via-blue-100 via-purple-100 to-pink-100 dark:from-green-900/30 dark:via-blue-900/30 dark:via-purple-900/30 dark:to-pink-900/30 p-4 rounded-lg border-2 border-dashed border-purple-300 dark:border-purple-600 ${timelineDensity === 'compact' ? 'py-2' : 'py-4'}`}>
+                        <div className="relative flex items-center justify-between">
+                          {/* TODAY Marker - Fixed Left */}
+                          <div className="flex items-center gap-2 bg-green-500 text-white px-3 py-1 rounded-full shadow-lg">
+                            <Flag className="h-4 w-4" />
+                            <div className="text-sm font-bold">TODAY</div>
+                            <div className="text-xs opacity-90">
+                              {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                          </div>
+
+                          {/* Countdown Center */}
+                          <div className="text-center px-4">
+                            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                              {daysUntilParty}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-300">
+                              {daysUntilParty === 1 ? 'day until party!' : daysUntilParty === 0 ? 'Party is today!' : daysUntilParty < 0 ? 'days since party' : 'days until party!'}
+                            </div>
+                          </div>
+
+                          {/* PARTY DAY Marker - Fixed Right */}
+                          <div className="flex items-center gap-2 bg-purple-500 text-white px-3 py-1 rounded-full shadow-lg">
+                            <Star className="h-4 w-4" />
+                            <div className="text-sm font-bold">PARTY DAY</div>
+                            <div className="text-xs opacity-90">
+                              {partyData?.partyDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                          </div>
+                        </div>
                         
-                        {/* Today Marker */}
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 z-20">
-                          <div className="flex flex-col items-center">
-                            <div className="w-4 h-16 bg-green-600 rounded-full shadow-lg"></div>
-                            <Flag className="h-6 w-6 text-green-600 -mt-2" />
-                            <div className="text-xs font-bold text-green-600 mt-1">TODAY</div>
-                          </div>
+                        {/* Timeline Progress Bar */}
+                        <div className="mt-3 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-green-400 to-purple-400 rounded-full transition-all duration-500"
+                            style={{ width: `${Math.max(0, Math.min(100, ((new Date().getTime() - (partyData?.partyDate ? new Date(partyData.partyDate.getTime() - (daysUntilParty * 24 * 60 * 60 * 1000)).getTime() : 0)) / (partyData?.partyDate ? partyData.partyDate.getTime() - new Date(partyData.partyDate.getTime() - (daysUntilParty * 24 * 60 * 60 * 1000)).getTime() : 1)) * 100))}%` }}
+                          />
                         </div>
+                      </div>
 
-                        {/* Party Day Marker */}
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 z-20">
-                          <div className="flex flex-col items-center">
-                            <div className="w-4 h-16 bg-purple-600 rounded-full shadow-lg"></div>
-                            <Star className="h-6 w-6 text-purple-600 -mt-2" />
-                            <div className="text-xs font-bold text-purple-600 mt-1">PARTY</div>
-                          </div>
-                        </div>
+                      {/* Swimlanes */}
+                      {Object.entries(swimlanes).map(([swimlaneName, swimlaneData]) => {
+                        if (swimlaneData.tasks.length === 0) return null;
+                        
+                        const isCollapsed = collapsedSwimlanes.has(swimlaneName);
+                        const dateGroups = groupTasksByDate(swimlaneData.tasks);
+                        const hasOverdueOrDueSoon = swimlaneData.tasks.some(task => task.status === 'overdue' || task.status === 'due-soon');
 
-                        {/* Task Cards */}
-                        {checklist
-                          .filter(item => showCompleted || !item.completed)
-                          .sort((a, b) => (b.weeksOrDaysBefore || 0) - (a.weeksOrDaysBefore || 0))
-                          .map((item, index) => {
-                            const today = new Date();
-                            const partyDate = new Date(partyData?.partyDate || new Date());
-                            const totalDays = Math.max(1, Math.ceil((partyDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
-                            const taskDaysFromToday = totalDays - (item.weeksOrDaysBefore || 0);
-                            const positionPercentage = Math.max(5, Math.min(95, (taskDaysFromToday / totalDays) * 90 + 5));
-
-                            const getTaskCardStyle = (status: string, completed: boolean) => {
-                              if (completed) return 'bg-gradient-to-br from-gray-100 to-gray-300 border-gray-400 text-gray-600 opacity-70 dark:from-slate-700 dark:to-slate-600 dark:border-slate-500 dark:text-gray-400';
-                              switch (status) {
-                                case 'overdue': return 'bg-gradient-to-br from-red-100 to-red-200 border-red-500 text-red-800 shadow-red-200 dark:from-red-900/40 dark:to-red-800/40 dark:border-red-600 dark:text-red-300';
-                                case 'due-soon': return 'bg-gradient-to-br from-orange-100 to-orange-200 border-orange-500 text-orange-800 shadow-orange-200 dark:from-orange-900/40 dark:to-orange-800/40 dark:border-orange-600 dark:text-orange-300';
-                                default: return 'bg-gradient-to-br from-blue-100 to-blue-200 border-blue-500 text-blue-800 shadow-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 dark:border-blue-600 dark:text-blue-300';
-                              }
-                            };
-
-                            const getTaskIcon = (category: string) => {
-                              switch (category.toLowerCase()) {
-                                case 'planning': return <Calendar className="h-4 w-4" />;
-                                case 'food': return <Utensils className="h-4 w-4" />; 
-                                case 'decorations': return <Palette className="h-4 w-4" />;
-                                case 'activities': return <Users className="h-4 w-4" />;
-                                case 'gifts': return <Gift className="h-4 w-4" />;
-                                case 'documentation': return <Camera className="h-4 w-4" />;
-                                case 'setup': return <CheckCircle2 className="h-4 w-4" />;
-                                default: return <Calendar className="h-4 w-4" />;
-                              }
-                            };
-
-                            return (
-                              <div
-                                key={item.id}
-                                className="absolute transform -translate-x-1/2 z-10"
-                                style={{ 
-                                  left: `${positionPercentage}%`,
-                                  top: index % 2 === 0 ? '20%' : '70%'
-                                }}
-                              >
-                                <div className={`relative p-3 rounded-xl border-2 shadow-lg cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl min-w-[180px] max-w-[220px] ${getTaskCardStyle(item.status || 'upcoming', item.completed)}`}>
-                                  {/* Edit/Complete Actions */}
-                                  <div className="absolute -top-2 -right-2 flex gap-1">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-6 w-6 p-0 rounded-full bg-white dark:bg-slate-800 shadow-md"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (editingTask === item.id) {
-                                          setEditingTask(null);
-                                          setEditingText("");
-                                          setEditingDate("");
-                                        } else {
-                                          setEditingTask(item.id);
-                                          setEditingText(item.task);
-                                          setEditingDate(item.dueDate?.toISOString().split('T')[0] || "");
-                                        }
-                                      }}
-                                    >
-                                      {editingTask === item.id ? <X className="h-3 w-3" /> : <Edit3 className="h-3 w-3" />}
-                                    </Button>
-                                  </div>
-
-                                  {/* Status Indicator */}
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                      {getTaskIcon(item.category)}
-                                      {item.completed ? (
-                                        <CheckCircle className="h-4 w-4 text-green-600" />
-                                      ) : item.status === 'overdue' ? (
-                                        <AlertTriangle className="h-4 w-4 text-red-600" />
-                                      ) : item.status === 'due-soon' ? (
-                                        <Timer className="h-4 w-4 text-orange-600" />
-                                      ) : (
-                                        <Calendar className="h-4 w-4 text-blue-600" />
-                                      )}
-                                    </div>
-                                    <Badge 
-                                      variant="secondary" 
-                                      className="text-xs px-2 py-0.5"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleChecklistItem(item.id);
-                                      }}
-                                    >
-                                      {item.completed ? 'Done' : item.status === 'overdue' ? 'Overdue' : item.status === 'due-soon' ? 'Due Soon' : 'Upcoming'}
-                                    </Badge>
-                                  </div>
-
-                                  {editingTask === item.id ? (
-                                    <div className="space-y-2">
-                                      <input
-                                        type="text"
-                                        value={editingText}
-                                        onChange={(e) => setEditingText(e.target.value)}
-                                        className="w-full text-sm p-1 border rounded bg-white dark:bg-slate-700 dark:border-slate-600"
-                                      />
-                                      <input
-                                        type="date"
-                                        value={editingDate}
-                                        onChange={(e) => setEditingDate(e.target.value)}
-                                        className="w-full text-xs p-1 border rounded bg-white dark:bg-slate-700 dark:border-slate-600"
-                                      />
-                                      <div className="flex gap-1">
-                                        <Button size="sm" className="h-6 text-xs px-2" onClick={() => {
-                                          setEditingTask(null);
-                                          setEditingText("");
-                                          setEditingDate("");
-                                        }}>
-                                          <Save className="h-3 w-3" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div onClick={() => toggleChecklistItem(item.id)}>
-                                      <div className={`text-sm font-medium mb-1 ${item.completed ? 'line-through' : ''}`}>
-                                        {item.task}
-                                      </div>
-                                      <div className="text-xs opacity-75 mb-2">
-                                        Due: {item.dueDate?.toLocaleDateString('en-US', { 
-                                          weekday: 'short', 
-                                          month: 'short', 
-                                          day: 'numeric' 
-                                        })}
-                                      </div>
-                                      {item.dueDate && (
-                                        <div className="text-xs font-medium">
-                                          {Math.abs(Math.ceil((item.dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days {item.dueDate.getTime() > new Date().getTime() ? 'left' : 'ago'}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                                {/* Connection line to timeline */}
-                                <div className={`absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-gray-400 dark:bg-slate-600 ${index % 2 === 0 ? 'top-full h-8' : 'bottom-full h-8'}`}></div>
+                        return (
+                          <div key={swimlaneName} className={`border-2 rounded-lg overflow-hidden transition-all duration-300 ${swimlaneData.color}`}>
+                            {/* Swimlane Header */}
+                            <div 
+                              className="flex items-center justify-between p-3 bg-white/50 dark:bg-slate-800/50 cursor-pointer hover:bg-white/70 dark:hover:bg-slate-800/70 transition-colors"
+                              onClick={() => toggleSwimlane(swimlaneName)}
+                            >
+                              <div className="flex items-center gap-3">
+                                {swimlaneData.icon}
+                                <div className="font-semibold text-gray-800 dark:text-gray-200">{swimlaneName}</div>
+                                <Badge variant="outline" className="text-xs">
+                                  {swimlaneData.tasks.length} tasks
+                                </Badge>
+                                {hasOverdueOrDueSoon && (
+                                  <Badge variant="destructive" className="text-xs animate-pulse">
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    Needs Attention
+                                  </Badge>
+                                )}
                               </div>
-                            );
-                          })}
-                      </div>
-                    ) : (
-                      /* Vertical Timeline */
-                      <div className="relative pl-8">
-                        {/* Vertical Timeline Line */}
-                        <div className="absolute left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 via-blue-400 via-purple-400 to-pink-400 rounded-full"></div>
-                        
-                        {/* Timeline Items */}
-                        <div className="space-y-6">
-                          {checklist
-                            .filter(item => showCompleted || !item.completed)
-                            .sort((a, b) => (b.weeksOrDaysBefore || 0) - (a.weeksOrDaysBefore || 0))
-                            .map((item, index) => {
-                              const getTaskCardStyle = (status: string, completed: boolean) => {
-                                if (completed) return 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-300 text-gray-600 dark:from-slate-800 dark:to-slate-700 dark:border-slate-600 dark:text-gray-400';
-                                switch (status) {
-                                  case 'overdue': return 'bg-gradient-to-r from-red-50 to-red-100 border-red-300 text-red-800 dark:from-red-900/30 dark:to-red-800/30 dark:border-red-600 dark:text-red-300';
-                                  case 'due-soon': return 'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-300 text-orange-800 dark:from-orange-900/30 dark:to-orange-800/30 dark:border-orange-600 dark:text-orange-300';
-                                  default: return 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300 text-blue-800 dark:from-blue-900/30 dark:to-blue-800/30 dark:border-blue-600 dark:text-blue-300';
-                                }
-                              };
-
-                              const getTaskIcon = (category: string) => {
-                                switch (category.toLowerCase()) {
-                                  case 'planning': return <Calendar className="h-5 w-5" />;
-                                  case 'food': return <Utensils className="h-5 w-5" />;
-                                  case 'decorations': return <Palette className="h-5 w-5" />;
-                                  case 'activities': return <Users className="h-5 w-5" />;
-                                  case 'gifts': return <Gift className="h-5 w-5" />;
-                                  case 'documentation': return <Camera className="h-5 w-5" />;
-                                  case 'setup': return <CheckCircle2 className="h-5 w-5" />;
-                                  default: return <Calendar className="h-5 w-5" />;
-                                }
-                              };
-
-                              return (
-                                <div key={item.id} className="relative flex items-start gap-4">
-                                  {/* Timeline Dot */}
-                                  <div className={`absolute -left-6 top-3 w-4 h-4 rounded-full border-4 z-10 ${
-                                    item.completed ? 'bg-green-500 border-green-600' :
-                                    item.status === 'overdue' ? 'bg-red-500 border-red-600' :
-                                    item.status === 'due-soon' ? 'bg-orange-500 border-orange-600' :
-                                    'bg-blue-500 border-blue-600'
-                                  }`}></div>
-
-                                  {/* Task Card */}
-                                  <div className={`flex-1 p-4 rounded-xl border-2 shadow-md transition-all duration-300 hover:shadow-lg ${getTaskCardStyle(item.status || 'upcoming', item.completed)}`}>
-                                    <div className="flex items-start justify-between mb-3">
-                                      <div className="flex items-center gap-3">
-                                        {getTaskIcon(item.category)}
-                                        <div>
-                                          <h3 className={`font-semibold text-base ${item.completed ? 'line-through' : ''}`}>
-                                            {item.task}
-                                          </h3>
-                                          <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                            {item.category}
-                                          </p>
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          className="h-8 w-8 p-0"
-                                          onClick={() => {
-                                            if (editingTask === item.id) {
-                                              setEditingTask(null);
-                                            } else {
-                                              setEditingTask(item.id);
-                                              setEditingText(item.task);
-                                              setEditingDate(item.dueDate?.toISOString().split('T')[0] || "");
-                                            }
-                                          }}
-                                        >
-                                          <Edit3 className="h-4 w-4" />
-                                        </Button>
-                                        <Badge 
-                                          variant="outline" 
-                                          className="cursor-pointer"
-                                          onClick={() => toggleChecklistItem(item.id)}
-                                        >
-                                          {item.completed ? <CheckCircle className="h-3 w-3 mr-1" /> : 
-                                           item.status === 'overdue' ? <AlertTriangle className="h-3 w-3 mr-1" /> :
-                                           item.status === 'due-soon' ? <Timer className="h-3 w-3 mr-1" /> :
-                                           <Calendar className="h-3 w-3 mr-1" />}
-                                          {item.completed ? 'Complete' : item.status === 'overdue' ? 'Overdue' : item.status === 'due-soon' ? 'Due Soon' : 'Upcoming'}
-                                        </Badge>
-                                      </div>
-                                    </div>
-
-                                    {editingTask === item.id ? (
-                                      <div className="space-y-3 border-t pt-3">
-                                        <input
-                                          type="text"
-                                          value={editingText}
-                                          onChange={(e) => setEditingText(e.target.value)}
-                                          className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600"
-                                          placeholder="Task description"
-                                        />
-                                        <input
-                                          type="date"
-                                          value={editingDate}
-                                          onChange={(e) => setEditingDate(e.target.value)}
-                                          className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600"
-                                        />
-                                        <div className="flex gap-2">
-                                          <Button size="sm" onClick={() => {
-                                            setEditingTask(null);
-                                            setEditingText("");
-                                            setEditingDate("");
-                                          }}>
-                                            <Save className="h-4 w-4 mr-1" />
-                                            Save
-                                          </Button>
-                                          <Button size="sm" variant="outline" onClick={() => {
-                                            setEditingTask(null);
-                                            setEditingText("");
-                                            setEditingDate("");
-                                          }}>
-                                            Cancel
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                                        <div>
-                                          <span className="text-gray-600 dark:text-gray-400">Due Date:</span>
-                                          <div className="font-medium">
-                                            {item.dueDate?.toLocaleDateString('en-US', { 
-                                              weekday: 'short', 
-                                              month: 'short', 
-                                              day: 'numeric' 
-                                            })}
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <span className="text-gray-600 dark:text-gray-400">Timeline:</span>
-                                          <div className="font-medium">{item.timeline}</div>
-                                        </div>
-                                        <div>
-                                          <span className="text-gray-600 dark:text-gray-400">Days:</span>
-                                          <div className="font-medium">
-                                            {item.dueDate ? (
-                                              Math.abs(Math.ceil((item.dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))) + " " +
-                                              (item.dueDate.getTime() > new Date().getTime() ? 'left' : 'ago')
-                                            ) : 'N/A'}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
+                              <div className="flex items-center gap-2">
+                                {/* Progress indicator */}
+                                <div className="flex items-center gap-1">
+                                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                                    {Math.round((swimlaneData.tasks.filter(t => t.completed).length / swimlaneData.tasks.length) * 100)}%
+                                  </div>
+                                  <div className="w-12 h-2 bg-gray-200 dark:bg-slate-600 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-green-400 transition-all duration-300"
+                                      style={{ width: `${(swimlaneData.tasks.filter(t => t.completed).length / swimlaneData.tasks.length) * 100}%` }}
+                                    />
                                   </div>
                                 </div>
-                              );
-                            })}
+                                {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                              </div>
+                            </div>
+
+                            {/* Swimlane Content */}
+                            {!isCollapsed && (
+                              <div className="p-3 space-y-3">
+                                {timelineDensity === 'compact' ? (
+                                  /* Compact View - Group dense dates */
+                                  Object.entries(dateGroups).map(([dateKey, tasksForDate]) => (
+                                    <div key={dateKey} className="space-y-2">
+                                      {tasksForDate.length > 1 ? (
+                                        /* Multiple tasks on same date - grouped */
+                                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-lg p-3 border border-gray-200 dark:border-slate-600">
+                                          <div className="flex items-center gap-2 mb-2">
+                                            <CalendarDays className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                              Due {new Date(dateKey).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                            </div>
+                                            <Badge variant="outline" className="text-xs">
+                                              {tasksForDate.length} tasks
+                                            </Badge>
+                                          </div>
+                                          <div className="grid gap-2">
+                                            {tasksForDate.map(task => (
+                                              <div key={task.id} className={`flex items-center gap-2 p-2 rounded border ${getTaskCardStyle(task)} cursor-pointer hover:shadow-sm transition-shadow`}>
+                                                <div onClick={() => toggleChecklistItem(task.id)} className="flex items-center gap-2 flex-1">
+                                                  {getStatusIcon(task)}
+                                                  <span className={`text-sm ${task.completed ? 'line-through opacity-70' : ''}`}>
+                                                    {task.task}
+                                                  </span>
+                                                </div>
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  className="h-6 w-6 p-0"
+                                                  onClick={() => {
+                                                    if (editingTask === task.id) {
+                                                      setEditingTask(null);
+                                                    } else {
+                                                      setEditingTask(task.id);
+                                                      setEditingText(task.task);
+                                                      setEditingDate(task.dueDate?.toISOString().split('T')[0] || "");
+                                                    }
+                                                  }}
+                                                >
+                                                  <Edit3 className="h-3 w-3" />
+                                                </Button>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        /* Single task */
+                                        tasksForDate.map(task => (
+                                          <div key={task.id} className={`p-3 rounded-lg border-2 shadow-sm transition-all duration-300 hover:shadow-md ${getTaskCardStyle(task)}`}>
+                                            <div className="flex items-center justify-between mb-2">
+                                              <div className="flex items-center gap-2">
+                                                {getStatusIcon(task)}
+                                                <span className={`font-medium ${task.completed ? 'line-through opacity-70' : ''}`}>
+                                                  {task.task}
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-1">
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  className="h-6 w-6 p-0"
+                                                  onClick={() => {
+                                                    if (editingTask === task.id) {
+                                                      setEditingTask(null);
+                                                    } else {
+                                                      setEditingTask(task.id);
+                                                      setEditingText(task.task);
+                                                      setEditingDate(task.dueDate?.toISOString().split('T')[0] || "");
+                                                    }
+                                                  }}
+                                                >
+                                                  <Edit3 className="h-3 w-3" />
+                                                </Button>
+                                                <div 
+                                                  className="cursor-pointer"
+                                                  onClick={() => toggleChecklistItem(task.id)}
+                                                >
+                                                  <Badge variant="outline" className="text-xs">
+                                                    {task.completed ? 'Done' : task.status === 'overdue' ? 'Overdue' : task.status === 'due-soon' ? 'Due Soon' : 'Upcoming'}
+                                                  </Badge>
+                                                </div>
+                                              </div>
+                                            </div>
+                                            <div className="text-xs text-gray-600 dark:text-gray-400">
+                                              Due: {task.dueDate?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                              {task.dueDate && (
+                                                <span className="ml-2">
+                                                  ({Math.abs(Math.ceil((task.dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days {task.dueDate.getTime() > new Date().getTime() ? 'left' : 'ago'})
+                                                </span>
+                                              )}
+                                            </div>
+                                            
+                                            {/* Editing Interface */}
+                                            {editingTask === task.id && (
+                                              <div className="mt-3 pt-3 border-t space-y-2">
+                                                <input
+                                                  type="text"
+                                                  value={editingText}
+                                                  onChange={(e) => setEditingText(e.target.value)}
+                                                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 text-sm"
+                                                  placeholder="Task description"
+                                                />
+                                                <input
+                                                  type="date"
+                                                  value={editingDate}
+                                                  onChange={(e) => setEditingDate(e.target.value)}
+                                                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 text-sm"
+                                                />
+                                                <div className="flex gap-2">
+                                                  <Button size="sm" onClick={() => {
+                                                    setEditingTask(null);
+                                                    setEditingText("");
+                                                    setEditingDate("");
+                                                  }}>
+                                                    <Save className="h-3 w-3 mr-1" />
+                                                    Save
+                                                  </Button>
+                                                  <Button size="sm" variant="outline" onClick={() => {
+                                                    setEditingTask(null);
+                                                    setEditingText("");
+                                                    setEditingDate("");
+                                                  }}>
+                                                    <X className="h-3 w-3 mr-1" />
+                                                    Cancel
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))
+                                      )}
+                                    </div>
+                                  ))
+                                ) : (
+                                  /* Expanded View - All tasks individually */
+                                  <div className="space-y-3">
+                                    {swimlaneData.tasks
+                                      .sort((a, b) => (a.dueDate?.getTime() || 0) - (b.dueDate?.getTime() || 0))
+                                      .map(task => (
+                                        <div key={task.id} className={`p-4 rounded-xl border-2 shadow-sm transition-all duration-300 hover:shadow-lg ${getTaskCardStyle(task)}`}>
+                                          <div className="flex items-start justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                              {getStatusIcon(task)}
+                                              <div>
+                                                <h3 className={`font-semibold text-base ${task.completed ? 'line-through opacity-70' : ''}`}>
+                                                  {task.task}
+                                                </h3>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                                  Due: {task.dueDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                                </p>
+                                              </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="h-8 w-8 p-0"
+                                                onClick={() => {
+                                                  if (editingTask === task.id) {
+                                                    setEditingTask(null);
+                                                  } else {
+                                                    setEditingTask(task.id);
+                                                    setEditingText(task.task);
+                                                    setEditingDate(task.dueDate?.toISOString().split('T')[0] || "");
+                                                  }
+                                                }}
+                                              >
+                                                <Edit3 className="h-4 w-4" />
+                                              </Button>
+                                              <div 
+                                                className="cursor-pointer"
+                                                onClick={() => toggleChecklistItem(task.id)}
+                                              >
+                                                <Badge variant="outline">
+                                                  {task.completed ? <CheckCircle className="h-3 w-3 mr-1" /> : 
+                                                   task.status === 'overdue' ? <AlertTriangle className="h-3 w-3 mr-1" /> :
+                                                   task.status === 'due-soon' ? <Timer className="h-3 w-3 mr-1" /> :
+                                                   <Clock className="h-3 w-3 mr-1" />}
+                                                  {task.completed ? 'Complete' : task.status === 'overdue' ? 'Overdue' : task.status === 'due-soon' ? 'Due Soon' : 'Upcoming'}
+                                                </Badge>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600 dark:text-gray-400">
+                                            <div>
+                                              <span className="font-medium">Timeline:</span> {task.timeline}
+                                            </div>
+                                            {task.dueDate && (
+                                              <div>
+                                                <span className="font-medium">Countdown:</span>
+                                                <span className={`ml-1 ${task.dueDate.getTime() < new Date().getTime() ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                                                  {Math.abs(Math.ceil((task.dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days {task.dueDate.getTime() > new Date().getTime() ? 'remaining' : 'overdue'}
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          {/* Editing Interface */}
+                                          {editingTask === task.id && (
+                                            <div className="mt-4 pt-4 border-t space-y-3">
+                                              <input
+                                                type="text"
+                                                value={editingText}
+                                                onChange={(e) => setEditingText(e.target.value)}
+                                                className="w-full p-3 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600"
+                                                placeholder="Task description"
+                                              />
+                                              <input
+                                                type="date"
+                                                value={editingDate}
+                                                onChange={(e) => setEditingDate(e.target.value)}
+                                                className="w-full p-3 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600"
+                                              />
+                                              <div className="flex gap-2">
+                                                <Button size="sm" onClick={() => {
+                                                  setEditingTask(null);
+                                                  setEditingText("");
+                                                  setEditingDate("");
+                                                }}>
+                                                  <Save className="h-4 w-4 mr-1" />
+                                                  Save Changes
+                                                </Button>
+                                                <Button size="sm" variant="outline" onClick={() => {
+                                                  setEditingTask(null);
+                                                  setEditingText("");
+                                                  setEditingDate("");
+                                                }}>
+                                                  <X className="h-4 w-4 mr-1" />
+                                                  Cancel
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {/* Legend */}
+                      <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border">
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+                          <Info className="h-4 w-4" />
+                          Timeline Legend
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span>Completed</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 text-red-500" />
+                            <span>Overdue</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Timer className="h-4 w-4 text-orange-500" />
+                            <span>Due Soon</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-blue-500" />
+                            <span>Upcoming</span>
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Legend */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gray-400 rounded-full opacity-70"></div>
-                      <span className="text-sm font-medium">Completed</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm font-medium">On Schedule</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
-                      <span className="text-sm font-medium">Due Soon (3 days)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                      <span className="text-sm font-medium">Overdue</span>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </CardContent>
             </Card>
 
