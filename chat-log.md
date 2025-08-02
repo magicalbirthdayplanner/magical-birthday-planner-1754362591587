@@ -1,3 +1,8 @@
+## [usr-1754146763855]
+**User Request:** In step 2, the user must choose between Classic Theme or Custom Theme and only then be able to navigate to next page. Currently I am able to navigate without a selection
+**Response Summary:** Fixed the validation logic in step 2 of the party creation wizard to properly enforce theme selection before allowing navigation to step 3. The issue was in the `isStepValid()` function where the default case returned `true` instead of `false`, allowing users to proceed without selecting either Classic Theme or Custom Theme.
+**Files Modified:** app/create-party/page.tsx
+
 ## [usr-1754116746206]
 **User Request:** implement the same gradient box as below the party countdown to budget tracker and planning progress - maintain visual consistency 
 **Response Summary:** Successfully implemented matching gradient box styling from the party countdown section to both Budget Tracker and Planning Progress sections for complete visual consistency. The implementation includes:

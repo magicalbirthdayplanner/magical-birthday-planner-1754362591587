@@ -500,7 +500,7 @@ export default function CreatePartyPage() {
         if (customThemeMode) {
           return partyData.childInterests.length > 0; // Custom theme requires interests
         }
-        return true; // Default state is valid
+        return false; // Neither theme type selected - navigation disabled
       case 3:
         return partyData.selectedTheme !== "";
       case 4:
