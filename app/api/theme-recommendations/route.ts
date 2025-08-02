@@ -74,7 +74,9 @@ export async function POST(request: NextRequest) {
       CRITICAL EXAMPLES TO FOLLOW EXACTLY:
       - Text Input: "Iron Man" + Theme: "Superhero" → "Iron Man Superhero Tech Lab", "Tony Stark Superhero Academy", "Iron Man Armor Workshop Party"
       - Text Input: "Spider-Man" + Theme: "Superhero" → "Spider-Man Web Slinger Party", "Peter Parker Superhero Training", "Amazing Spider-Man Hero Academy"
+      - Text Input: "Snow White" + Theme: "Princess" → "Snow White Princess Forest Party", "Seven Dwarfs Royal Adventure", "Magic Mirror Princess Quest"
       - Text Input: "Frozen, Elsa" + Theme: "Princess" → "Frozen Princess Ice Castle", "Queen Elsa Princess Party", "Anna & Elsa Royal Adventure"
+      - Text Input: "Cinderella" + Theme: "Princess" → "Cinderella Royal Ball Princess Party", "Glass Slipper Princess Adventure", "Fairy Godmother Princess Magic"
       - Text Input: "cricket" + Theme: "Sports" → "Cricket Championship Sports Party", "Cricket Stadium Sports Adventure", "Little Cricket Champion Sports Fun"
       - Text Input: "soccer" + Theme: "Sports" → "Soccer World Cup Sports Party", "Football Field Sports Adventure", "Little Soccer Star Sports Fun"
       
@@ -234,7 +236,7 @@ VALIDATION RULES:
         const keywords: string[] = [];
         const lowerText = text.toLowerCase();
         
-        // ULTRA-COMPREHENSIVE keyword patterns for accuracy - ENHANCED WITH STAR WARS
+        // ULTRA-COMPREHENSIVE keyword patterns for accuracy - ENHANCED WITH PRINCESS CHARACTERS
         const characterPatterns = [
           // Star Wars characters and themes - PRIORITY DETECTION
           'star wars', 'jedi', 'luke skywalker', 'darth vader', 'princess leia', 'han solo',
@@ -243,9 +245,20 @@ VALIDATION RULES:
           // Superhero characters
           'iron man', 'spider-man', 'spiderman', 'batman', 'superman', 'hulk', 'captain america', 'thor',
           'wonder woman', 'aquaman', 'flash', 'green lantern', 'black widow', 'hawkeye', 'ant-man', 'black panther',
-          // Disney/Princess characters
-          'elsa', 'anna', 'frozen', 'moana', 'belle', 'ariel', 'cinderella', 'rapunzel', 'jasmine', 'mulan',
-          'tiana', 'merida', 'pocahontas', 'aurora', 'snow white',
+          // Disney/Princess characters - EXPANDED FOR BETTER DETECTION
+          'snow white', 'seven dwarfs', 'dwarfs', 'dwarf', 'magic mirror', 'poisoned apple', 'evil queen',
+          'elsa', 'anna', 'frozen', 'olaf', 'kristoff', 'arendelle', 'let it go',
+          'cinderella', 'glass slipper', 'fairy godmother', 'pumpkin carriage', 'prince charming',
+          'belle', 'beast', 'beauty and the beast', 'enchanted rose', 'lumiere', 'cogsworth',
+          'ariel', 'little mermaid', 'under the sea', 'sebastian', 'flounder', 'ursula', 'triton',
+          'rapunzel', 'tangled', 'flynn rider', 'pascal', 'mother gothel', 'lanterns',
+          'jasmine', 'aladdin', 'magic carpet', 'genie', 'abu', 'jafar', 'agrabah',
+          'moana', 'maui', 'ocean', 'heart of te fiti', 'hei hei', 'pua',
+          'tiana', 'princess and the frog', 'new orleans', 'bayou', 'prince naveen',
+          'mulan', 'mushu', 'fa mulan', 'china', 'honor', 'reflection',
+          'merida', 'brave', 'scotland', 'archery', 'clan', 'will o the wisps',
+          'pocahontas', 'john smith', 'colors of the wind', 'grandmother willow',
+          'aurora', 'sleeping beauty', 'maleficent', 'spinning wheel', 'prince phillip',
           // Generic descriptors that should be ignored for theme filtering
           'humanoid', 'human', 'person', 'people', 'character', 'figure', 'being',
           // Theme-specific keywords
@@ -458,14 +471,57 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
           lowerText.includes('darth vader') || lowerText.includes('lightsaber') || lowerText.includes('yoda')) {
         characters.push('Star Wars');
       }
+      // Superhero character detection
       if (lowerText.includes('iron man')) characters.push('Iron Man');
       if (lowerText.includes('spider-man') || lowerText.includes('spiderman')) characters.push('Spider-Man');
       if (lowerText.includes('batman')) characters.push('Batman');
       if (lowerText.includes('superman')) characters.push('Superman');
       if (lowerText.includes('hulk')) characters.push('Hulk');
-      if (lowerText.includes('elsa') || lowerText.includes('frozen')) characters.push('Elsa/Frozen');
-      if (lowerText.includes('anna')) characters.push('Anna');
-      if (lowerText.includes('moana')) characters.push('Moana');
+      
+      // PRIORITY: Princess character detection - ENHANCED FOR SNOW WHITE
+      if (lowerText.includes('snow white') || lowerText.includes('seven dwarfs') || lowerText.includes('magic mirror') || 
+          lowerText.includes('poisoned apple') || lowerText.includes('evil queen')) {
+        characters.push('Snow White');
+      }
+      if (lowerText.includes('elsa') || lowerText.includes('frozen') || lowerText.includes('olaf') || 
+          lowerText.includes('let it go') || lowerText.includes('arendelle')) {
+        characters.push('Elsa/Frozen');
+      }
+      if (lowerText.includes('anna') && lowerText.includes('frozen')) characters.push('Anna');
+      if (lowerText.includes('cinderella') || lowerText.includes('glass slipper') || 
+          lowerText.includes('fairy godmother') || lowerText.includes('pumpkin carriage')) {
+        characters.push('Cinderella');
+      }
+      if (lowerText.includes('belle') || lowerText.includes('beast') || lowerText.includes('beauty and the beast')) {
+        characters.push('Belle/Beauty and the Beast');
+      }
+      if (lowerText.includes('ariel') || lowerText.includes('little mermaid') || lowerText.includes('under the sea')) {
+        characters.push('Ariel/Little Mermaid');
+      }
+      if (lowerText.includes('rapunzel') || lowerText.includes('tangled') || lowerText.includes('flynn rider')) {
+        characters.push('Rapunzel/Tangled');
+      }
+      if (lowerText.includes('jasmine') || lowerText.includes('aladdin') || lowerText.includes('magic carpet')) {
+        characters.push('Jasmine/Aladdin');
+      }
+      if (lowerText.includes('moana') || lowerText.includes('maui') || lowerText.includes('heart of te fiti')) {
+        characters.push('Moana');
+      }
+      if (lowerText.includes('tiana') || lowerText.includes('princess and the frog') || lowerText.includes('new orleans')) {
+        characters.push('Tiana/Princess and the Frog');
+      }
+      if (lowerText.includes('mulan') || lowerText.includes('mushu') || lowerText.includes('fa mulan')) {
+        characters.push('Mulan');
+      }
+      if (lowerText.includes('merida') || lowerText.includes('brave') || lowerText.includes('scotland')) {
+        characters.push('Merida/Brave');
+      }
+      if (lowerText.includes('pocahontas') || lowerText.includes('john smith') || lowerText.includes('colors of the wind')) {
+        characters.push('Pocahontas');
+      }
+      if (lowerText.includes('aurora') || lowerText.includes('sleeping beauty') || lowerText.includes('maleficent')) {
+        characters.push('Aurora/Sleeping Beauty');
+      }
     }
     
     // Theme detection - enhanced with more keywords - STAR WARS PRIORITY
@@ -567,6 +623,19 @@ function getClassicThemeFallbacks(selectedClassicTheme: string, childName: strin
       defaultThemes: [
         {
           id: 'princess-classic-1',
+          name: 'Snow White Forest Princess Party',
+          description: 'Join Snow White and the Seven Dwarfs in the enchanted forest for a magical royal adventure!',
+          whyRecommended: `Perfect for ${childName} who selected the Princess theme - featuring Snow White, seven dwarfs, and fairytale forest magic!`,
+          colorPalette: ['#FF0000', '#FFFF00', '#0000FF', '#8B4513'],
+          decorations: ['Seven Dwarfs cottage setup', 'Magic mirror centerpiece', 'Poisoned apple displays', 'Enchanted forest backdrop', 'Dwarf mining station'],
+          activities: ['Seven Dwarfs house building', 'Magic mirror storytelling', 'Apple picking games', 'Forest creature hunt', 'Royal dwarf dance party'],
+          printableIdeas: ['Snow White story books', 'Seven Dwarfs name certificates'],
+          emoji: '🍎',
+          ageAppropriate: true,
+          matchScore: 98
+        },
+        {
+          id: 'princess-classic-2',
           name: 'Royal Princess Ball',
           description: 'Step into a fairytale world of royal elegance, crowns, and magical princess adventures!',
           whyRecommended: `Perfect for ${childName} who selected the Princess theme - royal elegance with crowns, gowns, and fairytale magic!`,
@@ -577,19 +646,6 @@ function getClassicThemeFallbacks(selectedClassicTheme: string, childName: strin
           emoji: '👸',
           ageAppropriate: true,
           matchScore: 92
-        },
-        {
-          id: 'princess-classic-2',
-          name: 'Enchanted Castle Adventure',
-          description: 'Explore a magical castle filled with princess mysteries and royal treasures!',
-          whyRecommended: `Designed for ${childName} who loves princess adventures - castle exploration with royal mysteries!`,
-          colorPalette: ['#DDA0DD', '#FFB6C1', '#F0E68C', '#98FB98'],
-          decorations: ['Enchanted castle towers', 'Royal treasure chests', 'Princess portrait gallery', 'Magic mirror stations'],
-          activities: ['Castle treasure hunt', 'Royal mystery solving', 'Princess portrait painting', 'Magic spell workshops'],
-          printableIdeas: ['Royal adventure maps', 'Princess story books'],
-          emoji: '🏰',
-          ageAppropriate: true,
-          matchScore: 90
         }
       ]
     },
@@ -1075,6 +1131,37 @@ function getTextBasedFallbacks(textAnalysis: any, childName: string, age: number
       emoji: '🕷️',
       ageAppropriate: true,
       matchScore: 98
+    });
+  }
+  
+  // PRIORITY: Snow White character-specific themes
+  if (textAnalysis.characters.includes('Snow White')) {
+    textBasedThemes.push({
+      id: 'snowwhite-text-1',
+      name: 'Snow White Seven Dwarfs Adventure',
+      description: 'Join Snow White and the Seven Dwarfs in the enchanted forest for magical adventures!',
+      whyRecommended: `Perfect for ${childName} who loves Snow White (mentioned in their favorites) - featuring Snow White, seven dwarfs, magic mirror, and forest adventures!`,
+      colorPalette: ['#FF0000', '#FFFF00', '#0000FF', '#8B4513'],
+      decorations: ['Seven Dwarfs cottage setup', 'Magic mirror centerpiece', 'Poisoned apple displays', 'Enchanted forest backdrop'],
+      activities: ['Seven Dwarfs house building', 'Magic mirror storytelling', 'Apple picking games', 'Forest creature hunt'],
+      printableIdeas: ['Snow White story books', 'Seven Dwarfs coloring pages'],
+      emoji: '🍎',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+    
+    textBasedThemes.push({
+      id: 'snowwhite-text-2',
+      name: 'Magic Mirror Princess Quest',
+      description: 'Discover the magic of Snow White\'s world with the enchanted mirror and forest friends!',
+      whyRecommended: `Designed for ${childName} who loves Snow White (from their text input) - magic mirror adventures with princess elements!`,
+      colorPalette: ['#C0C0C0', '#FFD700', '#FF0000', '#228B22'],
+      decorations: ['Giant magic mirror setup', 'Fairest of all banner', 'Apple orchard corner', 'Royal crown station'],
+      activities: ['Magic mirror games', 'Fairest princess contest', 'Apple decorating workshop', 'Forest princess dance'],
+      printableIdeas: ['Magic mirror certificates', 'Snow White princess crowns to color'],
+      emoji: '🪞',
+      ageAppropriate: true,
+      matchScore: 96
     });
   }
   
