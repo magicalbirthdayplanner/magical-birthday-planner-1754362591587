@@ -1,3 +1,10 @@
+## [usr-1754093620578]
+**User Request:** IN the custom themes, I selected Art and Craft, chose colors and gave the text input as beach, but I get totally different non-contextual AI recommendations. 
+
+Please take the text input from the user and ensure that this input is given to the AI model and ensure that the recommendations are aligned to the text input
+**Response Summary:** Successfully fixed the critical issue where the text input "beach" was not being properly recognized by the AI recommendation system. The problem was that "beach" and related keywords were missing from the keyword pattern matching system. Enhanced the AI system by adding comprehensive theme keywords including "beach", "sea", "sand", "waves", "seaside", "coastal", "summer" and other art & craft related terms to the pattern recognition system. Added beach-themed fallback recommendations that create "Beach Paradise Art & Craft Party" themes when "beach" is mentioned in text input. Updated AI prompt to better handle general interests like "beach" alongside specific character names. Enhanced both the validation system and fallback recommendations to ensure that when users input "beach" in custom themes, they receive contextually accurate beach-themed art and craft party recommendations instead of generic unrelated themes. The system now properly processes and prioritizes text input for both specific characters (Spider-Man, Iron Man) and general themes (beach, art, music, sports).
+**Files Modified:** app/api/theme-recommendations/route.ts (expanded keyword pattern matching to include beach and art/craft terms, added beach-themed fallback recommendations, enhanced AI prompt with general theme handling, improved text input processing for both characters and general interests)
+
 ## [usr-1754092805489]
 **User Request:** Its not working for all the variations. If I say spiderman, I am still getting unicorn. 
 

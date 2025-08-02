@@ -80,11 +80,13 @@ export async function POST(request: NextRequest) {
 
       TEXT INPUT PRIORITY RULES:
       1. The child's text input is THE PRIMARY source for theme creation
-      2. Extract specific character names, movies, shows, and interests from the text
+      2. Extract specific character names, movies, shows, interests, and general themes from the text
       3. Create themes that feature these EXACT elements prominently
       4. If text mentions "Spider-Man", create Spider-Man themed parties
       5. If text mentions "Unicorn", create Unicorn themed parties
-      6. Match the themes EXACTLY to what the child currently loves
+      6. If text mentions "beach", create beach-themed art and craft parties
+      7. If text mentions general themes like "art", "music", "sports", create themed parties around those interests
+      8. Match the themes EXACTLY to what the child currently loves, including both specific characters AND general interests
 
       Based on the following inputs, suggest 3-5 creative and trending kids' birthday party themes that DIRECTLY reflect the child's specific text input about their current favorites.`
 
@@ -169,6 +171,9 @@ CUSTOM THEME MODE:
 - If text mentions "Spider-Man" → Create ONLY Spider-Man themed parties
 - If text mentions "Unicorn" → Create ONLY Unicorn themed parties
 - If text mentions "Iron Man" → Create ONLY Iron Man themed parties
+- If text mentions "beach" → Create ONLY beach-themed art and craft parties
+- If text mentions "art" or "craft" → Create ONLY art and craft themed parties
+- If text mentions general interests → Create themed parties around those specific interests
 - Match the themes EXACTLY to the specific favorites mentioned
 `}
 
@@ -211,7 +216,7 @@ VALIDATION RULES:
         const keywords: string[] = [];
         const lowerText = text.toLowerCase();
         
-        // Common character names and franchises
+        // Common character names, franchises, and theme keywords
         const characterPatterns = [
           'iron man', 'spider-man', 'spiderman', 'batman', 'superman', 'hulk', 'captain america', 'thor',
           'elsa', 'anna', 'frozen', 'moana', 'belle', 'ariel', 'cinderella', 'rapunzel',
@@ -219,7 +224,16 @@ VALIDATION RULES:
           'unicorn', 'rainbow', 'sparkle', 'magic',
           'pirate', 'treasure', 'ship', 'ocean', 'mermaid',
           'space', 'astronaut', 'rocket', 'planet', 'star',
-          'safari', 'lion', 'elephant', 'giraffe', 'jungle'
+          'safari', 'lion', 'elephant', 'giraffe', 'jungle',
+          // Art & Craft theme keywords
+          'beach', 'sea', 'sand', 'waves', 'seashell', 'seaside', 'coastal', 'summer',
+          'painting', 'drawing', 'art', 'craft', 'creative', 'colors', 'brushes', 'canvas',
+          'pottery', 'sculpture', 'crafting', 'diy', 'handmade', 'artistic',
+          // Additional theme keywords
+          'music', 'dance', 'singing', 'instruments', 'dancing', 'ballet',
+          'sports', 'soccer', 'football', 'basketball', 'tennis', 'swimming',
+          'nature', 'forest', 'garden', 'flowers', 'plants', 'outdoors',
+          'cooking', 'baking', 'chef', 'kitchen', 'food', 'recipes'
         ];
         
         characterPatterns.forEach(pattern => {
@@ -379,6 +393,8 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
     if (lowerText.includes('pirate')) themes.push('pirate');
     if (lowerText.includes('ocean') || lowerText.includes('mermaid')) themes.push('ocean');
     if (lowerText.includes('safari') || lowerText.includes('jungle')) themes.push('safari');
+    if (lowerText.includes('beach') || lowerText.includes('sea') || lowerText.includes('sand') || lowerText.includes('seaside')) themes.push('beach');
+    if (lowerText.includes('art') || lowerText.includes('craft') || lowerText.includes('painting') || lowerText.includes('drawing')) themes.push('art');
     
     return { characters, themes, interests: textInterests };
   };
@@ -602,6 +618,38 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
         activities: ['Unicorn horn decorating', 'Rainbow treasure hunt', 'Magic potion making'],
         printableIdeas: ['Unicorn coloring pages', 'Magic spell certificates'],
         emoji: '🦄',
+        ageAppropriate: true,
+        matchScore: 98
+      });
+    }
+    
+    if (textAnalysis.themes.includes('beach')) {
+      textBasedThemes.push({
+        id: 'beach-custom-1',
+        name: 'Beach Paradise Art & Craft Party',
+        description: 'Create amazing beach-themed art and crafts inspired by seaside adventures!',
+        whyRecommended: `Perfect for ${childName} who loves the beach (mentioned in their favorites) - combining beach themes with creative art and craft activities!`,
+        colorPalette: ['#00CED1', '#FFE4B5', '#F0E68C', '#87CEEB'],
+        decorations: ['Seashell art stations', 'Beach umbrella decorations', 'Sand castle displays', 'Ocean wave backdrops'],
+        activities: ['Seashell painting workshop', 'Sand art bottles crafting', 'Beach scene canvas painting', 'Driftwood sculpture making'],
+        printableIdeas: ['Beach coloring pages', 'Seashell identification charts'],
+        emoji: '🏖️',
+        ageAppropriate: true,
+        matchScore: 98
+      });
+    }
+    
+    if (textAnalysis.themes.includes('art')) {
+      textBasedThemes.push({
+        id: 'art-custom-1',
+        name: 'Creative Art & Craft Studio Party',
+        description: 'Unleash creativity in a colorful art studio with endless artistic possibilities!',
+        whyRecommended: `Perfect for ${childName} who loves art and crafts (mentioned in their favorites) - featuring all their favorite creative activities!`,
+        colorPalette: ['#FF6347', '#32CD32', '#FF69B4', '#FFD700'],
+        decorations: ['Paint palette table settings', 'Colorful paint splatter banners', 'Artist easel displays', 'Craft supply stations'],
+        activities: ['Canvas painting party', 'Clay sculpture workshop', 'Collaborative mural creation', 'DIY craft corner'],
+        printableIdeas: ['Artist certificate templates', 'Color-by-number party sheets'],
+        emoji: '🎨',
         ageAppropriate: true,
         matchScore: 98
       });
