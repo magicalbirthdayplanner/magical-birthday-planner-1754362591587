@@ -41,9 +41,21 @@ const classicThemes = [
   { id: "ocean", name: "Ocean", emoji: "🐠", color: "bg-gradient-to-r from-blue-500 to-cyan-600" },
   { id: "princess", name: "Princess", emoji: "👸", color: "bg-gradient-to-r from-pink-400 to-purple-600" },
   { id: "superhero", name: "Superhero", emoji: "🦸‍♂️", color: "bg-gradient-to-r from-red-500 to-blue-600" },
-  { id: "pirate", name: "Pirate", emoji: "🏴‍☠️", color: "bg-gradient-to-r from-amber-600 to-red-600" },
+  { id: "sports", name: "Sports", emoji: "⚽", color: "bg-gradient-to-r from-orange-500 to-red-600" },
   { id: "unicorn", name: "Unicorn", emoji: "🦄", color: "bg-gradient-to-r from-pink-500 to-violet-600" }
 ];
+
+// Emoji rotation arrays for each theme to show variety
+const themeEmojiVariations = {
+  dinosaur: ["🦕", "🦖", "🌿", "🥚"],
+  space: ["🚀", "🛸", "🌟", "👨‍🚀"],
+  safari: ["🦁", "🐘", "🦒", "🌍"],
+  ocean: ["🐠", "🐋", "🦈", "🏖️"],
+  princess: ["👸", "👑", "🏰", "🦄"],
+  superhero: ["🦸‍♂️", "🦸‍♀️", "⚡", "🚁"],
+  sports: ["⚽", "🏀", "🏈", "🎾"],
+  unicorn: ["🦄", "🌈", "✨", "🎀"]
+};
 
 const themes = [
   { 
@@ -320,6 +332,9 @@ export default function CreatePartyPage() {
   const [customThemeMode, setCustomThemeMode] = useState(false);
   const [showClassicThemes, setShowClassicThemes] = useState(false);
   const [showCustomOptions, setShowCustomOptions] = useState(false);
+  
+  // Emoji animation state
+  const [currentEmojiIndex, setCurrentEmojiIndex] = useState(0);
 
   // Dynamic placeholder examples
   const placeholderExamples = [
@@ -361,6 +376,18 @@ export default function CreatePartyPage() {
     }
   }, [partyData.isLoadingAI, partyData.aiRecommendations, showConfetti]);
 
+  // Emoji rotation animation - cycle through all theme emojis every 2 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentEmojiIndex((prevIndex) => {
+        // Get all emojis from all themes
+        const allEmojis = Object.values(themeEmojiVariations).flat();
+        return (prevIndex + 1) % allEmojis.length;
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleNext = async () => {
     if (step === 2) {
@@ -816,7 +843,12 @@ export default function CreatePartyPage() {
                       <div className="relative h-full w-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(10deg)]">
                         <div className="absolute inset-0 h-full w-full rounded-xl [backface-visibility:hidden] bg-gradient-to-br from-purple-600 to-pink-600 p-8 text-white shadow-2xl">
                           <div className="flex h-full flex-col justify-center text-center space-y-4">
-                            <div className="text-6xl animate-bounce">🎭</div>
+                            <div className="text-6xl animate-bounce">
+                              {(() => {
+                                const allEmojis = Object.values(themeEmojiVariations).flat();
+                                return allEmojis[currentEmojiIndex % allEmojis.length];
+                              })()}
+                            </div>
                             <h4 className="text-2xl font-bold">Classic Themes</h4>
                             <p className="text-purple-100">
                               Choose from our popular pre-designed themes. Perfect for quick party planning!
