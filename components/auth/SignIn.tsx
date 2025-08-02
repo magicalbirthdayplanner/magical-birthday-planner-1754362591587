@@ -66,20 +66,20 @@ export default function SignIn() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
+      <Card className="w-full max-w-md dark:bg-slate-800/90 dark:backdrop-blur-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Welcome Back
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="dark:text-gray-300">
             Sign in to continue planning magical parties
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
+              <Label htmlFor="email" className="flex items-center gap-2 dark:text-gray-200">
                 <Mail className="w-4 h-4" />
                 Email
               </Label>
@@ -90,11 +90,12 @@ export default function SignIn() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
+              <Label htmlFor="password" className="flex items-center gap-2 dark:text-gray-200">
                 <Lock className="w-4 h-4" />
                 Password
               </Label>
@@ -105,11 +106,12 @@ export default function SignIn() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
               />
             </div>
 
             {error && (
-              <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">
+              <div className="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/30 p-2 rounded">
                 {error}
               </div>
             )}
@@ -131,9 +133,9 @@ export default function SignIn() {
           </form>
 
           <div className="my-4 flex items-center">
-            <div className="flex-1 border-t border-gray-200"></div>
-            <span className="px-4 text-sm text-gray-500">Or continue with</span>
-            <div className="flex-1 border-t border-gray-200"></div>
+            <div className="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
+            <span className="px-4 text-sm text-gray-500 dark:text-gray-400">Or continue with</span>
+            <div className="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
           </div>
 
           <div className="space-y-2">
@@ -141,7 +143,7 @@ export default function SignIn() {
               onClick={() => handleSocialLogin('google')}
               disabled={loading || socialLoading !== ''}
               variant="outline"
-              className="w-full"
+              className="w-full dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 dark:hover:bg-slate-600"
             >
               {socialLoading === 'google' ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -160,7 +162,7 @@ export default function SignIn() {
               onClick={() => handleSocialLogin('facebook')}
               disabled={loading || socialLoading !== ''}
               variant="outline"
-              className="w-full"
+              className="w-full dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 dark:hover:bg-slate-600"
             >
               {socialLoading === 'facebook' ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -176,7 +178,7 @@ export default function SignIn() {
               onClick={() => handleSocialLogin('apple')}
               disabled={loading || socialLoading !== ''}
               variant="outline"
-              className="w-full"
+              className="w-full dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 dark:hover:bg-slate-600"
             >
               {socialLoading === 'apple' ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -190,10 +192,10 @@ export default function SignIn() {
           </div>
           
           <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600">Don't have an account? </span>
+            <span className="text-gray-600 dark:text-gray-300">Don't have an account? </span>
             <button
               onClick={() => router.push('/signup')}
-              className="text-purple-600 hover:text-purple-700 font-medium"
+              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
             >
               Sign Up
             </button>

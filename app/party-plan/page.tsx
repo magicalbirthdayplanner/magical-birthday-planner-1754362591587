@@ -262,9 +262,9 @@ export default function PartyPlanPage() {
 
   if (!partyData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">Loading your party plan...</p>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">Loading your party plan...</p>
           <Button onClick={() => window.location.href = '/create-party'}>
             Go back to create party
           </Button>
@@ -276,7 +276,7 @@ export default function PartyPlanPage() {
   const themeDetails = getThemeDetails();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -288,7 +288,7 @@ export default function PartyPlanPage() {
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2">
             {partyData.childName}'s {themeDetails?.name} Party Plan
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Age {partyData.childAge} • {partyData.partyDate.toLocaleDateString('en-US', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -299,7 +299,7 @@ export default function PartyPlanPage() {
         </div>
 
         {/* Progress Card */}
-        <Card className="mb-8 border-0 shadow-lg">
+        <Card className="mb-8 border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -359,7 +359,7 @@ export default function PartyPlanPage() {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Theme Card */}
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <span className="text-2xl">{themeDetails?.emoji}</span>
@@ -379,7 +379,7 @@ export default function PartyPlanPage() {
               </Card>
 
               {/* Guest Stats */}
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
@@ -413,7 +413,7 @@ export default function PartyPlanPage() {
               </Card>
 
               {/* Actions Card */}
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
@@ -465,7 +465,7 @@ export default function PartyPlanPage() {
                             <label
                               htmlFor={item.id}
                               className={`flex-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
-                                item.completed ? 'line-through text-gray-500' : ''
+                                item.completed ? 'line-through text-gray-500 dark:text-gray-400' : ''
                               }`}
                             >
                               {item.task}
@@ -539,7 +539,7 @@ export default function PartyPlanPage() {
             {themeDetails && (
               <div className="grid gap-6">
                 {/* Decorations */}
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <PartyPopper className="h-5 w-5" />
@@ -559,7 +559,7 @@ export default function PartyPlanPage() {
                 </Card>
 
                 {/* Activities */}
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Users className="h-5 w-5" />
@@ -579,7 +579,7 @@ export default function PartyPlanPage() {
                 </Card>
 
                 {/* Food & Treats */}
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Utensils className="h-5 w-5" />
@@ -621,16 +621,16 @@ export default function PartyPlanPage() {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                           completedCount === timelineTasks.length && timelineTasks.length > 0
                             ? 'bg-green-600 text-white'
-                            : 'bg-gray-200 text-gray-600'
+                            : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300'
                         }`}>
                           {index + 1}
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold mb-2">{timeline}</h3>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
                             {completedCount}/{timelineTasks.length} tasks completed
                           </p>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                             <div 
                               className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
                               style={{ 

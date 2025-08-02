@@ -511,7 +511,7 @@ export default function CreatePartyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -523,7 +523,7 @@ export default function CreatePartyPage() {
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2">
             Plan your Magical Birthday Party
           </h1>
-          <p className="text-gray-600">Plan your child's dream birthday in just 4 simple steps!</p>
+          <p className="text-gray-600 dark:text-gray-300">Plan your child's dream birthday in just 4 simple steps!</p>
         </div>
 
         {/* Progress Indicator */}
@@ -536,7 +536,7 @@ export default function CreatePartyPage() {
                     "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
                     step >= stepNumber
                       ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                      : "bg-gray-200 text-gray-500"
+                      : "bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400"
                   )}
                 >
                   {stepNumber}
@@ -545,7 +545,7 @@ export default function CreatePartyPage() {
                   <div
                     className={cn(
                       "w-16 h-1 mx-2 transition-colors",
-                      step > stepNumber ? "bg-gradient-to-r from-purple-600 to-pink-600" : "bg-gray-200"
+                      step > stepNumber ? "bg-gradient-to-r from-purple-600 to-pink-600" : "bg-gray-200 dark:bg-slate-700"
                     )}
                   />
                 )}
@@ -555,7 +555,7 @@ export default function CreatePartyPage() {
         </div>
 
         {/* Step Content */}
-        <Card className="border-0 shadow-xl">
+        <Card className="border-0 shadow-xl dark:bg-slate-800/90 dark:backdrop-blur-sm">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
               {step === 1 && "Tell us about your child"}
@@ -571,7 +571,7 @@ export default function CreatePartyPage() {
             </CardDescription>
             
             {/* Navigation Buttons at Top */}
-            <div className="flex justify-between pt-4 border-t border-gray-100 mt-4">
+            <div className="flex justify-between pt-4 border-t border-gray-100 dark:border-slate-700 mt-4">
               <Button
                 variant="outline"
                 onClick={handleBack}
@@ -619,7 +619,7 @@ export default function CreatePartyPage() {
             {step === 1 && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="childName" className="text-sm font-medium">
+                  <Label htmlFor="childName" className="text-sm font-medium dark:text-gray-200">
                     Child's Name
                   </Label>
                   <Input
@@ -627,11 +627,11 @@ export default function CreatePartyPage() {
                     placeholder="Enter your child's name"
                     value={partyData.childName}
                     onChange={(e) => setPartyData({ ...partyData, childName: e.target.value })}
-                    className="text-lg h-12"
+                    className="text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">
+                  <Label className="text-sm font-medium dark:text-gray-200">
                     Gender
                   </Label>
                   <div className="grid grid-cols-2 gap-2">
@@ -690,7 +690,7 @@ export default function CreatePartyPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">When is the party?</Label>
+                  <Label className="text-sm font-medium dark:text-gray-200">When is the party?</Label>
                   <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                     <PopoverTrigger asChild>
                       <Button
@@ -719,7 +719,7 @@ export default function CreatePartyPage() {
                   </Popover>
                 </div>
                 <div className="space-y-4">
-                  <Label htmlFor="childAge" className="text-sm font-medium">
+                  <Label htmlFor="childAge" className="text-sm font-medium dark:text-gray-200">
                     Child's Age: {`${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}
                   </Label>
                   <div className="px-3">
@@ -731,7 +731,7 @@ export default function CreatePartyPage() {
                       step={1}
                       className="w-full"
                     />
-                    <div className="flex justify-between text-xs text-gray-500 mt-2">
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
                       <span>1</span>
                       <span>2</span>
                       <span>3</span>
@@ -773,20 +773,20 @@ export default function CreatePartyPage() {
                             className={cn(
                               "p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 text-center",
                               isActive 
-                                ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-md" 
-                                : "border-gray-200 hover:border-purple-300 hover:bg-purple-25"
+                                ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 shadow-md" 
+                                : "border-gray-200 dark:border-slate-600 hover:border-purple-300 hover:bg-purple-25 dark:hover:bg-purple-900/20"
                             )}
                           >
                             <div className="text-2xl mb-1">{ageCard.emoji}</div>
                             <div className={cn(
                               "text-lg font-bold",
-                              isActive ? "text-purple-700" : "text-gray-600"
+                              isActive ? "text-purple-700 dark:text-purple-400" : "text-gray-600 dark:text-gray-300"
                             )}>
                               {ageCard.age}
                             </div>
                             <div className={cn(
                               "text-xs font-medium mt-1",
-                              isActive ? "text-purple-600" : "text-gray-500"
+                              isActive ? "text-purple-600 dark:text-purple-400" : "text-gray-500 dark:text-gray-400"
                             )}>
                               {ageCard.label}
                             </div>
@@ -1045,15 +1045,15 @@ export default function CreatePartyPage() {
                             setPartyData({ ...partyData, childDetails: finalText });
                           }}
                           className={cn(
-                            "min-h-[100px] text-sm resize-none bg-white/80 backdrop-blur-sm transition-colors",
+                            "min-h-[100px] text-sm resize-none bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm transition-colors dark:text-gray-200",
                             profanityState.hasProfanity 
-                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50" 
-                              : "border-purple-200 focus:border-purple-400"
+                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50 dark:bg-red-900/30 dark:ring-red-800 dark:border-red-400" 
+                              : "border-purple-200 focus:border-purple-400 dark:border-slate-600 dark:focus:border-purple-500"
                           )}
                         />
                         {/* Profanity warning message */}
                         {profanityState.hasProfanity && (
-                          <div className="flex items-center space-x-2 p-3 bg-red-100 border border-red-300 rounded-lg">
+                          <div className="flex items-center space-x-2 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
                             <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
                             <p className="text-sm text-red-700 font-medium">
                               {profanityState.warningMessage}
@@ -1228,15 +1228,15 @@ export default function CreatePartyPage() {
                             setPartyData({ ...partyData, childDetails: finalText });
                           }}
                           className={cn(
-                            "min-h-[100px] text-sm resize-none bg-white/80 backdrop-blur-sm transition-colors",
+                            "min-h-[100px] text-sm resize-none bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm transition-colors dark:text-gray-200",
                             profanityState.hasProfanity 
-                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50" 
-                              : "border-purple-200 focus:border-purple-400"
+                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50 dark:bg-red-900/30 dark:ring-red-800 dark:border-red-400" 
+                              : "border-purple-200 focus:border-purple-400 dark:border-slate-600 dark:focus:border-purple-500"
                           )}
                         />
                         {/* Profanity warning message */}
                         {profanityState.hasProfanity && (
-                          <div className="flex items-center space-x-2 p-3 bg-red-100 border border-red-300 rounded-lg">
+                          <div className="flex items-center space-x-2 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
                             <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
                             <p className="text-sm text-red-700 font-medium">
                               {profanityState.warningMessage}
