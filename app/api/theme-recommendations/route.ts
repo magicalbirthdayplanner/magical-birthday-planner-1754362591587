@@ -151,18 +151,25 @@ Return ONLY a valid JSON array of 3-5 theme objects with the following structure
       messages: [
         {
           role: 'system',
-          content: `You are an expert party planning AI that MUST follow text input instructions with absolute precision.
+          content: `You are an expert party planning AI that MUST follow text input instructions with absolute precision and consistency.
+
+DETERMINISTIC PROCESSING RULES:
+- Your responses must be consistent across multiple calls with identical inputs
+- Always prioritize the child's specific text input over general interests
+- Generate exactly the same themes for identical input combinations
 
 CRITICAL TEXT INPUT PROCESSING - MANDATORY COMPLIANCE:
 1. The child's "Current Favorites / Recent Hobbies" text input: "${childDetails || 'Not specified'}"
 2. This text input is your PRIMARY directive - analyze it for specific character names, movies, shows, interests
 3. Create ALL themes based on what is specifically mentioned in this text input
+4. IGNORE GENERIC TERMS: If text input contains only generic terms like "humanoid", "human", "person", use the child's selected interests instead
 
 ${selectedClassicTheme ? `
 CLASSIC THEME CONSTRAINTS:
 - Theme Type: ${selectedClassicTheme} ONLY
 - Text Input: "${childDetails || 'Not specified'}"
 - REQUIREMENT: Every theme must be a ${selectedClassicTheme} variation featuring elements from the text input
+- If text mentions "Star Wars" → Create ONLY "Star Wars ${selectedClassicTheme}" themes: "Star Wars ${selectedClassicTheme} Galaxy Party", "Jedi ${selectedClassicTheme} Training"
 - If text mentions "Iron Man" → Create ONLY "Iron Man ${selectedClassicTheme}" themes: "Iron Man ${selectedClassicTheme} Tech Party", "Tony Stark ${selectedClassicTheme} Academy"
 - If text mentions "Spider-Man" → Create ONLY "Spider-Man ${selectedClassicTheme}" themes: "Spider-Man ${selectedClassicTheme} Web Adventure", "Peter Parker ${selectedClassicTheme} Training"
 - If text mentions any specific element → ALL themes must combine ${selectedClassicTheme} + that element
@@ -171,6 +178,7 @@ CLASSIC THEME CONSTRAINTS:
 CUSTOM THEME MODE:
 - Text Input: "${childDetails || 'Not specified'}"
 - REQUIREMENT: Create themes based EXCLUSIVELY on what is mentioned in the text input
+- If text mentions "Star Wars" → Create ONLY Star Wars themed parties
 - If text mentions "Spider-Man" → Create ONLY Spider-Man themed parties
 - If text mentions "Unicorn" → Create ONLY Unicorn themed parties
 - If text mentions "Iron Man" → Create ONLY Iron Man themed parties
@@ -179,6 +187,12 @@ CUSTOM THEME MODE:
 - If text mentions general interests → Create themed parties around those specific interests
 - Match the themes EXACTLY to the specific favorites mentioned
 `}
+
+CONSISTENCY REQUIREMENTS:
+- Generate identical themes for identical inputs
+- Always process text input before falling back to interests
+- Maintain consistent theme naming patterns
+- Use deterministic ordering for theme recommendations
 
 VALIDATION RULES:
 - Every theme name must contain elements from the text input
@@ -192,8 +206,9 @@ VALIDATION RULES:
           content: prompt
         }
       ],
-      temperature: 1.1,
+      temperature: 0.8,  // Reduced from 1.1 for more consistent results
       max_tokens: 3000,
+      seed: 12345,  // Add consistent seed for deterministic results
     });
 
     const responseText = completion.choices[0]?.message?.content;
@@ -219,8 +234,12 @@ VALIDATION RULES:
         const keywords: string[] = [];
         const lowerText = text.toLowerCase();
         
-        // ULTRA-COMPREHENSIVE keyword patterns for accuracy
+        // ULTRA-COMPREHENSIVE keyword patterns for accuracy - ENHANCED WITH STAR WARS
         const characterPatterns = [
+          // Star Wars characters and themes - PRIORITY DETECTION
+          'star wars', 'jedi', 'luke skywalker', 'darth vader', 'princess leia', 'han solo',
+          'chewbacca', 'r2d2', 'c3po', 'obi wan', 'yoda', 'lightsaber', 'force', 'millennium falcon',
+          'death star', 'rebel alliance', 'empire', 'stormtrooper', 'x-wing', 'tie fighter',
           // Superhero characters
           'iron man', 'spider-man', 'spiderman', 'batman', 'superman', 'hulk', 'captain america', 'thor',
           'wonder woman', 'aquaman', 'flash', 'green lantern', 'black widow', 'hawkeye', 'ant-man', 'black panther',
@@ -233,7 +252,7 @@ VALIDATION RULES:
           'dinosaur', 'dino', 't-rex', 'triceratops', 'stegosaurus', 'pterodactyl', 'brontosaurus',
           'unicorn', 'rainbow', 'sparkle', 'magic', 'fairy', 'pixie', 'magical',
           'pirate', 'treasure', 'ship', 'ocean', 'mermaid', 'sailor', 'captain',
-          'space', 'astronaut', 'rocket', 'planet', 'star', 'galaxy', 'alien', 'universe',
+          'space', 'astronaut', 'rocket', 'planet', 'star', 'galaxy', 'alien', 'universe', 'cosmic',
           'safari', 'lion', 'elephant', 'giraffe', 'jungle', 'tiger', 'zebra', 'rhino',
           // Art & Craft theme keywords
           'beach', 'sea', 'sand', 'waves', 'seashell', 'seaside', 'coastal', 'summer', 'tropical',
@@ -416,7 +435,12 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
     const hasGenericTerms = genericTerms.some(term => lowerText.includes(term));
     
     // Character detection - only if not purely generic
-    if (!hasGenericTerms || lowerText.includes('iron man')) {
+    if (!hasGenericTerms || lowerText.includes('iron man') || lowerText.includes('star wars')) {
+      // PRIORITY: Star Wars character detection first
+      if (lowerText.includes('star wars') || lowerText.includes('jedi') || lowerText.includes('luke skywalker') ||
+          lowerText.includes('darth vader') || lowerText.includes('lightsaber') || lowerText.includes('yoda')) {
+        characters.push('Star Wars');
+      }
       if (lowerText.includes('iron man')) characters.push('Iron Man');
       if (lowerText.includes('spider-man') || lowerText.includes('spiderman')) characters.push('Spider-Man');
       if (lowerText.includes('batman')) characters.push('Batman');
@@ -427,12 +451,14 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
       if (lowerText.includes('moana')) characters.push('Moana');
     }
     
-    // Theme detection - enhanced with more keywords
+    // Theme detection - enhanced with more keywords - STAR WARS PRIORITY
+    if (lowerText.includes('star wars') || lowerText.includes('jedi') || lowerText.includes('lightsaber') ||
+        lowerText.includes('force') || lowerText.includes('galaxy')) themes.push('star wars');
     if (lowerText.includes('superhero') || lowerText.includes('hero')) themes.push('superhero');
     if (lowerText.includes('princess')) themes.push('princess');
     if (lowerText.includes('dinosaur') || lowerText.includes('dino')) themes.push('dinosaur');
     if (lowerText.includes('unicorn')) themes.push('unicorn');
-    if (lowerText.includes('space') || lowerText.includes('astronaut')) themes.push('space');
+    if (lowerText.includes('space') || lowerText.includes('astronaut') || lowerText.includes('galaxy') || lowerText.includes('cosmic')) themes.push('space');
     if (lowerText.includes('pirate')) themes.push('pirate');
     if (lowerText.includes('ocean') || lowerText.includes('mermaid')) themes.push('ocean');
     if (lowerText.includes('safari') || lowerText.includes('jungle')) themes.push('safari');
@@ -719,7 +745,37 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
   if (textAnalysis.characters.length > 0 || textAnalysis.themes.length > 0) {
     const textBasedThemes: ThemeRecommendation[] = [];
     
-    // Generate themes based on specific characters mentioned
+    // Generate themes based on specific characters mentioned - STAR WARS PRIORITY
+    if (textAnalysis.characters.includes('Star Wars')) {
+      textBasedThemes.push({
+        id: 'starwars-custom-1',
+        name: 'Star Wars Galaxy Adventure Party',
+        description: 'Journey to a galaxy far, far away with Jedi training, lightsaber battles, and Force powers!',
+        whyRecommended: `Perfect for ${childName} who loves Star Wars (mentioned in their favorites) - featuring Jedi training, lightsabers, and galactic adventures!`,
+        colorPalette: ['#000000', '#FFD700', '#0000FF', '#FF0000'],
+        decorations: ['Death Star centerpiece', 'Lightsaber displays', 'Star Wars character banners', 'Galaxy backdrop'],
+        activities: ['Jedi training academy', 'Lightsaber dueling', 'Build your own R2D2', 'Force training challenges'],
+        printableIdeas: ['Jedi certificates', 'Star Wars character masks'],
+        emoji: '⚔️',
+        ageAppropriate: true,
+        matchScore: 98
+      });
+      
+      textBasedThemes.push({
+        id: 'starwars-custom-2',
+        name: 'Jedi Knight Training Academy',
+        description: 'Master the ways of the Force and become a true Jedi Knight in this epic Star Wars adventure!',
+        whyRecommended: `Designed for ${childName} who loves Star Wars (from their text input) - Jedi training with lightsaber combat and Force powers!`,
+        colorPalette: ['#4169E1', '#32CD32', '#FFD700', '#8B4513'],
+        decorations: ['Jedi Temple setup', 'Lightsaber training course', 'Yoda wisdom stations'],
+        activities: ['Padawan training challenges', 'Lightsaber construction workshop', 'Force meditation exercises'],
+        printableIdeas: ['Jedi Knight certificates', 'Star Wars saga coloring pages'],
+        emoji: '🌟',
+        ageAppropriate: true,
+        matchScore: 96
+      });
+    }
+    
     if (textAnalysis.characters.includes('Iron Man')) {
       textBasedThemes.push({
         id: 'ironman-custom-1',
