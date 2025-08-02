@@ -641,56 +641,64 @@ export default function PartyPlanPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Planning Progress */}
               <div className="border-r border-gray-200 dark:border-slate-600 pr-6">
-                <CardTitle className="flex items-center gap-2 mb-2">
+                <CardTitle className="flex items-center gap-2 mb-3">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                   Planning Progress
                 </CardTitle>
-                <CardDescription className="mb-3">
-                  {completedTasks} of {totalTasks} tasks completed
-                </CardDescription>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Progress</span>
-                  <span className="text-lg font-bold text-purple-600">
-                    {Math.round(progressPercentage)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
-                  <div 
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${progressPercentage}%` }}
-                  />
+                
+                {/* Gradient Box Container */}
+                <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-700">
+                  <CardDescription className="mb-3">
+                    {completedTasks} of {totalTasks} tasks completed
+                  </CardDescription>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Progress</span>
+                    <span className="text-lg font-bold text-purple-600">
+                      {Math.round(progressPercentage)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${progressPercentage}%` }}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Budget Overview */}
-              <div 
-                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-lg p-2 -m-2 transition-colors border-r border-gray-200 dark:border-slate-600 pr-6"
-                onClick={() => {
-                  const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
-                  if (budgetTab) budgetTab.click();
-                }}
-              >
-                <CardTitle className="flex items-center gap-2 mb-2">
+              <div className="border-r border-gray-200 dark:border-slate-600 pr-6">
+                <CardTitle className="flex items-center gap-2 mb-3">
                   <DollarSign className="h-5 w-5 text-green-600" />
                   Budget Tracker
                 </CardTitle>
-                <CardDescription className="mb-3">
-                  {(() => {
-                    const { totalBudget, totalSpent } = getBudgetData(); 
-                    return totalBudget > 0 ? `$${totalSpent.toFixed(0)} of $${totalBudget} spent` : 'Click to set budget';
-                  })()}
-                </CardDescription>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Budget Used</span>
-                  <span className="text-lg font-bold text-green-600">
-                    {Math.round(getBudgetData().percentage)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
-                  <div 
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${getBudgetData().percentage}%` }}
-                  />
+                
+                {/* Gradient Box Container */}
+                <div 
+                  className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-700 cursor-pointer hover:bg-gradient-to-r hover:from-green-100 hover:via-blue-100 hover:to-purple-100 dark:hover:from-green-800/20 dark:hover:via-blue-800/20 dark:hover:to-purple-800/20 transition-colors"
+                  onClick={() => {
+                    const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
+                    if (budgetTab) budgetTab.click();
+                  }}
+                >
+                  <CardDescription className="mb-3">
+                    {(() => {
+                      const { totalBudget, totalSpent } = getBudgetData(); 
+                      return totalBudget > 0 ? `$${totalSpent.toFixed(0)} of $${totalBudget} spent` : 'Click to set budget';
+                    })()}
+                  </CardDescription>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Budget Used</span>
+                    <span className="text-lg font-bold text-green-600">
+                      {Math.round(getBudgetData().percentage)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${getBudgetData().percentage}%` }}
+                    />
+                  </div>
                 </div>
               </div>
 
