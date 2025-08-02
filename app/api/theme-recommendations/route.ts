@@ -212,35 +212,49 @@ VALIDATION RULES:
       // TEXT INPUT VALIDATION - ULTRA STRICT FILTERING BASED ON USER INPUT
       let validatedRecommendations = recommendations;
       
-      // Extract keywords from child's text input for validation
+      // Extract keywords from child's text input for validation - ENHANCED FOR HUMANOID DETECTION
       const extractTextInputKeywords = (text: string): string[] => {
         if (!text || text.trim() === '' || text === 'Not specified') return [];
         
         const keywords: string[] = [];
         const lowerText = text.toLowerCase();
         
-        // Common character names, franchises, and theme keywords
+        // ULTRA-COMPREHENSIVE keyword patterns for accuracy
         const characterPatterns = [
+          // Superhero characters
           'iron man', 'spider-man', 'spiderman', 'batman', 'superman', 'hulk', 'captain america', 'thor',
-          'elsa', 'anna', 'frozen', 'moana', 'belle', 'ariel', 'cinderella', 'rapunzel',
-          'dinosaur', 'dino', 't-rex', 'triceratops', 'stegosaurus',
-          'unicorn', 'rainbow', 'sparkle', 'magic',
-          'pirate', 'treasure', 'ship', 'ocean', 'mermaid',
-          'space', 'astronaut', 'rocket', 'planet', 'star',
-          'safari', 'lion', 'elephant', 'giraffe', 'jungle',
+          'wonder woman', 'aquaman', 'flash', 'green lantern', 'black widow', 'hawkeye', 'ant-man', 'black panther',
+          // Disney/Princess characters
+          'elsa', 'anna', 'frozen', 'moana', 'belle', 'ariel', 'cinderella', 'rapunzel', 'jasmine', 'mulan',
+          'tiana', 'merida', 'pocahontas', 'aurora', 'snow white',
+          // Generic descriptors that should be ignored for theme filtering
+          'humanoid', 'human', 'person', 'people', 'character', 'figure', 'being',
+          // Theme-specific keywords
+          'dinosaur', 'dino', 't-rex', 'triceratops', 'stegosaurus', 'pterodactyl', 'brontosaurus',
+          'unicorn', 'rainbow', 'sparkle', 'magic', 'fairy', 'pixie', 'magical',
+          'pirate', 'treasure', 'ship', 'ocean', 'mermaid', 'sailor', 'captain',
+          'space', 'astronaut', 'rocket', 'planet', 'star', 'galaxy', 'alien', 'universe',
+          'safari', 'lion', 'elephant', 'giraffe', 'jungle', 'tiger', 'zebra', 'rhino',
           // Art & Craft theme keywords
-          'beach', 'sea', 'sand', 'waves', 'seashell', 'seaside', 'coastal', 'summer',
+          'beach', 'sea', 'sand', 'waves', 'seashell', 'seaside', 'coastal', 'summer', 'tropical',
           'painting', 'drawing', 'art', 'craft', 'creative', 'colors', 'brushes', 'canvas',
-          'pottery', 'sculpture', 'crafting', 'diy', 'handmade', 'artistic',
-          // Sports theme keywords - COMPREHENSIVE SPORTS COVERAGE
+          'pottery', 'sculpture', 'crafting', 'diy', 'handmade', 'artistic', 'sketch', 'crayon',
+          // Sports theme keywords - ULTRA-COMPREHENSIVE SPORTS COVERAGE
           'sports', 'sport', 'soccer', 'football', 'basketball', 'tennis', 'swimming', 'baseball',
           'cricket', 'hockey', 'volleyball', 'badminton', 'golf', 'rugby', 'athletics',
           'running', 'cycling', 'skating', 'gymnastics', 'wrestling', 'boxing', 'martial arts',
-          'track', 'field', 'olympics', 'championship', 'tournament', 'match', 'game',
+          'track', 'field', 'olympics', 'championship', 'tournament', 'match', 'game', 'player',
+          'team', 'coach', 'stadium', 'score', 'win', 'competition',
+          // Vehicle themes (for Cars selection)
+          'car', 'cars', 'truck', 'bus', 'motorcycle', 'vehicle', 'racing', 'speed', 'wheels',
+          'transportation', 'auto', 'drive', 'highway', 'garage',
+          // Animal themes (for Animals selection)
+          'animal', 'animals', 'pets', 'dog', 'cat', 'bird', 'fish', 'horse', 'cow', 'pig',
+          'farm', 'zoo', 'wild', 'domestic', 'mammal', 'reptile',
           // Additional theme keywords
-          'music', 'dance', 'singing', 'instruments', 'dancing', 'ballet',
-          'nature', 'forest', 'garden', 'flowers', 'plants', 'outdoors',
-          'cooking', 'baking', 'chef', 'kitchen', 'food', 'recipes'
+          'music', 'dance', 'singing', 'instruments', 'dancing', 'ballet', 'concert', 'band',
+          'nature', 'forest', 'garden', 'flowers', 'plants', 'outdoors', 'camping', 'hiking',
+          'cooking', 'baking', 'chef', 'kitchen', 'food', 'recipes', 'restaurant'
         ];
         
         characterPatterns.forEach(pattern => {
@@ -254,15 +268,29 @@ VALIDATION RULES:
       
       const textInputKeywords = extractTextInputKeywords(childDetails || '');
       
-      // Validate themes based on text input alignment
-      if (textInputKeywords.length > 0) {
+      // ENHANCED TEXT INPUT PROCESSING - Handle generic terms
+      const isGenericTerm = (text: string): boolean => {
+        const genericTerms = ['humanoid', 'human', 'person', 'people', 'character', 'figure', 'being'];
+        const lowerText = text.toLowerCase().trim();
+        return genericTerms.some(term => lowerText === term || lowerText.includes(term));
+      };
+      
+      // INTELLIGENT CONTEXT ANALYSIS - Skip validation for generic terms
+      const hasSpecificKeywords = textInputKeywords.length > 0 && 
+        !textInputKeywords.every(keyword => isGenericTerm(keyword));
+      
+      // Validate themes based on text input alignment - ONLY if specific keywords exist
+      if (hasSpecificKeywords) {
+        // Filter out generic terms from keyword matching
+        const specificKeywords = textInputKeywords.filter(keyword => !isGenericTerm(keyword));
+        
         validatedRecommendations = recommendations.filter(rec => {
           const themeName = rec.name.toLowerCase();
           const themeDescription = rec.description.toLowerCase();
           const whyRecommended = rec.whyRecommended.toLowerCase();
           
-          // Check if theme incorporates text input keywords
-          const hasTextInputAlignment = textInputKeywords.some(keyword => 
+          // Check if theme incorporates specific (non-generic) text input keywords
+          const hasTextInputAlignment = specificKeywords.some(keyword => 
             themeName.includes(keyword) || 
             themeDescription.includes(keyword) || 
             whyRecommended.includes(keyword)
@@ -277,7 +305,7 @@ VALIDATION RULES:
                                            (selectedThemeLower === 'princess' && (themeName.includes('princess') || themeName.includes('royal'))) ||
                                            (selectedThemeLower === 'dinosaur' && themeName.includes('dino')) ||
                                            (selectedThemeLower === 'space' && (themeName.includes('space') || themeName.includes('astronaut'))) ||
-                                           (selectedThemeLower === 'safari' && (themeName.includes('safari') || themeName.includes('jungle'))) ||
+                                           (selectedThemeLower === 'safari' && (themeName.includes('safari') || themeName.includes('jungle') || themeName.includes('animal'))) ||
                                            (selectedThemeLower === 'ocean' && (themeName.includes('ocean') || themeName.includes('sea'))) ||
                                            (selectedThemeLower === 'pirate' && themeName.includes('pirate')) ||
                                            (selectedThemeLower === 'unicorn' && themeName.includes('unicorn')) ||
@@ -290,14 +318,14 @@ VALIDATION RULES:
         });
         
         // Log validation results for debugging
-        console.log(`Text input keywords: ${textInputKeywords.join(', ')}`);
+        console.log(`Text input keywords (filtered): ${specificKeywords.join(', ')}`);
         console.log(`Original recommendations: ${recommendations.length}, Validated: ${validatedRecommendations.length}`);
         
-        // If no themes match text input, return fallback
+        // If no themes match specific text input, return fallback
         if (validatedRecommendations.length === 0) {
-          console.log('No themes matched text input, using text-aware fallback');
+          console.log('No themes matched specific text input, using text-aware fallback');
           return NextResponse.json({
-            error: 'AI generated themes not matching text input',
+            error: 'AI generated themes not matching specific text input',
             fallback: true,
             recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme, childDetails)
           });
@@ -374,26 +402,32 @@ VALIDATION RULES:
 }
 
 function getFallbackRecommendations(childName: string, age: number, interests: string[], selectedClassicTheme?: string, childDetails?: string): ThemeRecommendation[] {
-  // Enhanced text input analysis for fallback recommendations
-  const analyzeTextInput = (text: string): { characters: string[]; themes: string[]; interests: string[] } => {
-    if (!text || text.trim() === '' || text === 'Not specified') return { characters: [], themes: [], interests: [] };
+  // Enhanced text input analysis for fallback recommendations - INTELLIGENT GENERIC TERM HANDLING
+  const analyzeTextInput = (text: string): { characters: string[]; themes: string[]; interests: string[]; hasGenericTerms: boolean } => {
+    if (!text || text.trim() === '' || text === 'Not specified') return { characters: [], themes: [], interests: [], hasGenericTerms: false };
     
     const lowerText = text.toLowerCase();
     const characters: string[] = [];
     const themes: string[] = [];
     const textInterests: string[] = [];
     
-    // Character detection
-    if (lowerText.includes('iron man')) characters.push('Iron Man');
-    if (lowerText.includes('spider-man') || lowerText.includes('spiderman')) characters.push('Spider-Man');
-    if (lowerText.includes('batman')) characters.push('Batman');
-    if (lowerText.includes('superman')) characters.push('Superman');
-    if (lowerText.includes('hulk')) characters.push('Hulk');
-    if (lowerText.includes('elsa') || lowerText.includes('frozen')) characters.push('Elsa/Frozen');
-    if (lowerText.includes('anna')) characters.push('Anna');
-    if (lowerText.includes('moana')) characters.push('Moana');
+    // Check for generic terms that should not trigger specific themes
+    const genericTerms = ['humanoid', 'human', 'person', 'people', 'character', 'figure', 'being'];
+    const hasGenericTerms = genericTerms.some(term => lowerText.includes(term));
     
-    // Theme detection
+    // Character detection - only if not purely generic
+    if (!hasGenericTerms || lowerText.includes('iron man')) {
+      if (lowerText.includes('iron man')) characters.push('Iron Man');
+      if (lowerText.includes('spider-man') || lowerText.includes('spiderman')) characters.push('Spider-Man');
+      if (lowerText.includes('batman')) characters.push('Batman');
+      if (lowerText.includes('superman')) characters.push('Superman');
+      if (lowerText.includes('hulk')) characters.push('Hulk');
+      if (lowerText.includes('elsa') || lowerText.includes('frozen')) characters.push('Elsa/Frozen');
+      if (lowerText.includes('anna')) characters.push('Anna');
+      if (lowerText.includes('moana')) characters.push('Moana');
+    }
+    
+    // Theme detection - enhanced with more keywords
     if (lowerText.includes('superhero') || lowerText.includes('hero')) themes.push('superhero');
     if (lowerText.includes('princess')) themes.push('princess');
     if (lowerText.includes('dinosaur') || lowerText.includes('dino')) themes.push('dinosaur');
@@ -407,10 +441,76 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
     if (lowerText.includes('cricket')) { themes.push('cricket'); textInterests.push('cricket'); }
     if (lowerText.includes('sports') || lowerText.includes('sport')) themes.push('sports');
     
-    return { characters, themes, interests: textInterests };
+    // Vehicle theme detection for Cars interest
+    if (lowerText.includes('car') || lowerText.includes('cars') || lowerText.includes('vehicle') || lowerText.includes('racing') || lowerText.includes('truck')) themes.push('vehicles');
+    
+    // Animal theme detection for Animals interest
+    if (lowerText.includes('animal') || lowerText.includes('animals') || lowerText.includes('pet') || lowerText.includes('dog') || lowerText.includes('cat')) themes.push('animals');
+    
+    return { characters, themes, interests: textInterests, hasGenericTerms };
   };
   
   const textAnalysis = analyzeTextInput(childDetails || '');
+  
+  // INTELLIGENT HANDLING OF GENERIC TERMS WITH INTERESTS
+  // If user inputs generic terms like "humanoid" with specific interests, use interests for theme matching
+  if (textAnalysis.hasGenericTerms && interests.length > 0) {
+    const interestBasedThemes: ThemeRecommendation[] = [];
+    
+    // Match interests to appropriate themes when text input is generic
+    if (interests.some(interest => interest.toLowerCase().includes('car'))) {
+      interestBasedThemes.push({
+        id: 'cars-interest-1',
+        name: 'Racing Car Adventure Party',
+        description: 'Rev up the engines for a high-speed racing adventure with cars, tracks, and victory celebrations!',
+        whyRecommended: `Perfect for ${childName} who loves cars (from their interests) - featuring racing excitement and automotive fun!`,
+        colorPalette: ['#FF0000', '#000000', '#FFFF00', '#C0C0C0'],
+        decorations: ['Racing flags', 'Car track displays', 'Traffic light centerpieces', 'Pit stop stations'],
+        activities: ['Car racing games', 'Build your own race car', 'Pit crew challenges', 'Victory lap celebration'],
+        printableIdeas: ['Racing certificates', 'Car coloring pages'],
+        emoji: '🏎️',
+        ageAppropriate: true,
+        matchScore: 95
+      });
+    }
+    
+    if (interests.some(interest => interest.toLowerCase().includes('animal'))) {
+      interestBasedThemes.push({
+        id: 'animals-interest-1',
+        name: 'Animal Kingdom Safari Party',
+        description: 'Explore the amazing world of animals with safari adventures and wildlife discoveries!',
+        whyRecommended: `Perfect for ${childName} who loves animals (from their interests) - featuring all their favorite creatures!`,
+        colorPalette: ['#228B22', '#DAA520', '#8B4513', '#CD853F'],
+        decorations: ['Animal prints', 'Safari tent setup', 'Animal footprints trail', 'Wildlife photo displays'],
+        activities: ['Animal sound games', 'Wildlife scavenger hunt', 'Animal habitat building', 'Pet care workshop'],
+        printableIdeas: ['Animal fact cards', 'Safari explorer certificates'],
+        emoji: '🦁',
+        ageAppropriate: true,
+        matchScore: 95
+      });
+    }
+    
+    if (interests.some(interest => ['art', 'craft', 'drawing'].includes(interest.toLowerCase()))) {
+      interestBasedThemes.push({
+        id: 'art-interest-1',
+        name: 'Creative Art Studio Party',
+        description: 'Unleash creativity in a colorful art studio filled with paints, brushes, and endless artistic possibilities!',
+        whyRecommended: `Perfect for ${childName} who loves art & crafts (from their interests) - featuring all their favorite creative activities!`,
+        colorPalette: ['#FF6347', '#32CD32', '#FF69B4', '#FFD700'],
+        decorations: ['Paint palette table settings', 'Colorful paint splatter banners', 'Artist easel displays', 'Art supply stations'],
+        activities: ['Canvas painting party', 'Clay sculpture workshop', 'Collaborative mural creation', 'DIY craft corner'],
+        printableIdeas: ['Artist certificate templates', 'Color-by-number party sheets'],
+        emoji: '🎨',
+        ageAppropriate: true,
+        matchScore: 95
+      });
+    }
+    
+    // Return interest-based themes when text input is generic
+    if (interestBasedThemes.length > 0) {
+      return interestBasedThemes.slice(0, 5);
+    }
+  }
   
   // If a classic theme is selected, return fallback variations of that specific theme
   if (selectedClassicTheme) {
