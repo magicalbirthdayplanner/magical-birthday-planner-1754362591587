@@ -1059,12 +1059,12 @@ export default function CreatePartyPage() {
                       </p>
                     </div>
 
-                    {/* Interests Selection - Card Style */}
+                    {/* Interests Selection - Card Style (Single Select) */}
                     <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 space-y-4">
                       <div className="text-center">
                         <h4 className="text-lg font-semibold text-gray-800 mb-2">What Does Your Child Love? 💫</h4>
                         <p className="text-sm text-gray-600">
-                          Select at least one interest to get started
+                          Choose one main interest for your child
                         </p>
                       </div>
                       <div className="space-y-4">
@@ -1073,10 +1073,8 @@ export default function CreatePartyPage() {
                             <div
                               key={interest}
                               onClick={() => {
-                                const newInterests = partyData.childInterests.includes(interest)
-                                  ? partyData.childInterests.filter(i => i !== interest)
-                                  : [...partyData.childInterests, interest];
-                                setPartyData({ ...partyData, childInterests: newInterests });
+                                // Single select - replace the current selection with new one
+                                setPartyData({ ...partyData, childInterests: [interest] });
                               }}
                               className={cn(
                                 "relative group px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-md text-sm font-medium",
@@ -1095,21 +1093,9 @@ export default function CreatePartyPage() {
                         {partyData.childInterests.length > 0 && (
                           <div className="flex flex-wrap gap-2 pt-4 justify-center">
                             <span className="text-sm text-gray-600 font-medium">Selected:</span>
-                            {partyData.childInterests.map((interest) => (
-                              <div
-                                key={interest}
-                                className="inline-flex items-center space-x-1 bg-green-100 text-green-800 rounded-full px-3 py-1 text-xs font-medium"
-                              >
-                                <span>{interest}</span>
-                                <X
-                                  className="h-3 w-3 cursor-pointer hover:text-green-600"
-                                  onClick={() => {
-                                    const newInterests = partyData.childInterests.filter(i => i !== interest);
-                                    setPartyData({ ...partyData, childInterests: newInterests });
-                                  }}
-                                />
-                              </div>
-                            ))}
+                            <div className="inline-flex items-center space-x-1 bg-green-100 text-green-800 rounded-full px-3 py-1 text-xs font-medium">
+                              <span>{partyData.childInterests[0]}</span>
+                            </div>
                           </div>
                         )}
                       </div>
