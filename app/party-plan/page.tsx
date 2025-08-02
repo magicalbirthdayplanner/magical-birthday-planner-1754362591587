@@ -131,7 +131,7 @@ export default function PartyPlanPage() {
   const [timelineView, setTimelineView] = useState<'horizontal' | 'vertical'>('horizontal');
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(false);
   const [timelineDensity, setTimelineDensity] = useState<'compact' | 'expanded'>('expanded');
-  const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set());
+  const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Activities', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
 
   useEffect(() => {
     // Load party data from localStorage
@@ -881,9 +881,10 @@ export default function PartyPlanPage() {
                 {(() => {
                   // Group tasks by category (swimlanes)
                   const swimlanes: { [key: string]: { icon: React.ReactElement, tasks: ChecklistItem[], color: string } } = {
-                    'Food': { icon: <Utensils className="h-4 w-4" />, tasks: [], color: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' },
+                    'Venue and RSVP': { icon: <MapPin className="h-4 w-4" />, tasks: [], color: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' },
                     'Decorations': { icon: <Palette className="h-4 w-4" />, tasks: [], color: 'bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800' },
                     'Activities': { icon: <Users className="h-4 w-4" />, tasks: [], color: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' },
+                    'Food': { icon: <Utensils className="h-4 w-4" />, tasks: [], color: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' },
                     'Planning': { icon: <Calendar className="h-4 w-4" />, tasks: [], color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' },
                     'Setup': { icon: <CheckCircle2 className="h-4 w-4" />, tasks: [], color: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' },
                     'Gifts': { icon: <Gift className="h-4 w-4" />, tasks: [], color: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' },
@@ -1284,28 +1285,34 @@ export default function PartyPlanPage() {
                         );
                       })}
 
-                      {/* Legend */}
-                      <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border">
-                        <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
-                          <Info className="h-4 w-4" />
-                          Timeline Legend
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                          <div className="flex items-center gap-2">
+                      {/* Status Legend - Redesigned to look different from swimlanes */}
+                      <div className="mt-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 border-2 border-dashed border-purple-200 dark:border-purple-700">
+                        <div className="flex items-center justify-center mb-4">
+                          <div className="bg-white dark:bg-slate-800 px-4 py-2 rounded-full shadow-sm border flex items-center gap-2">
+                            <Info className="h-5 w-5 text-purple-600" />
+                            <span className="font-semibold text-purple-800 dark:text-purple-200">Status Guide</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-4">
+                          <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-full shadow-sm border flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
                             <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span>Completed</span>
+                            <span className="text-sm font-medium">Completed</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-full shadow-sm border flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-red-500"></div>
                             <AlertTriangle className="h-4 w-4 text-red-500" />
-                            <span>Overdue</span>
+                            <span className="text-sm font-medium">Overdue</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-full shadow-sm border flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
                             <Timer className="h-4 w-4 text-orange-500" />
-                            <span>Due Soon</span>
+                            <span className="text-sm font-medium">Due Soon</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-full shadow-sm border flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                             <Clock className="h-4 w-4 text-blue-500" />
-                            <span>Upcoming</span>
+                            <span className="text-sm font-medium">Upcoming</span>
                           </div>
                         </div>
                       </div>
@@ -1315,75 +1322,6 @@ export default function PartyPlanPage() {
               </CardContent>
             </Card>
 
-            {/* Traditional Timeline View */}
-            <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle>Party Planning Timeline</CardTitle>
-                <CardDescription>
-                  Follow this timeline to ensure everything is ready for the big day
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {['4-6 weeks before', '2-3 weeks before', '1 week before', 'Day before', 'Day of party'].map((timeline, index) => {
-                    const timelineTasks = checklist.filter(item => item.timeline === timeline);
-                    const completedCount = timelineTasks.filter(item => item.completed).length;
-                    const overdueTasks = timelineTasks.filter(item => item.status === 'overdue').length;
-                    const dueSoonTasks = timelineTasks.filter(item => item.status === 'due-soon').length;
-                    
-                    return (
-                      <div key={timeline} className="flex items-start gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 font-semibold ${
-                          completedCount === timelineTasks.length && timelineTasks.length > 0
-                            ? 'bg-green-600 text-white'
-                            : overdueTasks > 0
-                            ? 'bg-red-600 text-white'
-                            : dueSoonTasks > 0
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300'
-                        }`}>
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold text-lg">{timeline}</h3>
-                            <div className="flex items-center gap-2">
-                              {overdueTasks > 0 && (
-                                <Badge variant="destructive" className="text-xs">
-                                  {overdueTasks} overdue
-                                </Badge>
-                              )}
-                              {dueSoonTasks > 0 && (
-                                <Badge className="bg-orange-600 text-xs">
-                                  {dueSoonTasks} due soon
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                            {completedCount}/{timelineTasks.length} tasks completed
-                          </p>
-                          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
-                            <div 
-                              className={`h-3 rounded-full transition-all duration-300 ${
-                                overdueTasks > 0 
-                                  ? 'bg-gradient-to-r from-red-600 to-red-400'
-                                  : dueSoonTasks > 0
-                                  ? 'bg-gradient-to-r from-orange-600 to-orange-400'
-                                  : 'bg-gradient-to-r from-purple-600 to-pink-600'
-                              }`}
-                              style={{ 
-                                width: timelineTasks.length > 0 ? `${(completedCount / timelineTasks.length) * 100}%` : '0%' 
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
