@@ -983,22 +983,42 @@ export default function CreatePartyPage() {
                       <div className="text-center">
                         <h4 className="text-lg font-semibold text-gray-800 mb-2">Make It Extra Special! ✨</h4>
                         <p className="text-sm text-gray-600">
-                          Tell us more about your child to get personalized theme variations
+                          Tell us more about your child to get personalized theme variations (max 3 words)
                         </p>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-700">
-                          What are your child's current favorites, movies, shows, or hobbies? (Optional)
+                          What are your child's current favorites, movies, shows, or hobbies? (Max 3 words)
                         </Label>
                         <Textarea
                           placeholder={currentPlaceholder}
                           value={partyData.childDetails || ''}
-                          onChange={(e) => setPartyData({ ...partyData, childDetails: e.target.value })}
+                          onChange={(e) => {
+                            const input = e.target.value;
+                            const words = input.trim().split(/\s+/).filter(word => word.length > 0);
+                            
+                            // Limit to maximum 3 words
+                            if (words.length <= 3) {
+                              setPartyData({ ...partyData, childDetails: input });
+                            } else {
+                              // Take only first 3 words
+                              const limitedText = words.slice(0, 3).join(' ');
+                              setPartyData({ ...partyData, childDetails: limitedText });
+                            }
+                          }}
                           className="min-h-[100px] text-sm resize-none bg-white/80 backdrop-blur-sm border-purple-200 focus:border-purple-400"
                         />
-                        <p className="text-xs text-gray-500">
-                          This helps us create magical theme variations just for {partyData.childName || 'your child'}!
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-gray-500">
+                            This helps us create magical theme variations just for {partyData.childName || 'your child'}!
+                          </p>
+                          <p className="text-xs text-purple-600 font-medium">
+                            {partyData.childDetails ? 
+                              `${partyData.childDetails.trim().split(/\s+/).filter(word => word.length > 0).length}/3 words` : 
+                              '0/3 words'
+                            }
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1142,22 +1162,42 @@ export default function CreatePartyPage() {
                       <div className="text-center">
                         <h4 className="text-lg font-semibold text-gray-800 mb-2">Tell Us More! ✨</h4>
                         <p className="text-sm text-gray-600">
-                          Share more details to get even more personalized recommendations
+                          Share more details to get even more personalized recommendations (max 3 words)
                         </p>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-700">
-                          What are your child's current favorites, movies, shows, or hobbies? (Optional)
+                          What are your child's current favorites, movies, shows, or hobbies? (Max 3 words)
                         </Label>
                         <Textarea
                           placeholder={currentPlaceholder}
                           value={partyData.childDetails || ''}
-                          onChange={(e) => setPartyData({ ...partyData, childDetails: e.target.value })}
+                          onChange={(e) => {
+                            const input = e.target.value;
+                            const words = input.trim().split(/\s+/).filter(word => word.length > 0);
+                            
+                            // Limit to maximum 3 words
+                            if (words.length <= 3) {
+                              setPartyData({ ...partyData, childDetails: input });
+                            } else {
+                              // Take only first 3 words
+                              const limitedText = words.slice(0, 3).join(' ');
+                              setPartyData({ ...partyData, childDetails: limitedText });
+                            }
+                          }}
                           className="min-h-[100px] text-sm resize-none bg-white/80 backdrop-blur-sm border-purple-200 focus:border-purple-400"
                         />
-                        <p className="text-xs text-gray-500">
-                          This helps us create magical theme variations just for {partyData.childName || 'your child'}!
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-gray-500">
+                            This helps us create magical theme variations just for {partyData.childName || 'your child'}!
+                          </p>
+                          <p className="text-xs text-purple-600 font-medium">
+                            {partyData.childDetails ? 
+                              `${partyData.childDetails.trim().split(/\s+/).filter(word => word.length > 0).length}/3 words` : 
+                              '0/3 words'
+                            }
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>

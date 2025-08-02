@@ -69,11 +69,14 @@ export async function POST(request: NextRequest) {
       - Create ${selectedClassicTheme} themes that feature these exact elements
       - Example: If text says "loves Spider-Man" and theme is Superhero → create ONLY Spider-Man superhero themes
       - Example: If text says "obsessed with Iron Man" and theme is Superhero → create ONLY Iron Man superhero themes
+      - Example: If text says "cricket" and theme is Sports → create ONLY cricket sports themes
 
       CRITICAL EXAMPLES TO FOLLOW EXACTLY:
       - Text Input: "Iron Man" + Theme: "Superhero" → "Iron Man Superhero Tech Lab", "Tony Stark Superhero Academy", "Iron Man Armor Workshop Party"
       - Text Input: "Spider-Man" + Theme: "Superhero" → "Spider-Man Web Slinger Party", "Peter Parker Superhero Training", "Amazing Spider-Man Hero Academy"
       - Text Input: "Frozen, Elsa" + Theme: "Princess" → "Frozen Princess Ice Castle", "Queen Elsa Princess Party", "Anna & Elsa Royal Adventure"
+      - Text Input: "cricket" + Theme: "Sports" → "Cricket Championship Sports Party", "Cricket Stadium Sports Adventure", "Little Cricket Champion Sports Fun"
+      - Text Input: "soccer" + Theme: "Sports" → "Soccer World Cup Sports Party", "Football Field Sports Adventure", "Little Soccer Star Sports Fun"
       
       ABSOLUTELY FORBIDDEN: Any themes that don't combine ${selectedClassicTheme} with the child's specific text input. NO generic themes allowed.`
       : `ULTRA CRITICAL INSTRUCTION: Create themes that DIRECTLY incorporate the child's specific text input from "Current Favorites / Recent Hobbies".
@@ -229,9 +232,13 @@ VALIDATION RULES:
           'beach', 'sea', 'sand', 'waves', 'seashell', 'seaside', 'coastal', 'summer',
           'painting', 'drawing', 'art', 'craft', 'creative', 'colors', 'brushes', 'canvas',
           'pottery', 'sculpture', 'crafting', 'diy', 'handmade', 'artistic',
+          // Sports theme keywords - COMPREHENSIVE SPORTS COVERAGE
+          'sports', 'sport', 'soccer', 'football', 'basketball', 'tennis', 'swimming', 'baseball',
+          'cricket', 'hockey', 'volleyball', 'badminton', 'golf', 'rugby', 'athletics',
+          'running', 'cycling', 'skating', 'gymnastics', 'wrestling', 'boxing', 'martial arts',
+          'track', 'field', 'olympics', 'championship', 'tournament', 'match', 'game',
           // Additional theme keywords
           'music', 'dance', 'singing', 'instruments', 'dancing', 'ballet',
-          'sports', 'soccer', 'football', 'basketball', 'tennis', 'swimming',
           'nature', 'forest', 'garden', 'flowers', 'plants', 'outdoors',
           'cooking', 'baking', 'chef', 'kitchen', 'food', 'recipes'
         ];
@@ -273,7 +280,8 @@ VALIDATION RULES:
                                            (selectedThemeLower === 'safari' && (themeName.includes('safari') || themeName.includes('jungle'))) ||
                                            (selectedThemeLower === 'ocean' && (themeName.includes('ocean') || themeName.includes('sea'))) ||
                                            (selectedThemeLower === 'pirate' && themeName.includes('pirate')) ||
-                                           (selectedThemeLower === 'unicorn' && themeName.includes('unicorn'));
+                                           (selectedThemeLower === 'unicorn' && themeName.includes('unicorn')) ||
+                                           (selectedThemeLower === 'sports' && (themeName.includes('sports') || themeName.includes('sport') || themeName.includes('cricket') || themeName.includes('soccer') || themeName.includes('football') || themeName.includes('basketball') || themeName.includes('tennis')));
             
             return hasTextInputAlignment && hasClassicThemeReference;
           }
@@ -310,7 +318,8 @@ VALIDATION RULES:
                  (selectedThemeLower === 'safari' && (themeName.includes('safari') || themeName.includes('jungle'))) ||
                  (selectedThemeLower === 'ocean' && (themeName.includes('ocean') || themeName.includes('sea'))) ||
                  (selectedThemeLower === 'pirate' && themeName.includes('pirate')) ||
-                 (selectedThemeLower === 'unicorn' && themeName.includes('unicorn'));
+                 (selectedThemeLower === 'unicorn' && themeName.includes('unicorn')) ||
+                 (selectedThemeLower === 'sports' && (themeName.includes('sports') || themeName.includes('sport') || themeName.includes('cricket') || themeName.includes('soccer') || themeName.includes('football') || themeName.includes('basketball') || themeName.includes('tennis')));
         });
         
         if (validatedRecommendations.length === 0) {
@@ -395,6 +404,8 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
     if (lowerText.includes('safari') || lowerText.includes('jungle')) themes.push('safari');
     if (lowerText.includes('beach') || lowerText.includes('sea') || lowerText.includes('sand') || lowerText.includes('seaside')) themes.push('beach');
     if (lowerText.includes('art') || lowerText.includes('craft') || lowerText.includes('painting') || lowerText.includes('drawing')) themes.push('art');
+    if (lowerText.includes('cricket')) { themes.push('cricket'); textInterests.push('cricket'); }
+    if (lowerText.includes('sports') || lowerText.includes('sport')) themes.push('sports');
     
     return { characters, themes, interests: textInterests };
   };
@@ -481,6 +492,57 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
           activities: ['Hero training obstacle course', 'Design your own superhero logo', 'Villain capture game'],
           printableIdeas: ['Superhero certificates', 'Comic book coloring pages'],
           emoji: '🦸‍♂️',
+          ageAppropriate: age >= 3,
+          matchScore: 90
+        }
+      ];
+    }
+    
+    // Check for specific sports mentioned in text input for Sports theme
+    if (themeLower === 'sports') {
+      if (textAnalysis.themes.includes('cricket') || textAnalysis.interests.includes('cricket') || (childDetails && childDetails.toLowerCase().includes('cricket'))) {
+        return [
+          {
+            id: 'cricket-sports-1',
+            name: 'Cricket Championship Sports Party',
+            description: 'Step onto the cricket field and experience the thrill of a championship match!',
+            whyRecommended: `Perfect for ${childName} who loves cricket (mentioned in their favorites) - featuring cricket gameplay, wickets, and championship fun!`,
+            colorPalette: ['#228B22', '#FFFFFF', '#FF0000', '#FFD700'],
+            decorations: ['Cricket pitch setup', 'Wicket displays', 'Championship banners', 'Cricket trophy station'],
+            activities: ['Cricket batting practice', 'Wicket-keeping games', 'Cricket trivia challenge'],
+            printableIdeas: ['Cricket score cards', 'Championship certificates'],
+            emoji: '🏏',
+            ageAppropriate: age >= 4,
+            matchScore: 98
+          },
+          {
+            id: 'cricket-sports-2',
+            name: 'Little Cricket Champion Sports Adventure',
+            description: 'Train like a cricket champion and master the skills of this amazing sport!',
+            whyRecommended: `Designed for ${childName} who loves cricket (from their text input) - combining sports training with cricket expertise!`,
+            colorPalette: ['#32CD32', '#FFFFFF', '#4169E1', '#FFD700'],
+            decorations: ['Cricket academy setup', 'Player action figures', 'Cricket equipment displays'],
+            activities: ['Cricket skills training', 'Team captain challenges', 'Cricket strategy games'],
+            printableIdeas: ['Cricket player cards', 'Training achievement certificates'],
+            emoji: '🏏',
+            ageAppropriate: true,
+            matchScore: 96
+          }
+        ];
+      }
+      
+      // Default to general sports if no specific sport mentioned
+      return [
+        {
+          id: 'sports-classic-1',
+          name: 'All-Star Sports Championship',
+          description: 'Experience the excitement of multiple sports in one amazing championship event!',
+          whyRecommended: `Perfect for ${childName} who selected the Sports theme - multi-sport athletic fun!`,
+          colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
+          decorations: ['Multi-sport stations', 'Championship banners', 'Olympic-style podium'],
+          activities: ['Sports skills challenges', 'Team competitions', 'Medal ceremonies'],
+          printableIdeas: ['Sports certificates', 'Championship activity sheets'],
+          emoji: '⚽',
           ageAppropriate: age >= 3,
           matchScore: 90
         }
@@ -666,6 +728,38 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
         activities: ['Fossil excavation', 'Dinosaur egg hunt', 'Paleontologist training'],
         printableIdeas: ['Dinosaur fact cards', 'Fossil dig certificates'],
         emoji: '🦕',
+        ageAppropriate: true,
+        matchScore: 98
+      });
+    }
+    
+    if (textAnalysis.themes.includes('cricket') || textAnalysis.interests.includes('cricket')) {
+      textBasedThemes.push({
+        id: 'cricket-custom-1',
+        name: 'Cricket Champion Sports Party',
+        description: 'Step onto the cricket field and experience the thrill of being a cricket champion!',
+        whyRecommended: `Perfect for ${childName} who loves cricket (mentioned in their favorites) - featuring cricket gameplay, championship matches, and sports excellence!`,
+        colorPalette: ['#228B22', '#FFFFFF', '#FF0000', '#FFD700'],
+        decorations: ['Cricket pitch backdrop', 'Wicket displays', 'Championship trophies', 'Cricket equipment stations'],
+        activities: ['Cricket batting challenges', 'Wicket-keeping contests', 'Cricket skills workshop', 'Championship trophy ceremony'],
+        printableIdeas: ['Cricket scorecards', 'Player achievement certificates'],
+        emoji: '🏏',
+        ageAppropriate: true,
+        matchScore: 98
+      });
+    }
+    
+    if (textAnalysis.themes.includes('sports')) {
+      textBasedThemes.push({
+        id: 'sports-custom-1',
+        name: 'All-Star Sports Championship',
+        description: 'Experience the excitement of being an all-star athlete across multiple sports!',
+        whyRecommended: `Perfect for ${childName} who loves sports (mentioned in their favorites) - multi-sport athletic challenges and championship fun!`,
+        colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
+        decorations: ['Multi-sport stations', 'Olympic-style rings', 'Championship podium', 'Sports equipment displays'],
+        activities: ['Sports skills challenges', 'Team competitions', 'Medal ceremonies', 'Athletic training course'],
+        printableIdeas: ['Sports achievement certificates', 'Olympic-style medals to color'],
+        emoji: '⚽',
         ageAppropriate: true,
         matchScore: 98
       });
