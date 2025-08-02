@@ -1,3 +1,19 @@
+## [usr-1754110484485]
+**User Request:** Add a new tab between overview and checklist called budget. 
+
+💰 Set Total Budget: Let users enter a party budget.
+
+🧠 Auto-Budget Allocation: AI splits budget between food, gifts, decor, entertainment based on preferences.
+
+🛍️ Live Deal Finder: Shows best prices for your checklist items from Amazon, Walmart, Temu — and flags when prices drop.
+
+🍕 Local Catering Recs: Suggest nearby restaurants (via Yelp/Google Maps API), menu links, and kid-friendly options.
+
+📦 Return Gift Bundles: AI suggests affordable, age-appropriate bundles from Temu/Amazon with 1-click add-to-cart.
+
+**Response Summary:** Successfully implemented a comprehensive Budget tab positioned between Overview and Checklist tabs in the party-plan page. Created a full-featured Budget component (components/Budget.tsx) with all requested functionality: total budget input with AI-powered smart allocation that adjusts percentages based on child's age (younger kids get more food budget, older kids get more entertainment). Implemented live deal finder showing mock deals from Amazon, Walmart, and Temu with price drop alerts, ratings, and direct purchase links. Added local catering recommendations with Google Maps-style interface showing nearby restaurants with kid-friendly options, ratings, contact info, and specialties. Created AI-suggested return gift bundles with age-appropriate recommendations, detailed item lists, and 1-click add-to-cart functionality. The Budget tab features three sub-tabs (Live Deals, Local Catering, Gift Bundles) with modern gradient designs, price tracking, animated alerts, and localStorage persistence for budget data. Updated party-plan page to include the new Budget tab with proper icon and grid layout adjustments. All features are fully functional with responsive design and build completed successfully with no errors.
+**Files Modified:** components/Budget.tsx (created), app/party-plan/page.tsx
+
 ## [usr-1754110024169]
 **User Request:** let the swim lanes be collapse by default and remove the section below the swimlane - Party Planning Timeline - Add a swimlane called venue and RVSP .  Move this as a first swim lane and then decorations and then activities etc
 
