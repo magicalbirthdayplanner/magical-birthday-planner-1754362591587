@@ -836,7 +836,7 @@ export default function PartyPlanPage() {
                   partyId={partyData?.childName || 'party'}
                   childName={partyData?.childName || ''}
                   childAge={parseInt(partyData?.childAge || '0')}
-                  partyDate={partyData?.partyDate.toISOString() || ''}
+                  partyDate={partyData?.partyDate ? partyData.partyDate.toISOString() : ''}
                   partyTime="2:00 PM"
                   partyLocation="TBD"
                   theme={partyData?.selectedTheme || ''}
@@ -850,7 +850,7 @@ export default function PartyPlanPage() {
                 <RSVPTracker
                   partyId={partyData?.childName || 'party'}
                   childName={partyData?.childName || ''}
-                  partyDate={partyData?.partyDate.toISOString() || ''}
+                  partyDate={partyData?.partyDate ? partyData.partyDate.toISOString() : ''}
                   guests={guests}
                   invitations={invitations}
                   onUpdateRSVP={handleUpdateRSVP}
@@ -1079,7 +1079,12 @@ export default function PartyPlanPage() {
                         <div className="mt-3 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div 
                             className="h-full bg-gradient-to-r from-green-400 to-purple-400 rounded-full transition-all duration-500"
-                            style={{ width: `${Math.max(0, Math.min(100, ((new Date().getTime() - (partyData?.partyDate ? new Date(partyData.partyDate.getTime() - (daysUntilParty * 24 * 60 * 60 * 1000)).getTime() : 0)) / (partyData?.partyDate ? partyData.partyDate.getTime() - new Date(partyData.partyDate.getTime() - (daysUntilParty * 24 * 60 * 60 * 1000)).getTime() : 1)) * 100))}%` }}
+                            style={{ 
+                              width: `${partyData?.partyDate && daysUntilParty > 0 
+                                ? Math.max(0, Math.min(100, ((new Date().getTime() - (partyData.partyDate.getTime() - (daysUntilParty * 24 * 60 * 60 * 1000))) / (daysUntilParty * 24 * 60 * 60 * 1000)) * 100))
+                                : 0
+                              }%` 
+                            }}
                           />
                         </div>
                       </div>
@@ -1167,7 +1172,7 @@ export default function PartyPlanPage() {
                                                     } else {
                                                       setEditingTask(task.id);
                                                       setEditingText(task.task);
-                                                      setEditingDate(task.dueDate?.toISOString().split('T')[0] || "");
+                                                      setEditingDate(task.dueDate ? task.dueDate.toISOString().split('T')[0] : "");
                                                     }
                                                   }}
                                                 >
@@ -1199,7 +1204,7 @@ export default function PartyPlanPage() {
                                                     } else {
                                                       setEditingTask(task.id);
                                                       setEditingText(task.task);
-                                                      setEditingDate(task.dueDate?.toISOString().split('T')[0] || "");
+                                                      setEditingDate(task.dueDate ? task.dueDate.toISOString().split('T')[0] : "");
                                                     }
                                                   }}
                                                 >
