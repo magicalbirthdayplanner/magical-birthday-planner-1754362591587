@@ -136,44 +136,56 @@ export default function PartyPlanPage() {
   const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Activities', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
 
   useEffect(() => {
-    // Load party data from localStorage
-    const savedData = localStorage.getItem('partyData');
-    if (savedData) {
-      const data = JSON.parse(savedData);
-      setPartyData({
-        ...data,
-        partyDate: new Date(data.partyDate)
-      });
-      
-      // Generate checklist based on party data
-      generateChecklist(data);
-    }
+    // Check if we're on the client side to avoid hydration issues
+    if (typeof window !== 'undefined') {
+      try {
+        // Load party data from localStorage
+        const savedData = localStorage.getItem('partyData');
+        if (savedData) {
+          const data = JSON.parse(savedData);
+          setPartyData({
+            ...data,
+            partyDate: new Date(data.partyDate)
+          });
+          
+          // Generate checklist based on party data
+          generateChecklist(data);
+        }
 
-    // Load guests and invitations from localStorage
-    const savedGuests = localStorage.getItem('partyGuests');
-    if (savedGuests) {
-      setGuests(JSON.parse(savedGuests));
-    }
+        // Load guests and invitations from localStorage
+        const savedGuests = localStorage.getItem('partyGuests');
+        if (savedGuests) {
+          setGuests(JSON.parse(savedGuests));
+        }
 
-    const savedInvitations = localStorage.getItem('partyInvitations');
-    if (savedInvitations) {
-      setInvitations(JSON.parse(savedInvitations));
-    }
+        const savedInvitations = localStorage.getItem('partyInvitations');
+        if (savedInvitations) {
+          setInvitations(JSON.parse(savedInvitations));
+        }
 
-    // Load saved checklist progress from localStorage
-    const savedChecklist = localStorage.getItem('partyChecklist');
-    if (savedChecklist && savedData) {
-      const parsedChecklist = JSON.parse(savedChecklist);
-      // Merge saved progress with newly generated checklist
-      const data = JSON.parse(savedData);
-      const baseChecklist = generateBaseChecklist(data);
-      
-      const mergedChecklist = baseChecklist.map(baseItem => {
-        const savedItem = parsedChecklist.find((saved: ChecklistItem) => saved.id === baseItem.id);
-        return savedItem ? { ...baseItem, completed: savedItem.completed } : baseItem;
-      });
-      
-      setChecklist(mergedChecklist);
+        // Load saved checklist progress from localStorage
+        const savedChecklist = localStorage.getItem('partyChecklist');
+        if (savedChecklist && savedData) {
+          const parsedChecklist = JSON.parse(savedChecklist);
+          // Merge saved progress with newly generated checklist
+          const data = JSON.parse(savedData);
+          const baseChecklist = generateBaseChecklist(data);
+          
+          const mergedChecklist = baseChecklist.map(baseItem => {
+            const savedItem = parsedChecklist.find((saved: ChecklistItem) => saved.id === baseItem.id);
+            return savedItem ? { ...baseItem, completed: savedItem.completed } : baseItem;
+          });
+          
+          setChecklist(mergedChecklist);
+        }
+      } catch (error) {
+        console.error('Error loading party data from localStorage:', error);
+        // Clear corrupted data
+        localStorage.removeItem('partyData');
+        localStorage.removeItem('partyGuests');
+        localStorage.removeItem('partyInvitations');
+        localStorage.removeItem('partyChecklist');
+      }
     }
   }, []);
 
@@ -210,16 +222,24 @@ export default function PartyPlanPage() {
     const partyDate = new Date(data.partyDate);
     const baseChecklist = generateBaseChecklist(data);
 
-    // Check for saved checklist progress
-    const savedChecklist = localStorage.getItem('partyChecklist');
     let checklistWithProgress = baseChecklist;
     
-    if (savedChecklist) {
-      const parsedChecklist = JSON.parse(savedChecklist);
-      checklistWithProgress = baseChecklist.map(baseItem => {
-        const savedItem = parsedChecklist.find((saved: ChecklistItem) => saved.id === baseItem.id);
-        return savedItem ? { ...baseItem, completed: savedItem.completed } : baseItem;
-      });
+    // Check for saved checklist progress only on client side
+    if (typeof window !== 'undefined') {
+      try {
+        const savedChecklist = localStorage.getItem('partyChecklist');
+        if (savedChecklist) {
+          const parsedChecklist = JSON.parse(savedChecklist);
+          checklistWithProgress = baseChecklist.map(baseItem => {
+            const savedItem = parsedChecklist.find((saved: ChecklistItem) => saved.id === baseItem.id);
+            return savedItem ? { ...baseItem, completed: savedItem.completed } : baseItem;
+          });
+        }
+      } catch (error) {
+        console.error('Error loading checklist from localStorage:', error);
+        // Use base checklist if there's an error
+        checklistWithProgress = baseChecklist;
+      }
     }
 
     // Calculate due dates and status for each task
@@ -278,29 +298,35 @@ export default function PartyPlanPage() {
       })
     );
     
-    // Persist to localStorage
-    const updatedChecklist = checklist.map(item => {
-      if (item.id === id) {
-        const updatedItem = { ...item, completed: !item.completed };
-        if (updatedItem.completed) {
-          updatedItem.status = 'completed';
-        } else {
-          const today = new Date();
-          const daysDifference = item.dueDate ? Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-          if (daysDifference < 0) {
-            updatedItem.status = 'overdue';
-          } else if (daysDifference <= 3) {
-            updatedItem.status = 'due-soon';
-          } else {
-            updatedItem.status = 'upcoming';
+    // Persist to localStorage only on client side
+    if (typeof window !== 'undefined') {
+      try {
+        const updatedChecklist = checklist.map(item => {
+          if (item.id === id) {
+            const updatedItem = { ...item, completed: !item.completed };
+            if (updatedItem.completed) {
+              updatedItem.status = 'completed';
+            } else {
+              const today = new Date();
+              const daysDifference = item.dueDate ? Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+              if (daysDifference < 0) {
+                updatedItem.status = 'overdue';
+              } else if (daysDifference <= 3) {
+                updatedItem.status = 'due-soon';
+              } else {
+                updatedItem.status = 'upcoming';
+              }
+            }
+            return updatedItem;
           }
-        }
-        return updatedItem;
+          return item;
+        });
+        
+        localStorage.setItem('partyChecklist', JSON.stringify(updatedChecklist));
+      } catch (error) {
+        console.error('Error saving checklist to localStorage:', error);
       }
-      return item;
-    });
-    
-    localStorage.setItem('partyChecklist', JSON.stringify(updatedChecklist));
+    }
   };
 
   // Guest management functions
@@ -312,7 +338,14 @@ export default function PartyPlanPage() {
     
     const updatedGuests = [...guests, newGuest];
     setGuests(updatedGuests);
-    localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+    
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+      } catch (error) {
+        console.error('Error saving guests to localStorage:', error);
+      }
+    }
   };
 
   const handleEditGuest = (id: string, guestData: Partial<Guest>) => {
@@ -320,18 +353,32 @@ export default function PartyPlanPage() {
       guest.id === id ? { ...guest, ...guestData } : guest
     );
     setGuests(updatedGuests);
-    localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+    
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+      } catch (error) {
+        console.error('Error saving guests to localStorage:', error);
+      }
+    }
   };
 
   const handleDeleteGuest = (id: string) => {
     const updatedGuests = guests.filter(guest => guest.id !== id);
     setGuests(updatedGuests);
-    localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
     
     // Also remove any invitations for this guest
     const updatedInvitations = invitations.filter(inv => inv.guestId !== id);
     setInvitations(updatedInvitations);
-    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+    
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+      } catch (error) {
+        console.error('Error saving data to localStorage:', error);
+      }
+    }
   };
 
   const handleSendInvitation = (guestId: string, message: string) => {
@@ -345,7 +392,14 @@ export default function PartyPlanPage() {
     
     const updatedInvitations = [...invitations.filter(inv => inv.guestId !== guestId), newInvitation];
     setInvitations(updatedInvitations);
-    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+    
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+      } catch (error) {
+        console.error('Error saving invitations to localStorage:', error);
+      }
+    }
   };
 
   const handleSendBulkInvitations = (guestIds: string[], templateId: string, customMessage: string) => {
@@ -360,7 +414,14 @@ export default function PartyPlanPage() {
     const filteredExistingInvitations = invitations.filter(inv => !guestIds.includes(inv.guestId));
     const updatedInvitations = [...filteredExistingInvitations, ...newInvitations];
     setInvitations(updatedInvitations);
-    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+    
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+      } catch (error) {
+        console.error('Error saving invitations to localStorage:', error);
+      }
+    }
   };
 
   const handleUpdateRSVP = (invitationId: string, status: Invitation['status'], notes?: string) => {
@@ -370,7 +431,14 @@ export default function PartyPlanPage() {
         : inv
     );
     setInvitations(updatedInvitations);
-    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+    
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+      } catch (error) {
+        console.error('Error saving invitations to localStorage:', error);
+      }
+    }
   };
 
   const handleSendReminder = (guestId: string, message: string) => {
@@ -383,7 +451,14 @@ export default function PartyPlanPage() {
         : inv
     );
     setInvitations(updatedInvitations);
-    localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+    
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+      } catch (error) {
+        console.error('Error saving invitations to localStorage:', error);
+      }
+    }
   };
 
   const getThemeDetails = () => {
