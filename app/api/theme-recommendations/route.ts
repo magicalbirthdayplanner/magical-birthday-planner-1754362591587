@@ -421,21 +421,38 @@ VALIDATION RULES:
 }
 
 function getFallbackRecommendations(childName: string, age: number, interests: string[], selectedClassicTheme?: string, childDetails?: string): ThemeRecommendation[] {
-  // Enhanced text input analysis for fallback recommendations - INTELLIGENT GENERIC TERM HANDLING
-  const analyzeTextInput = (text: string): { characters: string[]; themes: string[]; interests: string[]; hasGenericTerms: boolean } => {
-    if (!text || text.trim() === '' || text === 'Not specified') return { characters: [], themes: [], interests: [], hasGenericTerms: false };
+  // ULTRA-INTELLIGENT FALLBACK SYSTEM - PREFERENCE-DRIVEN RECOMMENDATIONS
+  const analyzeTextInput = (text: string): { characters: string[]; themes: string[]; interests: string[]; hasGenericTerms: boolean; isNonContextual: boolean } => {
+    if (!text || text.trim() === '' || text === 'Not specified') return { characters: [], themes: [], interests: [], hasGenericTerms: false, isNonContextual: false };
     
     const lowerText = text.toLowerCase();
     const characters: string[] = [];
     const themes: string[] = [];
     const textInterests: string[] = [];
     
-    // Check for generic terms that should not trigger specific themes
-    const genericTerms = ['humanoid', 'human', 'person', 'people', 'character', 'figure', 'being'];
+    // Enhanced generic term detection - EXPANDED LIST
+    const genericTerms = ['humanoid', 'human', 'person', 'people', 'character', 'figure', 'being', 'thing', 'something', 'anything', 'random', 'whatever', 'stuff'];
     const hasGenericTerms = genericTerms.some(term => lowerText.includes(term));
     
-    // Character detection - only if not purely generic
-    if (!hasGenericTerms || lowerText.includes('iron man') || lowerText.includes('star wars')) {
+    // Check if text input is completely non-contextual (random text that doesn't match any theme)
+    const contextualKeywords = [
+      // Character names
+      'iron man', 'spider-man', 'spiderman', 'batman', 'superman', 'hulk', 'captain america', 'thor',
+      'elsa', 'anna', 'frozen', 'moana', 'belle', 'ariel', 'cinderella',
+      'star wars', 'jedi', 'luke skywalker', 'darth vader', 'yoda',
+      // Theme-specific keywords
+      'superhero', 'hero', 'princess', 'royal', 'dinosaur', 'dino', 'unicorn', 'magic', 'fairy',
+      'space', 'astronaut', 'rocket', 'galaxy', 'pirate', 'treasure', 'ocean', 'mermaid', 'sea',
+      'safari', 'jungle', 'lion', 'tiger', 'beach', 'sand', 'waves', 'art', 'craft', 'painting',
+      'sports', 'sport', 'cricket', 'soccer', 'football', 'basketball', 'tennis',
+      'car', 'cars', 'vehicle', 'racing', 'animal', 'animals', 'pet', 'music', 'dance'
+    ];
+    
+    const hasContextualKeywords = contextualKeywords.some(keyword => lowerText.includes(keyword));
+    const isNonContextual = !hasContextualKeywords && (hasGenericTerms || lowerText.length < 3);
+    
+    // Character detection - only if contextual
+    if (!isNonContextual) {
       // PRIORITY: Star Wars character detection first
       if (lowerText.includes('star wars') || lowerText.includes('jedi') || lowerText.includes('luke skywalker') ||
           lowerText.includes('darth vader') || lowerText.includes('lightsaber') || lowerText.includes('yoda')) {
@@ -452,484 +469,768 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
     }
     
     // Theme detection - enhanced with more keywords - STAR WARS PRIORITY
-    if (lowerText.includes('star wars') || lowerText.includes('jedi') || lowerText.includes('lightsaber') ||
-        lowerText.includes('force') || lowerText.includes('galaxy')) themes.push('star wars');
-    if (lowerText.includes('superhero') || lowerText.includes('hero')) themes.push('superhero');
-    if (lowerText.includes('princess')) themes.push('princess');
-    if (lowerText.includes('dinosaur') || lowerText.includes('dino')) themes.push('dinosaur');
-    if (lowerText.includes('unicorn')) themes.push('unicorn');
-    if (lowerText.includes('space') || lowerText.includes('astronaut') || lowerText.includes('galaxy') || lowerText.includes('cosmic')) themes.push('space');
-    if (lowerText.includes('pirate')) themes.push('pirate');
-    if (lowerText.includes('ocean') || lowerText.includes('mermaid')) themes.push('ocean');
-    if (lowerText.includes('safari') || lowerText.includes('jungle')) themes.push('safari');
-    if (lowerText.includes('beach') || lowerText.includes('sea') || lowerText.includes('sand') || lowerText.includes('seaside')) themes.push('beach');
-    if (lowerText.includes('art') || lowerText.includes('craft') || lowerText.includes('painting') || lowerText.includes('drawing')) themes.push('art');
-    if (lowerText.includes('cricket')) { themes.push('cricket'); textInterests.push('cricket'); }
-    if (lowerText.includes('sports') || lowerText.includes('sport')) themes.push('sports');
+    if (!isNonContextual) {
+      if (lowerText.includes('star wars') || lowerText.includes('jedi') || lowerText.includes('lightsaber') ||
+          lowerText.includes('force') || lowerText.includes('galaxy')) themes.push('star wars');
+      if (lowerText.includes('superhero') || lowerText.includes('hero')) themes.push('superhero');
+      if (lowerText.includes('princess')) themes.push('princess');
+      if (lowerText.includes('dinosaur') || lowerText.includes('dino')) themes.push('dinosaur');
+      if (lowerText.includes('unicorn')) themes.push('unicorn');
+      if (lowerText.includes('space') || lowerText.includes('astronaut') || lowerText.includes('galaxy') || lowerText.includes('cosmic')) themes.push('space');
+      if (lowerText.includes('pirate')) themes.push('pirate');
+      if (lowerText.includes('ocean') || lowerText.includes('mermaid')) themes.push('ocean');
+      if (lowerText.includes('safari') || lowerText.includes('jungle')) themes.push('safari');
+      if (lowerText.includes('beach') || lowerText.includes('sea') || lowerText.includes('sand') || lowerText.includes('seaside')) themes.push('beach');
+      if (lowerText.includes('art') || lowerText.includes('craft') || lowerText.includes('painting') || lowerText.includes('drawing')) themes.push('art');
+      if (lowerText.includes('cricket')) { themes.push('cricket'); textInterests.push('cricket'); }
+      if (lowerText.includes('sports') || lowerText.includes('sport')) themes.push('sports');
+      
+      // Vehicle theme detection for Cars interest
+      if (lowerText.includes('car') || lowerText.includes('cars') || lowerText.includes('vehicle') || lowerText.includes('racing') || lowerText.includes('truck')) themes.push('vehicles');
+      
+      // Animal theme detection for Animals interest
+      if (lowerText.includes('animal') || lowerText.includes('animals') || lowerText.includes('pet') || lowerText.includes('dog') || lowerText.includes('cat')) themes.push('animals');
+    }
     
-    // Vehicle theme detection for Cars interest
-    if (lowerText.includes('car') || lowerText.includes('cars') || lowerText.includes('vehicle') || lowerText.includes('racing') || lowerText.includes('truck')) themes.push('vehicles');
-    
-    // Animal theme detection for Animals interest
-    if (lowerText.includes('animal') || lowerText.includes('animals') || lowerText.includes('pet') || lowerText.includes('dog') || lowerText.includes('cat')) themes.push('animals');
-    
-    return { characters, themes, interests: textInterests, hasGenericTerms };
+    return { characters, themes, interests: textInterests, hasGenericTerms, isNonContextual };
   };
   
   const textAnalysis = analyzeTextInput(childDetails || '');
   
-  // INTELLIGENT HANDLING OF GENERIC TERMS WITH INTERESTS
-  // If user inputs generic terms like "humanoid" with specific interests, use interests for theme matching
-  if (textAnalysis.hasGenericTerms && interests.length > 0) {
-    const interestBasedThemes: ThemeRecommendation[] = [];
-    
-    // Match interests to appropriate themes when text input is generic
-    if (interests.some(interest => interest.toLowerCase().includes('car'))) {
-      interestBasedThemes.push({
-        id: 'cars-interest-1',
-        name: 'Racing Car Adventure Party',
-        description: 'Rev up the engines for a high-speed racing adventure with cars, tracks, and victory celebrations!',
-        whyRecommended: `Perfect for ${childName} who loves cars (from their interests) - featuring racing excitement and automotive fun!`,
-        colorPalette: ['#FF0000', '#000000', '#FFFF00', '#C0C0C0'],
-        decorations: ['Racing flags', 'Car track displays', 'Traffic light centerpieces', 'Pit stop stations'],
-        activities: ['Car racing games', 'Build your own race car', 'Pit crew challenges', 'Victory lap celebration'],
-        printableIdeas: ['Racing certificates', 'Car coloring pages'],
-        emoji: '🏎️',
-        ageAppropriate: true,
-        matchScore: 95
-      });
-    }
-    
-    if (interests.some(interest => interest.toLowerCase().includes('animal'))) {
-      interestBasedThemes.push({
-        id: 'animals-interest-1',
-        name: 'Animal Kingdom Safari Party',
-        description: 'Explore the amazing world of animals with safari adventures and wildlife discoveries!',
-        whyRecommended: `Perfect for ${childName} who loves animals (from their interests) - featuring all their favorite creatures!`,
-        colorPalette: ['#228B22', '#DAA520', '#8B4513', '#CD853F'],
-        decorations: ['Animal prints', 'Safari tent setup', 'Animal footprints trail', 'Wildlife photo displays'],
-        activities: ['Animal sound games', 'Wildlife scavenger hunt', 'Animal habitat building', 'Pet care workshop'],
-        printableIdeas: ['Animal fact cards', 'Safari explorer certificates'],
-        emoji: '🦁',
-        ageAppropriate: true,
-        matchScore: 95
-      });
-    }
-    
-    if (interests.some(interest => ['art', 'craft', 'drawing'].includes(interest.toLowerCase()))) {
-      interestBasedThemes.push({
-        id: 'art-interest-1',
-        name: 'Creative Art Studio Party',
-        description: 'Unleash creativity in a colorful art studio filled with paints, brushes, and endless artistic possibilities!',
-        whyRecommended: `Perfect for ${childName} who loves art & crafts (from their interests) - featuring all their favorite creative activities!`,
-        colorPalette: ['#FF6347', '#32CD32', '#FF69B4', '#FFD700'],
-        decorations: ['Paint palette table settings', 'Colorful paint splatter banners', 'Artist easel displays', 'Art supply stations'],
-        activities: ['Canvas painting party', 'Clay sculpture workshop', 'Collaborative mural creation', 'DIY craft corner'],
-        printableIdeas: ['Artist certificate templates', 'Color-by-number party sheets'],
-        emoji: '🎨',
-        ageAppropriate: true,
-        matchScore: 95
-      });
-    }
-    
-    // Return interest-based themes when text input is generic
-    if (interestBasedThemes.length > 0) {
-      return interestBasedThemes.slice(0, 5);
-    }
+  // CRITICAL: PREFERENCE-DRIVEN FALLBACK SYSTEM - PRIORITY HIERARCHY
+  // Priority 1: Classic Theme + Any Text Input = Classic Theme Variations (ALWAYS RELEVANT)
+  // Priority 2: Custom Theme + Non-Contextual Text = Interest-Based Themes  
+  // Priority 3: Custom Theme + Contextual Text = Text-Based Themes
+  
+  // PREFERENCE PRIORITY 1: Classic Theme Selected - ALWAYS prioritize classic theme variations
+  if (selectedClassicTheme) {
+    console.log(`FALLBACK: Classic theme ${selectedClassicTheme} selected - providing theme variations`);
+    return getClassicThemeFallbacks(selectedClassicTheme, childName, age, childDetails, textAnalysis);
   }
   
-  // If a classic theme is selected, return fallback variations of that specific theme
-  if (selectedClassicTheme) {
-    const themeLower = selectedClassicTheme.toLowerCase();
-    
-    if (themeLower === 'superhero') {
-      // Check for specific superhero characters in text input
-      if (textAnalysis.characters.includes('Iron Man')) {
-        return [
-          {
-            id: 'ironman-superhero-1',
-            name: 'Iron Man Tech Superhero Party',
-            description: 'Step into Tony Stark\'s workshop and become a high-tech superhero with Iron Man!',
-            whyRecommended: `Perfect for ${childName} who loves Iron Man (mentioned in their favorites) - featuring Tony Stark's amazing technology and superhero adventures!`,
-            colorPalette: ['#DC143C', '#FFD700', '#C0C0C0', '#000000'],
-            decorations: ['Arc reactor lights', 'Stark Industries banners', 'Iron Man suit displays', 'High-tech workshop setup'],
-            activities: ['Build your own arc reactor', 'Iron Man suit design challenge', 'Tony Stark invention workshop'],
-            printableIdeas: ['Iron Man mask templates', 'Stark Industries ID cards'],
-            emoji: '🤖',
-            ageAppropriate: age >= 3,
-            matchScore: 98
-          },
-          {
-            id: 'ironman-superhero-2',
-            name: 'Stark Industries Superhero Academy',
-            description: 'Train at Tony Stark\'s exclusive superhero academy and master Iron Man technology!',
-            whyRecommended: `Designed for ${childName} who loves Iron Man (from their text input) - combines superhero training with high-tech adventures!`,
-            colorPalette: ['#FF0000', '#FFD700', '#4169E1', '#C0C0C0'],
-            decorations: ['Stark Industries logo displays', 'High-tech training equipment', 'Iron Man workshop station'],
-            activities: ['Superhero tech training', 'Iron Man flight simulator', 'Arc reactor power tests'],
-            printableIdeas: ['Superhero tech certificates', 'Iron Man blueprint coloring pages'],
-            emoji: '⚡',
-            ageAppropriate: true,
-            matchScore: 96
-          }
-        ];
-      }
-      
-      if (textAnalysis.characters.includes('Spider-Man')) {
-        return [
-          {
-            id: 'spiderman-superhero-1',
-            name: 'Spider-Man Web Slinger Party',
-            description: 'Swing into action with Spider-Man and experience amazing web-slinging adventures!',
-            whyRecommended: `Perfect for ${childName} who loves Spider-Man (mentioned in their favorites) - featuring web-slinging action and superhero fun!`,
-            colorPalette: ['#FF0000', '#0000FF', '#FFFFFF', '#000000'],
-            decorations: ['Spider web decorations', 'New York City skyline', 'Spider-Man suit displays', 'Web shooter stations'],
-            activities: ['Web shooter practice', 'Spider-Man obstacle course', 'Superhero photo booth'],
-            printableIdeas: ['Spider-Man mask templates', 'Web pattern coloring pages'],
-            emoji: '🕷️',
-            ageAppropriate: age >= 3,
-            matchScore: 98
-          },
-          {
-            id: 'spiderman-superhero-2',
-            name: 'Amazing Spider-Man Hero Academy',
-            description: 'Train with Spider-Man at the amazing superhero academy!',
-            whyRecommended: `Designed for ${childName} who loves Spider-Man (from their text input) - superhero training with web-slinging action!`,
-            colorPalette: ['#DC143C', '#0000FF', '#FFD700', '#FFFFFF'],
-            decorations: ['Spider web training course', 'Hero academy banners', 'Spider-Man equipment'],
-            activities: ['Web-slinging training', 'Spider sense games', 'Superhero team missions'],
-            printableIdeas: ['Spider-Man certificates', 'Superhero training sheets'],
-            emoji: '🦸‍♂️',
-            ageAppropriate: true,
-            matchScore: 96
-          }
-        ];
-      }
-      
-      // Default superhero fallbacks if no specific character mentioned
-      return [
+  // PREFERENCE PRIORITY 2: Custom Theme + Non-Contextual Text - Use interests for relevant themes
+  if (textAnalysis.isNonContextual && interests.length > 0) {
+    console.log('FALLBACK: Non-contextual text with interests - providing interest-based themes');
+    return getInterestBasedFallbacks(interests, childName, age, childDetails);
+  }
+  
+  // PREFERENCE PRIORITY 3: Custom Theme + Contextual Text - Use text-based themes
+  if (!textAnalysis.isNonContextual && (textAnalysis.characters.length > 0 || textAnalysis.themes.length > 0)) {
+    console.log('FALLBACK: Contextual text detected - providing text-based themes');
+    return getTextBasedFallbacks(textAnalysis, childName, age, childDetails);
+  }
+  
+  // FALLBACK TO DEFAULT THEMES - Final fallback for any remaining cases
+  console.log('FALLBACK: Using default themed recommendations');
+  return getDefaultFallbacks(childName, age, interests);
+}
+
+// DEDICATED FALLBACK HELPER FUNCTIONS FOR PREFERENCE-DRIVEN RECOMMENDATIONS
+
+// Helper 1: Classic Theme Fallbacks - ALWAYS RELEVANT
+function getClassicThemeFallbacks(selectedClassicTheme: string, childName: string, age: number, childDetails?: string, textAnalysis?: any): ThemeRecommendation[] {
+  const themeLower = selectedClassicTheme.toLowerCase();
+  
+  // Enhanced classic theme templates with text input integration
+  const classicThemeConfigs = {
+    superhero: {
+      defaultThemes: [
         {
           id: 'superhero-classic-1',
           name: 'Classic Superhero Adventure',
           description: 'Transform into mighty heroes and save the day with action-packed adventures!',
-          whyRecommended: `Perfect for ${childName} who selected the Superhero theme - classic hero fun!`,
+          whyRecommended: `Perfect for ${childName} who selected the Superhero theme - classic hero fun with capes, powers, and heroic missions!`,
           colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
-          decorations: ['Cape station with personalized capes', 'Cityscape backdrop with buildings', 'Comic book speech bubble props'],
-          activities: ['Hero training obstacle course', 'Design your own superhero logo', 'Villain capture game'],
+          decorations: ['Cape station with personalized capes', 'Cityscape backdrop with buildings', 'Comic book speech bubble props', 'Hero headquarters setup'],
+          activities: ['Hero training obstacle course', 'Design your own superhero logo', 'Villain capture game', 'Superhero photo booth'],
           printableIdeas: ['Superhero certificates', 'Comic book coloring pages'],
           emoji: '🦸‍♂️',
           ageAppropriate: age >= 3,
+          matchScore: 92
+        },
+        {
+          id: 'superhero-classic-2',
+          name: 'Hero Academy Training',
+          description: 'Train at the ultimate superhero academy and master amazing powers!',
+          whyRecommended: `Designed for ${childName} who loves superhero adventures - comprehensive hero training with skills development!`,
+          colorPalette: ['#DC143C', '#FFD700', '#4169E1', '#32CD32'],
+          decorations: ['Training academy banners', 'Power testing stations', 'Hero equipment displays', 'Achievement boards'],
+          activities: ['Superhero skills training', 'Power discovery workshop', 'Team mission challenges', 'Hero graduation ceremony'],
+          printableIdeas: ['Hero academy diplomas', 'Power assessment sheets'],
+          emoji: '⚡',
+          ageAppropriate: true,
           matchScore: 90
         }
-      ];
-    }
-    
-    // Check for specific sports mentioned in text input for Sports theme
-    if (themeLower === 'sports') {
-      if (textAnalysis.themes.includes('cricket') || textAnalysis.interests.includes('cricket') || (childDetails && childDetails.toLowerCase().includes('cricket'))) {
-        return [
-          {
-            id: 'cricket-sports-1',
-            name: 'Cricket Championship Sports Party',
-            description: 'Step onto the cricket field and experience the thrill of a championship match!',
-            whyRecommended: `Perfect for ${childName} who loves cricket (mentioned in their favorites) - featuring cricket gameplay, wickets, and championship fun!`,
-            colorPalette: ['#228B22', '#FFFFFF', '#FF0000', '#FFD700'],
-            decorations: ['Cricket pitch setup', 'Wicket displays', 'Championship banners', 'Cricket trophy station'],
-            activities: ['Cricket batting practice', 'Wicket-keeping games', 'Cricket trivia challenge'],
-            printableIdeas: ['Cricket score cards', 'Championship certificates'],
-            emoji: '🏏',
-            ageAppropriate: age >= 4,
-            matchScore: 98
-          },
-          {
-            id: 'cricket-sports-2',
-            name: 'Little Cricket Champion Sports Adventure',
-            description: 'Train like a cricket champion and master the skills of this amazing sport!',
-            whyRecommended: `Designed for ${childName} who loves cricket (from their text input) - combining sports training with cricket expertise!`,
-            colorPalette: ['#32CD32', '#FFFFFF', '#4169E1', '#FFD700'],
-            decorations: ['Cricket academy setup', 'Player action figures', 'Cricket equipment displays'],
-            activities: ['Cricket skills training', 'Team captain challenges', 'Cricket strategy games'],
-            printableIdeas: ['Cricket player cards', 'Training achievement certificates'],
-            emoji: '🏏',
-            ageAppropriate: true,
-            matchScore: 96
-          }
-        ];
-      }
-      
-      // Default to general sports if no specific sport mentioned
-      return [
+      ]
+    },
+    princess: {
+      defaultThemes: [
+        {
+          id: 'princess-classic-1',
+          name: 'Royal Princess Ball',
+          description: 'Step into a fairytale world of royal elegance, crowns, and magical princess adventures!',
+          whyRecommended: `Perfect for ${childName} who selected the Princess theme - royal elegance with crowns, gowns, and fairytale magic!`,
+          colorPalette: ['#FF69B4', '#9370DB', '#FFB6C1', '#F0E68C'],
+          decorations: ['Royal castle backdrop', 'Crown crafting station', 'Princess dress-up corner', 'Royal throne photo area'],
+          activities: ['Royal ball dancing', 'Crown decorating workshop', 'Princess etiquette lessons', 'Fairytale storytelling'],
+          printableIdeas: ['Royal certificates', 'Princess coloring pages'],
+          emoji: '👸',
+          ageAppropriate: true,
+          matchScore: 92
+        },
+        {
+          id: 'princess-classic-2',
+          name: 'Enchanted Castle Adventure',
+          description: 'Explore a magical castle filled with princess mysteries and royal treasures!',
+          whyRecommended: `Designed for ${childName} who loves princess adventures - castle exploration with royal mysteries!`,
+          colorPalette: ['#DDA0DD', '#FFB6C1', '#F0E68C', '#98FB98'],
+          decorations: ['Enchanted castle towers', 'Royal treasure chests', 'Princess portrait gallery', 'Magic mirror stations'],
+          activities: ['Castle treasure hunt', 'Royal mystery solving', 'Princess portrait painting', 'Magic spell workshops'],
+          printableIdeas: ['Royal adventure maps', 'Princess story books'],
+          emoji: '🏰',
+          ageAppropriate: true,
+          matchScore: 90
+        }
+      ]
+    },
+    dinosaur: {
+      defaultThemes: [
+        {
+          id: 'dinosaur-classic-1',
+          name: 'Prehistoric Dinosaur Discovery',
+          description: 'Travel back in time to discover amazing dinosaurs and prehistoric adventures!',
+          whyRecommended: `Perfect for ${childName} who selected the Dinosaur theme - prehistoric exploration with fossil hunting and dino adventures!`,
+          colorPalette: ['#228B22', '#8B4513', '#DAA520', '#CD853F'],
+          decorations: ['Dinosaur fossil dig site', 'Jungle vine decorations', 'Dinosaur footprint trail', 'Prehistoric landscape backdrop'],
+          activities: ['Fossil excavation sandbox', 'Dinosaur egg hunt', 'Paleontologist training course', 'Dino roar contests'],
+          printableIdeas: ['Dinosaur fact cards', 'Archaeological dig certificates'],
+          emoji: '🦕',
+          ageAppropriate: true,
+          matchScore: 92
+        },
+        {
+          id: 'dinosaur-classic-2',
+          name: 'Jurassic Adventure Park',
+          description: 'Experience the thrill of a dinosaur adventure park with prehistoric creatures!',
+          whyRecommended: `Designed for ${childName} who loves dinosaur adventures - theme park excitement with prehistoric creatures!`,
+          colorPalette: ['#556B2F', '#D2691E', '#DAA520', '#8FBC8F'],
+          decorations: ['Jurassic park entrance', 'Dinosaur habitat displays', 'Explorer jeep photo prop', 'Dinosaur skeleton models'],
+          activities: ['Dinosaur safari expedition', 'Prehistoric creature identification', 'Dino egg rescue mission', 'Explorer badge earning'],
+          printableIdeas: ['Explorer ID cards', 'Dinosaur species guides'],
+          emoji: '🦖',
+          ageAppropriate: true,
+          matchScore: 90
+        }
+      ]
+    },
+    space: {
+      defaultThemes: [
+        {
+          id: 'space-classic-1',
+          name: 'Space Explorer Mission',
+          description: 'Blast off to the stars on an intergalactic adventure through the cosmos!',
+          whyRecommended: `Perfect for ${childName} who selected the Space theme - cosmic exploration with rockets, planets, and astronaut adventures!`,
+          colorPalette: ['#4B0082', '#000080', '#C0C0C0', '#FFD700'],
+          decorations: ['Solar system hanging mobile', 'Astronaut photo booth', 'Starry night ceiling', 'Mission control station'],
+          activities: ['Build and launch rockets', 'Planet scavenger hunt', 'Astronaut training camp', 'Space mission simulations'],
+          printableIdeas: ['Space mission certificates', 'Constellation coloring pages'],
+          emoji: '🚀',
+          ageAppropriate: age >= 4,
+          matchScore: 92
+        },
+        {
+          id: 'space-classic-2',
+          name: 'Galactic Space Academy',
+          description: 'Train to become a space explorer at the ultimate galactic academy!',
+          whyRecommended: `Designed for ${childName} who loves space adventures - astronaut training with cosmic exploration!`,
+          colorPalette: ['#191970', '#4169E1', '#C0C0C0', '#FFD700'],
+          decorations: ['Space academy banners', 'Astronaut training equipment', 'Planet exploration stations', 'Galaxy command center'],
+          activities: ['Zero gravity training', 'Alien encounter simulations', 'Space navigation challenges', 'Graduation ceremony'],
+          printableIdeas: ['Space academy diplomas', 'Galactic exploration maps'],
+          emoji: '🌌',
+          ageAppropriate: true,
+          matchScore: 90
+        }
+      ]
+    },
+    safari: {
+      defaultThemes: [
+        {
+          id: 'safari-classic-1',
+          name: 'African Safari Adventure',
+          description: 'Embark on an exciting African safari to discover amazing wildlife!',
+          whyRecommended: `Perfect for ${childName} who selected the Safari theme - wildlife exploration with animal discoveries and jungle adventures!`,
+          colorPalette: ['#228B22', '#DAA520', '#8B4513', '#CD853F'],
+          decorations: ['Safari tent setup', 'Animal footprints trail', 'Wildlife photo displays', 'Jungle canopy decorations'],
+          activities: ['Animal tracking expedition', 'Wildlife photography workshop', 'Safari jeep adventures', 'Animal sound identification'],
+          printableIdeas: ['Safari explorer certificates', 'Animal identification guides'],
+          emoji: '🦁',
+          ageAppropriate: true,
+          matchScore: 92
+        },
+        {
+          id: 'safari-classic-2',
+          name: 'Wildlife Conservation Camp',
+          description: 'Learn about wildlife conservation while experiencing amazing safari adventures!',
+          whyRecommended: `Designed for ${childName} who loves safari adventures - conservation education with hands-on wildlife experiences!`,
+          colorPalette: ['#32CD32', '#DAA520', '#CD853F', '#8FBC8F'],
+          decorations: ['Conservation camp setup', 'Animal rescue stations', 'Wildlife education displays', 'Ranger headquarters'],
+          activities: ['Animal care workshops', 'Conservation mission planning', 'Wildlife habitat building', 'Junior ranger training'],
+          printableIdeas: ['Wildlife conservation certificates', 'Animal care guides'],
+          emoji: '🐘',
+          ageAppropriate: true,
+          matchScore: 90
+        }
+      ]
+    },
+    ocean: {
+      defaultThemes: [
+        {
+          id: 'ocean-classic-1',
+          name: 'Ocean Adventure Exploration',
+          description: 'Dive deep into ocean adventures with marine life discoveries and underwater fun!',
+          whyRecommended: `Perfect for ${childName} who selected the Ocean theme - underwater exploration with marine life and sea adventures!`,
+          colorPalette: ['#0000FF', '#00CED1', '#20B2AA', '#87CEEB'],
+          decorations: ['Underwater coral reef backdrop', 'Marine life displays', 'Submarine photo booth', 'Ocean wave decorations'],
+          activities: ['Deep sea diving simulation', 'Marine life discovery games', 'Treasure hunting expedition', 'Underwater photography'],
+          printableIdeas: ['Marine explorer certificates', 'Ocean life identification cards'],
+          emoji: '🌊',
+          ageAppropriate: true,
+          matchScore: 92
+        },
+        {
+          id: 'ocean-classic-2',
+          name: 'Mermaid Lagoon Adventure',
+          description: 'Discover the magical world of mermaids in an enchanted ocean lagoon!',
+          whyRecommended: `Designed for ${childName} who loves ocean adventures - mermaid magic with underwater kingdoms!`,
+          colorPalette: ['#48CAE4', '#90E0EF', '#CAF0F8', '#FFB3BA'],
+          decorations: ['Mermaid lagoon setup', 'Underwater palace decorations', 'Seashell treasure displays', 'Coral garden stations'],
+          activities: ['Mermaid tail crafting', 'Underwater dance party', 'Seashell treasure hunt', 'Ocean magic workshops'],
+          printableIdeas: ['Mermaid certificates', 'Ocean kingdom maps'],
+          emoji: '🧜‍♀️',
+          ageAppropriate: true,
+          matchScore: 90
+        }
+      ]
+    },
+    sports: {
+      defaultThemes: [
         {
           id: 'sports-classic-1',
           name: 'All-Star Sports Championship',
           description: 'Experience the excitement of multiple sports in one amazing championship event!',
-          whyRecommended: `Perfect for ${childName} who selected the Sports theme - multi-sport athletic fun!`,
+          whyRecommended: `Perfect for ${childName} who selected the Sports theme - multi-sport athletic fun with championships and team spirit!`,
           colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
-          decorations: ['Multi-sport stations', 'Championship banners', 'Olympic-style podium'],
-          activities: ['Sports skills challenges', 'Team competitions', 'Medal ceremonies'],
+          decorations: ['Multi-sport stations', 'Championship banners', 'Olympic-style podium', 'Sports equipment displays'],
+          activities: ['Sports skills challenges', 'Team competitions', 'Medal ceremonies', 'Athletic training courses'],
           printableIdeas: ['Sports certificates', 'Championship activity sheets'],
           emoji: '⚽',
           ageAppropriate: age >= 3,
-          matchScore: 90
-        }
-      ];
-    }
-    
-    // Add similar patterns for other classic themes
-    const classicThemeTemplates = {
-      princess: {
-        name: 'Princess',
-        emoji: '👸',
-        colors: ['#FF69B4', '#9370DB', '#FFB6C1', '#F0E68C'],
-        baseActivities: ['Royal ball dancing', 'Crown decorating', 'Princess etiquette lessons']
-      },
-      dinosaur: {
-        name: 'Dinosaur',
-        emoji: '🦕',
-        colors: ['#228B22', '#8B4513', '#DAA520', '#CD853F'],
-        baseActivities: ['Fossil dig adventure', 'Dinosaur discovery games', 'Prehistoric exploration']
-      },
-      space: {
-        name: 'Space Explorer',
-        emoji: '🚀',
-        colors: ['#4B0082', '#000080', '#C0C0C0', '#FFD700'],
-        baseActivities: ['Rocket building', 'Planet exploration', 'Astronaut training']
-      },
-      safari: {
-        name: 'Safari Adventure',
-        emoji: '🦁',
-        colors: ['#228B22', '#DAA520', '#8B4513', '#CD853F'],
-        baseActivities: ['Animal tracking', 'Jungle exploration', 'Wildlife photography']
-      },
-      ocean: {
-        name: 'Ocean Adventure',
-        emoji: '🌊',
-        colors: ['#0000FF', '#00CED1', '#20B2AA', '#87CEEB'],
-        baseActivities: ['Deep sea diving', 'Marine life discovery', 'Treasure hunting']
-      },
-      pirate: {
-        name: 'Pirate Adventure',
-        emoji: '🏴‍☠️',
-        colors: ['#8B4513', '#FFD700', '#000000', '#FF0000'],
-        baseActivities: ['Treasure hunt', 'Pirate ship sailing', 'Map reading adventure']
-      },
-      unicorn: {
-        name: 'Unicorn Magic',
-        emoji: '🦄',
-        colors: ['#FF69B4', '#9370DB', '#FFB6C1', '#F0E68C'],
-        baseActivities: ['Magic spell casting', 'Rainbow creation', 'Unicorn care workshop']
-      }
-    };
-    
-    const template = classicThemeTemplates[themeLower as keyof typeof classicThemeTemplates];
-    if (template) {
-      return [
+          matchScore: 92
+        },
         {
-          id: `${themeLower}-classic-1`,
-          name: `Classic ${template.name} Party`,
-          description: `Experience the magic of ${template.name.toLowerCase()} adventures!`,
-          whyRecommended: `Perfect for ${childName} who selected the ${selectedClassicTheme} theme!`,
-          colorPalette: template.colors,
-          decorations: [`${template.name} themed decorations`, `${template.name} backdrop`, `${template.name} party props`],
-          activities: template.baseActivities,
-          printableIdeas: [`${template.name} coloring pages`, `${template.name} activity sheets`],
-          emoji: template.emoji,
+          id: 'sports-classic-2',
+          name: 'Olympic Training Academy',
+          description: 'Train like Olympic athletes and compete in exciting sporting challenges!',
+          whyRecommended: `Designed for ${childName} who loves sports adventures - Olympic-style training with athletic excellence!`,
+          colorPalette: ['#FFD700', '#C0C0C0', '#CD7F32', '#4169E1'],
+          decorations: ['Olympic rings display', 'Training academy setup', 'Medal presentation area', 'Sports achievement boards'],
+          activities: ['Olympic event training', 'Athletic skill development', 'Team relay races', 'Victory celebrations'],
+          printableIdeas: ['Olympic certificates', 'Training record sheets'],
+          emoji: '🏅',
           ageAppropriate: true,
           matchScore: 90
         }
-      ];
+      ]
+    },
+    unicorn: {
+      defaultThemes: [
+        {
+          id: 'unicorn-classic-1',
+          name: 'Magical Unicorn Paradise',
+          description: 'Enter a world of rainbow magic, sparkles, and enchanted unicorn friends!',
+          whyRecommended: `Perfect for ${childName} who selected the Unicorn theme - magical rainbow fun with sparkles, rainbows, and unicorn adventures!`,
+          colorPalette: ['#FF69B4', '#9370DB', '#FFB6C1', '#F0E68C'],
+          decorations: ['Rainbow balloon arch', 'Unicorn horn headbands', 'Glittery cloud decorations', 'Magic rainbow stations'],
+          activities: ['Unicorn horn decorating', 'Rainbow treasure hunt', 'Magic potion making', 'Sparkle craft workshops'],
+          printableIdeas: ['Unicorn coloring sheets', 'Magic potion recipe cards'],
+          emoji: '🦄',
+          ageAppropriate: true,
+          matchScore: 92
+        },
+        {
+          id: 'unicorn-classic-2',
+          name: 'Enchanted Rainbow Kingdom',
+          description: 'Explore a magical kingdom where unicorns and rainbows create endless wonder!',
+          whyRecommended: `Designed for ${childName} who loves unicorn adventures - rainbow kingdom with magical creatures!`,
+          colorPalette: ['#FF1493', '#9932CC', '#FFB6C1', '#FFFF00'],
+          decorations: ['Rainbow kingdom gates', 'Unicorn stable displays', 'Magic crystal stations', 'Enchanted forest backdrop'],
+          activities: ['Unicorn care workshop', 'Rainbow bridge building', 'Magic spell crafting', 'Kingdom adventure quests'],
+          printableIdeas: ['Kingdom maps', 'Unicorn care guides'],
+          emoji: '🌈',
+          ageAppropriate: true,
+          matchScore: 90
+        }
+      ]
     }
+  };
+  
+  const config = classicThemeConfigs[themeLower as keyof typeof classicThemeConfigs];
+  if (config) {
+    return config.defaultThemes;
   }
   
-  // For custom themes, prioritize text input analysis for fallback recommendations
-  if (textAnalysis.characters.length > 0 || textAnalysis.themes.length > 0) {
-    const textBasedThemes: ThemeRecommendation[] = [];
-    
-    // Generate themes based on specific characters mentioned - STAR WARS PRIORITY
-    if (textAnalysis.characters.includes('Star Wars')) {
-      textBasedThemes.push({
-        id: 'starwars-custom-1',
-        name: 'Star Wars Galaxy Adventure Party',
-        description: 'Journey to a galaxy far, far away with Jedi training, lightsaber battles, and Force powers!',
-        whyRecommended: `Perfect for ${childName} who loves Star Wars (mentioned in their favorites) - featuring Jedi training, lightsabers, and galactic adventures!`,
-        colorPalette: ['#000000', '#FFD700', '#0000FF', '#FF0000'],
-        decorations: ['Death Star centerpiece', 'Lightsaber displays', 'Star Wars character banners', 'Galaxy backdrop'],
-        activities: ['Jedi training academy', 'Lightsaber dueling', 'Build your own R2D2', 'Force training challenges'],
-        printableIdeas: ['Jedi certificates', 'Star Wars character masks'],
-        emoji: '⚔️',
-        ageAppropriate: true,
-        matchScore: 98
-      });
-      
-      textBasedThemes.push({
-        id: 'starwars-custom-2',
-        name: 'Jedi Knight Training Academy',
-        description: 'Master the ways of the Force and become a true Jedi Knight in this epic Star Wars adventure!',
-        whyRecommended: `Designed for ${childName} who loves Star Wars (from their text input) - Jedi training with lightsaber combat and Force powers!`,
-        colorPalette: ['#4169E1', '#32CD32', '#FFD700', '#8B4513'],
-        decorations: ['Jedi Temple setup', 'Lightsaber training course', 'Yoda wisdom stations'],
-        activities: ['Padawan training challenges', 'Lightsaber construction workshop', 'Force meditation exercises'],
-        printableIdeas: ['Jedi Knight certificates', 'Star Wars saga coloring pages'],
-        emoji: '🌟',
-        ageAppropriate: true,
-        matchScore: 96
-      });
+  // Fallback for unsupported classic themes
+  return [{
+    id: `${themeLower}-classic-fallback`,
+    name: `Classic ${selectedClassicTheme} Party`,
+    description: `Experience the magic of ${selectedClassicTheme.toLowerCase()} adventures!`,
+    whyRecommended: `Perfect for ${childName} who selected the ${selectedClassicTheme} theme!`,
+    colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
+    decorations: [`${selectedClassicTheme} themed decorations`, `${selectedClassicTheme} backdrop`, `${selectedClassicTheme} party props`],
+    activities: [`${selectedClassicTheme} themed games`, `${selectedClassicTheme} crafts`, `${selectedClassicTheme} adventures`],
+    printableIdeas: [`${selectedClassicTheme} coloring pages`, `${selectedClassicTheme} activity sheets`],
+    emoji: '🎉',
+    ageAppropriate: true,
+    matchScore: 85
+  }];
+}
+
+// Helper 2: Interest-Based Fallbacks - For non-contextual text with interests
+function getInterestBasedFallbacks(interests: string[], childName: string, age: number, childDetails?: string): ThemeRecommendation[] {
+  const interestBasedThemes: ThemeRecommendation[] = [];
+  
+  // Comprehensive interest-to-theme mapping
+  const interestThemeMap = {
+    cars: {
+      themes: [
+        {
+          id: 'cars-interest-1',
+          name: 'Racing Car Championship Party',
+          description: 'Rev up the engines for a high-speed racing adventure with cars, tracks, and victory celebrations!',
+          whyRecommended: `Perfect for ${childName} who loves cars (from their interests) - featuring racing excitement, car customization, and automotive fun!`,
+          colorPalette: ['#FF0000', '#000000', '#FFFF00', '#C0C0C0'],
+          decorations: ['Racing flags', 'Car track displays', 'Traffic light centerpieces', 'Pit stop stations', 'Victory podium'],
+          activities: ['Car racing games', 'Build your own race car', 'Pit crew challenges', 'Victory lap celebration', 'Car wash station'],
+          printableIdeas: ['Racing certificates', 'Car coloring pages'],
+          emoji: '🏎️',
+          ageAppropriate: true,
+          matchScore: 95
+        },
+        {
+          id: 'cars-interest-2',
+          name: 'Auto Mechanic Workshop Party',
+          description: 'Get hands-on with cars in a fun mechanic workshop with tools, repairs, and car customization!',
+          whyRecommended: `Designed for ${childName} who loves cars - hands-on automotive learning with tools and car care!`,
+          colorPalette: ['#2F4F4F', '#FF4500', '#FFD700', '#C0C0C0'],
+          decorations: ['Mechanic workshop setup', 'Tool displays', 'Car lift station', 'Parts and accessories corner'],
+          activities: ['Car repair challenges', 'Tool identification games', 'Car customization workshop', 'Mechanic certificate earning'],
+          printableIdeas: ['Mechanic certificates', 'Car parts identification sheets'],
+          emoji: '🔧',
+          ageAppropriate: age >= 4,
+          matchScore: 93
+        }
+      ]
+    },
+    animals: {
+      themes: [
+        {
+          id: 'animals-interest-1',
+          name: 'Animal Kingdom Safari Party',
+          description: 'Explore the amazing world of animals with safari adventures and wildlife discoveries!',
+          whyRecommended: `Perfect for ${childName} who loves animals (from their interests) - featuring all their favorite creatures and wildlife adventures!`,
+          colorPalette: ['#228B22', '#DAA520', '#8B4513', '#CD853F'],
+          decorations: ['Animal prints', 'Safari tent setup', 'Animal footprints trail', 'Wildlife photo displays', 'Zoo habitat stations'],
+          activities: ['Animal sound games', 'Wildlife scavenger hunt', 'Animal habitat building', 'Pet care workshop', 'Animal adoption center'],
+          printableIdeas: ['Animal fact cards', 'Safari explorer certificates'],
+          emoji: '🦁',
+          ageAppropriate: true,
+          matchScore: 95
+        },
+        {
+          id: 'animals-interest-2',
+          name: 'Pet Care Veterinarian Party',
+          description: 'Learn to care for animals as a junior veterinarian with pet care and animal health activities!',
+          whyRecommended: `Designed for ${childName} who loves animals - veterinary care with hands-on pet wellness activities!`,
+          colorPalette: ['#32CD32', '#87CEEB', '#FFB6C1', '#F0E68C'],
+          decorations: ['Veterinary clinic setup', 'Pet care stations', 'Animal health charts', 'Adoption corner'],
+          activities: ['Pet health checkups', 'Animal care learning', 'Stuffed animal hospital', 'Junior vet training'],
+          printableIdeas: ['Veterinarian certificates', 'Pet care guides'],
+          emoji: '🐾',
+          ageAppropriate: true,
+          matchScore: 93
+        }
+      ]
+    },
+    art: {
+      themes: [
+        {
+          id: 'art-interest-1',
+          name: 'Creative Art Studio Party',
+          description: 'Unleash creativity in a colorful art studio filled with paints, brushes, and endless artistic possibilities!',
+          whyRecommended: `Perfect for ${childName} who loves art & crafts (from their interests) - featuring all their favorite creative activities and artistic expression!`,
+          colorPalette: ['#FF6347', '#32CD32', '#FF69B4', '#FFD700'],
+          decorations: ['Paint palette table settings', 'Colorful paint splatter banners', 'Artist easel displays', 'Art supply stations', 'Gallery wall'],
+          activities: ['Canvas painting party', 'Clay sculpture workshop', 'Collaborative mural creation', 'DIY craft corner', 'Art exhibition setup'],
+          printableIdeas: ['Artist certificate templates', 'Color-by-number party sheets'],
+          emoji: '🎨',
+          ageAppropriate: true,
+          matchScore: 95
+        },
+        {
+          id: 'art-interest-2',
+          name: 'Master Artist Workshop Party',
+          description: 'Learn advanced art techniques in a professional artist workshop with specialized tools and techniques!',
+          whyRecommended: `Designed for ${childName} who loves art - advanced artistic techniques with professional tools and methods!`,
+          colorPalette: ['#800080', '#FF1493', '#32CD32', '#FFD700'],
+          decorations: ['Professional easel setup', 'Art technique displays', 'Master artist portraits', 'Tool demonstration area'],
+          activities: ['Advanced painting techniques', 'Professional art tool workshops', 'Artist style exploration', 'Master class sessions'],
+          printableIdeas: ['Master artist certificates', 'Technique reference guides'],
+          emoji: '🖌️',
+          ageAppropriate: age >= 6,
+          matchScore: 93
+        }
+      ]
+    },
+    sports: {
+      themes: [
+        {
+          id: 'sports-interest-1',
+          name: 'Multi-Sport Championship Party',
+          description: 'Experience the excitement of multiple sports in one amazing championship event!',
+          whyRecommended: `Perfect for ${childName} who loves sports (from their interests) - multi-sport athletic challenges with team competitions!`,
+          colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
+          decorations: ['Multi-sport stations', 'Championship banners', 'Olympic-style podium', 'Sports equipment displays', 'Team spirit decorations'],
+          activities: ['Sports skills challenges', 'Team competitions', 'Medal ceremonies', 'Athletic training courses', 'Sports trivia'],
+          printableIdeas: ['Sports achievement certificates', 'Championship activity sheets'],
+          emoji: '⚽',
+          ageAppropriate: true,
+          matchScore: 95
+        },
+        {
+          id: 'sports-interest-2',
+          name: 'Sports Training Camp Party',
+          description: 'Train like professional athletes with specialized coaching and skill development!',
+          whyRecommended: `Designed for ${childName} who loves sports - professional training with skill development and athletic excellence!`,
+          colorPalette: ['#FF4500', '#32CD32', '#4169E1', '#FFD700'],
+          decorations: ['Training camp setup', 'Athletic equipment displays', 'Achievement boards', 'Coach stations'],
+          activities: ['Skill development workshops', 'Athletic conditioning', 'Team building exercises', 'Performance assessments'],
+          printableIdeas: ['Training certificates', 'Performance tracking sheets'],
+          emoji: '🏃‍♂️',
+          ageAppropriate: age >= 5,
+          matchScore: 93
+        }
+      ]
+    },
+    music: {
+      themes: [
+        {
+          id: 'music-interest-1',
+          name: 'Rock Star Concert Party',
+          description: 'Experience the thrill of being a rock star with instruments, performances, and music creation!',
+          whyRecommended: `Perfect for ${childName} who loves music (from their interests) - rock star performances with instruments and music making!`,
+          colorPalette: ['#FF0000', '#000000', '#FFD700', '#C0C0C0'],
+          decorations: ['Concert stage setup', 'Musical instrument displays', 'Rock star posters', 'Sound equipment props', 'Spotlight effects'],
+          activities: ['Rock band formation', 'Instrument playing workshops', 'Karaoke performances', 'Music video creation', 'Concert rehearsals'],
+          printableIdeas: ['Rock star certificates', 'Concert program templates'],
+          emoji: '🎸',
+          ageAppropriate: true,
+          matchScore: 95
+        }
+      ]
+    },
+    science: {
+      themes: [
+        {
+          id: 'science-interest-1',
+          name: 'Mad Scientist Laboratory Party',
+          description: 'Conduct amazing experiments and discoveries in a fun and safe science laboratory!',
+          whyRecommended: `Perfect for ${childName} who loves science (from their interests) - hands-on experiments with scientific discoveries!`,
+          colorPalette: ['#32CD32', '#FF4500', '#4169E1', '#FFD700'],
+          decorations: ['Laboratory equipment setup', 'Periodic table displays', 'Science experiment stations', 'Safety equipment props'],
+          activities: ['Safe science experiments', 'Volcano eruptions', 'Slime making', 'Microscope observations', 'Invention workshops'],
+          printableIdeas: ['Scientist certificates', 'Experiment record sheets'],
+          emoji: '🔬',
+          ageAppropriate: age >= 5,
+          matchScore: 95
+        }
+      ]
+    },
+    nature: {
+      themes: [
+        {
+          id: 'nature-interest-1',
+          name: 'Nature Explorer Adventure Party',
+          description: 'Explore the wonders of nature with outdoor adventures and environmental discoveries!',
+          whyRecommended: `Perfect for ${childName} who loves nature (from their interests) - outdoor exploration with environmental learning!`,
+          colorPalette: ['#228B22', '#8FBC8F', '#8B4513', '#87CEEB'],
+          decorations: ['Forest canopy setup', 'Nature specimen displays', 'Outdoor adventure stations', 'Environmental education boards'],
+          activities: ['Nature scavenger hunts', 'Plant identification workshops', 'Bug exploration', 'Environmental conservation activities'],
+          printableIdeas: ['Nature explorer certificates', 'Species identification guides'],
+          emoji: '🌲',
+          ageAppropriate: true,
+          matchScore: 95
+        }
+      ]
     }
+  };
+  
+  // Process interests and add relevant themes
+  interests.forEach(interest => {
+    const lowerInterest = interest.toLowerCase();
     
-    if (textAnalysis.characters.includes('Iron Man')) {
-      textBasedThemes.push({
-        id: 'ironman-custom-1',
-        name: 'Iron Man Tech Hero Party',
-        description: 'Step into Tony Stark\'s high-tech world with arc reactors and superhero engineering!',
-        whyRecommended: `Perfect for ${childName} who loves Iron Man (mentioned in their favorites) - featuring all their favorite tech superhero elements!`,
-        colorPalette: ['#DC143C', '#FFD700', '#C0C0C0', '#000000'],
-        decorations: ['Arc reactor centerpieces', 'Stark Industries banners', 'Iron Man suit displays'],
-        activities: ['Build arc reactors', 'Iron Man suit design workshop', 'Tech inventor challenges'],
-        printableIdeas: ['Iron Man mask templates', 'Stark Industries certificates'],
-        emoji: '🤖',
-        ageAppropriate: true,
-        matchScore: 98
-      });
+    // Match interests to theme categories
+    if (lowerInterest.includes('car') || lowerInterest.includes('vehicle')) {
+      interestBasedThemes.push(...interestThemeMap.cars.themes);
     }
+    if (lowerInterest.includes('animal') || lowerInterest.includes('pet')) {
+      interestBasedThemes.push(...interestThemeMap.animals.themes);
+    }
+    if (lowerInterest.includes('art') || lowerInterest.includes('craft') || lowerInterest.includes('drawing') || lowerInterest.includes('painting')) {
+      interestBasedThemes.push(...interestThemeMap.art.themes);
+    }
+    if (lowerInterest.includes('sport') || lowerInterest.includes('soccer') || lowerInterest.includes('basketball') || lowerInterest.includes('football')) {
+      interestBasedThemes.push(...interestThemeMap.sports.themes);
+    }
+    if (lowerInterest.includes('music') || lowerInterest.includes('singing') || lowerInterest.includes('dancing')) {
+      interestBasedThemes.push(...interestThemeMap.music.themes);
+    }
+    if (lowerInterest.includes('science') || lowerInterest.includes('experiment')) {
+      interestBasedThemes.push(...interestThemeMap.science.themes);
+    }
+    if (lowerInterest.includes('nature') || lowerInterest.includes('outdoor') || lowerInterest.includes('camping')) {
+      interestBasedThemes.push(...interestThemeMap.nature.themes);
+    }
+  });
+  
+  // Remove duplicates and return top themes
+  const uniqueThemes = interestBasedThemes.filter((theme, index, self) => 
+    self.findIndex(t => t.id === theme.id) === index
+  );
+  
+  return uniqueThemes.slice(0, 5);
+}
+
+// Helper 3: Text-Based Fallbacks - For contextual text input
+function getTextBasedFallbacks(textAnalysis: any, childName: string, age: number, childDetails?: string): ThemeRecommendation[] {
+  const textBasedThemes: ThemeRecommendation[] = [];
+  
+  // Generate themes based on specific characters mentioned - STAR WARS PRIORITY
+  if (textAnalysis.characters.includes('Star Wars')) {
+    textBasedThemes.push({
+      id: 'starwars-text-1',
+      name: 'Star Wars Galaxy Adventure Party',
+      description: 'Journey to a galaxy far, far away with Jedi training, lightsaber battles, and Force powers!',
+      whyRecommended: `Perfect for ${childName} who loves Star Wars (mentioned in their favorites) - featuring Jedi training, lightsabers, and galactic adventures!`,
+      colorPalette: ['#000000', '#FFD700', '#0000FF', '#FF0000'],
+      decorations: ['Death Star centerpiece', 'Lightsaber displays', 'Star Wars character banners', 'Galaxy backdrop'],
+      activities: ['Jedi training academy', 'Lightsaber dueling', 'Build your own droid', 'Force training challenges'],
+      printableIdeas: ['Jedi certificates', 'Star Wars character masks'],
+      emoji: '⚔️',
+      ageAppropriate: true,
+      matchScore: 98
+    });
     
-    if (textAnalysis.characters.includes('Spider-Man')) {
-      textBasedThemes.push({
-        id: 'spiderman-custom-1',
-        name: 'Spider-Man Web Adventure',
-        description: 'Swing through New York City with your friendly neighborhood Spider-Man!',
-        whyRecommended: `Perfect for ${childName} who loves Spider-Man (mentioned in their favorites) - web-slinging action and superhero fun!`,
-        colorPalette: ['#FF0000', '#0000FF', '#FFFFFF', '#000000'],
-        decorations: ['Giant spider webs', 'NYC skyline backdrop', 'Spider-Man photo booth'],
-        activities: ['Web shooter games', 'Spider obstacle course', 'Hero training challenges'],
-        printableIdeas: ['Spider-Man masks', 'Web pattern activity sheets'],
-        emoji: '🕷️',
-        ageAppropriate: true,
-        matchScore: 98
-      });
-    }
-    
-    if (textAnalysis.characters.includes('Elsa/Frozen')) {
-      textBasedThemes.push({
-        id: 'frozen-custom-1',
-        name: 'Frozen Ice Palace Adventure',
-        description: 'Join Elsa and Anna in the magical kingdom of Arendelle with ice powers and royal fun!',
-        whyRecommended: `Perfect for ${childName} who loves Frozen (mentioned in their favorites) - featuring Elsa, Anna, and magical ice adventures!`,
-        colorPalette: ['#87CEEB', '#FFFFFF', '#E6E6FA', '#4169E1'],
-        decorations: ['Ice castle backdrop', 'Snowflake decorations', 'Frozen character displays'],
-        activities: ['Ice power games', 'Frozen sing-along', 'Royal dance party'],
-        printableIdeas: ['Elsa crown templates', 'Frozen coloring pages'],
-        emoji: '❄️',
-        ageAppropriate: true,
-        matchScore: 98
-      });
-    }
-    
-    // Generate themes based on theme mentions in text
-    if (textAnalysis.themes.includes('unicorn')) {
-      textBasedThemes.push({
-        id: 'unicorn-custom-1',
-        name: 'Magical Unicorn Rainbow Party',
-        description: 'Enter a world of unicorn magic with rainbows, sparkles, and enchanted adventures!',
-        whyRecommended: `Perfect for ${childName} who loves unicorns (mentioned in their favorites) - magical rainbow fun with sparkles and wonder!`,
-        colorPalette: ['#FF69B4', '#9370DB', '#FFB6C1', '#F0E68C'],
-        decorations: ['Rainbow balloon arches', 'Unicorn horn stations', 'Sparkly cloud decorations'],
-        activities: ['Unicorn horn decorating', 'Rainbow treasure hunt', 'Magic potion making'],
-        printableIdeas: ['Unicorn coloring pages', 'Magic spell certificates'],
-        emoji: '🦄',
-        ageAppropriate: true,
-        matchScore: 98
-      });
-    }
-    
-    if (textAnalysis.themes.includes('beach')) {
-      textBasedThemes.push({
-        id: 'beach-custom-1',
-        name: 'Beach Paradise Art & Craft Party',
-        description: 'Create amazing beach-themed art and crafts inspired by seaside adventures!',
-        whyRecommended: `Perfect for ${childName} who loves the beach (mentioned in their favorites) - combining beach themes with creative art and craft activities!`,
-        colorPalette: ['#00CED1', '#FFE4B5', '#F0E68C', '#87CEEB'],
-        decorations: ['Seashell art stations', 'Beach umbrella decorations', 'Sand castle displays', 'Ocean wave backdrops'],
-        activities: ['Seashell painting workshop', 'Sand art bottles crafting', 'Beach scene canvas painting', 'Driftwood sculpture making'],
-        printableIdeas: ['Beach coloring pages', 'Seashell identification charts'],
-        emoji: '🏖️',
-        ageAppropriate: true,
-        matchScore: 98
-      });
-    }
-    
-    if (textAnalysis.themes.includes('art')) {
-      textBasedThemes.push({
-        id: 'art-custom-1',
-        name: 'Creative Art & Craft Studio Party',
-        description: 'Unleash creativity in a colorful art studio with endless artistic possibilities!',
-        whyRecommended: `Perfect for ${childName} who loves art and crafts (mentioned in their favorites) - featuring all their favorite creative activities!`,
-        colorPalette: ['#FF6347', '#32CD32', '#FF69B4', '#FFD700'],
-        decorations: ['Paint palette table settings', 'Colorful paint splatter banners', 'Artist easel displays', 'Craft supply stations'],
-        activities: ['Canvas painting party', 'Clay sculpture workshop', 'Collaborative mural creation', 'DIY craft corner'],
-        printableIdeas: ['Artist certificate templates', 'Color-by-number party sheets'],
-        emoji: '🎨',
-        ageAppropriate: true,
-        matchScore: 98
-      });
-    }
-    
-    if (textAnalysis.themes.includes('dinosaur')) {
-      textBasedThemes.push({
-        id: 'dinosaur-custom-1',
-        name: 'Prehistoric Dinosaur Discovery',
-        description: 'Travel back in time to discover amazing dinosaurs and prehistoric adventures!',
-        whyRecommended: `Perfect for ${childName} who loves dinosaurs (mentioned in their favorites) - prehistoric fun with fossil hunting and dino adventures!`,
-        colorPalette: ['#228B22', '#8B4513', '#DAA520', '#CD853F'],
-        decorations: ['Jungle vines', 'Dinosaur footprints', 'Fossil dig stations'],
-        activities: ['Fossil excavation', 'Dinosaur egg hunt', 'Paleontologist training'],
-        printableIdeas: ['Dinosaur fact cards', 'Fossil dig certificates'],
-        emoji: '🦕',
-        ageAppropriate: true,
-        matchScore: 98
-      });
-    }
-    
-    if (textAnalysis.themes.includes('cricket') || textAnalysis.interests.includes('cricket')) {
-      textBasedThemes.push({
-        id: 'cricket-custom-1',
-        name: 'Cricket Champion Sports Party',
-        description: 'Step onto the cricket field and experience the thrill of being a cricket champion!',
-        whyRecommended: `Perfect for ${childName} who loves cricket (mentioned in their favorites) - featuring cricket gameplay, championship matches, and sports excellence!`,
-        colorPalette: ['#228B22', '#FFFFFF', '#FF0000', '#FFD700'],
-        decorations: ['Cricket pitch backdrop', 'Wicket displays', 'Championship trophies', 'Cricket equipment stations'],
-        activities: ['Cricket batting challenges', 'Wicket-keeping contests', 'Cricket skills workshop', 'Championship trophy ceremony'],
-        printableIdeas: ['Cricket scorecards', 'Player achievement certificates'],
-        emoji: '🏏',
-        ageAppropriate: true,
-        matchScore: 98
-      });
-    }
-    
-    if (textAnalysis.themes.includes('sports')) {
-      textBasedThemes.push({
-        id: 'sports-custom-1',
-        name: 'All-Star Sports Championship',
-        description: 'Experience the excitement of being an all-star athlete across multiple sports!',
-        whyRecommended: `Perfect for ${childName} who loves sports (mentioned in their favorites) - multi-sport athletic challenges and championship fun!`,
-        colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
-        decorations: ['Multi-sport stations', 'Olympic-style rings', 'Championship podium', 'Sports equipment displays'],
-        activities: ['Sports skills challenges', 'Team competitions', 'Medal ceremonies', 'Athletic training course'],
-        printableIdeas: ['Sports achievement certificates', 'Olympic-style medals to color'],
-        emoji: '⚽',
-        ageAppropriate: true,
-        matchScore: 98
-      });
-    }
-    
-    if (textBasedThemes.length > 0) {
-      return textBasedThemes.slice(0, 5);
-    }
+    textBasedThemes.push({
+      id: 'starwars-text-2',
+      name: 'Jedi Knight Training Academy',
+      description: 'Master the ways of the Force and become a true Jedi Knight in this epic Star Wars adventure!',
+      whyRecommended: `Designed for ${childName} who loves Star Wars (from their text input) - Jedi training with lightsaber combat and Force powers!`,
+      colorPalette: ['#4169E1', '#32CD32', '#FFD700', '#8B4513'],
+      decorations: ['Jedi Temple setup', 'Lightsaber training course', 'Yoda wisdom stations'],
+      activities: ['Padawan training challenges', 'Lightsaber construction workshop', 'Force meditation exercises'],
+      printableIdeas: ['Jedi Knight certificates', 'Star Wars saga coloring pages'],
+      emoji: '🌟',
+      ageAppropriate: true,
+      matchScore: 96
+    });
   }
   
-  // Default fallback themes for custom theme mode
+  if (textAnalysis.characters.includes('Iron Man')) {
+    textBasedThemes.push({
+      id: 'ironman-text-1',
+      name: 'Iron Man Tech Hero Party',
+      description: 'Step into Tony Stark\'s high-tech world with arc reactors and superhero engineering!',
+      whyRecommended: `Perfect for ${childName} who loves Iron Man (mentioned in their favorites) - featuring all their favorite tech superhero elements!`,
+      colorPalette: ['#DC143C', '#FFD700', '#C0C0C0', '#000000'],
+      decorations: ['Arc reactor centerpieces', 'Stark Industries banners', 'Iron Man suit displays'],
+      activities: ['Build arc reactors', 'Iron Man suit design workshop', 'Tech inventor challenges'],
+      printableIdeas: ['Iron Man mask templates', 'Stark Industries certificates'],
+      emoji: '🤖',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  if (textAnalysis.characters.includes('Spider-Man')) {
+    textBasedThemes.push({
+      id: 'spiderman-text-1',
+      name: 'Spider-Man Web Adventure',
+      description: 'Swing through New York City with your friendly neighborhood Spider-Man!',
+      whyRecommended: `Perfect for ${childName} who loves Spider-Man (mentioned in their favorites) - web-slinging action and superhero fun!`,
+      colorPalette: ['#FF0000', '#0000FF', '#FFFFFF', '#000000'],
+      decorations: ['Giant spider webs', 'NYC skyline backdrop', 'Spider-Man photo booth'],
+      activities: ['Web shooter games', 'Spider obstacle course', 'Hero training challenges'],
+      printableIdeas: ['Spider-Man masks', 'Web pattern activity sheets'],
+      emoji: '🕷️',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  if (textAnalysis.characters.includes('Elsa/Frozen')) {
+    textBasedThemes.push({
+      id: 'frozen-text-1',
+      name: 'Frozen Ice Palace Adventure',
+      description: 'Join Elsa and Anna in the magical kingdom of Arendelle with ice powers and royal fun!',
+      whyRecommended: `Perfect for ${childName} who loves Frozen (mentioned in their favorites) - featuring Elsa, Anna, and magical ice adventures!`,
+      colorPalette: ['#87CEEB', '#FFFFFF', '#E6E6FA', '#4169E1'],
+      decorations: ['Ice castle backdrop', 'Snowflake decorations', 'Frozen character displays'],
+      activities: ['Ice power games', 'Frozen sing-along', 'Royal dance party'],
+      printableIdeas: ['Elsa crown templates', 'Frozen coloring pages'],
+      emoji: '❄️',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  // Generate themes based on theme mentions in text
+  if (textAnalysis.themes.includes('unicorn')) {
+    textBasedThemes.push({
+      id: 'unicorn-text-1',
+      name: 'Magical Unicorn Rainbow Party',
+      description: 'Enter a world of unicorn magic with rainbows, sparkles, and enchanted adventures!',
+      whyRecommended: `Perfect for ${childName} who loves unicorns (mentioned in their favorites) - magical rainbow fun with sparkles and wonder!`,
+      colorPalette: ['#FF69B4', '#9370DB', '#FFB6C1', '#F0E68C'],
+      decorations: ['Rainbow balloon arches', 'Unicorn horn stations', 'Sparkly cloud decorations'],
+      activities: ['Unicorn horn decorating', 'Rainbow treasure hunt', 'Magic potion making'],
+      printableIdeas: ['Unicorn coloring pages', 'Magic spell certificates'],
+      emoji: '🦄',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  if (textAnalysis.themes.includes('beach')) {
+    textBasedThemes.push({
+      id: 'beach-text-1',
+      name: 'Beach Paradise Art & Craft Party',
+      description: 'Create amazing beach-themed art and crafts inspired by seaside adventures!',
+      whyRecommended: `Perfect for ${childName} who loves the beach (mentioned in their favorites) - combining beach themes with creative art and craft activities!`,
+      colorPalette: ['#00CED1', '#FFE4B5', '#F0E68C', '#87CEEB'],
+      decorations: ['Seashell art stations', 'Beach umbrella decorations', 'Sand castle displays', 'Ocean wave backdrops'],
+      activities: ['Seashell painting workshop', 'Sand art bottles crafting', 'Beach scene canvas painting', 'Driftwood sculpture making'],
+      printableIdeas: ['Beach coloring pages', 'Seashell identification charts'],
+      emoji: '🏖️',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  if (textAnalysis.themes.includes('art')) {
+    textBasedThemes.push({
+      id: 'art-text-1',
+      name: 'Creative Art & Craft Studio Party',
+      description: 'Unleash creativity in a colorful art studio with endless artistic possibilities!',
+      whyRecommended: `Perfect for ${childName} who loves art and crafts (mentioned in their favorites) - featuring all their favorite creative activities!`,
+      colorPalette: ['#FF6347', '#32CD32', '#FF69B4', '#FFD700'],
+      decorations: ['Paint palette table settings', 'Colorful paint splatter banners', 'Artist easel displays', 'Craft supply stations'],
+      activities: ['Canvas painting party', 'Clay sculpture workshop', 'Collaborative mural creation', 'DIY craft corner'],
+      printableIdeas: ['Artist certificate templates', 'Color-by-number party sheets'],
+      emoji: '🎨',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  if (textAnalysis.themes.includes('dinosaur')) {
+    textBasedThemes.push({
+      id: 'dinosaur-text-1',
+      name: 'Prehistoric Dinosaur Discovery',
+      description: 'Travel back in time to discover amazing dinosaurs and prehistoric adventures!',
+      whyRecommended: `Perfect for ${childName} who loves dinosaurs (mentioned in their favorites) - prehistoric fun with fossil hunting and dino adventures!`,
+      colorPalette: ['#228B22', '#8B4513', '#DAA520', '#CD853F'],
+      decorations: ['Jungle vines', 'Dinosaur footprints', 'Fossil dig stations'],
+      activities: ['Fossil excavation', 'Dinosaur egg hunt', 'Paleontologist training'],
+      printableIdeas: ['Dinosaur fact cards', 'Fossil dig certificates'],
+      emoji: '🦕',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  if (textAnalysis.themes.includes('cricket') || textAnalysis.interests.includes('cricket')) {
+    textBasedThemes.push({
+      id: 'cricket-text-1',
+      name: 'Cricket Champion Sports Party',
+      description: 'Step onto the cricket field and experience the thrill of being a cricket champion!',
+      whyRecommended: `Perfect for ${childName} who loves cricket (mentioned in their favorites) - featuring cricket gameplay, championship matches, and sports excellence!`,
+      colorPalette: ['#228B22', '#FFFFFF', '#FF0000', '#FFD700'],
+      decorations: ['Cricket pitch backdrop', 'Wicket displays', 'Championship trophies', 'Cricket equipment stations'],
+      activities: ['Cricket batting challenges', 'Wicket-keeping contests', 'Cricket skills workshop', 'Championship trophy ceremony'],
+      printableIdeas: ['Cricket scorecards', 'Player achievement certificates'],
+      emoji: '🏏',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  if (textAnalysis.themes.includes('sports')) {
+    textBasedThemes.push({
+      id: 'sports-text-1',
+      name: 'All-Star Sports Championship',
+      description: 'Experience the excitement of being an all-star athlete across multiple sports!',
+      whyRecommended: `Perfect for ${childName} who loves sports (mentioned in their favorites) - multi-sport athletic challenges and championship fun!`,
+      colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
+      decorations: ['Multi-sport stations', 'Olympic-style rings', 'Championship podium', 'Sports equipment displays'],
+      activities: ['Sports skills challenges', 'Team competitions', 'Medal ceremonies', 'Athletic training course'],
+      printableIdeas: ['Sports achievement certificates', 'Olympic-style medals to color'],
+      emoji: '⚽',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  if (textAnalysis.themes.includes('vehicles')) {
+    textBasedThemes.push({
+      id: 'vehicles-text-1',
+      name: 'Ultimate Vehicle Adventure Party',
+      description: 'Explore the world of amazing vehicles with cars, trucks, and transportation adventures!',
+      whyRecommended: `Perfect for ${childName} who loves vehicles (mentioned in their favorites) - featuring all types of transportation and vehicle adventures!`,
+      colorPalette: ['#FF0000', '#000000', '#FFFF00', '#C0C0C0'],
+      decorations: ['Vehicle display station', 'Traffic light setup', 'Car wash corner', 'Transportation museum'],
+      activities: ['Vehicle identification games', 'Build your own car', 'Transportation challenges', 'Vehicle safety workshop'],
+      printableIdeas: ['Vehicle certificates', 'Transportation coloring pages'],
+      emoji: '🚗',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  if (textAnalysis.themes.includes('animals')) {
+    textBasedThemes.push({
+      id: 'animals-text-1',
+      name: 'Amazing Animal Kingdom Party',
+      description: 'Discover the wonderful world of animals with wildlife adventures and creature encounters!',
+      whyRecommended: `Perfect for ${childName} who loves animals (mentioned in their favorites) - featuring amazing creatures and wildlife exploration!`,
+      colorPalette: ['#228B22', '#DAA520', '#8B4513', '#CD853F'],
+      decorations: ['Animal habitat displays', 'Wildlife photography corner', 'Animal sound station', 'Creature care center'],
+      activities: ['Animal care workshop', 'Wildlife identification games', 'Animal habitat building', 'Creature adventure quest'],
+      printableIdeas: ['Animal care certificates', 'Wildlife identification guides'],
+      emoji: '🐾',
+      ageAppropriate: true,
+      matchScore: 98
+    });
+  }
+  
+  return textBasedThemes.slice(0, 5);
+}
+
+// Helper 4: Default Fallbacks - Final fallback for any remaining cases
+function getDefaultFallbacks(childName: string, age: number, interests: string[]): ThemeRecommendation[] {
   const fallbackThemes = [
     {
-      id: 'superhero-adventure',
+      id: 'superhero-default',
       name: 'Superhero Adventure',
       description: 'Transform into mighty heroes and save the day with action-packed adventures!',
       whyRecommended: `Perfect for ${childName} who loves action and adventure - every child dreams of being a superhero!`,
@@ -942,7 +1243,7 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
       matchScore: interests.some(i => ['action', 'games', 'movies'].includes(i.toLowerCase())) ? 90 : 75
     },
     {
-      id: 'magical-unicorn',
+      id: 'magical-unicorn-default',
       name: 'Magical Unicorn Paradise',
       description: 'Enter a world of rainbow magic, sparkles, and enchanted unicorn friends!',
       whyRecommended: `Chosen for ${childName} because unicorns represent magic and wonder - perfect for creative spirits!`,
@@ -955,7 +1256,7 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
       matchScore: interests.some(i => ['art', 'crafts', 'magic', 'animals'].includes(i.toLowerCase())) ? 88 : 70
     },
     {
-      id: 'dinosaur-discovery',
+      id: 'dinosaur-discovery-default',
       name: 'Dinosaur Discovery Expedition',
       description: 'Embark on a prehistoric adventure to discover ancient dinosaur secrets!',
       whyRecommended: `Selected for ${childName} who loves exploration and learning - dinosaurs fascinate curious minds!`,
@@ -968,7 +1269,7 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
       matchScore: interests.some(i => ['animals', 'science', 'nature', 'games'].includes(i.toLowerCase())) ? 92 : 78
     },
     {
-      id: 'space-explorer',
+      id: 'space-explorer-default',
       name: 'Space Explorer Mission',
       description: 'Blast off to the stars on an intergalactic adventure through the cosmos!',
       whyRecommended: `Perfect for ${childName} who dreams big - space exploration combines science with wonder!`,
@@ -981,7 +1282,7 @@ function getFallbackRecommendations(childName: string, age: number, interests: s
       matchScore: interests.some(i => ['science', 'space', 'building', 'games'].includes(i.toLowerCase())) ? 94 : 80
     },
     {
-      id: 'art-studio',
+      id: 'art-studio-default',
       name: 'Creative Art Studio',
       description: 'Unleash creativity in a colorful art studio filled with endless possibilities!',
       whyRecommended: `Designed for ${childName}'s artistic spirit - perfect for expressing creativity and imagination!`,
