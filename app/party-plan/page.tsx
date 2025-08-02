@@ -143,9 +143,22 @@ export default function PartyPlanPage() {
         const savedData = localStorage.getItem('partyData');
         if (savedData) {
           const data = JSON.parse(savedData);
+          // Safely handle partyDate conversion with validation
+          let partyDate;
+          try {
+            partyDate = data.partyDate ? new Date(data.partyDate) : new Date();
+            // Validate the date object
+            if (isNaN(partyDate.getTime())) {
+              partyDate = new Date();
+            }
+          } catch (error) {
+            console.error('Error parsing party date:', error);
+            partyDate = new Date();
+          }
+          
           setPartyData({
             ...data,
-            partyDate: new Date(data.partyDate)
+            partyDate: partyDate
           });
           
           // Generate checklist based on party data
@@ -219,7 +232,19 @@ export default function PartyPlanPage() {
   };
 
   const generateChecklist = (data: any) => {
-    const partyDate = new Date(data.partyDate);
+    // Safely handle partyDate with validation
+    let partyDate;
+    try {
+      partyDate = data.partyDate ? new Date(data.partyDate) : new Date();
+      // Validate the date object
+      if (isNaN(partyDate.getTime())) {
+        partyDate = new Date();
+      }
+    } catch (error) {
+      console.error('Error parsing party date in generateChecklist:', error);
+      partyDate = new Date();
+    }
+    
     const baseChecklist = generateBaseChecklist(data);
 
     let checklistWithProgress = baseChecklist;
@@ -244,11 +269,27 @@ export default function PartyPlanPage() {
 
     // Calculate due dates and status for each task
     const checklistWithDates = checklistWithProgress.map(item => {
-      const dueDate = new Date(partyDate);
-      dueDate.setDate(dueDate.getDate() - (item.weeksOrDaysBefore || 0));
+      let dueDate;
+      let daysDifference = 0;
       
-      const today = new Date();
-      const daysDifference = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      try {
+        dueDate = new Date(partyDate);
+        // Validate the dueDate object
+        if (isNaN(dueDate.getTime())) {
+          dueDate = new Date();
+        }
+        dueDate.setDate(dueDate.getDate() - (item.weeksOrDaysBefore || 0));
+        
+        const today = new Date();
+        // Safely calculate the difference with validation
+        if (!isNaN(dueDate.getTime()) && !isNaN(today.getTime())) {
+          daysDifference = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        }
+      } catch (error) {
+        console.error('Error calculating due date for task:', item.task, error);
+        dueDate = new Date();
+        daysDifference = 0;
+      }
       
       let status: 'upcoming' | 'due-soon' | 'overdue' | 'completed' = 'upcoming';
       
@@ -281,8 +322,16 @@ export default function PartyPlanPage() {
             updatedItem.status = 'completed';
           } else {
             // Recalculate status based on current date
-            const today = new Date();
-            const daysDifference = item.dueDate ? Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+            let daysDifference = 0;
+            try {
+              const today = new Date();
+              if (item.dueDate && !isNaN(item.dueDate.getTime()) && !isNaN(today.getTime())) {
+                daysDifference = Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+              }
+            } catch (error) {
+              console.error('Error recalculating status:', error);
+              daysDifference = 0;
+            }
             
             if (daysDifference < 0) {
               updatedItem.status = 'overdue';
@@ -307,8 +356,16 @@ export default function PartyPlanPage() {
             if (updatedItem.completed) {
               updatedItem.status = 'completed';
             } else {
-              const today = new Date();
-              const daysDifference = item.dueDate ? Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+              let daysDifference = 0;
+              try {
+                const today = new Date();
+                if (item.dueDate && !isNaN(item.dueDate.getTime()) && !isNaN(today.getTime())) {
+                  daysDifference = Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                }
+              } catch (error) {
+                console.error('Error calculating days difference:', error);
+                daysDifference = 0;
+              }
               if (daysDifference < 0) {
                 updatedItem.status = 'overdue';
               } else if (daysDifference <= 3) {
@@ -473,10 +530,21 @@ export default function PartyPlanPage() {
   // Calculate days until party
   const getDaysUntilParty = () => {
     if (!partyData?.partyDate) return 0;
-    const today = new Date();
-    const party = new Date(partyData.partyDate);
-    const timeDiff = party.getTime() - today.getTime();
-    return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    try {
+      const today = new Date();
+      const party = new Date(partyData.partyDate);
+      
+      // Validate both date objects
+      if (isNaN(today.getTime()) || isNaN(party.getTime())) {
+        return 0;
+      }
+      
+      const timeDiff = party.getTime() - today.getTime();
+      return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    } catch (error) {
+      console.error('Error calculating days until party:', error);
+      return 0;
+    }
   };
   
   const daysUntilParty = getDaysUntilParty();
@@ -836,7 +904,7 @@ export default function PartyPlanPage() {
                   partyId={partyData?.childName || 'party'}
                   childName={partyData?.childName || ''}
                   childAge={parseInt(partyData?.childAge || '0')}
-                  partyDate={partyData?.partyDate ? partyData.partyDate.toISOString() : ''}
+                  partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
                   partyTime="2:00 PM"
                   partyLocation="TBD"
                   theme={partyData?.selectedTheme || ''}
@@ -850,7 +918,7 @@ export default function PartyPlanPage() {
                 <RSVPTracker
                   partyId={partyData?.childName || 'party'}
                   childName={partyData?.childName || ''}
-                  partyDate={partyData?.partyDate ? partyData.partyDate.toISOString() : ''}
+                  partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
                   guests={guests}
                   invitations={invitations}
                   onUpdateRSVP={handleUpdateRSVP}
@@ -1011,11 +1079,22 @@ export default function PartyPlanPage() {
                   };
 
                   const calculatePosition = (item: ChecklistItem) => {
-                    const today = new Date();
-                    const partyDate = new Date(partyData?.partyDate || new Date());
-                    const totalDays = Math.max(1, Math.ceil((partyDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
-                    const taskDaysFromToday = item.dueDate ? Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-                    return Math.max(5, Math.min(95, ((totalDays - taskDaysFromToday) / totalDays) * 90 + 5));
+                    try {
+                      const today = new Date();
+                      const partyDate = new Date(partyData?.partyDate || new Date());
+                      
+                      // Validate date objects
+                      if (isNaN(today.getTime()) || isNaN(partyDate.getTime())) {
+                        return 50; // Default position if dates are invalid
+                      }
+                      
+                      const totalDays = Math.max(1, Math.ceil((partyDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+                      const taskDaysFromToday = item.dueDate && !isNaN(item.dueDate.getTime()) ? Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+                      return Math.max(5, Math.min(95, ((totalDays - taskDaysFromToday) / totalDays) * 90 + 5));
+                    } catch (error) {
+                      console.error('Error calculating position:', error);
+                      return 50; // Default position
+                    }
                   };
 
                   const toggleSwimlane = (swimlaneName: string) => {
@@ -1070,7 +1149,7 @@ export default function PartyPlanPage() {
                             <Star className="h-4 w-4" />
                             <div className="text-sm font-bold">PARTY DAY</div>
                             <div className="text-xs opacity-90">
-                              {partyData?.partyDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              {partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}
                             </div>
                           </div>
                         </div>
@@ -1080,10 +1159,20 @@ export default function PartyPlanPage() {
                           <div 
                             className="h-full bg-gradient-to-r from-green-400 to-purple-400 rounded-full transition-all duration-500"
                             style={{ 
-                              width: `${partyData?.partyDate && daysUntilParty > 0 
-                                ? Math.max(0, Math.min(100, ((new Date().getTime() - (partyData.partyDate.getTime() - (daysUntilParty * 24 * 60 * 60 * 1000))) / (daysUntilParty * 24 * 60 * 60 * 1000)) * 100))
-                                : 0
-                              }%` 
+                              width: `${(() => {
+                                try {
+                                  if (partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) && daysUntilParty > 0) {
+                                    const today = new Date();
+                                    if (!isNaN(today.getTime())) {
+                                      return Math.max(0, Math.min(100, ((today.getTime() - (partyData.partyDate.getTime() - (daysUntilParty * 24 * 60 * 60 * 1000))) / (daysUntilParty * 24 * 60 * 60 * 1000)) * 100));
+                                    }
+                                  }
+                                  return 0;
+                                } catch (error) {
+                                  console.error('Error calculating progress:', error);
+                                  return 0;
+                                }
+                              })()}%` 
                             }}
                           />
                         </div>
@@ -1172,7 +1261,7 @@ export default function PartyPlanPage() {
                                                     } else {
                                                       setEditingTask(task.id);
                                                       setEditingText(task.task);
-                                                      setEditingDate(task.dueDate ? task.dueDate.toISOString().split('T')[0] : "");
+                                                      setEditingDate(task.dueDate && !isNaN(task.dueDate.getTime()) ? task.dueDate.toISOString().split('T')[0] : "");
                                                     }
                                                   }}
                                                 >
@@ -1204,7 +1293,7 @@ export default function PartyPlanPage() {
                                                     } else {
                                                       setEditingTask(task.id);
                                                       setEditingText(task.task);
-                                                      setEditingDate(task.dueDate ? task.dueDate.toISOString().split('T')[0] : "");
+                                                      setEditingDate(task.dueDate && !isNaN(task.dueDate.getTime()) ? task.dueDate.toISOString().split('T')[0] : "");
                                                     }
                                                   }}
                                                 >
@@ -1224,7 +1313,22 @@ export default function PartyPlanPage() {
                                               Due: {task.dueDate?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                                               {task.dueDate && (
                                                 <span className="ml-2">
-                                                  ({Math.abs(Math.ceil((task.dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days {task.dueDate.getTime() > new Date().getTime() ? 'left' : 'ago'})
+                                                  {(() => {
+                                                    try {
+                                                      if (task.dueDate && !isNaN(task.dueDate.getTime())) {
+                                                        const today = new Date();
+                                                        if (!isNaN(today.getTime())) {
+                                                          const days = Math.abs(Math.ceil((task.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+                                                          const isUpcoming = task.dueDate.getTime() > today.getTime();
+                                                          return `(${days} days ${isUpcoming ? 'left' : 'ago'})`;
+                                                        }
+                                                      }
+                                                      return '';
+                                                    } catch (error) {
+                                                      console.error('Error calculating task countdown:', error);
+                                                      return '';
+                                                    }
+                                                  })()}
                                                 </span>
                                               )}
                                             </div>
@@ -1300,7 +1404,7 @@ export default function PartyPlanPage() {
                                                   } else {
                                                     setEditingTask(task.id);
                                                     setEditingText(task.task);
-                                                    setEditingDate(task.dueDate?.toISOString().split('T')[0] || "");
+                                                    setEditingDate(task.dueDate && !isNaN(task.dueDate.getTime()) ? task.dueDate.toISOString().split('T')[0] : "");
                                                   }
                                                 }}
                                               >
@@ -1328,8 +1432,35 @@ export default function PartyPlanPage() {
                                             {task.dueDate && (
                                               <div>
                                                 <span className="font-medium">Countdown:</span>
-                                                <span className={`ml-1 ${task.dueDate.getTime() < new Date().getTime() ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                                                  {Math.abs(Math.ceil((task.dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days {task.dueDate.getTime() > new Date().getTime() ? 'remaining' : 'overdue'}
+                                                <span className={`ml-1 ${(() => {
+                                                  try {
+                                                    if (task.dueDate && !isNaN(task.dueDate.getTime())) {
+                                                      const today = new Date();
+                                                      if (!isNaN(today.getTime())) {
+                                                        return task.dueDate.getTime() < today.getTime() ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400';
+                                                      }
+                                                    }
+                                                    return 'text-gray-600 dark:text-gray-400';
+                                                  } catch (error) {
+                                                    return 'text-gray-600 dark:text-gray-400';
+                                                  }
+                                                })()}`}>
+                                                  {(() => {
+                                                    try {
+                                                      if (task.dueDate && !isNaN(task.dueDate.getTime())) {
+                                                        const today = new Date();
+                                                        if (!isNaN(today.getTime())) {
+                                                          const days = Math.abs(Math.ceil((task.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+                                                          const isUpcoming = task.dueDate.getTime() > today.getTime();
+                                                          return `${days} days ${isUpcoming ? 'remaining' : 'overdue'}`;
+                                                        }
+                                                      }
+                                                      return 'N/A';
+                                                    } catch (error) {
+                                                      console.error('Error calculating countdown:', error);
+                                                      return 'N/A';
+                                                    }
+                                                  })()}
                                                 </span>
                                               </div>
                                             )}
