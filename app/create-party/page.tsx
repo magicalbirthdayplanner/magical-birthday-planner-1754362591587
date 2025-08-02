@@ -519,29 +519,29 @@ export default function CreatePartyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-4 sm:py-6 lg:py-8">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-full">
-              <PartyPopper className="h-8 w-8 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 sm:p-3 rounded-full">
+              <PartyPopper className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2 leading-tight">
             Plan your Magical Birthday Party
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">Plan your child's dream birthday in just 5 simple steps!</p>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 px-2">Plan your child's dream birthday in just 5 simple steps!</p>
         </div>
 
         {/* Progress Indicator */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-center mb-6 sm:mb-8 overflow-x-auto">
+          <div className="flex items-center space-x-2 sm:space-x-4 px-4">
             {[1, 2, 3, 4, 5].map((stepNumber) => (
-              <div key={stepNumber} className="flex items-center">
+              <div key={stepNumber} className="flex items-center flex-shrink-0">
                 <div
                   className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
+                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold transition-colors",
                     step >= stepNumber
                       ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
                       : "bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400"
@@ -552,7 +552,7 @@ export default function CreatePartyPage() {
                 {stepNumber < 5 && (
                   <div
                     className={cn(
-                      "w-16 h-1 mx-2 transition-colors",
+                      "w-8 sm:w-16 h-0.5 sm:h-1 mx-1 sm:mx-2 transition-colors",
                       step > stepNumber ? "bg-gradient-to-r from-purple-600 to-pink-600" : "bg-gray-200 dark:bg-slate-700"
                     )}
                   />
@@ -564,15 +564,15 @@ export default function CreatePartyPage() {
 
         {/* Step Content */}
         <Card className="border-0 shadow-xl dark:bg-slate-800/90 dark:backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">
+          <CardHeader className="text-center px-4 sm:px-6 py-4 sm:py-6">
+            <CardTitle className="text-xl sm:text-2xl">
               {step === 1 && "Tell us about your child"}
               {step === 2 && "What does your child love?"}
               {step === 3 && "Choose a theme"}
               {step === 4 && "Party details"}
               {step === 5 && "Create your party plan"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm sm:text-base px-2">
               {step === 1 && "Basic information about your child and when the party will be"}
               {step === 2 && "Help us personalize themes based on your child's interests and favorite colors"}
               {step === 3 && "Select a theme that your child will absolutely love"}
@@ -581,14 +581,14 @@ export default function CreatePartyPage() {
             </CardDescription>
             
             {/* Navigation Buttons at Top */}
-            <div className="flex justify-between pt-4 border-t border-gray-100 dark:border-slate-700 mt-4">
+            <div className="flex justify-between pt-3 sm:pt-4 border-t border-gray-100 dark:border-slate-700 mt-3 sm:mt-4">
               <Button
                 variant="outline"
                 onClick={handleBack}
                 disabled={step === 1}
-                className="px-8"
+                className="px-4 sm:px-8 text-sm sm:text-base"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Back
               </Button>
               
@@ -596,18 +596,18 @@ export default function CreatePartyPage() {
                 <Button
                   onClick={handleNext}
                   disabled={!isStepValid() || isNavigating}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 relative overflow-hidden"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 sm:px-8 text-sm sm:text-base relative overflow-hidden"
                 >
                   {isNavigating && step === 2 ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      <span className="animate-pulse">Creating Magic...</span>
-                      <Sparkles className="ml-2 h-4 w-4 animate-pulse" />
+                      <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                      <span className="animate-pulse text-sm sm:text-base">Creating Magic...</span>
+                      <Sparkles className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4 animate-pulse" />
                     </>
                   ) : (
                     <>
                       Next
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                     </>
                   )}
                 </Button>
@@ -615,16 +615,17 @@ export default function CreatePartyPage() {
                 // For step 5, show Create My Party Plan button aligned with Back button
                 <Button
                   onClick={handleSubmit}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 sm:px-8 text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                 >
-                  <PartyPopper className="mr-2 h-4 w-4" />
-                  Create My Party Plan
-                  <Sparkles className="ml-2 h-4 w-4" />
+                  <PartyPopper className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Create My Party Plan</span>
+                  <span className="sm:hidden">Create Plan</span>
+                  <Sparkles className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
             {/* Step 1: Child Information */}
             {step === 1 && (
               <div className="space-y-4">
@@ -644,7 +645,7 @@ export default function CreatePartyPage() {
                   <Label className="text-sm font-medium dark:text-gray-200">
                     Gender
                   </Label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-2">
                     <Button
                       type="button"
                       variant={partyData.childGender === "boy" ? "default" : "outline"}
@@ -759,7 +760,7 @@ export default function CreatePartyPage() {
                   
                   {/* Individual Age Cards */}
                   <div className="mt-6 space-y-3">
-                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
                       {[
                         { age: 1, label: "Little One", emoji: "🍼" },
                         { age: 2, label: "Toddler", emoji: "🧸" },
@@ -867,7 +868,7 @@ export default function CreatePartyPage() {
 
                 {/* Main Theme Selection Boxes - Show when no specific option is selected */}
                 {!showClassicThemes && !showCustomOptions && (
-                  <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                     {/* Classic Themes Card */}
                     <div 
                       className="relative group h-80 w-full [perspective:1000px] cursor-pointer"
@@ -984,7 +985,7 @@ export default function CreatePartyPage() {
                     </div>
                     
                     {/* Theme Cards with uniform styling */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
                       {classicThemes.map((theme) => (
                         <div
                           key={theme.id}

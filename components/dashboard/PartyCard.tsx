@@ -84,44 +84,44 @@ export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
       {/* Theme Header */}
       <div className={`h-3 bg-gradient-to-r ${themeGradient}`} />
       
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6">
         <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100">
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 leading-tight">
               {party.childName}'s {party.age}th Birthday
             </CardTitle>
-            <p className="text-sm text-gray-600 dark:text-gray-300 capitalize mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 capitalize mt-1">
               {party.theme} Theme
             </p>
           </div>
-          <Badge className={statusColor}>
+          <Badge className={`${statusColor} text-xs flex-shrink-0 ml-2`}>
             {party.status}
           </Badge>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
         {/* Party Date */}
-        <div className="flex items-center gap-2 text-sm">
-          <Calendar className="w-4 h-4 text-purple-600" />
+        <div className="flex items-center gap-2 text-xs sm:text-sm">
+          <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 flex-shrink-0" />
           <span className="font-medium">{format(party.date, 'MMM dd, yyyy')}</span>
-          <span className="text-gray-500 dark:text-gray-400">• {daysUntil}</span>
+          <span className="text-gray-500 dark:text-gray-400 truncate">• {daysUntil}</span>
         </div>
         
         {/* Guests */}
-        <div className="flex items-center gap-2 text-sm">
-          <Users className="w-4 h-4 text-blue-600" />
+        <div className="flex items-center gap-2 text-xs sm:text-sm">
+          <Users className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />
           <span className="dark:text-gray-300">{party.guestCount} guests invited</span>
         </div>
         
         {/* Progress */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600" />
+          <div className="flex items-center justify-between text-xs sm:text-sm">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 flex-shrink-0" />
               <span className="dark:text-gray-300">Planning Progress</span>
             </div>
-            <span className="font-medium dark:text-gray-200">
+            <span className="font-medium dark:text-gray-200 text-xs sm:text-sm">
               {party.checkedTasks}/{party.totalTasks} tasks
             </span>
           </div>
@@ -142,11 +142,12 @@ export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
         <div className="flex gap-2 pt-2">
           <Button
             asChild
-            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-sm sm:text-base px-3 sm:px-4"
           >
             <Link href={`/party-plan?id=${party.id}`}>
-              <Clock className="w-4 h-4 mr-2" />
-              Continue Planning
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Continue Planning</span>
+              <span className="sm:hidden">Continue</span>
             </Link>
           </Button>
           
@@ -155,8 +156,9 @@ export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
               variant="outline"
               size="sm"
               onClick={() => onEdit(party.id)}
+              className="px-2 sm:px-3"
             >
-              <Edit className="w-4 h-4" />
+              <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
           )}
           

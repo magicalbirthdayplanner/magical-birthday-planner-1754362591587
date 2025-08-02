@@ -613,19 +613,19 @@ export default function PartyPlanPage() {
   const themeDetails = getThemeDetails();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-4 sm:py-6 lg:py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-full">
-              <PartyPopper className="h-8 w-8 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 sm:p-3 rounded-full">
+              <PartyPopper className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2 leading-tight px-2">
             {partyData.childName}'s {themeDetails?.name} Party Plan
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 px-2">
             Age {partyData.childAge} • {partyData.partyDate.toLocaleDateString('en-US', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -636,11 +636,11 @@ export default function PartyPlanPage() {
         </div>
 
         {/* Progress Card with Enhanced Countdown Timeline */}
-        <Card className="mb-8 border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-          <CardHeader>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="mb-6 sm:mb-8 border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
+          <CardHeader className="px-4 sm:px-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {/* Planning Progress */}
-              <div className="border-r border-gray-200 dark:border-slate-600 pr-6">
+              <div className="md:border-r md:border-gray-200 md:dark:border-slate-600 md:pr-6 pb-4 md:pb-0">
                 <CardTitle className="flex items-center gap-2 mb-3">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                   Planning Progress
@@ -759,40 +759,45 @@ export default function PartyPlanPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-8">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <PartyPopper className="h-4 w-4" />
-              Overview
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 mb-6 sm:mb-8 h-auto p-1">
+            <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <PartyPopper className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Overview</span>
+              <span className="sm:hidden">Main</span>
             </TabsTrigger>
-            <TabsTrigger value="budget" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
+            <TabsTrigger value="budget" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
               Budget
             </TabsTrigger>
-            <TabsTrigger value="checklist" className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              Checklist
+            <TabsTrigger value="checklist" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Checklist</span>
+              <span className="sm:hidden">Tasks</span>
             </TabsTrigger>
-            <TabsTrigger value="guests" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
+            <TabsTrigger value="guests" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4" />
               Guests
             </TabsTrigger>
-            <TabsTrigger value="invitations" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Invitations
+            <TabsTrigger value="invitations" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden md:inline">Invitations</span>
+              <span className="md:hidden">RSVP</span>
             </TabsTrigger>
-            <TabsTrigger value="inspiration" className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Theme Board
+            <TabsTrigger value="inspiration" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden lg:inline">Theme Board</span>
+              <span className="lg:hidden">Theme</span>
             </TabsTrigger>
-            <TabsTrigger value="timeline" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Timeline
+            <TabsTrigger value="timeline" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden lg:inline">Timeline</span>
+              <span className="lg:hidden">Time</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Theme Card */}
               <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                 <CardHeader>

@@ -46,11 +46,11 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-yellow-600/10 dark:from-purple-400/20 dark:via-pink-400/20 dark:to-yellow-400/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24">
           <div className="text-center">
-            <div className="flex justify-center mb-6">
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full">
-                <PartyPopper className="h-12 w-12 text-white" />
+            <div className="flex justify-center mb-4 sm:mb-6">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 sm:p-4 rounded-full">
+                <PartyPopper className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-white" />
               </div>
             </div>
 {user ? (
@@ -61,19 +61,19 @@ export default function Home() {
                     Welcome back, {user.user_metadata?.display_name || user.email?.split('@')[0]}!
                   </p>
                 </div>
-                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-6">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight">
                   Ready for Another Magical Party?
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+                <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
                   Continue planning amazing birthday celebrations or start a new party with our AI-powered suggestions and beautiful themes.
                 </p>
               </>
             ) : (
               <>
-                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-6">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight">
                   Magical Birthday Planner
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+                <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
                   Create unforgettable birthday celebrations for kids aged 0-12 with AI-powered suggestions, beautiful themes, and stress-free planning tools designed for busy parents.
                 </p>
               </>
@@ -84,16 +84,16 @@ export default function Home() {
               </div>
             ) : user ? (
               // Authenticated user CTAs
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/dashboard">
-                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg">
-                    <CalendarIcon className="h-5 w-5 mr-2" />
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
+                <Link href="/dashboard" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 sm:px-8 py-3 text-base sm:text-lg">
+                    <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Go to Dashboard
                   </Button>
                 </Link>
-                <Link href="/create-party">
-                  <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-8 py-3 text-lg">
-                    <PartyPopper className="h-5 w-5 mr-2" />
+                <Link href="/create-party" className="w-full sm:w-auto">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-6 sm:px-8 py-3 text-base sm:text-lg">
+                    <PartyPopper className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Create New Party
                   </Button>
                 </Link>
@@ -101,14 +101,14 @@ export default function Home() {
             ) : (
               // Unauthenticated user CTAs
               <>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/signup">
-                    <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
+                  <Link href="/signup" className="w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 sm:px-8 py-3 text-base sm:text-lg">
                       Get Started Free
                     </Button>
                   </Link>
-                  <Link href="/create-party">
-                    <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-8 py-3 text-lg">
+                  <Link href="/create-party" className="w-full sm:w-auto">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-6 sm:px-8 py-3 text-base sm:text-lg">
                       Try Demo
                     </Button>
                   </Link>
@@ -191,7 +191,7 @@ export default function Home() {
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Everything You Need</h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">Powerful features to make party planning effortless</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow duration-200">
                 <CardHeader>
@@ -218,7 +218,7 @@ export default function Home() {
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">How It Works</h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">Simple steps to create the perfect party</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center">
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
                 1
@@ -249,22 +249,22 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           {user ? (
             <>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
                 Let's Plan Your Next Celebration!
               </h2>
-              <p className="text-xl text-purple-100 mb-8">
+              <p className="text-base sm:text-lg lg:text-xl text-purple-100 mb-6 sm:mb-8">
                 Your personalized dashboard is ready with all your party planning tools
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/dashboard">
-                  <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
-                    <CalendarIcon className="h-5 w-5 mr-2" />
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
+                <Link href="/dashboard" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto bg-white text-purple-600 hover:bg-gray-100 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold">
+                    <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     View My Dashboard
                   </Button>
                 </Link>
-                <Link href="/create-party">
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-3 text-lg font-semibold">
-                    <PartyPopper className="h-5 w-5 mr-2" />
+                <Link href="/create-party" className="w-full sm:w-auto">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white/10 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold">
+                    <PartyPopper className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Start New Party
                   </Button>
                 </Link>
@@ -272,25 +272,25 @@ export default function Home() {
             </>
           ) : (
             <>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
                 Ready to Create Magic?
               </h2>
-              <p className="text-xl text-purple-100 mb-8">
+              <p className="text-base sm:text-lg lg:text-xl text-purple-100 mb-6 sm:mb-8">
                 Join thousands of parents who trust us to make their children's birthdays unforgettable
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/signup">
-                  <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
+              <div className="flex flex-col gap-4 justify-center items-center">
+                <Link href="/signup" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto bg-white text-purple-600 hover:bg-gray-100 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold">
                     Create Your Account
                   </Button>
                 </Link>
-                <div className="flex items-center justify-center gap-2 text-white">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-white">
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-current" />
+                      <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
                     ))}
                   </div>
-                  <span className="text-purple-100">Trusted by 10,000+ parents</span>
+                  <span className="text-purple-100 text-sm sm:text-base text-center">Trusted by 10,000+ parents</span>
                 </div>
               </div>
             </>

@@ -23,7 +23,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <Header />
-            <main className="pt-16">
+            <main className="pt-14 sm:pt-16">
               {children}
             </main>
           </AuthProvider>

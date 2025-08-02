@@ -96,23 +96,23 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 pt-20">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-3 sm:p-4 pt-16 sm:pt-20">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4 sm:gap-0">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <PartyPopper className="w-8 h-8 text-purple-600" />
-                Welcome back{user?.user_metadata?.display_name ? `, ${user.user_metadata.display_name}` : ''}!
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <PartyPopper className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+                <span className="leading-tight">Welcome back{user?.user_metadata?.display_name ? `, ${user.user_metadata.display_name}` : ''}!</span>
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
                 Let's create magical birthday memories for your little ones
               </p>
             </div>
             <Button
               asChild
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full sm:w-auto"
             >
               <Link href="/create-party">
                 <Plus className="w-4 h-4 mr-2" />
@@ -123,7 +123,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
           <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium dark:text-gray-200">Active Parties</CardTitle>
@@ -178,21 +178,23 @@ export default function Dashboard() {
         </div>
 
         {/* Parties Section */}
-        <Tabs defaultValue="upcoming" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2 dark:bg-slate-800">
-            <TabsTrigger value="upcoming" className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Upcoming ({upcomingParties.length})
+        <Tabs defaultValue="upcoming" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full max-w-sm sm:max-w-md grid-cols-2 dark:bg-slate-800">
+            <TabsTrigger value="upcoming" className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Upcoming ({upcomingParties.length})</span>
+              <span className="sm:hidden">Upcoming</span>
             </TabsTrigger>
-            <TabsTrigger value="completed" className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Completed ({completedParties.length})
+            <TabsTrigger value="completed" className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4">
+              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Completed ({completedParties.length})</span>
+              <span className="sm:hidden">Done</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="upcoming" className="space-y-6">
+          <TabsContent value="upcoming" className="space-y-4 sm:space-y-6">
             {upcomingParties.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {upcomingParties.map((party) => (
                   <PartyCard key={party.id} party={party} />
                 ))}
