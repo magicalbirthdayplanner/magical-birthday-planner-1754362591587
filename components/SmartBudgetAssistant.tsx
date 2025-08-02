@@ -28,7 +28,8 @@ import {
   Target,
   BarChart3,
   Clock,
-  Zap
+  Zap,
+  Edit3
 } from "lucide-react";
 
 interface BudgetCategory {
@@ -352,9 +353,41 @@ export default function SmartBudgetAssistant({
                 ${totalBudget} total budget • ${remaining.toFixed(2)} remaining
               </CardDescription>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">${totalSpent.toFixed(2)}</div>
-              <div className="text-sm text-gray-500">spent so far</div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-2xl font-bold text-green-600">${totalSpent.toFixed(2)}</div>
+                <div className="text-sm text-gray-500">spent so far</div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const hasSpentMoney = budgetCategories.some(cat => cat.spent > 0);
+                  const shouldConfirm = hasSpentMoney || totalSpent > 0;
+                  
+                  if (shouldConfirm) {
+                    const confirmed = window.confirm(
+                      totalSpent > 0 
+                        ? `You have already spent $${totalSpent.toFixed(2)}. Are you sure you want to reset your budget? This will clear all spending data.`
+                        : 'Are you sure you want to reset your budget? This will clear all budget allocations.'
+                    );
+                    if (!confirmed) return;
+                  }
+                  
+                  // Reset the budget to show setup screen again
+                  setTotalBudget(0);
+                  setBudgetCategories([]);
+                  setBudgetPreferences('balanced');
+                  // Clear localStorage
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem(`budget_${partyId}`);
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                <Edit3 className="h-4 w-4" />
+                Edit Budget
+              </Button>
             </div>
           </div>
         </CardHeader>

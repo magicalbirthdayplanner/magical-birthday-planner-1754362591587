@@ -134,6 +134,36 @@ export default function PartyPlanPage() {
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(false);
   const [timelineDensity, setTimelineDensity] = useState<'compact' | 'expanded'>('expanded');
   const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Activities', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
+  const [budgetRefresh, setBudgetRefresh] = useState(0);
+
+  // Helper function to get budget data
+  const getBudgetData = () => {
+    if (typeof window === 'undefined') return { totalBudget: 0, totalSpent: 0, percentage: 0 };
+    
+    try {
+      const savedBudget = localStorage.getItem(`budget_${partyData?.childName || 'party'}`);
+      if (savedBudget) {
+        const data = JSON.parse(savedBudget);
+        const totalBudget = data.totalBudget || 0;
+        const totalSpent = data.categories ? data.categories.reduce((sum: number, cat: any) => sum + (cat.spent || 0), 0) : 0;
+        const percentage = totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
+        return { totalBudget, totalSpent, percentage };
+      }
+    } catch (error) {
+      console.error('Error getting budget data:', error);
+    }
+    
+    return { totalBudget: 0, totalSpent: 0, percentage: 0 };
+  };
+
+  // Refresh budget data periodically to sync with changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBudgetRefresh(prev => prev + 1);
+    }, 2000); // Refresh every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // Check if we're on the client side to avoid hydration issues
@@ -608,7 +638,7 @@ export default function PartyPlanPage() {
         {/* Progress Card with Countdown */}
         <Card className="mb-8 border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
           <CardHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Planning Progress */}
               <div>
                 <CardTitle className="flex items-center gap-2 mb-2">
@@ -628,6 +658,38 @@ export default function PartyPlanPage() {
                   <div 
                     className="bg-gradient-to-r from-purple-600 to-pink-600 h-3 rounded-full transition-all duration-300"
                     style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Budget Overview */}
+              <div 
+                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-lg p-2 -m-2 transition-colors"
+                onClick={() => {
+                  const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
+                  if (budgetTab) budgetTab.click();
+                }}
+              >
+                <CardTitle className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                  Budget Tracker
+                </CardTitle>
+                <CardDescription className="mb-3">
+                  {(() => {
+                    const { totalBudget, totalSpent } = getBudgetData(); 
+                    return totalBudget > 0 ? `$${totalSpent.toFixed(0)} of $${totalBudget} spent` : 'Click to set budget';
+                  })()}
+                </CardDescription>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Budget Used</span>
+                  <span className="text-lg font-bold text-green-600">
+                    {Math.round(getBudgetData().percentage)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
+                  <div 
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${getBudgetData().percentage}%` }}
                   />
                 </div>
               </div>
