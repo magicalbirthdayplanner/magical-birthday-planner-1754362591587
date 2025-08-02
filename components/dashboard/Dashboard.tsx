@@ -35,12 +35,26 @@ export default function Dashboard() {
         if (partyPlanData) {
           const data = JSON.parse(partyPlanData)
           
-          // Convert localStorage data to dashboard format
+          // Convert localStorage data to dashboard format with safe date handling
+          let partyDate: Date;
+          try {
+            const dateValue = data.date || Date.now();
+            partyDate = new Date(dateValue);
+            // Validate the date
+            if (isNaN(partyDate.getTime())) {
+              console.warn('Invalid date found in party data, using current date');
+              partyDate = new Date();
+            }
+          } catch (error) {
+            console.warn('Error parsing party date, using current date:', error);
+            partyDate = new Date();
+          }
+
           const party: Party = {
             id: 'current',
             childName: data.childName || 'Your Child',
             age: data.age || 5,
-            date: new Date(data.date || Date.now()),
+            date: partyDate,
             theme: data.theme || 'Superhero',
             guestCount: (data.guests || []).length,
             checkedTasks: (data.tasks || []).filter((task: any) => task.completed).length,

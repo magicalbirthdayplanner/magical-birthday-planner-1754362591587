@@ -173,26 +173,43 @@ export default function BulkInvitations({
   }
 
   const renderTemplate = (template: InvitationTemplate, guest: Guest) => {
-    const rsvpDate = new Date(partyDate)
-    rsvpDate.setDate(rsvpDate.getDate() - 7)
+    // Safely create dates with validation
+    let partyDateFormatted = 'Invalid date';
+    let rsvpDateFormatted = 'Invalid date';
+    
+    try {
+      const partyDateObj = new Date(partyDate);
+      if (!isNaN(partyDateObj.getTime())) {
+        partyDateFormatted = partyDateObj.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        // Create RSVP date safely
+        const rsvpDate = new Date(partyDateObj);
+        rsvpDate.setDate(rsvpDate.getDate() - 7);
+        if (!isNaN(rsvpDate.getTime())) {
+          rsvpDateFormatted = rsvpDate.toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric' 
+          });
+        }
+      }
+    } catch (error) {
+      console.warn('Error formatting dates for invitation:', error);
+    }
 
     const replacements = {
       '{guestName}': guest.name,
       '{childName}': childName,
       '{childAge}': childAge.toString(),
-      '{partyDate}': new Date(partyDate).toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }),
+      '{partyDate}': partyDateFormatted,
       '{partyTime}': partyTime,
       '{partyLocation}': partyLocation,
       '{theme}': theme,
-      '{rsvpDate}': rsvpDate.toLocaleDateString('en-US', { 
-        month: 'long', 
-        day: 'numeric' 
-      }),
+      '{rsvpDate}': rsvpDateFormatted,
       '{hostName}': 'The Party Planning Team',
       '{customMessage}': customMessage ? `\n\nSpecial Note:\n${customMessage}` : ''
     }

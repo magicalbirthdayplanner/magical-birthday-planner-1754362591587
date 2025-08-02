@@ -53,14 +53,24 @@ const getStatusColor = (status: string) => {
 }
 
 const getDaysUntilParty = (date: Date) => {
-  const today = new Date()
-  const timeDiff = date.getTime() - today.getTime()
-  const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24))
+  // Validate date object
+  if (!date || isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
   
-  if (daysDiff < 0) return 'Past due'
-  if (daysDiff === 0) return 'Today!'
-  if (daysDiff === 1) return 'Tomorrow'
-  return `${daysDiff} days`
+  try {
+    const today = new Date();
+    const timeDiff = date.getTime() - today.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+    if (daysDiff < 0) return 'Past due';
+    if (daysDiff === 0) return 'Today!';
+    if (daysDiff === 1) return 'Tomorrow';
+    return `${daysDiff} days`;
+  } catch (error) {
+    console.warn('Error calculating days until party:', error);
+    return 'Invalid date';
+  }
 }
 
 export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {

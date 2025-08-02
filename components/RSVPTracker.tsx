@@ -380,7 +380,14 @@ export default function RSVPTracker({
                       {invitation?.respondedAt && (
                         <p className="text-xs text-gray-500 mt-2 ml-14">
                           <Calendar className="w-3 h-3 inline mr-1" />
-                          Responded: {new Date(invitation.respondedAt).toLocaleDateString()}
+                          Responded: {(() => {
+                            try {
+                              const date = new Date(invitation.respondedAt);
+                              return isNaN(date.getTime()) ? 'Invalid date' : date.toLocaleDateString();
+                            } catch {
+                              return 'Invalid date';
+                            }
+                          })()}
                         </p>
                       )}
                     </div>
