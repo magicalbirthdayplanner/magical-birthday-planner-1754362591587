@@ -41,6 +41,36 @@ export const ENV_VARIABLES: EnvVariable[] = [
     description: "Azure OpenAI API version",
     required: false,
     instructions: "Use '2024-02-01' or latest available API version from Azure OpenAI documentation"
+  },
+  {
+    name: "AMAZON_API_KEY",
+    description: "Amazon Product Advertising API key for live product deals",
+    required: false,
+    instructions: "Sign up for Amazon Product Advertising API at https://webservices.amazon.com/paapi5/documentation/ → Get your API key"
+  },
+  {
+    name: "WALMART_API_KEY",
+    description: "Walmart Open API key for product prices and deals",
+    required: false,
+    instructions: "Register at https://developer.walmart.com/ → Create application → Get API key"
+  },
+  {
+    name: "TEMU_API_KEY",
+    description: "Temu API key for product search and pricing (if available)",
+    required: false,
+    instructions: "Contact Temu developer support for API access (limited availability)"
+  },
+  {
+    name: "YELP_API_KEY",
+    description: "Yelp Fusion API key for local restaurant and catering recommendations",
+    required: false,
+    instructions: "Create account at https://www.yelp.com/developers → Create app → Get API key"
+  },
+  {
+    name: "GOOGLE_MAPS_API_KEY",
+    description: "Google Maps API key for location services and nearby business search",
+    required: false,
+    instructions: "Go to Google Cloud Console → APIs & Services → Credentials → Create API key → Enable Places API and Maps JavaScript API"
   }
 ];
 

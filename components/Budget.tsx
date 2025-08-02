@@ -25,7 +25,12 @@ import {
   Sparkles,
   MapPinIcon,
   Phone,
-  Clock
+  Clock,
+  PieChart,
+  BarChart3,
+  Zap,
+  Bell,
+  TrendingUp as TrendingUpIcon
 } from "lucide-react";
 
 interface BudgetAllocation {
@@ -83,6 +88,15 @@ interface BudgetProps {
   checklistItems?: any[];
 }
 
+interface SpentItem {
+  id: string;
+  name: string;
+  amount: number;
+  category: string;
+  retailer: string;
+  date: Date;
+}
+
 export default function Budget({ partyTheme = "superhero", childAge = 6, guestCount = 10, checklistItems = [] }: BudgetProps) {
   const [totalBudget, setTotalBudget] = useState<number>(0);
   const [allocations, setAllocations] = useState<BudgetAllocation[]>([]);
@@ -91,6 +105,10 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
   const [giftBundles, setGiftBundles] = useState<GiftBundle[]>([]);
   const [isAIAllocating, setIsAIAllocating] = useState(false);
   const [priceAlerts, setPriceAlerts] = useState<{ [key: string]: boolean }>({});
+  const [spentItems, setSpentItems] = useState<SpentItem[]>([]);
+  const [budgetPreferences, setBudgetPreferences] = useState<string>("");
+  const [showChart, setShowChart] = useState<'pie' | 'bar'>('pie');
+  const [budgetAlerts, setBudgetAlerts] = useState<{ [key: string]: boolean }>({});
 
   // Load saved budget data
   useEffect(() => {
@@ -111,31 +129,31 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
     }
   }, []);
 
-  // AI Budget Allocation
+  // Enhanced AI Budget Allocation with user preferences
   const handleAIAllocation = async () => {
     if (totalBudget <= 0) return;
     
     setIsAIAllocating(true);
     
-    // Simulate AI allocation based on party theme, age, and guest count
+    // Simulate AI allocation based on party theme, age, guest count, and user preferences
     setTimeout(() => {
       const baseAllocations: BudgetAllocation[] = [
         {
-          category: "Food & Cake",
+          category: "Food & Catering",
           amount: 0,
           percentage: 35,
           color: "bg-orange-500",
           icon: <Utensils className="h-4 w-4" />
         },
         {
-          category: "Decorations",
+          category: "Decorations & Supplies",
           amount: 0,
           percentage: 25,
           color: "bg-pink-500",
           icon: <Palette className="h-4 w-4" />
         },
         {
-          category: "Entertainment",
+          category: "Entertainment & Activities",
           amount: 0,
           percentage: 20,
           color: "bg-purple-500",
@@ -157,7 +175,7 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
         }
       ];
 
-      // Adjust percentages based on factors
+      // Adjust percentages based on child age
       if (childAge <= 4) {
         // Younger kids - more focus on simple activities and safety
         baseAllocations[0].percentage = 40; // Food
@@ -174,6 +192,27 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
         baseAllocations[4].percentage = 5;  // Misc
       }
 
+      // Adjust based on user preferences
+      if (budgetPreferences.toLowerCase().includes('food') || budgetPreferences.toLowerCase().includes('cake')) {
+        baseAllocations[0].percentage += 10; // More food budget
+        baseAllocations[1].percentage -= 5;  // Less decorations
+      }
+      if (budgetPreferences.toLowerCase().includes('activities') || budgetPreferences.toLowerCase().includes('entertainment')) {
+        baseAllocations[2].percentage += 10; // More entertainment
+        baseAllocations[1].percentage -= 5;  // Less decorations
+      }
+      if (budgetPreferences.toLowerCase().includes('decor') || budgetPreferences.toLowerCase().includes('decoration')) {
+        baseAllocations[1].percentage += 10; // More decorations
+        baseAllocations[2].percentage -= 5;  // Less entertainment
+      }
+
+      // Ensure percentages add up to 100
+      const totalPercentage = baseAllocations.reduce((sum, alloc) => sum + alloc.percentage, 0);
+      if (totalPercentage !== 100) {
+        const diff = 100 - totalPercentage;
+        baseAllocations[0].percentage += diff; // Adjust food category
+      }
+
       // Calculate amounts
       const updatedAllocations = baseAllocations.map(allocation => ({
         ...allocation,
@@ -186,7 +225,8 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
       if (typeof window !== 'undefined') {
         localStorage.setItem('partyBudget', JSON.stringify({
           total: totalBudget,
-          allocations: updatedAllocations
+          allocations: updatedAllocations,
+          preferences: budgetPreferences
         }));
       }
       
@@ -354,7 +394,97 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
   };
 
   const totalAllocated = allocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+  const totalSpent = spentItems.reduce((sum, item) => sum + item.amount, 0);
   const remainingBudget = totalBudget - totalAllocated;
+  const actualRemaining = totalBudget - totalSpent;
+
+  // Budget alert system
+  useEffect(() => {
+    if (totalBudget > 0) {
+      const spentPercentage = (totalSpent / totalBudget) * 100;
+      const newAlerts: { [key: string]: boolean } = {};
+      
+      if (spentPercentage >= 90) {
+        newAlerts.overBudget = true;
+      } else if (spentPercentage >= 80) {
+        newAlerts.nearBudget = true;
+      }
+      
+      setBudgetAlerts(newAlerts);
+    }
+  }, [totalSpent, totalBudget]);
+
+  // Add spending function
+  const addSpending = (name: string, amount: number, category: string, retailer: string) => {
+    const newSpentItem: SpentItem = {
+      id: Date.now().toString(),
+      name,
+      amount,
+      category,
+      retailer,
+      date: new Date()
+    };
+    setSpentItems(prev => [...prev, newSpentItem]);
+  };
+
+  // Visual chart component
+  const BudgetChart = () => {
+    if (allocations.length === 0) return null;
+
+    if (showChart === 'pie') {
+      return (
+        <div className="relative w-48 h-48 mx-auto">
+          <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+            {allocations.map((allocation, index) => {
+              const cumulativePercentage = allocations
+                .slice(0, index)
+                .reduce((sum, alloc) => sum + alloc.percentage, 0);
+              
+              const dashArray = `${allocation.percentage} ${100 - allocation.percentage}`;
+              const dashOffset = -cumulativePercentage;
+              
+              return (
+                <circle
+                  key={allocation.category}
+                  cx="50"
+                  cy="50"
+                  r="15.9"
+                  fill="transparent"
+                  stroke={allocation.color.replace('bg-', '').replace('-500', '')}
+                  strokeWidth="4"
+                  strokeDasharray={dashArray}
+                  strokeDashoffset={dashOffset}
+                  className="opacity-80"
+                />
+              );
+            })}
+          </svg>
+        </div>
+      );
+    } else {
+      return (
+        <div className="space-y-2">
+          {allocations.map((allocation) => (
+            <div key={allocation.category} className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: allocation.color.replace('bg-', '').replace('-500', '') }} />
+              <div className="flex-1">
+                <div className="flex justify-between text-sm mb-1">
+                  <span>{allocation.category}</span>
+                  <span>${allocation.amount}</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full ${allocation.color} transition-all duration-300`}
+                    style={{ width: `${allocation.percentage}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -362,107 +492,177 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
       <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-green-600" />
-            Set Total Budget
+            <Sparkles className="h-6 w-6 text-purple-600" />
+            Smart Budget Assistant
           </CardTitle>
           <CardDescription>
-            Enter your total party budget and let AI help optimize your spending
+            Set your budget and get AI-powered allocation with live deals and savings recommendations
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">Total Budget ($)</label>
+          <div className="space-y-4">
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                  Total Party Budget ($)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter your budget (e.g., 200)"
+                  value={totalBudget || ""}
+                  onChange={(e) => setTotalBudget(Number(e.target.value))}
+                  className="text-xl font-semibold h-12 border-2"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <Zap className="h-4 w-4 text-blue-600" />
+                Budget Preferences (Optional)
+              </label>
               <Input
-                type="number"
-                placeholder="Enter your budget"
-                value={totalBudget || ""}
-                onChange={(e) => setTotalBudget(Number(e.target.value))}
-                className="text-lg"
+                placeholder='e.g., "focus more on activities than decor" or "we want the best cake"'
+                value={budgetPreferences}
+                onChange={(e) => setBudgetPreferences(e.target.value)}
+                className=""
               />
             </div>
-            <Button 
-              onClick={handleAIAllocation}
-              disabled={totalBudget <= 0 || isAIAllocating}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-            >
-              {isAIAllocating ? (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2 animate-spin" />
-                  AI Allocating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  AI Auto-Allocation
-                </>
-              )}
-            </Button>
+            
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleAIAllocation}
+                disabled={totalBudget <= 0 || isAIAllocating}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white flex-1"
+                size="lg"
+              >
+                {isAIAllocating ? (
+                  <>
+                    <Sparkles className="h-5 w-5 mr-2 animate-spin" />
+                    AI Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Smart AI Allocation
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowChart(showChart === 'pie' ? 'bar' : 'pie')}
+                disabled={allocations.length === 0}
+                size="lg"
+              >
+                {showChart === 'pie' ? <BarChart3 className="h-5 w-5" /> : <PieChart className="h-5 w-5" />}
+              </Button>
+            </div>
           </div>
 
           {totalBudget > 0 && (
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">${totalBudget.toFixed(2)}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Total Budget</div>
-              </div>
-              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">${totalAllocated.toFixed(2)}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Allocated</div>
-              </div>
-              <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                <div className={`text-2xl font-bold ${remainingBudget >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                  ${remainingBudget.toFixed(2)}
+            <>
+              {/* Budget Alerts */}
+              {(budgetAlerts.overBudget || budgetAlerts.nearBudget) && (
+                <div className={`p-4 rounded-lg border-l-4 ${budgetAlerts.overBudget ? 'bg-red-50 border-red-500 dark:bg-red-900/20' : 'bg-yellow-50 border-yellow-500 dark:bg-yellow-900/20'}`}>
+                  <div className="flex items-center gap-2">
+                    <Bell className={`h-5 w-5 ${budgetAlerts.overBudget ? 'text-red-600' : 'text-yellow-600'}`} />
+                    <span className={`font-semibold ${budgetAlerts.overBudget ? 'text-red-800 dark:text-red-300' : 'text-yellow-800 dark:text-yellow-300'}`}>
+                      {budgetAlerts.overBudget ? 'Over Budget Alert!' : 'Budget Warning!'}
+                    </span>
+                  </div>
+                  <p className={`text-sm mt-1 ${budgetAlerts.overBudget ? 'text-red-700 dark:text-red-400' : 'text-yellow-700 dark:text-yellow-400'}`}>
+                    {budgetAlerts.overBudget 
+                      ? `You've spent ${((totalSpent / totalBudget) * 100).toFixed(1)}% of your budget.`
+                      : `You're approaching your budget limit at ${((totalSpent / totalBudget) * 100).toFixed(1)}% spent.`
+                    }
+                  </p>
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Remaining</div>
+              )}
+
+              <div className="grid grid-cols-4 gap-4 mt-4">
+                <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">${totalBudget.toFixed(2)}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Total Budget</div>
+                </div>
+                <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">${totalAllocated.toFixed(2)}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Allocated</div>
+                </div>
+                <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600">${totalSpent.toFixed(2)}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Spent</div>
+                </div>
+                <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className={`text-2xl font-bold ${actualRemaining >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                    ${actualRemaining.toFixed(2)}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Remaining</div>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </CardContent>
       </Card>
 
-      {/* Budget Allocation */}
+      {/* Budget Allocation with Visual Chart */}
       {allocations.length > 0 && (
         <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calculator className="h-5 w-5 text-blue-600" />
-              Budget Allocation
+              Smart Budget Allocation
             </CardTitle>
             <CardDescription>
-              Adjust your budget allocation by category
+              AI-optimized budget split with visual breakdown and manual adjustments
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {allocations.map((allocation, index) => (
-                <div key={allocation.category} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`p-2 rounded-full ${allocation.color} text-white`}>
-                        {allocation.icon}
-                      </div>
-                      <span className="font-medium">{allocation.category}</span>
-                      <Badge variant="outline">{allocation.percentage}%</Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={allocation.amount}
-                        onChange={(e) => updateAllocation(index, Number(e.target.value))}
-                        className="w-24 text-right"
-                      />
-                      <span className="text-sm text-gray-600 dark:text-gray-300">$</span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${allocation.color} transition-all duration-300`}
-                      style={{ width: `${allocation.percentage}%` }}
-                    />
-                  </div>
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Visual Chart */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-center">
+                  <BudgetChart />
                 </div>
-              ))}
+                {budgetPreferences && (
+                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">AI Preferences Applied</div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400">"{budgetPreferences}"</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Allocation Details */}
+              <div className="space-y-4">
+                {allocations.map((allocation, index) => (
+                  <div key={allocation.category} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`p-2 rounded-full ${allocation.color} text-white`}>
+                          {allocation.icon}
+                        </div>
+                        <span className="font-medium">{allocation.category}</span>
+                        <Badge variant="outline">{allocation.percentage}%</Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={allocation.amount}
+                          onChange={(e) => updateAllocation(index, Number(e.target.value))}
+                          className="w-24 text-right"
+                        />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">$</span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${allocation.color} transition-all duration-300`}
+                        style={{ width: `${allocation.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -491,10 +691,10 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingDown className="h-5 w-5 text-green-600" />
-                Live Deal Finder
+                Smart Deal Finder
               </CardTitle>
               <CardDescription>
-                Best prices for your checklist items from Amazon, Walmart, and Temu
+                Live prices for your party items with automatic budget tracking and savings alerts
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -531,7 +731,7 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
                             <span className="text-sm text-gray-500 line-through">${deal.originalPrice}</span>
                           )}
                           {deal.originalPrice && (
-                            <Badge className="bg-green-100 text-green-800">
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                               Save ${(deal.originalPrice - deal.price).toFixed(2)}
                             </Badge>
                           )}
@@ -540,14 +740,55 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
                           <p className="text-sm text-gray-600 dark:text-gray-300">{deal.shipping}</p>
                         )}
                       </div>
-                      <Button className="ml-4">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        View Deal
-                      </Button>
+                      <div className="ml-4 space-y-2">
+                        <Button 
+                          variant="outline"
+                          onClick={() => window.open(deal.url, '_blank')}
+                          className="w-full"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View Deal
+                        </Button>
+                        <Button 
+                          onClick={() => addSpending(deal.title, deal.price, deal.category, deal.retailer)}
+                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700"
+                        >
+                          <ShoppingBag className="h-4 w-4 mr-2" />
+                          Track Purchase
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
+              
+              {/* Recent Purchases */}
+              {spentItems.length > 0 && (
+                <div className="mt-6 pt-6 border-t">
+                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <ShoppingBag className="h-5 w-5 text-blue-600" />
+                    Recent Purchases
+                  </h3>
+                  <div className="space-y-2">
+                    {spentItems.slice(0, 3).map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                        <div>
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                            {item.retailer} • {item.category}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold">${item.amount.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500">
+                            {item.date.toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -558,20 +799,34 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-red-600" />
-                Local Catering Recommendations
+                Smart Catering Recommendations
               </CardTitle>
               <CardDescription>
-                Nearby restaurants and caterers with kid-friendly options
+                AI-curated local restaurants and caterers perfect for your party theme and guest count
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6">
-                {cateringOptions.map((option) => (
-                  <div key={option.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                {cateringOptions.map((option, index) => (
+                  <div key={option.id} className="relative p-4 border rounded-lg hover:shadow-md transition-shadow">
+                    {/* AI Recommendation Badge */}
+                    {index === 0 && (
+                      <div className="absolute -top-2 -left-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        AI Top Pick
+                      </div>
+                    )}
+                    
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h3 className="font-semibold text-lg">{option.name}</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-300">{option.type}</p>
+                        {/* AI Recommendation */}
+                        {index === 0 && (
+                          <p className="text-xs text-purple-600 dark:text-purple-400 mt-1 italic">
+                            Perfect for {partyTheme} parties with {guestCount} guests
+                          </p>
+                        )}
                       </div>
                       <div className="text-right">
                         <div className="flex items-center gap-1 mb-1">
@@ -603,7 +858,7 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
                           <span className="text-sm">{option.cuisines.join(", ")}</span>
                         </div>
                         {option.kidFriendly && (
-                          <Badge className="bg-green-100 text-green-800">
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                             Kid-Friendly
                           </Badge>
                         )}
@@ -630,6 +885,17 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
                         <MapPin className="h-4 w-4 mr-2" />
                         Get Directions
                       </Button>
+                      <Button 
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700"
+                        onClick={() => {
+                          // Estimate catering cost and track spending
+                          const estimatedCost = guestCount * (option.priceRange === '$' ? 15 : option.priceRange === '$$' ? 25 : 35);
+                          addSpending(`${option.name} Catering`, estimatedCost, 'Food & Catering', option.name);
+                        }}
+                      >
+                        <Utensils className="h-4 w-4 mr-2" />
+                        Book & Track
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -644,51 +910,121 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Gift className="h-5 w-5 text-purple-600" />
-                AI-Suggested Return Gift Bundles
+                Smart Return Gift Bundles
               </CardTitle>
               <CardDescription>
-                Affordable, age-appropriate gift bundles with 1-click ordering
+                AI-curated age-appropriate gift bundles with instant budget tracking and 1-click ordering for {guestCount} guests
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6">
-                {giftBundles.map((bundle) => (
-                  <div key={bundle.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-1">{bundle.title}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{bundle.description}</p>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline">Ages {bundle.ageRange}</Badge>
-                          <Badge variant="outline">{bundle.retailer}</Badge>
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs">{bundle.rating}</span>
+                {giftBundles.map((bundle, index) => {
+                  const totalBundlePrice = bundle.price * Math.ceil(guestCount / 6); // Assuming 6 kids per bundle
+                  const isRecommended = bundle.theme === partyTheme || (childAge >= 4 && childAge <= 8 && bundle.ageRange.includes('4-8'));
+                  
+                  return (
+                    <div key={bundle.id} className={`relative p-4 border rounded-lg hover:shadow-md transition-shadow ${isRecommended ? 'border-purple-300 bg-purple-50/50 dark:bg-purple-900/10' : ''}`}>
+                      {isRecommended && (
+                        <div className="absolute -top-2 -left-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" />
+                          Perfect Match
+                        </div>
+                      )}
+                      
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg mb-1">{bundle.title}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{bundle.description}</p>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline">Ages {bundle.ageRange}</Badge>
+                            <Badge variant="outline">{bundle.retailer}</Badge>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                              <span className="text-xs">{bundle.rating}</span>
+                            </div>
+                          </div>
+                          {isRecommended && (
+                            <p className="text-xs text-purple-600 dark:text-purple-400 italic">
+                              Perfect for {partyTheme} theme and age {childAge}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right space-y-2">
+                          <div>
+                            <div className="text-lg font-bold text-purple-600">${bundle.price}</div>
+                            <div className="text-xs text-gray-500">per bundle</div>
+                          </div>
+                          <div className="p-2 bg-gray-50 dark:bg-slate-700 rounded">
+                            <div className="text-sm font-semibold">${totalBundlePrice.toFixed(2)}</div>
+                            <div className="text-xs text-gray-600 dark:text-gray-300">for {guestCount} guests</div>
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-purple-600 mb-2">${bundle.price}</div>
-                        <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+
+                      <div className="mb-4">
+                        <h4 className="font-medium mb-2">What's Included:</h4>
+                        <ul className="grid md:grid-cols-2 gap-1">
+                          {bundle.items.map((item, index) => (
+                            <li key={index} className="text-sm flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full flex-shrink-0" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={() => window.open(bundle.url, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View Details
+                        </Button>
+                        <Button 
+                          className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                          onClick={() => {
+                            addSpending(`${bundle.title} (${Math.ceil(guestCount / 6)} bundles)`, totalBundlePrice, 'Return Gifts', bundle.retailer);
+                            // Simulate adding to cart
+                            alert(`Added ${Math.ceil(guestCount / 6)} ${bundle.title} bundle(s) to cart for $${totalBundlePrice.toFixed(2)}`);
+                          }}
+                        >
                           <ShoppingBag className="h-4 w-4 mr-2" />
-                          Add to Cart
+                          1-Click Order
                         </Button>
                       </div>
                     </div>
-
-                    <div>
-                      <h4 className="font-medium mb-2">What's Included:</h4>
-                      <ul className="grid md:grid-cols-2 gap-1">
-                        {bundle.items.map((item, index) => (
-                          <li key={index} className="text-sm flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-purple-500 rounded-full flex-shrink-0" />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
+                  );
+                })}
+              </div>
+              
+              {/* Budget Impact Summary */}
+              <div className="mt-6 pt-6 border-t">
+                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                  <Calculator className="h-5 w-5 text-green-600" />
+                  Budget Impact Summary
+                </h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-green-600">
+                      ${allocations.find(a => a.category === 'Return Gifts')?.amount || 0}
                     </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Gift Budget</div>
                   </div>
-                ))}
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      ${spentItems.filter(item => item.category === 'Return Gifts').reduce((sum, item) => sum + item.amount, 0).toFixed(2)}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Spent on Gifts</div>
+                  </div>
+                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-purple-600">
+                      ${Math.max(0, (allocations.find(a => a.category === 'Return Gifts')?.amount || 0) - spentItems.filter(item => item.category === 'Return Gifts').reduce((sum, item) => sum + item.amount, 0)).toFixed(2)}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Remaining</div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
