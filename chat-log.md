@@ -1,3 +1,32 @@
+## [usr-1754107069107]
+**User Request:** For each planned party, use the user's selected birthday date (e.g., Aug 1, 2025) as the deadline.
+
+For each checklist task (e.g., "Send invitations 4–6 weeks before," "Order cake 2–3 weeks before"), automatically calculate and display the exact due date by counting back the appropriate number of weeks or days from the party date.
+
+Visually present the checklist as a timeline:
+
+Show each task with its individual calculated due date (e.g., "Send Invitations: June 20, 2025").
+
+Add a countdown timer showing how many days remain until the birthday (e.g., "23 days left").
+
+Enable real-time color coding to indicate task status:
+
+Green: Task is scheduled with plenty of time left.
+
+Orange: Task is approaching its deadline or needs immediate attention (due within next 3 days).
+
+Red: Task's calculated due date has passed and it's overdue.
+
+Update this view every time the app or checklist is loaded. The countdown timer and task colors should update dynamically as time passes.
+
+Present this as an interactive visual timeline chart, with tasks mapped along the calendar between today and the party date. Let users mark tasks as completed, which grays them out and removes them from the alert highlights.
+
+All calculations should be based on the exact birthday date specified for each party, and recalculate dates automatically if the party date changes.
+
+**Response Summary:** Successfully implemented a comprehensive timeline-based checklist system with automatic date calculations and interactive visual timeline interface for the party planning application. Enhanced the existing checklist system with sophisticated date calculation logic that automatically computes exact due dates for each task by counting back the appropriate number of weeks or days from the selected party date. Added a prominent countdown timer showing days remaining until the party with dynamic messaging and color-coded visual feedback. Implemented real-time color coding system with four distinct statuses: Green (completed), Blue (on schedule/upcoming), Orange (due soon - within 3 days), and Red (overdue). Created an interactive visual timeline chart that maps all tasks along a calendar timeline between today and the party date, with clickable task markers positioned proportionally based on their due dates. Tasks display with appropriate status icons (CheckCircle for completed, AlertTriangle for overdue, Timer for due soon, Calendar for upcoming) and can be clicked to toggle completion status. Enhanced the checklist tab with detailed task cards showing calculated due dates, status indicators, and visual color coding with background highlighting. Added localStorage persistence for task completion status and automatic refresh functionality that updates calculations every hour. Implemented both a visual timeline view and traditional timeline progress view with enhanced progress bars that change colors based on task urgency (red for overdue, orange for due soon, purple for on schedule). All calculations dynamically recalculate when party dates change and update in real-time as time passes, providing parents with an intuitive and visually appealing party planning experience. Build completed successfully with zero errors and full TypeScript compatibility.
+
+**Files Modified:** app/party-plan/page.tsx (enhanced ChecklistItem interface with date calculation fields, added comprehensive imports for new icons, implemented generateBaseChecklist helper function for consistent checklist generation, enhanced generateChecklist with automatic due date calculations and status determination based on days until deadline, added getDaysUntilParty function for countdown timer, implemented real-time updates with useEffect hooks for hourly refresh, enhanced toggleChecklistItem with status recalculation and localStorage persistence, redesigned Progress Card with side-by-side countdown timer display, completely redesigned Checklist Tab with color-coded task cards showing due dates and status indicators, created comprehensive Interactive Planning Timeline with visual task mapping, clickable task markers positioned along timeline, status-based color coding, and interactive completion functionality, enhanced Traditional Timeline View with overdue/due soon badge indicators and color-coded progress bars)
+
 ## [usr-1754105683351]
 **User Request:** reimplement the dark mode feature across the site including wizard, dashboard etc- use the same effects and gradients present in the home page
 **Response Summary:** Successfully reimplemented comprehensive dark mode functionality across the entire site while preserving all gradient effects and visual identity. Enhanced all major pages including landing page, party creation wizard, party plan pages, dashboard, and authentication components with cohesive dark mode styling. Implemented sophisticated dark mode theming using Tailwind's dark mode utilities with slate color palette (slate-900, slate-800, slate-700) as dark backgrounds while maintaining all existing gradient effects (purple-to-pink, pink-to-yellow, etc.). Updated all text colors to use appropriate dark mode variants (gray-300, gray-200, gray-400) and enhanced form components (Input, Label, Textarea, Button) with dark backgrounds and borders. Preserved all visual gradients including theme cards, progress bars, and CTA buttons ensuring consistent visual experience across light and dark modes. Enhanced authentication pages with dark card backgrounds, form styling, and social login buttons while maintaining the same gradient branding. Updated progress indicators, timeline components, and checklist interfaces in both wizard and party plan pages with proper dark mode contrast and readability. The theme switcher now seamlessly toggles between light and dark modes across all pages while maintaining the app's beautiful gradient design language and ensuring excellent user experience in both themes. Build completed successfully with zero errors and full TypeScript compatibility.
