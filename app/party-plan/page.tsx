@@ -875,34 +875,6 @@ export default function PartyPlanPage() {
                     </Button>
                   </div>
                 </div>
-                <div className="flex items-center justify-center gap-8 p-4 bg-gradient-to-r from-pink-50 via-purple-50 to-yellow-50 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-yellow-900/20 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Flag className="h-5 w-5 text-green-600" />
-                    <div className="text-center">
-                      <div className="text-sm font-bold text-green-600">TODAY</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-300">
-                        {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center px-4">
-                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      {daysUntilParty}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
-                      {daysUntilParty === 1 ? 'day until party!' : daysUntilParty === 0 ? 'Party is today!' : daysUntilParty < 0 ? 'days since party' : 'days until party!'}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-purple-600" />
-                    <div className="text-center">
-                      <div className="text-sm font-bold text-purple-600">PARTY DAY</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-300">
-                        {partyData?.partyDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </CardHeader>
               <CardContent>
                 {/* Enhanced Swimlane Timeline System */}
