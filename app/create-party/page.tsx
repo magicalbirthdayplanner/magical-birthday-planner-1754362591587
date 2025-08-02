@@ -1709,7 +1709,7 @@ export default function CreatePartyPage() {
                 {/* Visual Summary Preview */}
                 <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-yellow-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-700">
                   <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-4 text-lg text-center">Party Summary Preview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                     <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
                       <div className="text-2xl mb-2">💰</div>
                       <div className="font-semibold text-green-600">Budget</div>
