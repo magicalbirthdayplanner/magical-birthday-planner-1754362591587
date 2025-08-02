@@ -1,3 +1,26 @@
+## [usr-1754160000000]
+**User Request:** in the step 4, move the location as the 2nd card in the party summary preview and guests as 3rd card 
+**Response Summary:** Successfully reordered the party summary preview cards in step 4 of the party creation wizard. Moved Location card to position 2 and Guests card to position 3 as requested.
+
+**Key Changes:**
+1. **Card Order Updated in Step 4:**
+   - Card 1: Budget (💰) - unchanged in first position
+   - Card 2: Location (🗺️) - moved from position 3 to position 2
+   - Card 3: Guests (👥) - moved from position 2 to position 3
+
+2. **Visual Layout Preserved:**
+   - All cards maintain their original styling and functionality
+   - Responsive grid layout (1 column on mobile, 3 columns on desktop)
+   - Card content and data display intact
+   - Consistent gap spacing maintained
+
+3. **Build Verification:**
+   - Build passes successfully with no errors
+   - All existing functionality preserved
+   - Card reordering implemented cleanly without breaking changes
+
+**Files Modified:** app/create-party/page.tsx
+
 ## [usr-1754155398000]
 **User Request:** in the step 5, move the location as the 2nd card in the party summary preview and guests as 3rd card 
 **Response Summary:** Successfully reordered the party summary preview cards in step 5 of the party creation wizard. Moved Location card to position 2 and Guests card to position 3 as requested.

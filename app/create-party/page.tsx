@@ -1716,14 +1716,14 @@ export default function CreatePartyPage() {
                       <div className="text-lg">{partyData.budget ? `$${partyData.budget}` : 'Not set'}</div>
                     </div>
                     <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
-                      <div className="text-2xl mb-2">👥</div>
-                      <div className="font-semibold text-purple-600">Guests</div>
-                      <div className="text-lg">{partyData.guestCount || 'Not set'}</div>
-                    </div>
-                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
                       <div className="text-2xl mb-2">🗺️</div>
                       <div className="font-semibold text-blue-600">Location</div>
                       <div className="text-lg">{partyData.zipCode || 'Not set'}</div>
+                    </div>
+                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
+                      <div className="text-2xl mb-2">👥</div>
+                      <div className="font-semibold text-purple-600">Guests</div>
+                      <div className="text-lg">{partyData.guestCount || 'Not set'}</div>
                     </div>
                   </div>
                 </div>
