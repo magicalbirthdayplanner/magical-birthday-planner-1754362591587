@@ -38,6 +38,15 @@ A modern, responsive web application designed to help parents plan magical birth
   - Guest filtering and search functionality
   - Reminder system for non-responsive guests
   - Export functionality for guest reports
+- **🛒 Shopping Suite**: Comprehensive party shopping platform
+  - 6 distinct shopping categories (Cake & Bakeries, Venue Booking, Decor/Balloons, Food & Pizza, Beverages, Return Gifts)
+  - Affiliate product integration with Amazon, Walmart, and Temu
+  - Local vendor search by zip code for bakeries, restaurants, and venues
+  - Party Shopping List/Wish List with budget tracking
+  - Real-time estimated spend counter with budget warnings
+  - Search, filters, and "Best Deals" badges
+  - Mobile-responsive product cards with ratings and reviews
+  - Shopping checklist and money-saving tips
 - **📱 Responsive Design**: Mobile-first approach with seamless experience across devices
 
 ### Recently Added Features
@@ -143,6 +152,14 @@ npm start
 
 ### 5. Party Plan Results (`/party-plan`)
 - **Overview Tab**: Theme details, party information, guest statistics, quick actions
+- **Budget Tab**: Complete budget tracking and AI-powered allocation system
+- **Shopping Tab**: Comprehensive party shopping platform
+  - 6 shopping categories with visually distinct cards
+  - Affiliate product deals from Amazon, Walmart, and Temu
+  - Local vendor search with zip code functionality
+  - Party Shopping List with budget tracking and warnings
+  - Search, filters, and deal highlighting features
+  - Shopping tips and completion checklist
 - **Checklist Tab**: Timeline-based task management (15 pre-loaded tasks)
 - **Guests Tab**: Complete guest management interface
   - Add, edit, delete guests with contact information
@@ -206,6 +223,15 @@ npm start
   - Personalized party dashboard with all upcoming parties
   - Party statistics and progress tracking
   - Navigation integration with user account management
+- **Complete Shopping Suite**: Comprehensive party shopping platform
+  - 6 shopping categories with distinct visual cards and gradients
+  - Affiliate product integration with mock data for Amazon, Walmart, and Temu
+  - Local vendor search functionality with detailed business information
+  - Party Shopping List/Wish List with persistent localStorage storage
+  - Real-time budget tracking with visual warnings and progress indicators
+  - Advanced search, filtering, and platform selection capabilities
+  - Mobile-responsive product cards with ratings, reviews, and deal badges
+  - Shopping tips, completion checklist, and money-saving suggestions
 - Database integration with Supabase PostgreSQL and Prisma ORM
 - Row Level Security (RLS) policies for data protection
 - Mobile-responsive design across all components

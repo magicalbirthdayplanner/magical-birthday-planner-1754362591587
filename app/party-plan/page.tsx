@@ -11,6 +11,7 @@ import GuestList, { Guest, Invitation } from "@/components/GuestList";
 import BulkInvitations from "@/components/BulkInvitations";
 import RSVPTracker from "@/components/RSVPTracker";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
+import ShoppingSuite from "@/components/ShoppingSuite";
 import { 
   PartyPopper, 
   CheckCircle2, 
@@ -44,6 +45,7 @@ import {
   X,
   Info,
   DollarSign,
+  ShoppingBag,
 } from "lucide-react";
 
 interface PartyData {
@@ -768,7 +770,7 @@ export default function PartyPlanPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 mb-6 sm:mb-8 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 mb-6 sm:mb-8 h-auto p-1">
             <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
               <PartyPopper className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -777,6 +779,11 @@ export default function PartyPlanPage() {
             <TabsTrigger value="budget" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
               <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
               Budget
+            </TabsTrigger>
+            <TabsTrigger value="shopping" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <ShoppingBag className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Shopping</span>
+              <span className="sm:hidden">Shop</span>
             </TabsTrigger>
             <TabsTrigger value="checklist" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
               <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -891,6 +898,17 @@ export default function PartyPlanPage() {
               partyId={partyData?.childName || 'party'}
               initialBudget={partyData?.budget}
               childAge={parseInt(partyData?.childAge || '5')}
+            />
+          </TabsContent>
+
+          {/* Shopping Tab */}
+          <TabsContent value="shopping" className="space-y-6">
+            <ShoppingSuite
+              partyBudget={partyData?.budget}
+              zipCode={partyData?.zipCode}
+              childAge={parseInt(partyData?.childAge || '5')}
+              theme={partyData?.selectedTheme}
+              partyId={partyData?.childName || 'party'}
             />
           </TabsContent>
 
