@@ -464,7 +464,9 @@ export default function SmartBudgetAssistant({
                           type="number"
                           value={category.allocation}
                           onChange={(e) => updateCategoryAllocation(category.name, Number(e.target.value))}
-                          className="w-20 h-8 text-sm"
+                          className="w-32 h-8 text-sm"
+                          min="0"
+                          step="1"
                         />
                       </div>
                     </div>
