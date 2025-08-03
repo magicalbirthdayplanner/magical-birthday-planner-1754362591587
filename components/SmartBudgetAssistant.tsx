@@ -71,6 +71,7 @@ interface SmartBudgetAssistantProps {
   partyDate: string;
   theme: string;
   guestCount: number;
+  initialBudget?: number;
 }
 
 export default function SmartBudgetAssistant({
@@ -79,7 +80,8 @@ export default function SmartBudgetAssistant({
   childAge,
   partyDate,
   theme,
-  guestCount
+  guestCount,
+  initialBudget
 }: SmartBudgetAssistantProps) {
   const [totalBudget, setTotalBudget] = useState<number>(0);
   const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>([]);
@@ -183,11 +185,14 @@ export default function SmartBudgetAssistant({
     const savedBudget = localStorage.getItem(`budget_${partyId}`);
     if (savedBudget) {
       const data = JSON.parse(savedBudget);
-      setTotalBudget(data.totalBudget || 0);
+      setTotalBudget(data.totalBudget || initialBudget || 0);
       setBudgetCategories(data.categories || []);
       setBudgetPreferences(data.preferences || 'balanced');
+    } else if (initialBudget && initialBudget > 0) {
+      // If no saved budget but initialBudget is provided, use it
+      setTotalBudget(initialBudget);
     }
-  }, [partyId]);
+  }, [partyId, initialBudget]);
 
   // Save data to localStorage whenever state changes
   useEffect(() => {

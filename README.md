@@ -159,7 +159,6 @@ npm start
     - Guest filtering and search functionality
     - Response rate analytics and progress tracking
     - Reminder system and guest communication tools
-- **Theme Board Tab**: Inspiration with decorations, activities, and food suggestions
 - **Timeline Tab**: Visual progress tracking by timeline phases
 - Interactive features with progress tracking and data persistence
 

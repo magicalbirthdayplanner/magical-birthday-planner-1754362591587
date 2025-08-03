@@ -51,6 +51,9 @@ interface PartyData {
   childAge: string;
   partyDate: Date;
   selectedTheme: string;
+  budget?: number;
+  zipCode?: string;
+  guestCount?: number;
 }
 
 interface ChecklistItem {
@@ -783,11 +786,6 @@ export default function PartyPlanPage() {
               <span className="hidden md:inline">Invitations</span>
               <span className="md:hidden">RSVP</span>
             </TabsTrigger>
-            <TabsTrigger value="inspiration" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
-              <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden lg:inline">Theme Board</span>
-              <span className="lg:hidden">Theme</span>
-            </TabsTrigger>
             <TabsTrigger value="timeline" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden lg:inline">Timeline</span>
@@ -889,7 +887,8 @@ export default function PartyPlanPage() {
               childAge={parseInt(partyData?.childAge || '0')}
               partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
               theme={partyData?.selectedTheme || ''}
-              guestCount={guests.length}
+              guestCount={partyData?.guestCount || guests.length}
+              initialBudget={partyData?.budget}
             />
           </TabsContent>
 
@@ -1036,72 +1035,6 @@ export default function PartyPlanPage() {
             </Tabs>
           </TabsContent>
 
-          {/* Theme Board Tab */}
-          <TabsContent value="inspiration" className="space-y-6">
-            {themeDetails && (
-              <div className="grid gap-6">
-                {/* Decorations */}
-                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <PartyPopper className="h-5 w-5" />
-                      Decorations & Setup
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {themeDetails.decorations.map((item, index) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                {/* Activities */}
-                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      Activities & Games
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {themeDetails.activities.map((item, index) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                {/* Food & Treats */}
-                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Utensils className="h-5 w-5" />
-                      Food & Treats
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {themeDetails.food.map((item, index) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </TabsContent>
 
           {/* Timeline Tab */}
           <TabsContent value="timeline" className="space-y-6">
