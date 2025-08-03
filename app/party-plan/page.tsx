@@ -12,6 +12,7 @@ import BulkInvitations from "@/components/BulkInvitations";
 import RSVPTracker from "@/components/RSVPTracker";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
 import ShoppingSuite from "@/components/ShoppingSuite";
+import Activities from "@/components/Activities";
 import { 
   PartyPopper, 
   CheckCircle2, 
@@ -770,7 +771,7 @@ export default function PartyPlanPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 mb-6 sm:mb-8 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-9 mb-6 sm:mb-8 h-auto p-1">
             <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
               <PartyPopper className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -798,6 +799,11 @@ export default function PartyPlanPage() {
               <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden md:inline">Invitations</span>
               <span className="md:hidden">RSVP</span>
+            </TabsTrigger>
+            <TabsTrigger value="activities" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <Music className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden md:inline">Activities</span>
+              <span className="md:hidden">Games</span>
             </TabsTrigger>
             <TabsTrigger value="timeline" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -1053,6 +1059,15 @@ export default function PartyPlanPage() {
                 />
               </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          {/* Activities Tab */}
+          <TabsContent value="activities" className="space-y-6">
+            <Activities
+              theme={partyData?.selectedTheme || 'default'}
+              childAge={parseInt(partyData?.childAge || '5')}
+              guestCount={guests.length}
+            />
           </TabsContent>
 
 
