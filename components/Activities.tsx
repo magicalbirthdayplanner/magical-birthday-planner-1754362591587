@@ -317,11 +317,72 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
 
   const generateAIActivities = async () => {
     setIsGeneratingAI(true);
-    // Simulate AI generation delay
-    setTimeout(() => {
+    
+    try {
+      const response = await fetch('/api/ai-activities', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          theme,
+          childAge,
+          guestCount,
+          interests: [], // Could be passed as prop if available
+          selectedActivities: activities.map(a => a.name),
+          partyDuration: '2-3 hours',
+          venue: 'home'
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.activities) {
+        // Add new AI-generated activities to existing ones
+        const newActivities = data.activities.map((aiActivity: any) => ({
+          id: aiActivity.id,
+          name: aiActivity.name,
+          description: aiActivity.description,
+          category: aiActivity.category,
+          duration: aiActivity.duration,
+          participants: aiActivity.participants,
+          materials: aiActivity.materials,
+          difficulty: aiActivity.difficulty,
+          ageRange: aiActivity.ageRange,
+          icon: categoryIcons[aiActivity.category as keyof typeof categoryIcons] || categoryIcons.games
+        }));
+        
+        // Merge with existing activities, avoiding duplicates
+        setActivities(prevActivities => {
+          const existingNames = prevActivities.map(a => a.name.toLowerCase());
+          const uniqueNewActivities = newActivities.filter((newActivity: Activity) => 
+            !existingNames.includes(newActivity.name.toLowerCase())
+          );
+          return [...prevActivities, ...uniqueNewActivities];
+        });
+      } else if (data.fallback && data.activities) {
+        // Handle fallback activities when AI is not available
+        const fallbackActivities = data.activities.map((activity: any) => ({
+          id: activity.id,
+          name: activity.name,
+          description: activity.description,
+          category: activity.category,
+          duration: activity.duration,
+          participants: activity.participants,
+          materials: activity.materials,
+          difficulty: activity.difficulty,
+          ageRange: activity.ageRange,
+          icon: categoryIcons[activity.category as keyof typeof categoryIcons] || categoryIcons.games
+        }));
+        
+        setActivities(prevActivities => [...prevActivities, ...fallbackActivities]);
+      }
+    } catch (error) {
+      console.error('Error generating AI activities:', error);
+      // Could show a user-friendly error message here
+    } finally {
       setIsGeneratingAI(false);
-      // In a real implementation, this would call an AI API
-    }, 2000);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
