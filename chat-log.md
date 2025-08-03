@@ -1,3 +1,34 @@
+## [usr-1754297248670]
+**User Request:** In the AI allocate window, just above the AI budget allocation, there can all the categories for expenses as a quick select and then there is a text input to capture preference and then the Generate AI budget allocation. Include all the 8 categories shown in the previous screen and option to add custom category and allocate the budget defined in step 4 of the wizard to make an optimal alllocation of budget
+
+**Response Summary:** Successfully enhanced the AI Budget Allocation window with a comprehensive category quick select interface positioned above the preferences input. The implementation includes:
+
+**Key Features Implemented:**
+1. **Category Quick Select Interface**: Added all 8 categories from the Quick Start templates (🏢 Venue, 🍰 Food & Cake, 🎈 Decorations, 🎁 Party Favors, 🎪 Entertainment, 📸 Photography, 🍕 Catering, 🎵 Music/DJ) as selectable buttons
+2. **Custom Category Option**: Implemented an "Add Custom Category" feature with input field, validation, and dynamic key generation
+3. **Enhanced AI Logic**: Updated both AI and smart default allocation algorithms to consider selected categories and distribute budget optimally based on user choices
+4. **Improved User Experience**: Categories are visually highlighted when selected, with grid layout for easy selection and responsive design
+
+**Technical Implementation:**
+- Enhanced `AIBudgetAllocator.tsx` with category selection state management and UI components
+- Updated `/api/budget-allocation/route.ts` to accept and process selected categories
+- Modified both AI-powered and fallback allocation algorithms to work with dynamic category sets
+- Added preference-based and age-based adjustments that consider selected categories
+- Implemented proper budget distribution and normalization for any number of selected categories
+
+**User Workflow:**
+1. Users select desired expense categories from the 8 pre-defined options
+2. Optional: Add custom categories using the "Add Custom Category" button
+3. Enter preferences in the text input field
+4. Generate AI budget allocation that considers both selected categories and preferences
+5. The allocation distributes the total budget optimally across only the selected categories
+
+The AI allocate window now provides a much more targeted and user-controlled budget allocation experience, allowing users to focus on specific expense categories relevant to their party planning needs.
+
+**Files Modified:** 
+- `components/AIBudgetAllocator.tsx`
+- `app/api/budget-allocation/route.ts`
+
 ## [usr-1754195110000]
 **User Request:** The AI Budget Allocation container above the expenses can be removed and still unable to save a new expenses. it is not saving.  The add button is greyed out
 

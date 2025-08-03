@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, RefreshCw, Edit3, Check, X } from 'lucide-react';
+import { Loader2, Sparkles, RefreshCw, Edit3, Check, X, Plus } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 interface BudgetCategory {
@@ -36,6 +36,9 @@ const AIBudgetAllocator: React.FC<AIBudgetAllocatorProps> = ({
   const [editAmount, setEditAmount] = useState('');
   const [viewMode, setViewMode] = useState<'pie' | 'bar'>('pie');
   const [aiGenerated, setAiGenerated] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState('');
 
   const generateAllocation = async () => {
     setIsLoading(true);
@@ -48,7 +51,8 @@ const AIBudgetAllocator: React.FC<AIBudgetAllocatorProps> = ({
         body: JSON.stringify({
           totalBudget,
           preferences,
-          childAge
+          childAge,
+          selectedCategories
         }),
       });
 
@@ -149,6 +153,37 @@ const AIBudgetAllocator: React.FC<AIBudgetAllocatorProps> = ({
 
   const remainingBudget = totalBudget - allocation.reduce((sum, cat) => sum + cat.amount, 0);
 
+  // Quick start categories from SimpleBudgetTracker
+  const quickStartCategories = [
+    { name: "🏢 Venue", key: "venue" },
+    { name: "🍰 Food & Cake", key: "food_cake" },
+    { name: "🎈 Decorations", key: "decorations" },
+    { name: "🎁 Party Favors", key: "party_favors" },
+    { name: "🎪 Entertainment", key: "entertainment" },
+    { name: "📸 Photography", key: "photography" },
+    { name: "🍕 Catering", key: "catering" },
+    { name: "🎵 Music/DJ", key: "music_dj" }
+  ];
+
+  const toggleCategory = (categoryKey: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryKey) 
+        ? prev.filter(key => key !== categoryKey)
+        : [...prev, categoryKey]
+    );
+  };
+
+  const addCustomCategory = () => {
+    if (customCategory.trim()) {
+      const customKey = customCategory.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      if (!selectedCategories.includes(customKey)) {
+        setSelectedCategories(prev => [...prev, customKey]);
+      }
+      setCustomCategory('');
+      setShowCustomCategory(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -159,6 +194,60 @@ const AIBudgetAllocator: React.FC<AIBudgetAllocatorProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Category Quick Select */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+              Select categories for your budget allocation
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+              {quickStartCategories.map((category) => (
+                <Button
+                  key={category.key}
+                  variant={selectedCategories.includes(category.key) ? "default" : "outline"}
+                  size="sm"
+                  className="flex items-center justify-center gap-1 h-auto p-2 text-xs"
+                  onClick={() => toggleCategory(category.key)}
+                >
+                  {category.name}
+                </Button>
+              ))}
+            </div>
+            
+            {/* Add Custom Category */}
+            <div className="flex gap-2">
+              {!showCustomCategory ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCustomCategory(true)}
+                  className="text-xs"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Custom Category
+                </Button>
+              ) : (
+                <div className="flex gap-2 items-center">
+                  <Input
+                    placeholder="Enter custom category"
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    className="h-8 text-sm flex-1"
+                    onKeyPress={(e) => e.key === 'Enter' && addCustomCategory()}
+                  />
+                  <Button size="sm" onClick={addCustomCategory} disabled={!customCategory.trim()}>
+                    <Check className="h-3 w-3" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => {
+                    setShowCustomCategory(false);
+                    setCustomCategory('');
+                  }}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
               Tell us your preferences (optional)
