@@ -890,6 +890,7 @@ export default function PartyPlanPage() {
             <SimpleBudgetTracker
               partyId={partyData?.childName || 'party'}
               initialBudget={partyData?.budget}
+              childAge={parseInt(partyData?.childAge || '5')}
             />
           </TabsContent>
 

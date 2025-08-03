@@ -14,8 +14,11 @@ import {
   Save,
   X,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  Sparkles,
+  Target
 } from "lucide-react";
+import AIBudgetAllocator from './AIBudgetAllocator';
 
 interface BudgetItem {
   id: string;
@@ -23,14 +26,25 @@ interface BudgetItem {
   amount: number;
 }
 
+interface BudgetCategory {
+  name: string;
+  key: string;
+  amount: number;
+  percentage: number;
+  icon: string;
+  color: string;
+}
+
 interface SimpleBudgetTrackerProps {
   partyId: string;
   initialBudget?: number;
+  childAge?: number;
 }
 
 export default function SimpleBudgetTracker({
   partyId,
-  initialBudget = 0
+  initialBudget = 0,
+  childAge = 5
 }: SimpleBudgetTrackerProps) {
   const [totalBudget, setTotalBudget] = useState<number>(initialBudget);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
@@ -38,6 +52,8 @@ export default function SimpleBudgetTracker({
   const [expenses, setExpenses] = useState<BudgetItem[]>([]);
   const [newExpense, setNewExpense] = useState({ name: '', amount: '' });
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showAIAllocator, setShowAIAllocator] = useState(false);
+  const [aiCategories, setAiCategories] = useState<BudgetCategory[]>([]);
 
   // Load saved data from localStorage
   useEffect(() => {
@@ -46,6 +62,7 @@ export default function SimpleBudgetTracker({
       try {
         const data = JSON.parse(savedData);
         setExpenses(data.expenses || []);
+        setAiCategories(data.aiCategories || []);
         // Only use saved budget if no initialBudget provided
         if (!initialBudget && data.totalBudget) {
           setTotalBudget(data.totalBudget);
@@ -62,10 +79,11 @@ export default function SimpleBudgetTracker({
     const data = {
       totalBudget,
       expenses,
+      aiCategories,
       lastUpdated: new Date().toISOString()
     };
     localStorage.setItem(`simple_budget_${partyId}`, JSON.stringify(data));
-  }, [totalBudget, expenses, partyId]);
+  }, [totalBudget, expenses, aiCategories, partyId]);
 
   const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const remaining = totalBudget - totalSpent;
@@ -102,6 +120,18 @@ export default function SimpleBudgetTracker({
     setExpenses(prev => prev.filter(expense => expense.id !== id));
   };
 
+  const handleAIAllocationComplete = (categories: BudgetCategory[]) => {
+    setAiCategories(categories);
+    // Convert AI categories to expenses for seamless integration
+    const categoryExpenses = categories.map(cat => ({
+      id: `ai-${cat.key}-${Date.now()}`,
+      name: `${cat.icon} ${cat.name}`,
+      amount: cat.amount
+    }));
+    setExpenses(categoryExpenses);
+    setShowAIAllocator(false);
+  };
+
   const getStatusColor = () => {
     if (remaining < 0) return 'text-red-600';
     if (remaining < totalBudget * 0.1) return 'text-orange-600';
@@ -129,15 +159,26 @@ export default function SimpleBudgetTracker({
                 Simple and effective budget management
               </CardDescription>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditingBudget(true)}
-              className="flex items-center gap-2"
-            >
-              <Edit3 className="h-4 w-4" />
-              Edit Budget
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAIAllocator(true)}
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-purple-200"
+              >
+                <Sparkles className="h-4 w-4 text-purple-600" />
+                AI Allocate
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditingBudget(true)}
+                className="flex items-center gap-2"
+              >
+                <Edit3 className="h-4 w-4" />
+                Edit Budget
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -194,20 +235,85 @@ export default function SimpleBudgetTracker({
                 )}
               </div>
             </div>
+            
+            {/* AI Category Breakdown */}
+            {aiCategories.length > 0 && (
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                <div className="flex items-center gap-2 mb-3">
+                  <Target className="h-5 w-5 text-purple-600" />
+                  <span className="font-medium text-purple-800 dark:text-purple-300">AI Budget Allocation</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {aiCategories.map((category) => (
+                    <div key={category.key} className="flex items-center justify-between p-2 bg-white/70 dark:bg-slate-800/70 rounded border">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{category.icon}</span>
+                        <span className="text-sm font-medium">{category.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold">${category.amount}</div>
+                        <div className="text-xs text-gray-500">{category.percentage}%</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* AI Budget Allocator Modal */}
+          {showAIAllocator && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white dark:bg-slate-800 rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto w-full">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-purple-500" />
+                      AI Budget Allocation
+                    </h2>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAIAllocator(false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <AIBudgetAllocator
+                    totalBudget={totalBudget}
+                    childAge={childAge}
+                    onAllocationComplete={handleAIAllocationComplete}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Add Expense */}
           <div className="border-t pt-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium">Expenses</h3>
-              <Button
-                size="sm"
-                onClick={() => setShowAddExpense(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Expense
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => setShowAddExpense(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Expense
+                </Button>
+                {aiCategories.length === 0 && totalBudget > 0 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowAIAllocator(true)}
+                    className="flex items-center gap-2 text-purple-600 border-purple-200 hover:bg-purple-50"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Smart Allocate
+                  </Button>
+                )}
+              </div>
             </div>
 
             {showAddExpense && (
