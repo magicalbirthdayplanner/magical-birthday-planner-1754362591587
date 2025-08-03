@@ -649,7 +649,9 @@ export default function Budget({ partyTheme = "superhero", childAge = 6, guestCo
                           type="number"
                           value={allocation.amount}
                           onChange={(e) => updateAllocation(index, Number(e.target.value))}
-                          className="w-24 text-right"
+                          className="w-32 text-right"
+                          min="0"
+                          step="1"
                         />
                         <span className="text-sm text-gray-600 dark:text-gray-300">$</span>
                       </div>
