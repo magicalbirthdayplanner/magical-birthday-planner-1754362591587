@@ -99,7 +99,35 @@ const AIBudgetAllocator: React.FC<AIBudgetAllocatorProps> = ({
       return cat;
     });
     
-    setAllocation(updatedAllocation);
+    // Auto-rebalance other categories proportionally if budget is exceeded
+    const totalAllocated = updatedAllocation.reduce((sum, cat) => sum + cat.amount, 0);
+    if (totalAllocated > totalBudget) {
+      const excess = totalAllocated - totalBudget;
+      const otherCategories = updatedAllocation.filter(cat => cat.key !== editingCategory);
+      const totalOthers = otherCategories.reduce((sum, cat) => sum + cat.amount, 0);
+      
+      if (totalOthers > 0) {
+        const rebalancedAllocation = updatedAllocation.map(cat => {
+          if (cat.key === editingCategory) {
+            return cat; // Keep the manually edited category as is
+          } else {
+            const reduction = Math.round((cat.amount / totalOthers) * excess);
+            const newAmount = Math.max(0, cat.amount - reduction);
+            return {
+              ...cat,
+              amount: newAmount,
+              percentage: Math.round((newAmount / totalBudget) * 100)
+            };
+          }
+        });
+        setAllocation(rebalancedAllocation);
+      } else {
+        setAllocation(updatedAllocation);
+      }
+    } else {
+      setAllocation(updatedAllocation);
+    }
+    
     setEditingCategory(null);
     setEditAmount('');
   };

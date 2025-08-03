@@ -54,6 +54,8 @@ export default function SimpleBudgetTracker({
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAIAllocator, setShowAIAllocator] = useState(false);
   const [aiCategories, setAiCategories] = useState<BudgetCategory[]>([]);
+  const [editingExpense, setEditingExpense] = useState<string | null>(null);
+  const [editExpenseData, setEditExpenseData] = useState({ name: '', amount: '' });
 
   // Load saved data from localStorage
   useEffect(() => {
@@ -118,6 +120,29 @@ export default function SimpleBudgetTracker({
 
   const removeExpense = (id: string) => {
     setExpenses(prev => prev.filter(expense => expense.id !== id));
+  };
+
+  const startEditExpense = (expense: BudgetItem) => {
+    setEditingExpense(expense.id);
+    setEditExpenseData({ name: expense.name, amount: expense.amount.toString() });
+  };
+
+  const saveExpenseEdit = () => {
+    const amount = parseFloat(editExpenseData.amount);
+    if (editExpenseData.name.trim() && !isNaN(amount) && amount > 0) {
+      setExpenses(prev => prev.map(expense => 
+        expense.id === editingExpense 
+          ? { ...expense, name: editExpenseData.name.trim(), amount }
+          : expense
+      ));
+      setEditingExpense(null);
+      setEditExpenseData({ name: '', amount: '' });
+    }
+  };
+
+  const cancelExpenseEdit = () => {
+    setEditingExpense(null);
+    setEditExpenseData({ name: '', amount: '' });
   };
 
   const handleAIAllocationComplete = (categories: BudgetCategory[]) => {
@@ -196,7 +221,7 @@ export default function SimpleBudgetTracker({
                       onChange={(e) => setBudgetInput(e.target.value)}
                       className="pl-8 w-32"
                       min="0"
-                      step="0.01"
+                      step="1"
                       autoFocus
                     />
                   </div>
@@ -209,7 +234,7 @@ export default function SimpleBudgetTracker({
                 </div>
               ) : (
                 <span className="text-2xl font-bold text-green-600">
-                  ${totalBudget.toFixed(2)}
+                  ${Math.round(totalBudget)}
                 </span>
               )}
             </div>
@@ -217,9 +242,9 @@ export default function SimpleBudgetTracker({
             {/* Budget Progress */}
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span>Spent: ${totalSpent.toFixed(2)}</span>
+                <span>Spent: ${Math.round(totalSpent)}</span>
                 <span className={`font-medium ${getStatusColor()}`}>
-                  Remaining: ${remaining.toFixed(2)}
+                  Remaining: ${Math.round(remaining)}
                 </span>
               </div>
               <div className="space-y-2">
@@ -230,7 +255,7 @@ export default function SimpleBudgetTracker({
                 {spentPercentage > 100 && (
                   <div className="flex items-center gap-2 text-red-600 text-sm">
                     <AlertTriangle className="h-4 w-4" />
-                    <span>Over budget by ${Math.abs(remaining).toFixed(2)}</span>
+                    <span>Over budget by ${Math.round(Math.abs(remaining))}</span>
                   </div>
                 )}
               </div>
@@ -239,9 +264,20 @@ export default function SimpleBudgetTracker({
             {/* AI Category Breakdown */}
             {aiCategories.length > 0 && (
               <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
-                <div className="flex items-center gap-2 mb-3">
-                  <Target className="h-5 w-5 text-purple-600" />
-                  <span className="font-medium text-purple-800 dark:text-purple-300">AI Budget Allocation</span>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-purple-600" />
+                    <span className="font-medium text-purple-800 dark:text-purple-300">AI Budget Allocation</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAIAllocator(true)}
+                    className="flex items-center gap-1 text-purple-600 border-purple-200 hover:bg-purple-50"
+                  >
+                    <Edit3 className="h-3 w-3" />
+                    Edit
+                  </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {aiCategories.map((category) => (
@@ -316,44 +352,102 @@ export default function SimpleBudgetTracker({
               </div>
             </div>
 
+            {/* Quick Add Category Templates */}
+            {!showAddExpense && expenses.length === 0 && aiCategories.length === 0 && (
+              <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-800 dark:text-purple-300">Quick Start Categories</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { name: "🏢 Venue", amount: Math.round(totalBudget * 0.3) },
+                    { name: "🍰 Food & Cake", amount: Math.round(totalBudget * 0.25) },
+                    { name: "🎈 Decorations", amount: Math.round(totalBudget * 0.2) },
+                    { name: "🎁 Party Favors", amount: Math.round(totalBudget * 0.15) },
+                    { name: "🎪 Entertainment", amount: Math.round(totalBudget * 0.1) },
+                    { name: "📸 Photography", amount: Math.round(totalBudget * 0.05) },
+                    { name: "🍕 Catering", amount: Math.round(totalBudget * 0.3) },
+                    { name: "🎵 Music/DJ", amount: Math.round(totalBudget * 0.15) }
+                  ].map((template) => (
+                    <Button
+                      key={template.name}
+                      variant="outline"
+                      size="sm"
+                      className="flex flex-col items-center gap-1 h-auto p-2 text-xs hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                      onClick={() => {
+                        const expense: BudgetItem = {
+                          id: Date.now().toString(),
+                          name: template.name,
+                          amount: template.amount
+                        };
+                        setExpenses(prev => [...prev, expense]);
+                      }}
+                    >
+                      <span className="font-medium">{template.name}</span>
+                      <span className="text-gray-500">${template.amount}</span>
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 text-center">
+                  Click to quickly add common party categories, or use "Add Expense" for custom items
+                </p>
+              </div>
+            )}
+
             {showAddExpense && (
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
-                <div className="flex gap-2 mb-3">
-                  <Input
-                    placeholder="Expense name"
-                    value={newExpense.name}
-                    onChange={(e) => setNewExpense(prev => ({ ...prev, name: e.target.value }))}
-                    className="flex-1"
-                  />
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addExpense();
+                  }}
+                  className="space-y-3"
+                >
+                  <div className="flex gap-2">
                     <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={newExpense.amount}
-                      onChange={(e) => setNewExpense(prev => ({ ...prev, amount: e.target.value }))}
-                      className="pl-8 w-32"
-                      min="0"
-                      step="0.01"
+                      placeholder="Expense name"
+                      value={newExpense.name}
+                      onChange={(e) => setNewExpense(prev => ({ ...prev, name: e.target.value }))}
+                      className="flex-1"
+                      required
                     />
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={newExpense.amount}
+                        onChange={(e) => setNewExpense(prev => ({ ...prev, amount: e.target.value }))}
+                        className="pl-8 w-32"
+                        min="0"
+                        step="1"
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={addExpense}>
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => {
-                      setShowAddExpense(false);
-                      setNewExpense({ name: '', amount: '' });
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="submit" 
+                      size="sm"
+                      disabled={!newExpense.name.trim() || !newExpense.amount || parseFloat(newExpense.amount) <= 0}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                    <Button 
+                      type="button"
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowAddExpense(false);
+                        setNewExpense({ name: '', amount: '' });
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
               </div>
             )}
 
@@ -367,21 +461,83 @@ export default function SimpleBudgetTracker({
                 </div>
               ) : (
                 expenses.map((expense) => (
-                  <div key={expense.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 border rounded-lg">
-                    <span className="font-medium">{expense.name}</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">
-                        ${expense.amount.toFixed(2)}
-                      </Badge>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeExpense(expense.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  <div key={expense.id} className="p-3 bg-white dark:bg-slate-800 border rounded-lg">
+                    {editingExpense === expense.id ? (
+                      <form 
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          saveExpenseEdit();
+                        }}
+                        className="space-y-3"
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Expense name"
+                            value={editExpenseData.name}
+                            onChange={(e) => setEditExpenseData(prev => ({ ...prev, name: e.target.value }))}
+                            className="flex-1"
+                            required
+                          />
+                          <div className="relative">
+                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              type="number"
+                              placeholder="0"
+                              value={editExpenseData.amount}
+                              onChange={(e) => setEditExpenseData(prev => ({ ...prev, amount: e.target.value }))}
+                              className="pl-8 w-24"
+                              min="0"
+                              step="1"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            type="submit" 
+                            size="sm"
+                            disabled={!editExpenseData.name.trim() || !editExpenseData.amount || parseFloat(editExpenseData.amount) <= 0}
+                          >
+                            <Save className="h-4 w-4 mr-1" />
+                            Save
+                          </Button>
+                          <Button 
+                            type="button"
+                            size="sm" 
+                            variant="outline" 
+                            onClick={cancelExpenseEdit}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{expense.name}</span>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">
+                            ${Math.round(expense.amount)}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => startEditExpense(expense)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeExpense(expense.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
