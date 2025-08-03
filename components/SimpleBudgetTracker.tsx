@@ -252,40 +252,6 @@ export default function SimpleBudgetTracker({
               </div>
             </div>
             
-            {/* AI Category Breakdown */}
-            {aiCategories.length > 0 && (
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-purple-600" />
-                    <span className="font-medium text-purple-800 dark:text-purple-300">AI Budget Allocation</span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowAIAllocator(true)}
-                    className="flex items-center gap-1 text-purple-600 border-purple-200 hover:bg-purple-50"
-                  >
-                    <Edit3 className="h-3 w-3" />
-                    Edit
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {aiCategories.map((category) => (
-                    <div key={category.key} className="flex items-center justify-between p-2 bg-white/70 dark:bg-slate-800/70 rounded border">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{category.icon}</span>
-                        <span className="text-sm font-medium">{category.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold">${category.amount}</div>
-                        <div className="text-xs text-gray-500">{category.percentage}%</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* AI Budget Allocator Modal */}
@@ -419,7 +385,7 @@ export default function SimpleBudgetTracker({
                     <Button 
                       type="submit" 
                       size="sm"
-                      disabled={!newExpense.name.trim() || !newExpense.amount || parseFloat(newExpense.amount) <= 0}
+                      disabled={!newExpense.name.trim() || !newExpense.amount || isNaN(parseFloat(newExpense.amount)) || parseFloat(newExpense.amount) <= 0}
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
                       Add
@@ -485,7 +451,7 @@ export default function SimpleBudgetTracker({
                           <Button 
                             type="submit" 
                             size="sm"
-                            disabled={!editExpenseData.name.trim() || !editExpenseData.amount || parseFloat(editExpenseData.amount) <= 0}
+                            disabled={!editExpenseData.name.trim() || !editExpenseData.amount || isNaN(parseFloat(editExpenseData.amount)) || parseFloat(editExpenseData.amount) <= 0}
                           >
                             <Save className="h-4 w-4 mr-1" />
                             Save
