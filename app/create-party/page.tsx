@@ -186,6 +186,7 @@ interface PartyData {
   budget?: number; // New field for party budget
   zipCode?: string; // New field for zip code
   guestCount?: number; // New field for number of guests
+  zipCodeError?: string; // New field for zip code validation error
 }
 
 // Profanity detection state interface
@@ -423,6 +424,35 @@ export default function CreatePartyPage() {
     return profanityResult;
   };
 
+  // Zip code validation function
+  const validateZipCode = (zipCode: string) => {
+    if (!zipCode || zipCode.trim() === '') {
+      return 'Zip code is required';
+    }
+    
+    // Remove spaces and hyphens for validation
+    const cleanZip = zipCode.replace(/[\s\-]/g, '');
+    
+    // Check for US zip code formats: 5 digits or 9 digits (5+4)
+    const zipPattern = /^\d{5}(\d{4})?$/;
+    
+    if (!zipPattern.test(cleanZip)) {
+      return 'Please enter a valid US zip code (e.g., 12345 or 12345-6789)';
+    }
+    
+    return null;
+  };
+
+  // Handle zip code input with live validation
+  const handleZipCodeChange = (value: string) => {
+    const error = validateZipCode(value);
+    setPartyData({ 
+      ...partyData, 
+      zipCode: value,
+      zipCodeError: error || undefined 
+    });
+  };
+
   const handleNext = async () => {
     if (step === 2) {
       // Check if we have child details (tell us more field) 
@@ -510,7 +540,7 @@ export default function CreatePartyPage() {
       case 3:
         return partyData.selectedTheme !== "";
       case 4:
-        return partyData.budget !== undefined && partyData.zipCode !== "" && partyData.guestCount !== undefined; // Step 4 requires budget, zip code, and guest count
+        return partyData.budget !== undefined && partyData.zipCode !== "" && !partyData.zipCodeError && partyData.guestCount !== undefined; // Step 4 requires budget, valid zip code, and guest count
       case 5:
         return true; // Step 5 is always valid since it's just the summary/creation step
       default:
@@ -1677,11 +1707,20 @@ export default function CreatePartyPage() {
                         type="text"
                         placeholder="Enter zip code"
                         value={partyData.zipCode || ''}
-                        onChange={(e) => setPartyData({ ...partyData, zipCode: e.target.value })}
-                        className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                        onChange={(e) => handleZipCodeChange(e.target.value)}
+                        className={cn(
+                          "pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200",
+                          partyData.zipCodeError && "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        )}
                         maxLength={10}
                       />
                     </div>
+                    {partyData.zipCodeError && (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {partyData.zipCodeError}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-500">Help us suggest local vendors and activities</p>
                   </div>
 

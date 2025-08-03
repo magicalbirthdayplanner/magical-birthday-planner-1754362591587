@@ -61,6 +61,8 @@ interface LocalVendor {
   specialties: string[];
   priceRange: '$' | '$$' | '$$$' | '$$$$';
   description: string;
+  distance?: number; // Distance in miles from user's zip code
+  popularity?: number; // Popularity score based on reviews and ratings
 }
 
 interface ShoppingSuiteProps {
@@ -133,6 +135,8 @@ export default function ShoppingSuite({
   const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['Amazon', 'Walmart', 'Temu']);
+  const [productSortBy, setProductSortBy] = useState<'price' | 'rating' | 'reviews' | 'deals'>('deals');
+  const [vendorSortBy, setVendorSortBy] = useState<'distance' | 'rating' | 'reviews' | 'popularity'>('rating');
 
   // Load wishlist from localStorage
   useEffect(() => {
@@ -227,7 +231,9 @@ export default function ShoppingSuite({
         website: 'sweetdreamsbakery.com',
         specialties: ['Custom Birthday Cakes', 'Superhero Designs', 'Gluten-Free Options'],
         priceRange: '$$',
-        description: 'Best custom birthday cakes in town! Specializing in superhero and princess themes.'
+        description: 'Best custom birthday cakes in town! Specializing in superhero and princess themes.',
+        distance: 2.4,
+        popularity: 4.8 * Math.log(342 + 1)
       },
       {
         id: 'v2',
@@ -239,7 +245,9 @@ export default function ShoppingSuite({
         phone: '(555) 987-6543',
         specialties: ['Party Pizza Packages', 'Kids Menu', 'Fast Delivery'],
         priceRange: '$',
-        description: 'Perfect for birthday parties! Large group orders and kid-friendly atmosphere.'
+        description: 'Perfect for birthday parties! Large group orders and kid-friendly atmosphere.',
+        distance: 1.8,
+        popularity: 4.5 * Math.log(578 + 1)
       },
       {
         id: 'v3',
@@ -252,7 +260,23 @@ export default function ShoppingSuite({
         website: 'rainboweventcenter.com',
         specialties: ['Kids Birthday Parties', 'Indoor Playground', 'Full Catering'],
         priceRange: '$$$',
-        description: 'Complete party venue with entertainment, decorations, and catering included.'
+        description: 'Complete party venue with entertainment, decorations, and catering included.',
+        distance: 5.2,
+        popularity: 4.6 * Math.log(127 + 1)
+      },
+      {
+        id: 'v4',
+        name: 'Party Palace Decorations',
+        rating: 4.3,
+        reviews: 89,
+        category: 'decor',
+        address: '321 Balloon Ave, Your City',
+        phone: '(555) 234-5678',
+        specialties: ['Balloon Arches', 'Custom Banners', 'Theme Decorations'],
+        priceRange: '$$',
+        description: 'One-stop shop for all your party decoration needs. Custom designs available.',
+        distance: 3.7,
+        popularity: 4.3 * Math.log(89 + 1)
       }
     ];
 
@@ -303,6 +327,52 @@ export default function ShoppingSuite({
                            vendor.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
       
       return matchesCategory && matchesSearch;
+    });
+  };
+
+  const getSortedProducts = () => {
+    const filtered = getFilteredProducts();
+    
+    return filtered.sort((a, b) => {
+      switch (productSortBy) {
+        case 'price':
+          return a.price - b.price;
+        case 'rating':
+          return b.rating - a.rating;
+        case 'reviews':
+          return b.reviews - a.reviews;
+        case 'deals':
+          // Prioritize best deals and top picks
+          if (a.isBestDeal && !b.isBestDeal) return -1;
+          if (!a.isBestDeal && b.isBestDeal) return 1;
+          if (a.isTopPick && !b.isTopPick) return -1;
+          if (!a.isTopPick && b.isTopPick) return 1;
+          return b.rating - a.rating;
+        default:
+          return 0;
+      }
+    });
+  };
+
+  const getSortedVendors = () => {
+    const filtered = getFilteredVendors();
+    
+    return filtered.sort((a, b) => {
+      switch (vendorSortBy) {
+        case 'distance':
+          return (a.distance || 999) - (b.distance || 999);
+        case 'rating':
+          return b.rating - a.rating;
+        case 'reviews':
+          return b.reviews - a.reviews;
+        case 'popularity':
+          // Calculate popularity score based on rating and review count
+          const aPopularity = a.rating * Math.log(a.reviews + 1);
+          const bPopularity = b.rating * Math.log(b.reviews + 1);
+          return bPopularity - aPopularity;
+        default:
+          return 0;
+      }
     });
   };
 
@@ -447,15 +517,37 @@ export default function ShoppingSuite({
       {/* Main Shopping Content */}
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="products">Affiliate Products</TabsTrigger>
+          <TabsTrigger value="products">Online Shopping</TabsTrigger>
           <TabsTrigger value="local">Local Vendors</TabsTrigger>
           <TabsTrigger value="wishlist">Shopping List</TabsTrigger>
         </TabsList>
 
         {/* Products Tab */}
         <TabsContent value="products" className="space-y-4">
+          {/* Sort Controls for Products */}
+          <Card className="border-0 shadow-lg dark:bg-slate-800/90">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">Online Shopping</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Sort by:</span>
+                  <select 
+                    value={productSortBy}
+                    onChange={(e) => setProductSortBy(e.target.value as any)}
+                    className="text-sm border border-gray-300 dark:border-slate-600 rounded-md px-3 py-1 bg-white dark:bg-slate-700 dark:text-gray-200"
+                  >
+                    <option value="deals">Best Deals</option>
+                    <option value="price">Price (Low to High)</option>
+                    <option value="rating">Customer Rating</option>
+                    <option value="reviews">Most Reviews</option>
+                  </select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {getFilteredProducts().map((item) => (
+            {getSortedProducts().map((item) => (
               <Card key={item.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow dark:bg-slate-800/90">
                 <div className="relative">
                   <img 
@@ -527,7 +619,7 @@ export default function ShoppingSuite({
             ))}
           </div>
 
-          {getFilteredProducts().length === 0 && (
+          {getSortedProducts().length === 0 && (
             <Card className="border-0 shadow-lg dark:bg-slate-800/90">
               <CardContent className="p-8 text-center">
                 <ShoppingBag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -542,8 +634,30 @@ export default function ShoppingSuite({
 
         {/* Local Vendors Tab */}
         <TabsContent value="local" className="space-y-4">
+          {/* Sort Controls for Vendors */}
+          <Card className="border-0 shadow-lg dark:bg-slate-800/90">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">Local Vendors</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Sort by:</span>
+                  <select 
+                    value={vendorSortBy}
+                    onChange={(e) => setVendorSortBy(e.target.value as any)}
+                    className="text-sm border border-gray-300 dark:border-slate-600 rounded-md px-3 py-1 bg-white dark:bg-slate-700 dark:text-gray-200"
+                  >
+                    <option value="distance">Distance</option>
+                    <option value="rating">Customer Rating</option>
+                    <option value="reviews">Most Reviews</option>
+                    <option value="popularity">Popularity</option>
+                  </select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
           <div className="space-y-4">
-            {getFilteredVendors().map((vendor) => (
+            {getSortedVendors().map((vendor) => (
               <Card key={vendor.id} className="border-0 shadow-lg dark:bg-slate-800/90">
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
@@ -559,6 +673,11 @@ export default function ShoppingSuite({
                           {vendor.rating} ({vendor.reviews} reviews)
                         </span>
                         <Badge variant="outline">{vendor.priceRange}</Badge>
+                        {vendor.distance && (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                            {vendor.distance} mi
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                         {vendor.description}
@@ -610,7 +729,7 @@ export default function ShoppingSuite({
             ))}
           </div>
 
-          {getFilteredVendors().length === 0 && (
+          {getSortedVendors().length === 0 && (
             <Card className="border-0 shadow-lg dark:bg-slate-800/90">
               <CardContent className="p-8 text-center">
                 <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
