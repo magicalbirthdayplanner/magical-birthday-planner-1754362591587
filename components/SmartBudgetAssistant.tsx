@@ -183,14 +183,33 @@ export default function SmartBudgetAssistant({
   // Load data from localStorage on component mount
   useEffect(() => {
     const savedBudget = localStorage.getItem(`budget_${partyId}`);
-    if (savedBudget) {
+    
+    // If initialBudget is provided, prioritize it over saved data
+    if (initialBudget && initialBudget > 0) {
+      if (savedBudget) {
+        const data = JSON.parse(savedBudget);
+        // If saved budget differs from initialBudget, clear saved data and use initialBudget
+        if (data.totalBudget !== initialBudget) {
+          localStorage.removeItem(`budget_${partyId}`);
+          setTotalBudget(initialBudget);
+          setBudgetCategories([]);
+          setBudgetPreferences('balanced');
+          return;
+        }
+        // Use saved data if it matches initialBudget
+        setTotalBudget(data.totalBudget);
+        setBudgetCategories(data.categories || []);
+        setBudgetPreferences(data.preferences || 'balanced');
+      } else {
+        // No saved budget, use initialBudget
+        setTotalBudget(initialBudget);
+      }
+    } else if (savedBudget) {
+      // No initialBudget, use saved data as fallback
       const data = JSON.parse(savedBudget);
-      setTotalBudget(data.totalBudget || initialBudget || 0);
+      setTotalBudget(data.totalBudget || 0);
       setBudgetCategories(data.categories || []);
       setBudgetPreferences(data.preferences || 'balanced');
-    } else if (initialBudget && initialBudget > 0) {
-      // If no saved budget but initialBudget is provided, use it
-      setTotalBudget(initialBudget);
     }
   }, [partyId, initialBudget]);
 
