@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import GuestList, { Guest, Invitation } from "@/components/GuestList";
 import BulkInvitations from "@/components/BulkInvitations";
 import RSVPTracker from "@/components/RSVPTracker";
-import SmartBudgetAssistant from "@/components/SmartBudgetAssistant";
+import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
 import { 
   PartyPopper, 
   CheckCircle2, 
@@ -139,39 +139,24 @@ export default function PartyPlanPage() {
   const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Activities', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
   const [budgetRefresh, setBudgetRefresh] = useState(0);
 
-  // Helper function to get budget data
+  // Helper function to get budget data (updated for SimpleBudgetTracker)
   const getBudgetData = () => {
     if (typeof window === 'undefined') return { totalBudget: 0, totalSpent: 0, percentage: 0 };
     
     try {
-      // First check if Step 4 budget exists and use it as the authoritative source
-      if (partyData?.budget && partyData.budget > 0) {
-        const savedBudget = localStorage.getItem(`budget_${partyData?.childName || 'party'}`);
-        if (savedBudget) {
-          const data = JSON.parse(savedBudget);
-          // If saved budget total differs from Step 4 budget, clear localStorage to use Step 4 budget
-          if (data.totalBudget !== partyData.budget) {
-            localStorage.removeItem(`budget_${partyData?.childName || 'party'}`);
-            return { totalBudget: partyData.budget, totalSpent: 0, percentage: 0 };
-          }
-          // Use saved budget data if it matches Step 4 budget
-          const totalBudget = data.totalBudget || partyData.budget;
-          const totalSpent = data.categories ? data.categories.reduce((sum: number, cat: any) => sum + (cat.spent || 0), 0) : 0;
-          const percentage = totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
-          return { totalBudget, totalSpent, percentage };
-        }
-        // No saved budget, use Step 4 budget as fresh start
-        return { totalBudget: partyData.budget, totalSpent: 0, percentage: 0 };
-      }
-      
-      // Fallback to saved budget if no Step 4 budget exists
-      const savedBudget = localStorage.getItem(`budget_${partyData?.childName || 'party'}`);
+      // Check for simple budget tracker data
+      const savedBudget = localStorage.getItem(`simple_budget_${partyData?.childName || 'party'}`);
       if (savedBudget) {
         const data = JSON.parse(savedBudget);
-        const totalBudget = data.totalBudget || 0;
-        const totalSpent = data.categories ? data.categories.reduce((sum: number, cat: any) => sum + (cat.spent || 0), 0) : 0;
+        const totalBudget = data.totalBudget || (partyData?.budget || 0);
+        const totalSpent = data.expenses ? data.expenses.reduce((sum: number, expense: any) => sum + (expense.amount || 0), 0) : 0;
         const percentage = totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
         return { totalBudget, totalSpent, percentage };
+      }
+      
+      // Fallback to Step 4 budget if no saved data
+      if (partyData?.budget && partyData.budget > 0) {
+        return { totalBudget: partyData.budget, totalSpent: 0, percentage: 0 };
       }
     } catch (error) {
       console.error('Error getting budget data:', error);
@@ -902,13 +887,8 @@ export default function PartyPlanPage() {
 
           {/* Budget Tab */}
           <TabsContent value="budget" className="space-y-6">
-            <SmartBudgetAssistant
+            <SimpleBudgetTracker
               partyId={partyData?.childName || 'party'}
-              childName={partyData?.childName || ''}
-              childAge={parseInt(partyData?.childAge || '0')}
-              partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
-              theme={partyData?.selectedTheme || ''}
-              guestCount={partyData?.guestCount || guests.length}
               initialBudget={partyData?.budget}
             />
           </TabsContent>
