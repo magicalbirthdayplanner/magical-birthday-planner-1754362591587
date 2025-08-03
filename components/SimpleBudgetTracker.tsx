@@ -188,15 +188,6 @@ export default function SimpleBudgetTracker({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowAIAllocator(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-purple-200"
-              >
-                <Sparkles className="h-4 w-4 text-purple-600" />
-                AI Allocate
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
                 onClick={() => setIsEditingBudget(true)}
                 className="flex items-center gap-2"
               >
@@ -338,22 +329,20 @@ export default function SimpleBudgetTracker({
                   <Plus className="h-4 w-4" />
                   Add Expense
                 </Button>
-                {aiCategories.length === 0 && totalBudget > 0 && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowAIAllocator(true)}
-                    className="flex items-center gap-2 text-purple-600 border-purple-200 hover:bg-purple-50"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Smart Allocate
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowAIAllocator(true)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-purple-200 text-purple-600"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  AI Allocate
+                </Button>
               </div>
             </div>
 
-            {/* Quick Add Category Templates */}
-            {!showAddExpense && expenses.length === 0 && aiCategories.length === 0 && (
+            {/* Quick Add Category Templates - Always Available */}
+            {!showAddExpense && (
               <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="h-4 w-4 text-purple-600" />
