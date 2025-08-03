@@ -152,6 +152,11 @@ export default function PartyPlanPage() {
         const percentage = totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
         return { totalBudget, totalSpent, percentage };
       }
+      
+      // If no saved budget data exists, use budget from Step 4 of the wizard
+      if (partyData?.budget && partyData.budget > 0) {
+        return { totalBudget: partyData.budget, totalSpent: 0, percentage: 0 };
+      }
     } catch (error) {
       console.error('Error getting budget data:', error);
     }

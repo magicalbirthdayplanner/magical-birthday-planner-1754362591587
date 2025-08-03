@@ -1,3 +1,28 @@
+## [usr-1754187075269]
+**User Request:** The Budget Tracker and Budget overview section  after the wizard , needs to take the input from Step 4 of the wizard where budget was entered. 
+
+For example, if in the step 4 of the wizard, $500 is entered, the same should reflect in the budget tracker and total budget in the budget overview. Currently it is defaulting to $9. That is incorrect. 
+**Response Summary:** Fixed the budget integration issue between Step 4 of the wizard and the Budget Tracker/Budget Overview sections. The budget amount entered in Step 4 now properly flows to and displays in the planning module.
+
+**Key Changes:**
+
+1. **Root Cause Analysis:**
+   - The $9 default was not a hardcoded value but rather persisted data from previous mock deal purchases stored in localStorage
+   - The `getBudgetData()` function was only checking localStorage budget data and not falling back to the Step 4 budget from `partyData.budget`
+
+2. **Budget Data Flow Fix:**
+   - Modified `getBudgetData()` function in `/app/party-plan/page.tsx` to use budget from Step 4 when no saved budget exists in localStorage
+   - Added fallback logic: if no saved budget data exists, function now returns the budget amount entered in Step 4 of the wizard
+   - This ensures budget from Step 4 ($500 in the example) properly displays in Budget Tracker and Budget Overview sections
+
+3. **Integration Verification:**
+   - Step 4 already properly captures budget in `partyData.budget` field
+   - Budget is correctly passed as `initialBudget` prop to `SmartBudgetAssistant` component
+   - Budget overview sections now display Step 4 budget until user sets up detailed budget categories
+
+**Files Modified:** 
+- `/app/party-plan/page.tsx` - Updated `getBudgetData()` function to include Step 4 budget fallback logic
+
 ## [usr-1754186292500]
 **User Request:** Party Budget entered in the Step 4 is the total budget that comes in budget overview tab in the planning module/budget tracker
 
