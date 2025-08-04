@@ -1,7 +1,6 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
 import { Home, User, LogOut, Calendar, Loader2 } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,20 +14,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function Header() {
-  const { user, signOut } = useAuth();
-  const [isSigningOut, setIsSigningOut] = useState(false);
+  const { user, signOut, isSigningOut } = useAuth();
 
   const handleSignOut = async () => {
     if (isSigningOut) return; // Prevent multiple clicks
     
-    setIsSigningOut(true);
     try {
       await signOut();
-      // AuthContext will handle the redirect and state clearing
-      // Don't reset isSigningOut here as the page will redirect
+      // AuthContext handles all state management and redirect
     } catch (error) {
       console.error('Unexpected error during signout:', error);
-      setIsSigningOut(false);
     }
   };
 

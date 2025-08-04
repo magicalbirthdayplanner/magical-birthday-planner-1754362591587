@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  isSigningOut: boolean
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signInWithGoogle: () => Promise<{ error: any }>
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const supabase = createClientComponentClient()
 
   useEffect(() => {
@@ -141,11 +143,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    if (isSigningOut) return { error: new Error('Signout already in progress') }
+    
     try {
+      setIsSigningOut(true)
+      
       // Sign out from Supabase first
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Signout failed:', error)
+        setIsSigningOut(false)
         return { error }
       }
       
@@ -165,14 +172,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.warn('Failed to clear localStorage:', localStorageError)
       }
       
-      // Use a small timeout to ensure state updates complete before redirect
-      setTimeout(() => {
-        window.location.replace('/')
-      }, 100)
+      // Clear the signing out state before redirect
+      setIsSigningOut(false)
+      
+      // Use immediate redirect without timeout to prevent race conditions
+      window.location.replace('/')
       
       return { error: null }
     } catch (error) {
       console.error('Signout failed:', error)
+      setIsSigningOut(false)
       return { error }
     }
   }
@@ -181,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     loading,
+    isSigningOut,
     signUp,
     signIn,
     signInWithGoogle,
