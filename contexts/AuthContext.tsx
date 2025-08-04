@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error }
       }
       
-      // Clear local state
+      // Clear local state immediately
       setUser(null)
       setSession(null)
       setLoading(false)
@@ -165,8 +165,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.warn('Failed to clear localStorage:', localStorageError)
       }
       
-      // Force a complete page reload to ensure clean state
-      window.location.replace('/')
+      // Use a small timeout to ensure state updates complete before redirect
+      setTimeout(() => {
+        window.location.replace('/')
+      }, 100)
       
       return { error: null }
     } catch (error) {

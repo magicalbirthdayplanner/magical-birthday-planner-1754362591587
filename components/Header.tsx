@@ -25,6 +25,7 @@ export function Header() {
     try {
       await signOut();
       // AuthContext will handle the redirect and state clearing
+      // Don't reset isSigningOut here as the page will redirect
     } catch (error) {
       console.error('Unexpected error during signout:', error);
       setIsSigningOut(false);
