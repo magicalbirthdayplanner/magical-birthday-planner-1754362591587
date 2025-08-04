@@ -1,8 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Home, User, LogOut, Calendar, Loader2 } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,35 +16,15 @@ import {
 
 export function Header() {
   const { user, signOut } = useAuth();
-  const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const wasAuthenticated = useRef(false);
-
-  // Track authentication state changes for proper signout handling
-  useEffect(() => {
-    if (user) {
-      wasAuthenticated.current = true;
-    } else if (wasAuthenticated.current && !user && isSigningOut) {
-      // User was authenticated, now is null, and we're in signout process
-      // This means signout was successful, redirect and reset state
-      router.push('/');
-      setIsSigningOut(false);
-      wasAuthenticated.current = false;
-    }
-  }, [user, isSigningOut, router]);
 
   const handleSignOut = async () => {
     if (isSigningOut) return; // Prevent multiple clicks
     
     setIsSigningOut(true);
     try {
-      const { error } = await signOut();
-      if (error) {
-        console.error('Failed to sign out:', error);
-        setIsSigningOut(false);
-        return;
-      }
-      // AuthContext will handle the redirect
+      await signOut();
+      // AuthContext will handle the redirect and state clearing
     } catch (error) {
       console.error('Unexpected error during signout:', error);
       setIsSigningOut(false);

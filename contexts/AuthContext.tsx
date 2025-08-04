@@ -142,20 +142,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      // Clear local state immediately
-      setUser(null)
-      setSession(null)
-      setLoading(false)
-      
-      // Sign out from Supabase
+      // Sign out from Supabase first
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Signout failed:', error)
         return { error }
       }
       
-      // Force a refresh to clear any cached state
-      window.location.href = '/'
+      // Clear local state
+      setUser(null)
+      setSession(null)
+      setLoading(false)
+      
+      // Clear any localStorage data that might persist user state
+      try {
+        localStorage.removeItem('partyData')
+        localStorage.removeItem('partyChecklist')
+        localStorage.removeItem('partyGuests')
+        localStorage.removeItem('partyBudget')
+        localStorage.removeItem('partyShoppingList')
+      } catch (localStorageError) {
+        console.warn('Failed to clear localStorage:', localStorageError)
+      }
+      
+      // Force a complete page reload to ensure clean state
+      window.location.replace('/')
       
       return { error: null }
     } catch (error) {
