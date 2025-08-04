@@ -16,6 +16,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
 import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { useAuth } from "@/contexts/AuthContext";
 
 const interestOptions = [
   "Animals", "Art & Crafts", "Cars", "Dancing", "Music", "Sports", "Science",
@@ -326,6 +328,7 @@ const getFallbackRecommendations = (childName: string, age: number, interests: s
 };
 
 export default function CreatePartyPage() {
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [partyData, setPartyData] = useState<PartyData>({
     childName: "",
@@ -372,6 +375,84 @@ export default function CreatePartyPage() {
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholderExamples[0]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Auto-save party data every 5 seconds
+  const savePartyData = async (dataToSave: PartyData) => {
+    if (!user || !dataToSave.childName.trim()) return;
+    
+    const response = await fetch('/api/party-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToSave)
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to save party data');
+    }
+  };
+
+  const { manualSave } = useAutoSave(partyData, 'partyData', 5000, savePartyData);
+
+  // Load existing party data on component mount
+  useEffect(() => {
+    const loadExistingData = async () => {
+      try {
+        // Try to load from database if user is authenticated
+        if (user) {
+          const response = await fetch('/api/party-data');
+          if (response.ok) {
+            const { parties } = await response.json();
+            if (parties && parties.length > 0) {
+              // Load the most recent party data
+              const latestParty = parties[parties.length - 1];
+              setPartyData({
+                childName: latestParty.childName || "",
+                childAge: latestParty.childAge || 1,
+                childGender: latestParty.childGender || "",
+                childInterests: latestParty.interests || [],
+                favoriteColors: latestParty.favoriteColors || [],
+                partyDate: latestParty.partyDate ? new Date(latestParty.partyDate) : undefined,
+                selectedTheme: latestParty.theme || "",
+                aiRecommendations: [],
+                isLoadingAI: false,
+                classicTheme: latestParty.theme || "",
+                budget: latestParty.budget || undefined,
+                zipCode: "",
+                guestCount: latestParty.guestCount || undefined
+              });
+            }
+          }
+        } else {
+          // Fallback to localStorage
+          const savedData = localStorage.getItem('partyData');
+          if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            setPartyData({
+              ...partyData,
+              ...parsedData,
+              partyDate: parsedData.partyDate ? new Date(parsedData.partyDate) : undefined
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading party data:', error);
+        // Fallback to localStorage
+        const savedData = localStorage.getItem('partyData');
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+          setPartyData({
+            ...partyData,
+            ...parsedData,
+            partyDate: parsedData.partyDate ? new Date(parsedData.partyDate) : undefined
+          });
+        }
+      }
+    };
+
+    loadExistingData();
+  }, [user]);
 
   // Rotate placeholder text every 5 seconds
   useEffect(() => {

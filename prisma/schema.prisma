@@ -23,20 +23,26 @@ model User {
 }
 
 model Party {
-  id          String   @id @default(cuid())
-  childName   String
-  childAge    Int
-  partyDate   DateTime
-  theme       String
-  interests   String[] // Array of child's interests
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  childName       String
+  childAge        Int
+  childGender     String?
+  partyDate       DateTime
+  theme           String
+  interests       String[] // Array of child's interests
+  favoriteColors  String[] // Array of favorite colors
+  guestCount      Int?
+  budget          Float?
+  location        String?
+  checklistData   Json?    // Stores checklist progress and custom tasks
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  guests      Guest[]
-  invitations Invitation[]
+  guests          Guest[]
+  invitations     Invitation[]
   
   @@map("parties")
 }

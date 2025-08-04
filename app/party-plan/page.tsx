@@ -13,6 +13,8 @@ import RSVPTracker from "@/components/RSVPTracker";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
 import ShoppingSuite from "@/components/ShoppingSuite";
 import Activities from "@/components/Activities";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   PartyPopper, 
   CheckCircle2, 
@@ -128,6 +130,7 @@ const themeData = {
 };
 
 export default function PartyPlanPage() {
+  const { user } = useAuth();
   const [partyData, setPartyData] = useState<PartyData | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
@@ -141,6 +144,28 @@ export default function PartyPlanPage() {
   const [timelineDensity, setTimelineDensity] = useState<'compact' | 'expanded'>('expanded');
   const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Activities', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
   const [budgetRefresh, setBudgetRefresh] = useState(0);
+
+  // Auto-save checklist data every 5 seconds
+  const saveChecklistData = async (checklistData: ChecklistItem[]) => {
+    if (!user || !partyData) return;
+    
+    const response = await fetch('/api/party-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...partyData,
+        checklistData: checklistData
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to save checklist data');
+    }
+  };
+
+  const { manualSave: manualSaveChecklist } = useAutoSave(checklist, 'partyChecklist', 5000, saveChecklistData);
 
   // Helper function to get budget data (updated for SimpleBudgetTracker)
   const getBudgetData = () => {

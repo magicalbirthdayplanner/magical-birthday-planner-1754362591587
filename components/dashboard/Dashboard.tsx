@@ -28,8 +28,50 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Load parties from localStorage for now
-    const loadParties = () => {
+    const loadParties = async () => {
+      try {
+        if (user) {
+          // Load from database if user is authenticated
+          const response = await fetch('/api/party-data')
+          if (response.ok) {
+            const { parties: dbParties } = await response.json()
+            
+            const formattedParties = dbParties.map((party: any) => {
+              const checklistData = party.checklistData || []
+              const checkedTasks = Array.isArray(checklistData) ? checklistData.filter((task: any) => task.completed).length : 0
+              const totalTasks = Array.isArray(checklistData) && checklistData.length > 0 ? checklistData.length : 15
+              
+              return {
+                id: party.id,
+                childName: party.childName,
+                age: party.childAge,
+                date: new Date(party.partyDate),
+                theme: party.theme,
+                guestCount: party.guestCount || party.guests?.length || 0,
+                checkedTasks,
+                totalTasks,
+                status: new Date(party.partyDate) > new Date() ? 'upcoming' : 'completed'
+              }
+            })
+            
+            setParties(formattedParties)
+          } else {
+            // Fallback to localStorage if API fails
+            loadFromLocalStorage()
+          }
+        } else {
+          // Load from localStorage if not authenticated
+          loadFromLocalStorage()
+        }
+      } catch (error) {
+        console.error('Error loading parties from database:', error)
+        // Fallback to localStorage on error
+        loadFromLocalStorage()
+      }
+      setLoading(false)
+    }
+
+    const loadFromLocalStorage = () => {
       try {
         const partyPlanData = localStorage.getItem('partyPlanData')
         if (partyPlanData) {
@@ -64,13 +106,12 @@ export default function Dashboard() {
           setParties([party])
         }
       } catch (error) {
-        console.error('Error loading parties:', error)
+        console.error('Error loading parties from localStorage:', error)
       }
-      setLoading(false)
     }
 
     loadParties()
-  }, [])
+  }, [user])
 
   const upcomingParties = parties.filter(party => party.status === 'upcoming')
   const completedParties = parties.filter(party => party.status === 'completed')
