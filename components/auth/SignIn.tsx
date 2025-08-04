@@ -67,7 +67,7 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
-      <Card className="w-full max-w-md dark:bg-slate-800/90 dark:backdrop-blur-sm">
+      <Card className="w-full max-w-md sm:max-w-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Welcome Back
@@ -134,7 +134,7 @@ export default function SignIn() {
 
           <div className="my-4 flex items-center">
             <div className="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
-            <span className="px-4 text-sm text-gray-500 dark:text-gray-400">Or continue with</span>
+            <span className="px-4 text-sm sm:text-base text-gray-500 dark:text-gray-400">Or continue with</span>
             <div className="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
           </div>
 
@@ -191,7 +191,7 @@ export default function SignIn() {
             </Button>
           </div>
           
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-4 text-center text-sm sm:text-base">
             <span className="text-gray-600 dark:text-gray-300">Don't have an account? </span>
             <button
               onClick={() => router.push('/signup')}

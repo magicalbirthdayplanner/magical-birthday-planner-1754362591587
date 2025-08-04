@@ -796,41 +796,41 @@ export default function PartyPlanPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-9 mb-6 sm:mb-8 h-auto p-1">
-            <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+          <TabsList className="flex w-full overflow-x-auto lg:grid lg:grid-cols-9 mb-6 sm:mb-8 h-auto p-1 gap-1">
+            <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <PartyPopper className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Overview</span>
               <span className="sm:hidden">Main</span>
             </TabsTrigger>
-            <TabsTrigger value="budget" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+            <TabsTrigger value="budget" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
               Budget
             </TabsTrigger>
-            <TabsTrigger value="shopping" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+            <TabsTrigger value="shopping" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <ShoppingBag className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Shopping</span>
               <span className="sm:hidden">Shop</span>
             </TabsTrigger>
-            <TabsTrigger value="checklist" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+            <TabsTrigger value="checklist" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Checklist</span>
               <span className="sm:hidden">Tasks</span>
             </TabsTrigger>
-            <TabsTrigger value="guests" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+            <TabsTrigger value="guests" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <Users className="h-3 w-3 sm:h-4 sm:w-4" />
               Guests
             </TabsTrigger>
-            <TabsTrigger value="invitations" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+            <TabsTrigger value="invitations" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden md:inline">Invitations</span>
               <span className="md:hidden">RSVP</span>
             </TabsTrigger>
-            <TabsTrigger value="activities" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+            <TabsTrigger value="activities" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <Music className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden md:inline">Activities</span>
               <span className="md:hidden">Games</span>
             </TabsTrigger>
-            <TabsTrigger value="timeline" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+            <TabsTrigger value="timeline" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden lg:inline">Timeline</span>
               <span className="lg:hidden">Time</span>

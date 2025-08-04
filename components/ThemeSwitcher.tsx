@@ -12,7 +12,7 @@ export function ThemeSwitcher() {
       variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className="h-9 w-9 rounded-full border-2 transition-all duration-200 hover:scale-105"
+      className="h-10 w-10 rounded-full border-2 transition-all duration-200 hover:scale-105"
     >
       {theme === 'light' ? (
         <Moon className="h-4 w-4" />

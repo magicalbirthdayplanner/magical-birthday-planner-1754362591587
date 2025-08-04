@@ -29,7 +29,7 @@ export function Header() {
             href="/" 
             className="flex items-center space-x-1 sm:space-x-2 text-gray-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200"
           >
-            <Home className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Home className="h-5 w-5 sm:h-6 sm:w-6" />
             <span className="font-semibold text-base sm:text-lg">Home</span>
           </Link>
 
@@ -51,7 +51,7 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3">
                       <User className="h-4 w-4" />
-                      <span className="hidden md:inline text-sm max-w-20 truncate">
+                      <span className="hidden md:inline text-sm max-w-32 truncate">
                         {user.user_metadata?.display_name || user.email?.split('@')[0] || 'Account'}
                       </span>
                     </Button>
@@ -80,7 +80,7 @@ export function Header() {
                 >
                   Sign In
                 </Link>
-                <Button asChild size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-3 sm:px-4 text-sm">
+                <Button asChild size="default" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-3 sm:px-4 text-sm">
                   <Link href="/signup">Sign Up</Link>
                 </Button>
               </>
