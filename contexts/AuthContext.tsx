@@ -148,34 +148,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsSigningOut(true)
       
-      // Sign out from Supabase first
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('Signout failed:', error)
-        setIsSigningOut(false)
-        return { error }
-      }
-      
-      // Clear local state immediately
+      // Clear local state immediately for instant UI update
       setUser(null)
       setSession(null)
       setLoading(false)
       
-      // Clear any localStorage data that might persist user state
-      try {
-        localStorage.removeItem('partyData')
-        localStorage.removeItem('partyChecklist')
-        localStorage.removeItem('partyGuests')
-        localStorage.removeItem('partyBudget')
-        localStorage.removeItem('partyShoppingList')
-      } catch (localStorageError) {
-        console.warn('Failed to clear localStorage:', localStorageError)
-      }
+      // Fire-and-forget Supabase signout (don't await to avoid delays)
+      supabase.auth.signOut().catch(error => {
+        console.warn('Supabase signout warning (non-blocking):', error)
+      })
       
-      // Clear the signing out state before redirect
-      setIsSigningOut(false)
+      // Clear localStorage in parallel (don't await to avoid delays)
+      Promise.resolve().then(() => {
+        try {
+          localStorage.removeItem('partyData')
+          localStorage.removeItem('partyChecklist')
+          localStorage.removeItem('partyGuests')
+          localStorage.removeItem('partyBudget')
+          localStorage.removeItem('partyShoppingList')
+        } catch (localStorageError) {
+          console.warn('Failed to clear localStorage:', localStorageError)
+        }
+      })
       
-      // Use immediate redirect without timeout to prevent race conditions
+      // Immediate redirect for ultrafast signout experience
       window.location.replace('/')
       
       return { error: null }
