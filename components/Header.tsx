@@ -1,7 +1,9 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, User, LogOut, Calendar } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Home, User, LogOut, Calendar, Loader2 } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -15,9 +17,26 @@ import {
 
 export function Header() {
   const { user, signOut } = useAuth();
+  const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
+    if (isSigningOut) return; // Prevent multiple clicks
+    
+    setIsSigningOut(true);
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.error('Failed to sign out:', error);
+        setIsSigningOut(false);
+        return;
+      }
+      // Redirect to home page after successful signout
+      router.push('/');
+    } catch (error) {
+      console.error('Unexpected error during signout:', error);
+      setIsSigningOut(false);
+    }
   };
 
   return (
@@ -64,9 +83,17 @@ export function Header() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
+                    <DropdownMenuItem 
+                      onClick={handleSignOut} 
+                      className="text-red-600"
+                      disabled={isSigningOut}
+                    >
+                      {isSigningOut ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <LogOut className="mr-2 h-4 w-4" />
+                      )}
+                      {isSigningOut ? 'Signing Out...' : 'Sign Out'}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

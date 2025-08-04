@@ -13,7 +13,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<{ error: any }>
   signInWithFacebook: () => Promise<{ error: any }>
   signInWithApple: () => Promise<{ error: any }>
-  signOut: () => Promise<void>
+  signOut: () => Promise<{ error: any }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -103,7 +103,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Signout failed:', error)
+        return { error }
+      }
+      return { error: null }
+    } catch (error) {
+      console.error('Signout failed:', error)
+      return { error }
+    }
   }
 
   const value = {
