@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Home, User, LogOut, Calendar, Loader2 } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +19,20 @@ export function Header() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const wasAuthenticated = useRef(false);
+
+  // Track authentication state changes for proper signout handling
+  useEffect(() => {
+    if (user) {
+      wasAuthenticated.current = true;
+    } else if (wasAuthenticated.current && !user && isSigningOut) {
+      // User was authenticated, now is null, and we're in signout process
+      // This means signout was successful, redirect and reset state
+      router.push('/');
+      setIsSigningOut(false);
+      wasAuthenticated.current = false;
+    }
+  }, [user, isSigningOut, router]);
 
   const handleSignOut = async () => {
     if (isSigningOut) return; // Prevent multiple clicks
@@ -31,8 +45,7 @@ export function Header() {
         setIsSigningOut(false);
         return;
       }
-      // Redirect to home page after successful signout
-      router.push('/');
+      // Don't manually redirect here - let useEffect handle it based on auth state change
     } catch (error) {
       console.error('Unexpected error during signout:', error);
       setIsSigningOut(false);

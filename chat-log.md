@@ -1,3 +1,27 @@
+## [usr-1754347487760]
+**User Request:** Its not signing out. Keeps gettting struck and shows the circle rotating for ever 
+**Response Summary:** Fixed infinite loading spinner issue in signout functionality by implementing proper state management and auth state change monitoring. The previous signout implementation had a race condition between the loading state and authentication state changes, causing the spinner to get stuck.
+
+**Root Cause Analysis:**
+- Race condition between `isSigningOut` state and auth state changes from Supabase
+- Manual redirect timing interfered with auth state change handling
+- Loading state wasn't properly reset when auth state changed during navigation
+
+**Signout Flow Improvements:**
+✅ **State Synchronization**: Added useRef to track authentication status across renders
+✅ **Auth State Monitoring**: Implemented useEffect to watch for auth state changes during signout
+✅ **Automatic State Reset**: Loading state automatically resets when user becomes null during signout
+✅ **Race Condition Fix**: Removed manual redirect timing that interfered with auth state changes
+✅ **Improved Logic Flow**: Let auth state changes drive the redirect and state reset process
+
+**Technical Implementation:**
+- Added `wasAuthenticated` ref to track previous auth state
+- useEffect monitors user state changes during signout process
+- Automatic redirect and state reset when user transitions from authenticated to null
+- Removed setTimeout-based redirect that caused timing conflicts
+
+**Files Modified:** components/Header.tsx
+
 ## [usr-1754346092629]
 **User Request:** Unable to signout from the page.
 **Response Summary:** Successfully fixed signout functionality by implementing comprehensive error handling, redirect logic, and improved user experience. The signout feature was working at a basic level but lacked proper error handling and user feedback, which could cause users to think it wasn't working.
