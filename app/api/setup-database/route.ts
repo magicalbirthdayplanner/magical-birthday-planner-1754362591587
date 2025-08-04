@@ -45,85 +45,223 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // For now, since we can't directly execute SQL via Supabase client,
-    // we'll return instructions for the user to manually create tables
+    // Provide comprehensive SQL instructions for fresh database setup
     const instructions = `
-Database tables are missing. Please go to your Supabase dashboard:
+🎉 MAGICAL BIRTHDAY PLANNER - FRESH DATABASE SETUP
 
-1. Go to https://supabase.com/dashboard/project/${supabaseUrl?.split('//')[1]?.split('.')[0]}/editor
-2. Create the following tables using the SQL Editor:
+As requested, please FIRST DELETE any existing tables if they exist, then create fresh ones.
 
--- First create the enums
+1. Go to your Supabase dashboard SQL Editor: 
+   https://supabase.com/dashboard/project/${supabaseUrl?.split('//')[1]?.split('.')[0]}/editor
+
+2. FIRST - Drop existing tables and types if they exist (run this first):
+
+-- Drop existing tables in correct order (foreign keys first)
+DROP TABLE IF EXISTS invitations CASCADE;
+DROP TABLE IF EXISTS guests CASCADE; 
+DROP TABLE IF EXISTS parties CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
+-- Drop existing types
+DROP TYPE IF EXISTS "InvitationStatus" CASCADE;
+DROP TYPE IF EXISTS "GuestType" CASCADE;
+
+3. NOW - Create fresh database schema:
+
+-- Step 1: Create enums
 CREATE TYPE "GuestType" AS ENUM ('ADULT', 'CHILD');
 CREATE TYPE "InvitationStatus" AS ENUM ('PENDING', 'SENT', 'ACCEPTED', 'DECLINED', 'MAYBE');
 
--- Create tables with proper structure
-CREATE TABLE users (
-  id TEXT PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  name TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- Step 2: Create users table  
+CREATE TABLE "users" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE parties (
-  id TEXT PRIMARY KEY,
-  child_name TEXT NOT NULL,
-  child_age INTEGER NOT NULL,
-  child_gender TEXT,
-  party_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  theme TEXT NOT NULL,
-  interests TEXT[] DEFAULT '{}',
-  favorite_colors TEXT[] DEFAULT '{}',
-  guest_count INTEGER,
-  budget DECIMAL,
-  location TEXT,
-  checklist_data JSONB,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  user_id TEXT REFERENCES users(id) ON DELETE CASCADE
+-- Step 3: Create parties table
+CREATE TABLE "parties" (
+    "id" TEXT NOT NULL,
+    "childName" TEXT NOT NULL,
+    "childAge" INTEGER NOT NULL,
+    "childGender" TEXT,
+    "partyDate" TIMESTAMP(3) NOT NULL,
+    "theme" TEXT NOT NULL,
+    "interests" TEXT[],
+    "favoriteColors" TEXT[],
+    "guestCount" INTEGER,
+    "budget" DOUBLE PRECISION,
+    "location" TEXT,
+    "checklistData" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "parties_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE guests (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT,
-  phone TEXT,
-  type "GuestType" DEFAULT 'ADULT',
-  age INTEGER,
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  party_id TEXT REFERENCES parties(id) ON DELETE CASCADE
+-- Step 4: Create guests table
+CREATE TABLE "guests" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT,
+    "phone" TEXT,
+    "type" "GuestType" NOT NULL DEFAULT 'ADULT',
+    "age" INTEGER,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "partyId" TEXT NOT NULL,
+    CONSTRAINT "guests_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE invitations (
-  id TEXT PRIMARY KEY,
-  status "InvitationStatus" DEFAULT 'PENDING',
-  sent_at TIMESTAMP WITH TIME ZONE,
-  responded_at TIMESTAMP WITH TIME ZONE,
-  message TEXT,
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  party_id TEXT REFERENCES parties(id) ON DELETE CASCADE,
-  guest_id TEXT REFERENCES guests(id) ON DELETE CASCADE,
-  UNIQUE(party_id, guest_id)
+-- Step 5: Create invitations table
+CREATE TABLE "invitations" (
+    "id" TEXT NOT NULL,
+    "status" "InvitationStatus" NOT NULL DEFAULT 'PENDING',
+    "sentAt" TIMESTAMP(3),
+    "respondedAt" TIMESTAMP(3),
+    "message" TEXT,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "partyId" TEXT NOT NULL,
+    "guestId" TEXT NOT NULL,
+    CONSTRAINT "invitations_pkey" PRIMARY KEY ("id")
 );
 
--- Enable RLS
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE parties ENABLE ROW LEVEL SECURITY;
-ALTER TABLE guests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE invitations ENABLE ROW LEVEL SECURITY;
+-- Step 6: Create indexes
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+CREATE UNIQUE INDEX "invitations_partyId_guestId_key" ON "invitations"("partyId", "guestId");
 
--- Create RLS policies (basic versions)
-CREATE POLICY "Users can manage own data" ON users FOR ALL USING (auth.uid()::text = id);
-CREATE POLICY "Users can manage own parties" ON parties FOR ALL USING (auth.uid()::text = user_id);
-CREATE POLICY "Users can manage guests for own parties" ON guests FOR ALL USING (EXISTS (SELECT 1 FROM parties WHERE parties.id = guests.party_id AND parties.user_id = auth.uid()::text));
-CREATE POLICY "Users can manage invitations for own parties" ON invitations FOR ALL USING (EXISTS (SELECT 1 FROM parties WHERE parties.id = invitations.party_id AND parties.user_id = auth.uid()::text));
+-- Step 7: Add foreign key constraints
+ALTER TABLE "parties" ADD CONSTRAINT "parties_userId_fkey" 
+    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-3. After creating the tables, test this API endpoint again.
+ALTER TABLE "guests" ADD CONSTRAINT "guests_partyId_fkey" 
+    FOREIGN KEY ("partyId") REFERENCES "parties"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "invitations" ADD CONSTRAINT "invitations_partyId_fkey" 
+    FOREIGN KEY ("partyId") REFERENCES "parties"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "invitations" ADD CONSTRAINT "invitations_guestId_fkey" 
+    FOREIGN KEY ("guestId") REFERENCES "guests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Step 8: Enable Row Level Security
+ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "parties" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "guests" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "invitations" ENABLE ROW LEVEL SECURITY;
+
+-- Step 9: Create RLS policies for users
+CREATE POLICY "Users can view own profile" ON "users"
+    FOR SELECT USING (auth.uid()::text = id);
+CREATE POLICY "Users can update own profile" ON "users"
+    FOR UPDATE USING (auth.uid()::text = id);
+CREATE POLICY "Users can insert own profile" ON "users"
+    FOR INSERT WITH CHECK (auth.uid()::text = id);
+
+-- Step 10: Create RLS policies for parties
+CREATE POLICY "Users can view own parties" ON "parties"
+    FOR SELECT USING (auth.uid()::text = "userId");
+CREATE POLICY "Users can create own parties" ON "parties"
+    FOR INSERT WITH CHECK (auth.uid()::text = "userId");
+CREATE POLICY "Users can update own parties" ON "parties"
+    FOR UPDATE USING (auth.uid()::text = "userId");
+CREATE POLICY "Users can delete own parties" ON "parties"
+    FOR DELETE USING (auth.uid()::text = "userId");
+
+-- Step 11: Create RLS policies for guests
+CREATE POLICY "Users can view guests of own parties" ON "guests"
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM "parties" 
+            WHERE "parties"."id" = "guests"."partyId" 
+            AND "parties"."userId" = auth.uid()::text
+        )
+    );
+CREATE POLICY "Users can create guests for own parties" ON "guests"
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM "parties" 
+            WHERE "parties"."id" = "guests"."partyId" 
+            AND "parties"."userId" = auth.uid()::text
+        )
+    );
+CREATE POLICY "Users can update guests of own parties" ON "guests"
+    FOR UPDATE USING (
+        EXISTS (
+            SELECT 1 FROM "parties" 
+            WHERE "parties"."id" = "guests"."partyId" 
+            AND "parties"."userId" = auth.uid()::text
+        )
+    );
+CREATE POLICY "Users can delete guests of own parties" ON "guests"
+    FOR DELETE USING (
+        EXISTS (
+            SELECT 1 FROM "parties" 
+            WHERE "parties"."id" = "guests"."partyId" 
+            AND "parties"."userId" = auth.uid()::text
+        )
+    );
+
+-- Step 12: Create RLS policies for invitations
+CREATE POLICY "Users can view invitations for own parties" ON "invitations"
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM "parties" 
+            WHERE "parties"."id" = "invitations"."partyId" 
+            AND "parties"."userId" = auth.uid()::text
+        )
+    );
+CREATE POLICY "Users can create invitations for own parties" ON "invitations"
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM "parties" 
+            WHERE "parties"."id" = "invitations"."partyId" 
+            AND "parties"."userId" = auth.uid()::text
+        )
+    );
+CREATE POLICY "Users can update invitations for own parties" ON "invitations"
+    FOR UPDATE USING (
+        EXISTS (
+            SELECT 1 FROM "parties" 
+            WHERE "parties"."id" = "invitations"."partyId" 
+            AND "parties"."userId" = auth.uid()::text
+        )
+    );
+CREATE POLICY "Users can delete invitations for own parties" ON "invitations"
+    FOR DELETE USING (
+        EXISTS (
+            SELECT 1 FROM "parties" 
+            WHERE "parties"."id" = "invitations"."partyId" 
+            AND "parties"."userId" = auth.uid()::text
+        )
+    );
+
+-- Step 13: Create triggers for automatic timestamp updates
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW."updatedAt" = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON "users"
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_parties_updated_at BEFORE UPDATE ON "parties"
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_guests_updated_at BEFORE UPDATE ON "guests"
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_invitations_updated_at BEFORE UPDATE ON "invitations"
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+🎊 DATABASE SETUP COMPLETE! Your fresh database is ready for the birthday planner app.
+
+4. After running all SQL commands, visit your dashboard to confirm the tables exist.
     `
 
     return NextResponse.json({ 
