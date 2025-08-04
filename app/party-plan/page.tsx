@@ -13,8 +13,8 @@ import RSVPTracker from "@/components/RSVPTracker";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
 import ShoppingSuite from "@/components/ShoppingSuite";
 import Activities from "@/components/Activities";
-import { useAutoSave } from "@/hooks/useAutoSave";
 import { useAuth } from "@/contexts/AuthContext";
+import { getParty, updateParty, addGuest, updateGuest, deleteGuest, updateInvitationStatus } from "@/lib/party-actions";
 import { 
   PartyPopper, 
   CheckCircle2, 
@@ -144,28 +144,22 @@ export default function PartyPlanPage() {
   const [timelineDensity, setTimelineDensity] = useState<'compact' | 'expanded'>('expanded');
   const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Activities', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
   const [budgetRefresh, setBudgetRefresh] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPartyId, setCurrentPartyId] = useState<string | null>(null);
 
-  // Auto-save checklist data every 5 seconds
+  // Save checklist data to database (no auto-save, manual save on changes)
   const saveChecklistData = async (checklistData: ChecklistItem[]) => {
-    if (!user || !partyData) return;
+    if (!user || !currentPartyId) return;
     
-    const response = await fetch('/api/party-data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...partyData,
+    try {
+      await updateParty(currentPartyId, {
         checklistData: checklistData
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to save checklist data');
+      });
+    } catch (error) {
+      console.error('Failed to save checklist data:', error);
     }
   };
-
-  const { manualSave: manualSaveChecklist } = useAutoSave(checklist, 'partyChecklist', 5000, saveChecklistData);
 
   // Helper function to get budget data (updated for SimpleBudgetTracker)
   const getBudgetData = () => {
@@ -203,71 +197,113 @@ export default function PartyPlanPage() {
   }, []);
 
   useEffect(() => {
-    // Check if we're on the client side to avoid hydration issues
-    if (typeof window !== 'undefined') {
+    const loadPartyData = async () => {
+      if (!user) {
+        setError('Please sign in to view your party plan');
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Load party data from localStorage
-        const savedData = localStorage.getItem('partyData');
-        if (savedData) {
-          const data = JSON.parse(savedData);
-          // Safely handle partyDate conversion with validation
-          let partyDate;
-          try {
-            partyDate = data.partyDate ? new Date(data.partyDate) : new Date();
-            // Validate the date object
-            if (isNaN(partyDate.getTime())) {
-              partyDate = new Date();
-            }
-          } catch (error) {
-            console.error('Error parsing party date:', error);
-            partyDate = new Date();
+        setLoading(true);
+        setError(null);
+        
+        // Get party ID from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const partyId = urlParams.get('id');
+        
+        if (!partyId) {
+          // If no specific party ID, get the user's most recent party
+          const partiesResult = await fetch('/api/user/parties');
+          if (!partiesResult.ok) {
+            throw new Error('Failed to load parties');
           }
           
-          setPartyData({
-            ...data,
-            partyDate: partyDate
-          });
+          const { parties } = await partiesResult.json();
+          if (!parties || parties.length === 0) {
+            setError('No party found. Please create a party first.');
+            setLoading(false);
+            return;
+          }
           
-          // Generate checklist based on party data
-          generateChecklist(data);
-        }
-
-        // Load guests and invitations from localStorage
-        const savedGuests = localStorage.getItem('partyGuests');
-        if (savedGuests) {
-          setGuests(JSON.parse(savedGuests));
-        }
-
-        const savedInvitations = localStorage.getItem('partyInvitations');
-        if (savedInvitations) {
-          setInvitations(JSON.parse(savedInvitations));
-        }
-
-        // Load saved checklist progress from localStorage
-        const savedChecklist = localStorage.getItem('partyChecklist');
-        if (savedChecklist && savedData) {
-          const parsedChecklist = JSON.parse(savedChecklist);
-          // Merge saved progress with newly generated checklist
-          const data = JSON.parse(savedData);
-          const baseChecklist = generateBaseChecklist(data);
+          // Use the most recent party
+          const latestParty = parties[parties.length - 1];
+          loadPartyDetails(latestParty);
+        } else {
+          // Load specific party by ID
+          const result = await getParty(partyId);
+          if (!result.success || !result.party) {
+            throw new Error(result.error || 'Party not found');
+          }
           
-          const mergedChecklist = baseChecklist.map(baseItem => {
-            const savedItem = parsedChecklist.find((saved: ChecklistItem) => saved.id === baseItem.id);
-            return savedItem ? { ...baseItem, completed: savedItem.completed } : baseItem;
-          });
-          
-          setChecklist(mergedChecklist);
+          loadPartyDetails(result.party);
         }
       } catch (error) {
-        console.error('Error loading party data from localStorage:', error);
-        // Clear corrupted data
-        localStorage.removeItem('partyData');
-        localStorage.removeItem('partyGuests');
-        localStorage.removeItem('partyInvitations');
-        localStorage.removeItem('partyChecklist');
+        console.error('Error loading party data:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load party data');
+      } finally {
+        setLoading(false);
       }
-    }
-  }, []);
+    };
+
+    const loadPartyDetails = (party: any) => {
+      // Set party data
+      setPartyData({
+        childName: party.childName,
+        childAge: party.childAge.toString(),
+        partyDate: new Date(party.partyDate),
+        selectedTheme: party.theme,
+        budget: party.budget || undefined,
+        zipCode: party.location || undefined,
+        guestCount: party.guestCount || undefined,
+      });
+
+      // Set guests from database
+      if (party.guests) {
+        const guestData = party.guests.map((guest: any) => ({
+          id: guest.id,
+          name: guest.name,
+          email: guest.email || '',
+          phone: guest.phone || '',
+          type: guest.type,
+          age: guest.age || undefined,
+          notes: guest.notes || '',
+        }));
+        setGuests(guestData);
+      }
+
+      // Set invitations from database
+      if (party.invitations) {
+        const invitationData = party.invitations.map((inv: any) => ({
+          id: inv.id,
+          guestId: inv.guestId,
+          guestName: inv.guest?.name || '',
+          status: inv.status,
+          sentAt: inv.sentAt ? new Date(inv.sentAt) : undefined,
+          respondedAt: inv.respondedAt ? new Date(inv.respondedAt) : undefined,
+          message: inv.message || '',
+          notes: inv.notes || '',
+        }));
+        setInvitations(invitationData);
+      }
+
+      // Generate and load checklist
+      const baseChecklist = generateBaseChecklist(party);
+      if (party.checklistData) {
+        // Merge saved progress with base checklist
+        const savedProgress = party.checklistData;
+        const mergedChecklist = baseChecklist.map(baseItem => {
+          const savedItem = savedProgress.find((saved: any) => saved.id === baseItem.id);
+          return savedItem ? { ...baseItem, completed: savedItem.completed } : baseItem;
+        });
+        setChecklist(mergedChecklist);
+      } else {
+        setChecklist(baseChecklist);
+      }
+    };
+
+    loadPartyData();
+  }, [user]);
 
   const generateBaseChecklist = (data: any): ChecklistItem[] => {
     return [

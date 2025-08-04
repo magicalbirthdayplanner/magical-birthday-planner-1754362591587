@@ -11,13 +11,14 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  theme       String?  @default("light") // UI theme preference
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   
-  parties   Party[]
+  parties     Party[]
   
   @@map("users")
 }

@@ -16,8 +16,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
 import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
-import { useAutoSave } from "@/hooks/useAutoSave";
 import { useAuth } from "@/contexts/AuthContext";
+import { createParty } from "@/lib/party-actions";
 
 const interestOptions = [
   "Animals", "Art & Crafts", "Cars", "Dancing", "Music", "Sports", "Science",
@@ -347,6 +347,8 @@ export default function CreatePartyPage() {
   });
   const [isNavigating, setIsNavigating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [customThemeMode, setCustomThemeMode] = useState(false);
   const [showClassicThemes, setShowClassicThemes] = useState(false);
   const [showCustomOptions, setShowCustomOptions] = useState(false);
@@ -376,82 +378,15 @@ export default function CreatePartyPage() {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholderExamples[0]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-  // Auto-save party data every 5 seconds
-  const savePartyData = async (dataToSave: PartyData) => {
-    if (!user || !dataToSave.childName.trim()) return;
-    
-    const response = await fetch('/api/party-data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(dataToSave)
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to save party data');
-    }
-  };
+  // No auto-save - data will be saved only on form submission to database
 
-  const { manualSave } = useAutoSave(partyData, 'partyData', 5000, savePartyData);
-
-  // Load existing party data on component mount
+  // Ensure user is authenticated for party creation
   useEffect(() => {
-    const loadExistingData = async () => {
-      try {
-        // Try to load from database if user is authenticated
-        if (user) {
-          const response = await fetch('/api/party-data');
-          if (response.ok) {
-            const { parties } = await response.json();
-            if (parties && parties.length > 0) {
-              // Load the most recent party data
-              const latestParty = parties[parties.length - 1];
-              setPartyData({
-                childName: latestParty.childName || "",
-                childAge: latestParty.childAge || 1,
-                childGender: latestParty.childGender || "",
-                childInterests: latestParty.interests || [],
-                favoriteColors: latestParty.favoriteColors || [],
-                partyDate: latestParty.partyDate ? new Date(latestParty.partyDate) : undefined,
-                selectedTheme: latestParty.theme || "",
-                aiRecommendations: [],
-                isLoadingAI: false,
-                classicTheme: latestParty.theme || "",
-                budget: latestParty.budget || undefined,
-                zipCode: "",
-                guestCount: latestParty.guestCount || undefined
-              });
-            }
-          }
-        } else {
-          // Fallback to localStorage
-          const savedData = localStorage.getItem('partyData');
-          if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            setPartyData({
-              ...partyData,
-              ...parsedData,
-              partyDate: parsedData.partyDate ? new Date(parsedData.partyDate) : undefined
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error loading party data:', error);
-        // Fallback to localStorage
-        const savedData = localStorage.getItem('partyData');
-        if (savedData) {
-          const parsedData = JSON.parse(savedData);
-          setPartyData({
-            ...partyData,
-            ...parsedData,
-            partyDate: parsedData.partyDate ? new Date(parsedData.partyDate) : undefined
-          });
-        }
-      }
-    };
-
-    loadExistingData();
+    if (!user) {
+      setSubmitError('Please sign in to create a party plan');
+    } else {
+      setSubmitError(null);
+    }
   }, [user]);
 
   // Rotate placeholder text every 5 seconds
@@ -598,38 +533,46 @@ export default function CreatePartyPage() {
   };
 
   const handleSubmit = async () => {
+    if (!user) {
+      setSubmitError('Please sign in to create a party plan');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+    
     try {
-      // Save to Supabase if user is authenticated
-      if (user?.id) {
-        const response = await fetch('/api/party-data', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            partyData,
-            userId: user.id
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (!result.success || result.fallbackToLocalStorage) {
-          // Fallback to localStorage if database save fails
-          localStorage.setItem('partyData', JSON.stringify(partyData));
-        }
-      } else {
-        // Save to localStorage if user is not authenticated
-        localStorage.setItem('partyData', JSON.stringify(partyData));
+      // Create party in database using server action
+      const result = await createParty({
+        childName: partyData.childName,
+        childAge: partyData.childAge,
+        childGender: partyData.childGender,
+        partyDate: partyData.partyDate!,
+        theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
+        interests: partyData.childInterests,
+        favoriteColors: partyData.favoriteColors,
+        guestCount: partyData.guestCount,
+        budget: partyData.budget,
+        location: partyData.zipCode,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create party');
       }
-      
-      // Navigate to party plan page
-      window.location.href = '/party-plan';
+
+      // Show success feedback
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+
+      // Navigate to party plan with the new party ID
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      window.location.href = `/party-plan?id=${result.party?.id}`;
+
     } catch (error) {
-      console.error('Error saving party data:', error);
-      // Fallback to localStorage on error
-      localStorage.setItem('partyData', JSON.stringify(partyData));
-      window.location.href = '/party-plan';
+      console.error('Error creating party:', error);
+      setSubmitError(error instanceof Error ? error.message : 'Failed to create party. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -755,15 +698,36 @@ export default function CreatePartyPage() {
                 // For step 5, show Create My Party Plan button aligned with Back button
                 <Button
                   onClick={handleSubmit}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 sm:px-8 text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  disabled={isSubmitting || !user}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 sm:px-8 text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <PartyPopper className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Create My Party Plan</span>
-                  <span className="sm:hidden">Create Plan</span>
-                  <Sparkles className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                      <span className="animate-pulse text-sm sm:text-base">Creating Party Plan...</span>
+                      <Sparkles className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4 animate-pulse" />
+                    </>
+                  ) : (
+                    <>
+                      <PartyPopper className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Create My Party Plan</span>
+                      <span className="sm:hidden">Create Plan</span>
+                      <Sparkles className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    </>
+                  )}
                 </Button>
               )}
             </div>
+            
+            {/* Error Message Display */}
+            {submitError && (
+              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <div className="flex items-center">
+                  <AlertTriangle className="h-4 w-4 text-red-500 mr-2" />
+                  <p className="text-sm text-red-700 dark:text-red-300">{submitError}</p>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
             {/* Step 1: Child Information */}

@@ -9,3 +9,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export const createClientComponentClient = () => {
   return createClient(supabaseUrl, supabaseAnonKey)
 }
+
+// Server-side Supabase client (for server actions and API routes)
+export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  })
+}

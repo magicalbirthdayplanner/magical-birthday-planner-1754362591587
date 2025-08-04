@@ -15,29 +15,37 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const loadUserTheme = async () => {
+      if (typeof window === 'undefined') return;
+      
+      // Check if user is authenticated and load theme from database
       try {
-        const savedTheme = localStorage.getItem('theme') as Theme | null;
-        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-          setTheme(savedTheme);
-        } else {
-          // Check system preference safely
-          try {
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-              setTheme('dark');
-            }
-          } catch (mediaError) {
-            console.warn('Error checking system theme preference:', mediaError);
-            // Fallback to light theme
-            setTheme('light');
+        const response = await fetch('/api/user/theme');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.theme && (data.theme === 'light' || data.theme === 'dark')) {
+            setTheme(data.theme);
+            return;
           }
         }
-      } catch (storageError) {
-        console.warn('Error accessing localStorage for theme:', storageError);
-        // Fallback to light theme
+      } catch (error) {
+        console.warn('Failed to load user theme from database, using system preference:', error);
+      }
+      
+      // Fallback to system preference if database is unavailable or user not authenticated
+      try {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          setTheme('dark');
+        } else {
+          setTheme('light');
+        }
+      } catch (mediaError) {
+        console.warn('Error checking system theme preference:', mediaError);
         setTheme('light');
       }
-    }
+    };
+
+    loadUserTheme();
   }, []);
 
   useEffect(() => {
@@ -45,18 +53,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.remove('light', 'dark');
       document.documentElement.classList.add(theme);
     }
-    
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('theme', theme);
-      } catch (error) {
-        console.warn('Error saving theme to localStorage:', error);
-      }
-    }
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  const toggleTheme = async () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    
+    // Save to database if user is authenticated
+    try {
+      await fetch('/api/user/theme', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ theme: newTheme }),
+      });
+    } catch (error) {
+      console.warn('Failed to save theme preference to database:', error);
+      // Theme is still applied locally even if database save fails
+    }
   };
 
   return (
