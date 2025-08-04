@@ -16,6 +16,20 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
     auth: {
       persistSession: false,
       detectSessionInUrl: false,
+      storage: {
+        getItem: (key: string) => {
+          const cookieStore = cookies()
+          return cookieStore.get(key)?.value || null
+        },
+        setItem: (key: string, value: string) => {
+          const cookieStore = cookies()
+          cookieStore.set(key, value)
+        },
+        removeItem: (key: string) => {
+          const cookieStore = cookies()
+          cookieStore.delete(key)
+        },
+      },
     },
   })
 }

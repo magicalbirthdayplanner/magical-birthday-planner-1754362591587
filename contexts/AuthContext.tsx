@@ -52,24 +52,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase.auth])
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          display_name: displayName,
+    try {
+      // First ensure no existing session
+      await supabase.auth.signOut()
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName,
+          },
         },
-      },
-    })
-    return { error }
+      })
+      
+      if (error) {
+        return { error }
+      }
+      
+      // If signup successful and user is confirmed, update local state
+      if (data.user && data.session) {
+        setUser(data.user)
+        setSession(data.session)
+      }
+      
+      return { error: null }
+    } catch (error) {
+      console.error('Signup failed:', error)
+      return { error }
+    }
   }
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error }
+    try {
+      // First ensure no existing session
+      await supabase.auth.signOut()
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
+      if (error) {
+        return { error }
+      }
+      
+      // If signin successful, update local state
+      if (data.user && data.session) {
+        setUser(data.user)
+        setSession(data.session)
+      }
+      
+      return { error: null }
+    } catch (error) {
+      console.error('Signin failed:', error)
+      return { error }
+    }
   }
 
   const signInWithGoogle = async () => {
@@ -104,11 +142,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
+      // Clear local state immediately
+      setUser(null)
+      setSession(null)
+      setLoading(false)
+      
+      // Sign out from Supabase
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Signout failed:', error)
         return { error }
       }
+      
+      // Force a refresh to clear any cached state
+      window.location.href = '/'
+      
       return { error: null }
     } catch (error) {
       console.error('Signout failed:', error)

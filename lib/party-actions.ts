@@ -26,13 +26,18 @@ export async function createParty(partyData: {
   location?: string
 }) {
   try {
+    console.log('Creating party with data:', partyData)
+    
     const user = await getCurrentUser()
     if (!user) {
+      console.error('No authenticated user found')
       throw new Error('User not authenticated')
     }
+    
+    console.log('Authenticated user:', { id: user.id, email: user.email })
 
     // Create user in database if doesn't exist
-    await prisma.user.upsert({
+    const dbUser = await prisma.user.upsert({
       where: { email: user.email! },
       update: {},
       create: {
@@ -41,20 +46,33 @@ export async function createParty(partyData: {
         name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
       },
     })
+    
+    console.log('Database user created/updated:', dbUser)
 
     const party = await prisma.party.create({
       data: {
-        ...partyData,
+        childName: partyData.childName,
+        childAge: partyData.childAge,
+        childGender: partyData.childGender || null,
+        partyDate: partyData.partyDate,
+        theme: partyData.theme,
+        interests: partyData.interests,
+        favoriteColors: partyData.favoriteColors,
+        guestCount: partyData.guestCount || null,
+        budget: partyData.budget || null,
+        location: partyData.location || null,
         userId: user.id,
       },
     })
+
+    console.log('Party created successfully:', party)
 
     revalidatePath('/dashboard')
     revalidatePath('/party-plan')
     return { success: true, party }
   } catch (error) {
     console.error('Error creating party:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred while creating party' }
   }
 }
 

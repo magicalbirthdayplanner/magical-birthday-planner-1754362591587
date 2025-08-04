@@ -45,7 +45,7 @@ export function Header() {
         setIsSigningOut(false);
         return;
       }
-      // Don't manually redirect here - let useEffect handle it based on auth state change
+      // AuthContext will handle the redirect
     } catch (error) {
       console.error('Unexpected error during signout:', error);
       setIsSigningOut(false);

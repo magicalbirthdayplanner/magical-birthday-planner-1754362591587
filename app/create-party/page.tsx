@@ -538,12 +538,19 @@ export default function CreatePartyPage() {
       return;
     }
 
+    console.log('Starting party creation with user:', { id: user.id, email: user.email })
+    console.log('Party data:', partyData)
+
     setIsSubmitting(true);
     setSubmitError(null);
     
     try {
-      // Create party in database using server action
-      const result = await createParty({
+      // Validate required fields
+      if (!partyData.childName || !partyData.partyDate) {
+        throw new Error('Missing required fields: child name or party date');
+      }
+
+      const createPayload = {
         childName: partyData.childName,
         childAge: partyData.childAge,
         childGender: partyData.childGender,
@@ -554,10 +561,21 @@ export default function CreatePartyPage() {
         guestCount: partyData.guestCount,
         budget: partyData.budget,
         location: partyData.zipCode,
-      });
+      };
+
+      console.log('Creating party with payload:', createPayload)
+
+      // Create party in database using server action
+      const result = await createParty(createPayload);
+
+      console.log('Party creation result:', result)
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to create party');
+      }
+
+      if (!result.party?.id) {
+        throw new Error('Party created but no ID returned');
       }
 
       // Show success feedback
@@ -566,7 +584,7 @@ export default function CreatePartyPage() {
 
       // Navigate to party plan with the new party ID
       await new Promise(resolve => setTimeout(resolve, 1500));
-      window.location.href = `/party-plan?id=${result.party?.id}`;
+      window.location.href = `/party-plan?id=${result.party.id}`;
 
     } catch (error) {
       console.error('Error creating party:', error);
