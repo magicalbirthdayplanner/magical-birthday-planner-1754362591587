@@ -32,7 +32,7 @@ export default function Dashboard() {
       try {
         if (user) {
           // Load from database if user is authenticated
-          const response = await fetch('/api/party-data')
+          const response = await fetch(`/api/party-data?userId=${user.id}`)
           if (response.ok) {
             const { parties: dbParties } = await response.json()
             
@@ -73,14 +73,16 @@ export default function Dashboard() {
 
     const loadFromLocalStorage = () => {
       try {
-        const partyPlanData = localStorage.getItem('partyPlanData')
-        if (partyPlanData) {
-          const data = JSON.parse(partyPlanData)
+        // Fix: Use correct localStorage key 'partyData' instead of 'partyPlanData'
+        const partyData = localStorage.getItem('partyData')
+        if (partyData) {
+          const data = JSON.parse(partyData)
           
           // Convert localStorage data to dashboard format with safe date handling
           let partyDate: Date;
           try {
-            const dateValue = data.date || Date.now();
+            // Fix: Use 'partyDate' field instead of 'date'
+            const dateValue = data.partyDate || Date.now();
             partyDate = new Date(dateValue);
             // Validate the date
             if (isNaN(partyDate.getTime())) {
@@ -92,15 +94,26 @@ export default function Dashboard() {
             partyDate = new Date();
           }
 
+          // Load checklist data from separate localStorage key
+          let checklistData: any[] = [];
+          try {
+            const checklistString = localStorage.getItem('partyChecklist');
+            if (checklistString) {
+              checklistData = JSON.parse(checklistString);
+            }
+          } catch (error) {
+            console.warn('Error loading checklist data:', error);
+          }
+
           const party: Party = {
             id: 'current',
             childName: data.childName || 'Your Child',
-            age: data.age || 5,
+            age: data.childAge || 5, // Fix: Use 'childAge' instead of 'age'
             date: partyDate,
-            theme: data.theme || 'Superhero',
-            guestCount: (data.guests || []).length,
-            checkedTasks: (data.tasks || []).filter((task: any) => task.completed).length,
-            totalTasks: (data.tasks || []).length || 15,
+            theme: data.selectedTheme || data.classicTheme || 'Superhero', // Fix: Use 'selectedTheme' or 'classicTheme'
+            guestCount: data.guestCount || 0, // Use guestCount from auto-save data
+            checkedTasks: Array.isArray(checklistData) ? checklistData.filter((task: any) => task.completed).length : 0,
+            totalTasks: Array.isArray(checklistData) && checklistData.length > 0 ? checklistData.length : 15,
             status: 'upcoming'
           }
           setParties([party])
