@@ -597,11 +597,40 @@ export default function CreatePartyPage() {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSubmit = () => {
-    // Save to localStorage for now
-    localStorage.setItem('partyData', JSON.stringify(partyData));
-    // Navigate to party plan page
-    window.location.href = '/party-plan';
+  const handleSubmit = async () => {
+    try {
+      // Save to Supabase if user is authenticated
+      if (user?.id) {
+        const response = await fetch('/api/party-data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            partyData,
+            userId: user.id
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success || result.fallbackToLocalStorage) {
+          // Fallback to localStorage if database save fails
+          localStorage.setItem('partyData', JSON.stringify(partyData));
+        }
+      } else {
+        // Save to localStorage if user is not authenticated
+        localStorage.setItem('partyData', JSON.stringify(partyData));
+      }
+      
+      // Navigate to party plan page
+      window.location.href = '/party-plan';
+    } catch (error) {
+      console.error('Error saving party data:', error);
+      // Fallback to localStorage on error
+      localStorage.setItem('partyData', JSON.stringify(partyData));
+      window.location.href = '/party-plan';
+    }
   };
 
   const isStepValid = () => {

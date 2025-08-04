@@ -45,16 +45,14 @@ export async function POST(request: NextRequest) {
       childName: partyData.childName || 'Your Child',
       childAge: partyData.childAge || 5,
       childGender: partyData.childGender || '',
-      childInterests: partyData.childInterests || [],
+      interests: partyData.childInterests || [],
       favoriteColors: partyData.favoriteColors || [],
       partyDate: partyData.partyDate || new Date().toISOString(),
       theme: partyData.selectedTheme || partyData.classicTheme || 'Superhero',
       guestCount: partyData.guestCount || 0,
       budget: partyData.budget || null,
       location: partyData.zipCode || '',
-      checklistData: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      checklistData: []
     }
 
     let result;
@@ -62,7 +60,7 @@ export async function POST(request: NextRequest) {
       // Update existing party
       const { data, error } = await supabase
         .from('parties')
-        .update({ ...partyRecord, updatedAt: new Date().toISOString() })
+        .update(partyRecord)
         .eq('userId', userId)
         .select()
 
