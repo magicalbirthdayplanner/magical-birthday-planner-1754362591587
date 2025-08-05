@@ -910,11 +910,6 @@ export default function PartyPlanPage() {
                   <Users className="h-4 w-4 shrink-0" />
                   Guests
                 </TabsTrigger>
-                <TabsTrigger value="invitations" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-cyan-50 dark:hover:bg-cyan-900/20">
-                  <Mail className="h-4 w-4 shrink-0" />
-                  <span className="hidden md:inline">Invitations</span>
-                  <span className="md:hidden">RSVP</span>
-                </TabsTrigger>
                 <TabsTrigger value="activities" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/20">
                   <Music className="h-4 w-4 shrink-0" />
                   <span className="hidden md:inline">Activities</span>
@@ -1066,7 +1061,7 @@ export default function PartyPlanPage() {
                 return (
                   <Card key={timeline} className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                     <CardHeader>
-                      <CardTitle className="text-lg">{timeline}</CardTitle>
+                      <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{timeline}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
@@ -1074,31 +1069,31 @@ export default function PartyPlanPage() {
                           const getStatusColor = (status: string) => {
                             switch (status) {
                               case 'completed':
-                                return 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20';
+                                return 'border-green-200 bg-green-50 dark:border-green-700 dark:bg-green-900/30';
                               case 'overdue':
-                                return 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20';
+                                return 'border-red-200 bg-red-50 dark:border-red-700 dark:bg-red-900/30';
                               case 'due-soon':
-                                return 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20';
+                                return 'border-orange-200 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/30';
                               default:
-                                return 'border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800';
+                                return 'border-gray-200 bg-white dark:border-slate-600 dark:bg-slate-700/50';
                             }
                           };
 
                           const getStatusIcon = (status: string) => {
                             switch (status) {
                               case 'completed':
-                                return <CheckCircle className="h-4 w-4 text-green-600" />;
+                                return <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />;
                               case 'overdue':
-                                return <AlertTriangle className="h-4 w-4 text-red-600" />;
+                                return <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />;
                               case 'due-soon':
-                                return <Timer className="h-4 w-4 text-orange-600" />;
+                                return <Timer className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
                               default:
-                                return <Calendar className="h-4 w-4 text-gray-400" />;
+                                return <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />;
                             }
                           };
 
                           return (
-                            <div key={item.id} className={`p-3 rounded-lg border-2 transition-all duration-200 ${getStatusColor(item.status || 'upcoming')}`}>
+                            <div key={item.id} className={`p-4 rounded-lg border-2 transition-all duration-200 ${getStatusColor(item.status || 'upcoming')}`}>
                               <div className="flex items-center space-x-3">
                                 <Checkbox
                                   id={item.id}
@@ -1110,7 +1105,7 @@ export default function PartyPlanPage() {
                                     {getStatusIcon(item.status || 'upcoming')}
                                     <label
                                       htmlFor={item.id}
-                                      className={`text-sm font-medium leading-none cursor-pointer ${
+                                      className={`text-sm font-medium leading-snug cursor-pointer ${
                                         item.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'
                                       }`}
                                     >
@@ -1118,22 +1113,22 @@ export default function PartyPlanPage() {
                                     </label>
                                   </div>
                                   {item.dueDate && (
-                                    <div className="text-xs text-gray-600 dark:text-gray-300 ml-6">
+                                    <div className="text-xs text-gray-700 dark:text-gray-300 ml-6 font-medium">
                                       Due: {item.dueDate.toLocaleDateString('en-US', { 
                                         weekday: 'short', 
                                         month: 'short', 
                                         day: 'numeric' 
                                       })}
                                       {item.status === 'overdue' && (
-                                        <span className="text-red-600 ml-2 font-semibold">OVERDUE</span>
+                                        <span className="text-red-600 dark:text-red-400 ml-2 font-bold">OVERDUE</span>
                                       )}
                                       {item.status === 'due-soon' && (
-                                        <span className="text-orange-600 ml-2 font-semibold">DUE SOON</span>
+                                        <span className="text-orange-600 dark:text-orange-400 ml-2 font-bold">DUE SOON</span>
                                       )}
                                     </div>
                                   )}
                                 </div>
-                                <Badge variant="outline" className="text-xs shrink-0">
+                                <Badge variant="outline" className="text-xs shrink-0 font-medium">
                                   {item.category}
                                 </Badge>
                               </div>
@@ -1148,27 +1143,27 @@ export default function PartyPlanPage() {
             </div>
           </TabsContent>
 
-          {/* Guests Tab */}
+          {/* Guests Tab - Combined Guest Management and Invitations */}
           <TabsContent value="guests" className="space-y-6">
-            <GuestList
-              partyId={partyData?.childName || 'party'}
-              guests={guests}
-              invitations={invitations}
-              onAddGuest={handleAddGuest}
-              onEditGuest={handleEditGuest}
-              onDeleteGuest={handleDeleteGuest}
-              onSendInvitation={handleSendInvitation}
-              onUpdateRSVP={handleUpdateRSVP}
-            />
-          </TabsContent>
-
-          {/* Invitations Tab */}
-          <TabsContent value="invitations" className="space-y-6">
-            <Tabs defaultValue="bulk" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="bulk">Bulk Invitations</TabsTrigger>
+            <Tabs defaultValue="manage" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="manage">Manage Guests</TabsTrigger>
+                <TabsTrigger value="bulk">Send Invitations</TabsTrigger>
                 <TabsTrigger value="rsvp">RSVP Tracking</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="manage" className="mt-6">
+                <GuestList
+                  partyId={partyData?.childName || 'party'}
+                  guests={guests}
+                  invitations={invitations}
+                  onAddGuest={handleAddGuest}
+                  onEditGuest={handleEditGuest}
+                  onDeleteGuest={handleDeleteGuest}
+                  onSendInvitation={handleSendInvitation}
+                  onUpdateRSVP={handleUpdateRSVP}
+                />
+              </TabsContent>
               
               <TabsContent value="bulk" className="mt-6">
                 <BulkInvitations

@@ -199,7 +199,7 @@ export default function Dashboard() {
               <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Planning Overview</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card className="border-2 border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-base font-bold text-purple-800 dark:text-purple-200">Active Parties</CardTitle>
@@ -230,21 +230,6 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-yellow-200 dark:border-yellow-700 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-base font-bold text-yellow-800 dark:text-yellow-200">Memories Created</CardTitle>
-                  <div className="p-2 rounded-full bg-yellow-600 shadow-sm">
-                    <Sparkles className="h-5 w-5 text-white" />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="text-3xl font-black text-yellow-700 dark:text-yellow-300">{completedParties.length}</div>
-                  <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
-                    magical celebrations
-                  </p>
-                </CardContent>
-              </Card>
-
               <Card className="border-2 border-blue-200 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-base font-bold text-blue-800 dark:text-blue-200">Total Guests</CardTitle>
@@ -256,21 +241,6 @@ export default function Dashboard() {
                   <div className="text-3xl font-black text-blue-700 dark:text-blue-300">{totalGuests}</div>
                   <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
                     across all parties
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-orange-200 dark:border-orange-700 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-base font-bold text-orange-800 dark:text-orange-200">Party Progress</CardTitle>
-                  <div className="p-2 rounded-full bg-orange-600 shadow-sm">
-                    <Clock className="h-5 w-5 text-white" />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="text-3xl font-black text-orange-700 dark:text-orange-300">{upcomingParties.length > 0 ? Math.round(upcomingParties.reduce((sum, party) => sum + (party.checkedTasks / party.totalTasks), 0) / upcomingParties.length * 100) : 0}%</div>
-                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
-                    average completion
                   </p>
                 </CardContent>
               </Card>
@@ -287,12 +257,12 @@ export default function Dashboard() {
           
           <Tabs defaultValue="upcoming" className="space-y-6">
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 shadow-lg rounded-lg overflow-hidden">
-              <TabsTrigger value="upcoming" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-md mx-1 my-1">
+              <TabsTrigger value="upcoming" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-md mx-1 my-1 hover:bg-purple-50 dark:hover:bg-purple-900/20">
                 <Clock className="w-4 h-4" />
                 <span className="hidden sm:inline">Upcoming ({upcomingParties.length})</span>
                 <span className="sm:hidden">Upcoming</span>
               </TabsTrigger>
-              <TabsTrigger value="completed" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-md mx-1 my-1">
+              <TabsTrigger value="completed" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-md mx-1 my-1 hover:bg-green-50 dark:hover:bg-green-900/20">
                 <CheckCircle className="w-4 h-4" />
                 <span className="hidden sm:inline">Completed ({completedParties.length})</span>
                 <span className="sm:hidden">Done</span>

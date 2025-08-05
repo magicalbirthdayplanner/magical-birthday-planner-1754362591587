@@ -201,7 +201,7 @@ export default function SimpleBudgetTracker({
           {/* Budget Input */}
           <div className="bg-gray-50 dark:bg-slate-700/50 p-4 rounded-lg">
             <div className="flex items-center justify-between mb-4">
-              <span className="font-medium">Total Budget</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">Total Budget</span>
               {isEditingBudget ? (
                 <div className="flex items-center gap-2">
                   <div className="relative">
@@ -224,7 +224,7 @@ export default function SimpleBudgetTracker({
                   </Button>
                 </div>
               ) : (
-                <span className="text-2xl font-bold text-green-600">
+                <span className="text-2xl font-bold text-green-600 dark:text-green-400">
                   ${Math.round(totalBudget)}
                 </span>
               )}
@@ -232,9 +232,9 @@ export default function SimpleBudgetTracker({
 
             {/* Budget Progress */}
             <div className="space-y-3">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-sm text-gray-800 dark:text-gray-200 font-medium">
                 <span>Spent: ${Math.round(totalSpent)}</span>
-                <span className={`font-medium ${getStatusColor()}`}>
+                <span className={`font-bold ${getStatusColor()}`}>
                   Remaining: ${Math.round(remaining)}
                 </span>
               </div>
@@ -244,7 +244,7 @@ export default function SimpleBudgetTracker({
                   className="h-3"
                 />
                 {spentPercentage > 100 && (
-                  <div className="flex items-center gap-2 text-red-600 text-sm">
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-medium">
                     <AlertTriangle className="h-4 w-4" />
                     <span>Over budget by ${Math.round(Math.abs(remaining))}</span>
                   </div>
