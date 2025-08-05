@@ -874,16 +874,6 @@ export default function PartyPlanPage() {
                   <DollarSign className="h-4 w-4 shrink-0" />
                   <span className="truncate">Budget</span>
                 </TabsTrigger>
-                <TabsTrigger value="checklist" className="flex items-center justify-center gap-2 text-sm font-medium px-3 py-2.5 min-w-0 flex-1 lg:flex-none rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                  <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline truncate">Checklist</span>
-                  <span className="sm:hidden">Tasks</span>
-                </TabsTrigger>
-                <TabsTrigger value="timeline" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
-                  <Clock className="h-4 w-4 shrink-0" />
-                  <span className="hidden lg:inline">Timeline</span>
-                  <span className="lg:hidden">Time</span>
-                </TabsTrigger>
                 
                 {/* Shopping & Vendors Group */}
                 <TabsTrigger value="shopping" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-orange-50 dark:hover:bg-orange-900/20">
@@ -914,6 +904,18 @@ export default function PartyPlanPage() {
                   <Music className="h-4 w-4 shrink-0" />
                   <span className="hidden md:inline">Activities</span>
                   <span className="md:hidden">Games</span>
+                </TabsTrigger>
+                
+                {/* Timeline & Tasks Group - Moved to End */}
+                <TabsTrigger value="timeline" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                  <Clock className="h-4 w-4 shrink-0" />
+                  <span className="hidden lg:inline">Timeline</span>
+                  <span className="lg:hidden">Time</span>
+                </TabsTrigger>
+                <TabsTrigger value="checklist" className="flex items-center justify-center gap-2 text-sm font-medium px-3 py-2.5 min-w-0 flex-1 lg:flex-none rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <span className="hidden sm:inline truncate">Checklist</span>
+                  <span className="sm:hidden">Tasks</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -1053,82 +1055,83 @@ export default function PartyPlanPage() {
 
           {/* Checklist Tab */}
           <TabsContent value="checklist" className="space-y-6">
-            <div className="grid gap-4">
+            <div className="grid gap-6">
               {['4-6 weeks before', '2-3 weeks before', '1 week before', 'Day before', 'Day of party'].map((timeline) => {
                 const timelineTasks = checklist.filter(item => item.timeline === timeline);
                 if (timelineTasks.length === 0) return null;
 
                 return (
                   <Card key={timeline} className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-                    <CardHeader>
-                      <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{timeline}</CardTitle>
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">{timeline}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {timelineTasks.map((item) => {
                           const getStatusColor = (status: string) => {
                             switch (status) {
                               case 'completed':
-                                return 'border-green-200 bg-green-50 dark:border-green-700 dark:bg-green-900/30';
+                                return 'border-green-300 bg-green-100 dark:border-green-600 dark:bg-green-900/40';
                               case 'overdue':
-                                return 'border-red-200 bg-red-50 dark:border-red-700 dark:bg-red-900/30';
+                                return 'border-red-300 bg-red-100 dark:border-red-600 dark:bg-red-900/40';
                               case 'due-soon':
-                                return 'border-orange-200 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/30';
+                                return 'border-orange-300 bg-orange-100 dark:border-orange-600 dark:bg-orange-900/40';
                               default:
-                                return 'border-gray-200 bg-white dark:border-slate-600 dark:bg-slate-700/50';
+                                return 'border-gray-300 bg-white dark:border-slate-500 dark:bg-slate-700/60';
                             }
                           };
 
                           const getStatusIcon = (status: string) => {
                             switch (status) {
                               case 'completed':
-                                return <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />;
+                                return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
                               case 'overdue':
-                                return <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />;
+                                return <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />;
                               case 'due-soon':
-                                return <Timer className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+                                return <Timer className="h-5 w-5 text-orange-600 dark:text-orange-400" />;
                               default:
-                                return <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />;
+                                return <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />;
                             }
                           };
 
                           return (
-                            <div key={item.id} className={`p-4 rounded-lg border-2 transition-all duration-200 ${getStatusColor(item.status || 'upcoming')}`}>
-                              <div className="flex items-center space-x-3">
+                            <div key={item.id} className={`p-5 rounded-lg border-2 transition-all duration-200 shadow-sm ${getStatusColor(item.status || 'upcoming')}`}>
+                              <div className="flex items-center space-x-4">
                                 <Checkbox
                                   id={item.id}
                                   checked={item.completed}
                                   onCheckedChange={() => toggleChecklistItem(item.id)}
+                                  className="w-5 h-5"
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
+                                  <div className="flex items-center gap-3 mb-2">
                                     {getStatusIcon(item.status || 'upcoming')}
                                     <label
                                       htmlFor={item.id}
-                                      className={`text-sm font-medium leading-snug cursor-pointer ${
-                                        item.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'
+                                      className={`text-base font-semibold leading-snug cursor-pointer ${
+                                        item.completed ? 'line-through text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'
                                       }`}
                                     >
                                       {item.task}
                                     </label>
                                   </div>
                                   {item.dueDate && (
-                                    <div className="text-xs text-gray-700 dark:text-gray-300 ml-6 font-medium">
+                                    <div className="text-sm text-gray-800 dark:text-gray-200 ml-8 font-medium">
                                       Due: {item.dueDate.toLocaleDateString('en-US', { 
                                         weekday: 'short', 
                                         month: 'short', 
                                         day: 'numeric' 
                                       })}
                                       {item.status === 'overdue' && (
-                                        <span className="text-red-600 dark:text-red-400 ml-2 font-bold">OVERDUE</span>
+                                        <span className="text-red-700 dark:text-red-400 ml-2 font-bold">OVERDUE</span>
                                       )}
                                       {item.status === 'due-soon' && (
-                                        <span className="text-orange-600 dark:text-orange-400 ml-2 font-bold">DUE SOON</span>
+                                        <span className="text-orange-700 dark:text-orange-400 ml-2 font-bold">DUE SOON</span>
                                       )}
                                     </div>
                                   )}
                                 </div>
-                                <Badge variant="outline" className="text-xs shrink-0 font-medium">
+                                <Badge variant="outline" className="text-sm shrink-0 font-semibold px-3 py-1">
                                   {item.category}
                                 </Badge>
                               </div>

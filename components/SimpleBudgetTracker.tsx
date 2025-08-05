@@ -199,9 +199,9 @@ export default function SimpleBudgetTracker({
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Budget Input */}
-          <div className="bg-gray-50 dark:bg-slate-700/50 p-4 rounded-lg">
+          <div className="bg-gray-100 dark:bg-slate-700/70 p-4 rounded-lg border border-gray-200 dark:border-slate-600">
             <div className="flex items-center justify-between mb-4">
-              <span className="font-medium text-gray-900 dark:text-gray-100">Total Budget</span>
+              <span className="font-semibold text-gray-900 dark:text-gray-100 text-lg">Total Budget</span>
               {isEditingBudget ? (
                 <div className="flex items-center gap-2">
                   <div className="relative">
@@ -210,7 +210,7 @@ export default function SimpleBudgetTracker({
                       type="number"
                       value={budgetInput}
                       onChange={(e) => setBudgetInput(e.target.value)}
-                      className="pl-8 w-32"
+                      className="pl-8 w-32 font-semibold"
                       min="0"
                       step="1"
                       autoFocus
@@ -224,7 +224,7 @@ export default function SimpleBudgetTracker({
                   </Button>
                 </div>
               ) : (
-                <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <span className="text-3xl font-bold text-green-600 dark:text-green-400">
                   ${Math.round(totalBudget)}
                 </span>
               )}
@@ -232,20 +232,24 @@ export default function SimpleBudgetTracker({
 
             {/* Budget Progress */}
             <div className="space-y-3">
-              <div className="flex justify-between text-sm text-gray-800 dark:text-gray-200 font-medium">
-                <span>Spent: ${Math.round(totalSpent)}</span>
-                <span className={`font-bold ${getStatusColor()}`}>
+              <div className="flex justify-between text-base text-gray-900 dark:text-gray-100 font-semibold">
+                <span>Spent: <span className="text-orange-600 dark:text-orange-400">${Math.round(totalSpent)}</span></span>
+                <span className={`font-bold ${getStatusColor()} text-lg`}>
                   Remaining: ${Math.round(remaining)}
                 </span>
               </div>
               <div className="space-y-2">
                 <Progress 
                   value={Math.min(spentPercentage, 100)} 
-                  className="h-3"
+                  className="h-4 bg-gray-200 dark:bg-gray-600"
                 />
+                <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span>{Math.round(spentPercentage)}% used</span>
+                  <span>${Math.round(totalBudget - totalSpent)} left</span>
+                </div>
                 {spentPercentage > 100 && (
-                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-medium">
-                    <AlertTriangle className="h-4 w-4" />
+                  <div className="flex items-center gap-2 text-red-700 dark:text-red-400 text-base font-semibold">
+                    <AlertTriangle className="h-5 w-5" />
                     <span>Over budget by ${Math.round(Math.abs(remaining))}</span>
                   </div>
                 )}
@@ -283,9 +287,9 @@ export default function SimpleBudgetTracker({
           )}
 
           {/* Add Expense */}
-          <div className="border-t pt-4">
+          <div className="border-t border-gray-300 dark:border-gray-600 pt-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium">Expenses</h3>
+              <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">Expenses</h3>
               <div className="flex gap-2">
                 <Button
                   size="sm"
@@ -407,16 +411,16 @@ export default function SimpleBudgetTracker({
             )}
 
             {/* Expenses List */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               {expenses.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <DollarSign className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>No expenses added yet</p>
+                <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                  <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-base font-medium">No expenses added yet</p>
                   <p className="text-sm">Click "Add Expense" to start tracking spending</p>
                 </div>
               ) : (
                 expenses.map((expense) => (
-                  <div key={expense.id} className="p-3 bg-white dark:bg-slate-800 border rounded-lg">
+                  <div key={expense.id} className="p-4 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 rounded-lg shadow-sm">
                     {editingExpense === expense.id ? (
                       <form 
                         onSubmit={(e) => {
@@ -430,7 +434,7 @@ export default function SimpleBudgetTracker({
                             placeholder="Expense name"
                             value={editExpenseData.name}
                             onChange={(e) => setEditExpenseData(prev => ({ ...prev, name: e.target.value }))}
-                            className="flex-1"
+                            className="flex-1 font-medium"
                             required
                           />
                           <div className="relative">
@@ -440,7 +444,7 @@ export default function SimpleBudgetTracker({
                               placeholder="0"
                               value={editExpenseData.amount}
                               onChange={(e) => setEditExpenseData(prev => ({ ...prev, amount: e.target.value }))}
-                              className="pl-8 w-24"
+                              className="pl-8 w-28 font-semibold"
                               min="0"
                               step="1"
                               required
@@ -469,16 +473,16 @@ export default function SimpleBudgetTracker({
                       </form>
                     ) : (
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">{expense.name}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">
+                        <span className="font-semibold text-gray-900 dark:text-gray-100 text-base">{expense.name}</span>
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="font-bold text-base px-3 py-1">
                             ${Math.round(expense.amount)}
                           </Badge>
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => startEditExpense(expense)}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                           >
                             <Edit3 className="h-4 w-4" />
                           </Button>
@@ -486,7 +490,7 @@ export default function SimpleBudgetTracker({
                             size="sm"
                             variant="ghost"
                             onClick={() => removeExpense(expense.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

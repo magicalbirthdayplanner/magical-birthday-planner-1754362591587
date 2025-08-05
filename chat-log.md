@@ -1,3 +1,45 @@
+## [usr-1754372998972]
+**User Request:** There is lot of whitespace next to activities. Move timeline and checklist to the last. Last should be checklist. Make it more legible. 
+
+cant read budget, checklists etc
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-05 at 1.49.20 AM.png
+
+**Response Summary:** Successfully improved the party planning layout and UX with the following optimizations:
+
+**Tab Organization:**
+- Reorganized tab order to move Timeline and Checklist tabs to the end of the navigation
+- Positioned Checklist as the last tab as requested for better workflow organization
+- Maintained logical grouping: Overview/Budget → Shopping/Vendors → Guests/Activities → Timeline/Checklist
+
+**Activities Tab Optimization:**
+- Reduced excessive whitespace throughout the Activities component
+- Made headers more compact (text-xl vs text-2xl)
+- Tightened spacing between elements (space-y-4 vs space-y-6)
+- Reduced card gaps (gap-4 vs gap-6) and made cards more compact
+- Optimized button sizes and icon dimensions for better space utilization
+- Compressed empty state section for better visual balance
+
+**Budget Component Readability:**
+- Enhanced text contrast with stronger colors (text-gray-900 dark:text-gray-100)
+- Increased font sizes and weights (text-lg, font-semibold, text-3xl for budget display)
+- Improved background contrast (bg-gray-100 with borders vs bg-gray-50)
+- Made progress bars more prominent (h-4 vs h-3)
+- Enhanced expense list items with better borders, shadows, and larger text
+- Added color coding for spent amounts (orange) and status indicators
+
+**Checklist Component Readability:**
+- Increased spacing between timeline sections (space-y-6, gap-6)
+- Enhanced task item backgrounds with stronger borders and better contrast
+- Enlarged text sizes (text-base font-semibold vs text-sm font-medium)
+- Made status icons larger (h-5 w-5 vs h-4 w-4) and badges more prominent
+- Improved due date information visibility with better typography
+- Enhanced checkbox sizes and spacing for easier interaction
+
+All changes maintain existing functionality while significantly improving visual clarity, readability, and user experience organization. The build completed successfully confirming all modifications work correctly.
+
+**Files Modified:** app/party-plan/page.tsx, components/Activities.tsx, components/SimpleBudgetTracker.tsx
+
 ## [usr-1754473338767]
 **User Request:** 1. Remove Memories Created and Party Progress from the plannig overview - Just have 3 cards. 
 

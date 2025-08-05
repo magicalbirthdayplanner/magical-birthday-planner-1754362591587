@@ -395,14 +395,14 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header with AI Generation */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-4">
+      {/* Header with AI Generation - Compact Layout */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Party Activities
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
+          <p className="text-gray-600 dark:text-gray-300 text-sm">
             {theme.charAt(0).toUpperCase() + theme.slice(1)} theme activities for age {childAge}
           </p>
         </div>
@@ -410,6 +410,7 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
           onClick={generateAIActivities}
           disabled={isGeneratingAI}
           className="bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+          size="sm"
         >
           {isGeneratingAI ? (
             <>
@@ -419,21 +420,21 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
           ) : (
             <>
               <Sparkles className="h-4 w-4 mr-2" />
-              Generate More AI Activities
+              Generate More
             </>
           )}
         </Button>
       </div>
 
-      {/* Category Filter */}
+      {/* Category Filter - Reduced spacing */}
       <div className="flex flex-wrap gap-2">
         <Button
           variant={selectedCategory === 'all' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setSelectedCategory('all')}
-          className="mb-2"
+          className="h-8"
         >
-          All Activities ({activities.length})
+          All ({activities.length})
         </Button>
         {categories.map(category => {
           const count = activities.filter(a => a.category === category).length;
@@ -443,7 +444,7 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
               variant={selectedCategory === category ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory(category)}
-              className="mb-2 capitalize"
+              className="h-8 capitalize"
             >
               {categoryIcons[category as keyof typeof categoryIcons]}
               <span className="ml-1">{category} ({count})</span>
@@ -452,19 +453,19 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
         })}
       </div>
 
-      {/* Activities Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Activities Grid - Tighter spacing and more compact cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredActivities.map((activity) => (
-          <Card key={activity.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 dark:bg-slate-800/90 dark:backdrop-blur-sm">
-            <CardHeader>
+          <Card key={activity.id} className="border-0 shadow-md hover:shadow-lg transition-shadow duration-300 dark:bg-slate-800/90 dark:backdrop-blur-sm">
+            <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <div className={`p-2 rounded-lg ${categoryColors[activity.category]}`}>
+                  <div className={`p-1.5 rounded-lg ${categoryColors[activity.category]}`}>
                     {activity.icon}
                   </div>
-                  <div>
-                    <CardTitle className="text-lg">{activity.name}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-base leading-tight">{activity.name}</CardTitle>
+                    <div className="flex items-center gap-1 mt-1">
                       <Badge variant="outline" className="text-xs capitalize">
                         {activity.category}
                       </Badge>
@@ -476,32 +477,32 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <CardDescription className="text-sm">
+            <CardContent className="space-y-3 pt-0">
+              <CardDescription className="text-sm leading-snug">
                 {activity.description}
               </CardDescription>
               
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600 dark:text-gray-300">{activity.duration}</span>
+                  <Clock className="h-3 w-3 text-gray-400" />
+                  <span className="text-gray-600 dark:text-gray-300 text-xs">{activity.duration}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600 dark:text-gray-300">{activity.participants}</span>
+                  <Users className="h-3 w-3 text-gray-400" />
+                  <span className="text-gray-600 dark:text-gray-300 text-xs">{activity.participants}</span>
                 </div>
               </div>
 
               <div>
-                <h4 className="font-semibold text-sm mb-2">Materials Needed:</h4>
+                <h4 className="font-semibold text-sm mb-1">Materials:</h4>
                 <div className="flex flex-wrap gap-1">
                   {activity.materials.slice(0, 3).map((material, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
+                    <Badge key={index} variant="secondary" className="text-xs py-0">
                       {material}
                     </Badge>
                   ))}
                   {activity.materials.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs py-0">
                       +{activity.materials.length - 3} more
                     </Badge>
                   )}
@@ -509,25 +510,25 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
               </div>
 
               <Button className="w-full" variant="outline" size="sm">
-                <Play className="h-4 w-4 mr-2" />
-                Add to Party Plan
+                <Play className="h-3 w-3 mr-2" />
+                Add to Plan
               </Button>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Empty state */}
+      {/* Empty state - More compact */}
       {filteredActivities.length === 0 && (
-        <div className="text-center py-12">
-          <Music className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <div className="text-center py-8">
+          <Music className="h-10 w-10 text-gray-400 mx-auto mb-3" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
             No activities found
           </h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
+          <p className="text-gray-600 dark:text-gray-300 mb-3 text-sm">
             No activities match your current filter. Try selecting a different category.
           </p>
-          <Button onClick={() => setSelectedCategory('all')} variant="outline">
+          <Button onClick={() => setSelectedCategory('all')} variant="outline" size="sm">
             Show All Activities
           </Button>
         </div>
