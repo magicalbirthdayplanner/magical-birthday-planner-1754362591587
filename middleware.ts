@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { checkMissingEnvVars } from '@/lib/env-config'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // Skip middleware for the env-check page itself to avoid infinite redirects
   if (request.nextUrl.pathname === '/env-check') {
     return NextResponse.next()
@@ -25,7 +26,68 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/env-check', request.url))
   }
 
-  return NextResponse.next()
+  // Create response
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
+  // Create Supabase client for session management
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
+
+  // Refresh session if expired - required for Server Components
+  try {
+    await supabase.auth.getUser()
+  } catch (error) {
+    console.warn('Auth middleware error:', error)
+  }
+
+  return response
 }
 
 export const config = {

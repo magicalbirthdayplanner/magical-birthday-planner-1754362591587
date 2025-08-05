@@ -29,14 +29,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      if (error) {
-        console.error('Error getting session:', error)
-      } else {
-        setSession(session)
-        setUser(session?.user ?? null)
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error('Error getting session:', error)
+          // Don't throw error, just clear state
+          setSession(null)
+          setUser(null)
+        } else {
+          console.log('Session loaded:', session ? 'authenticated' : 'not authenticated')
+          setSession(session)
+          setUser(session?.user ?? null)
+        }
+      } catch (err) {
+        console.error('Failed to get session:', err)
+        setSession(null)
+        setUser(null)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     getSession()
@@ -44,8 +55,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
+        console.log('Auth state change:', event, session ? 'authenticated' : 'not authenticated')
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(session)
+          setUser(session?.user ?? null)
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null)
+          setUser(null)
+        } else {
+          setSession(session)
+          setUser(session?.user ?? null)
+        }
+        
         setLoading(false)
       }
     )
