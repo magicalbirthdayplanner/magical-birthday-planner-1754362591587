@@ -9,6 +9,7 @@ import { Plus, PartyPopper, Calendar, Users, CheckCircle, Clock, Sparkles } from
 import { useAuth } from '@/contexts/AuthContext'
 import PartyCard from './PartyCard'
 import Link from 'next/link'
+import { getUserParties } from '@/lib/party-actions'
 
 interface Party {
   id: string
@@ -31,12 +32,11 @@ export default function Dashboard() {
     const loadParties = async () => {
       try {
         if (user) {
-          // Load from database if user is authenticated
-          const response = await fetch(`/api/party-data?userId=${user.id}`)
-          if (response.ok) {
-            const { parties: dbParties } = await response.json()
-            
-            const formattedParties = dbParties.map((party: any) => {
+          // Load from database using Prisma server actions
+          const result = await getUserParties()
+          
+          if (result.success && result.parties) {
+            const formattedParties = result.parties.map((party: any) => {
               const checklistData = party.checklistData || []
               const checkedTasks = Array.isArray(checklistData) ? checklistData.filter((task: any) => task.completed).length : 0
               const totalTasks = Array.isArray(checklistData) && checklistData.length > 0 ? checklistData.length : 15
@@ -50,13 +50,14 @@ export default function Dashboard() {
                 guestCount: party.guestCount || party.guests?.length || 0,
                 checkedTasks,
                 totalTasks,
-                status: new Date(party.partyDate) > new Date() ? 'upcoming' : 'completed'
+                status: new Date(party.partyDate) > new Date() ? 'upcoming' as const : 'completed' as const
               }
             })
             
             setParties(formattedParties)
           } else {
-            // Fallback to localStorage if API fails
+            console.error('Failed to load parties from database:', result.error)
+            // Fallback to localStorage if database fails
             loadFromLocalStorage()
           }
         } else {

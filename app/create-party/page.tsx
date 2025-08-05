@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
 import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
 import { useAuth } from "@/contexts/AuthContext";
-import { createParty } from "@/lib/party-actions";
+import { createParty, updateParty } from "@/lib/party-actions";
 
 const interestOptions = [
   "Animals", "Art & Crafts", "Cars", "Dancing", "Music", "Sports", "Science",
@@ -190,6 +190,7 @@ interface PartyData {
   zipCode?: string; // New field for zip code
   guestCount?: number; // New field for number of guests
   zipCodeError?: string; // New field for zip code validation error
+  partyId?: string; // Track party ID for updates and continuity
 }
 
 // Profanity detection state interface
@@ -380,7 +381,48 @@ export default function CreatePartyPage() {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholderExamples[0]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-  // No auto-save - data will be saved only on form submission to database
+  // Auto-save functionality with database persistence
+  useEffect(() => {
+    const autoSave = async () => {
+      // Save to localStorage immediately for offline backup
+      localStorage.setItem('partyData', JSON.stringify(partyData));
+      
+      // If user is authenticated and has sufficient data, also save to database
+      if (user && partyData.childName && partyData.childAge && partyData.partyDate) {
+        try {
+          // Call createParty server action for auto-save when user has basic party info
+          const createPayload = {
+            childName: partyData.childName,
+            childAge: partyData.childAge,
+            childGender: partyData.childGender || '',
+            partyDate: partyData.partyDate,
+            theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
+            interests: partyData.childInterests || [],
+            favoriteColors: partyData.favoriteColors || [],
+            guestCount: partyData.guestCount || 0,
+            budget: partyData.budget || undefined,
+            location: partyData.zipCode || '',
+          };
+
+          // Only auto-save if we have the minimum required data
+          if (createPayload.childName && createPayload.partyDate) {
+            console.log('Auto-saving party data to database...');
+            const result = await createParty(createPayload);
+            if (result.success && result.party?.id) {
+              // Store the party ID for future updates
+              setPartyData(prev => ({ ...prev, partyId: result.party.id }));
+            }
+          }
+        } catch (error) {
+          console.error('Auto-save failed, data preserved in localStorage:', error);
+        }
+      }
+    };
+
+    const saveTimeout = setTimeout(autoSave, 2000); // Auto-save every 2 seconds after changes
+    
+    return () => clearTimeout(saveTimeout);
+  }, [partyData, user]);
 
   // Ensure user is authenticated for party creation
   useEffect(() => {
@@ -552,41 +594,73 @@ export default function CreatePartyPage() {
         throw new Error('Missing required fields: child name or party date');
       }
 
-      const createPayload = {
-        childName: partyData.childName,
-        childAge: partyData.childAge,
-        childGender: partyData.childGender,
-        partyDate: partyData.partyDate!,
-        theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
-        interests: partyData.childInterests,
-        favoriteColors: partyData.favoriteColors,
-        guestCount: partyData.guestCount,
-        budget: partyData.budget,
-        location: partyData.zipCode,
-      };
+      let partyId = partyData.partyId;
 
-      console.log('Creating party with payload:', createPayload)
+      // If we don't have a party ID from auto-save, create the party
+      if (!partyId) {
+        const createPayload = {
+          childName: partyData.childName,
+          childAge: partyData.childAge,
+          childGender: partyData.childGender,
+          partyDate: partyData.partyDate!,
+          theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
+          interests: partyData.childInterests,
+          favoriteColors: partyData.favoriteColors,
+          guestCount: partyData.guestCount,
+          budget: partyData.budget || undefined,
+          location: partyData.zipCode,
+        };
 
-      // Create party in database using server action
-      const result = await createParty(createPayload);
+        console.log('Creating party with payload:', createPayload)
 
-      console.log('Party creation result:', result)
+        // Create party in database using server action
+        const result = await createParty(createPayload);
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to create party');
+        console.log('Party creation result:', result)
+
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to create party');
+        }
+
+        if (!result.party?.id) {
+          throw new Error('Party created but no ID returned');
+        }
+
+        partyId = result.party.id;
+      } else {
+        // Update existing party with latest data
+        const updatePayload = {
+          childName: partyData.childName,
+          childAge: partyData.childAge,
+          childGender: partyData.childGender,
+          partyDate: partyData.partyDate!,
+          theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
+          interests: partyData.childInterests,
+          favoriteColors: partyData.favoriteColors,
+          guestCount: partyData.guestCount,
+          budget: partyData.budget || undefined,
+          location: partyData.zipCode,
+        };
+
+        console.log('Updating existing party:', partyId, updatePayload)
+
+        const result = await updateParty(partyId, updatePayload);
+
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to update party');
+        }
       }
 
-      if (!result.party?.id) {
-        throw new Error('Party created but no ID returned');
-      }
+      // Clear localStorage after successful save
+      localStorage.removeItem('partyData');
 
       // Show success feedback
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
 
-      // Navigate to party plan with the new party ID
+      // Navigate to party plan with the party ID
       await new Promise(resolve => setTimeout(resolve, 1500));
-      router.push(`/party-plan?id=${result.party.id}`);
+      router.push(`/party-plan?id=${partyId}`);
 
     } catch (error) {
       console.error('Error creating party:', error);
