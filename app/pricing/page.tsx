@@ -14,13 +14,13 @@ const pricingTiers = [
     bgGradient: "from-purple-50 to-pink-50",
     features: [
       "1 event creation",
-      "Unlimited guests",
+      "Max 10 guests",
       "Basic themes & templates",
       "Simple checklist",
-      "Email invites",
       "Community support"
     ],
     limitations: [
+      "No email invitations",
       "No AI recommendations",
       "No custom themes",
       "No printables"
@@ -33,7 +33,7 @@ const pricingTiers = [
   {
     name: "✨ Magical Party",
     price: 19.99,
-    description: "Perfect for most birthday parties and celebrations",
+    description: "Perfect for birthday celebrations - $19.99/one-time for 1 birthday in a calendar year",
     icon: Zap,
     gradient: "from-blue-500 to-cyan-500",
     bgGradient: "from-blue-50 to-cyan-50",
@@ -42,6 +42,8 @@ const pricingTiers = [
       "AI-powered theme suggestions",
       "Unlimited guests",
       "Premium templates & themes",
+      "Vendor recommendations",
+      "Custom theme creation",
       "Advanced RSVP tracking",
       "Shopping list integration",
       "Custom invitations",
@@ -53,43 +55,47 @@ const pricingTiers = [
     cta: "Plan My Event",
     ctaVariant: "default" as const,
     popular: true,
-    bestFor: "Most parents planning birthday parties"
+    bestFor: "Parents planning annual birthday celebrations"
   },
   {
     name: "👑 Ultimate Party",
     price: 39.99,
-    description: "For special occasions and professional planners",
+    description: "Premium package - $39.99/one-time for up to 3 birthdays in a calendar year",
     icon: Crown,
     gradient: "from-emerald-500 to-teal-500",
     bgGradient: "from-emerald-50 to-teal-50",
     features: [
       "All Magical features",
-      "Custom theme creation",
-      "Unlimited guests",
-      "Vendor recommendations",
-      "Advanced analytics",
-      "Export capabilities",
-      "Template sharing",
-      "Multi-event management (up to 3 events)",
-      "API access",
-      "Priority support"
+      "Multi-event management (up to 3 birthdays)",
+      "Professional event coordination",
+      "Premium vendor network access",
+      "White-glove party concierge service",
+      "Dedicated party planner consultation",
+      "Advanced analytics & insights",
+      "Professional photography referrals",
+      "Premium entertainment booking",
+      "Custom decoration design service",
+      "Export capabilities & data backup",
+      "Template sharing & collaboration",
+      "API access for integrations",
+      "Priority 24/7 support"
     ],
     limitations: [],
     cta: "Create Ultimate Event",
     ctaVariant: "default" as const,
     popular: false,
-    bestFor: "Special occasions & professional planners"
+    bestFor: "Families with multiple children & premium service seekers"
   }
 ]
 
 const faqs = [
   {
-    question: "How does pay-per-event pricing work?",
-    answer: "You only pay when you plan an event. No monthly subscriptions, no recurring charges. Purchase a package, plan your party, and you're done until your next celebration."
+    question: "How does the annual birthday pricing work?",
+    answer: "Our pricing is designed around birthday celebrations. Magical Party covers 1 birthday per calendar year for $19.99, while Ultimate Party covers up to 3 birthdays per calendar year for $39.99. Perfect for families with multiple children or special milestone birthdays."
   },
   {
-    question: "What happens after I purchase an event package?",
-    answer: "You get immediate access to all the features included in your package. Create your event, invite guests, and plan your perfect party. Your access remains active until your event is complete."
+    question: "What happens after I purchase a birthday package?",
+    answer: "You get immediate access to all features included in your package for the entire calendar year. Plan your birthday parties, invite unlimited guests (except Essential), and create magical celebrations. Your access resets each January."
   },
   {
     question: "Can I upgrade my package after purchase?",
@@ -104,8 +110,8 @@ const faqs = [
     answer: "We accept all major credit cards, debit cards, and PayPal through our secure payment processor DoDo Payments."
   },
   {
-    question: "How long do I have access to my event after purchase?",
-    answer: "Your event remains accessible for 90 days after your party date, giving you time to download photos, export guest lists, and save memories."
+    question: "How long do I have access to my birthday events?",
+    answer: "Your birthday events remain accessible for the entire calendar year plus 90 days after December 31st, giving you time to download photos, export guest lists, and save memories from all your year's celebrations."
   }
 ]
 
@@ -116,13 +122,13 @@ export default function PricingPage() {
       <div className="container mx-auto px-4 pt-20 pb-12">
         <div className="text-center max-w-3xl mx-auto">
           <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-            🎉 Only pay when you plan. No subscriptions.
+            🎂 Annual birthday pricing. No monthly subscriptions.
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6">
-            Choose Your Perfect Event Package
+            Choose Your Perfect Birthday Package
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            From single birthday parties to multi-event planning, we have the perfect package to make every celebration magical. Pay once, plan once, celebrate forever.
+            From single birthday celebrations to multi-child families, we have the perfect annual package to make every birthday magical. Pay once per year, celebrate all year long.
           </p>
         </div>
       </div>
@@ -243,29 +249,41 @@ export default function PricingPage() {
                 <tr>
                   <td className="p-4 font-medium text-gray-900">Events Included</td>
                   <td className="p-4 text-center">1</td>
-                  <td className="p-4 text-center">1</td>
-                  <td className="p-4 text-center">Up to 3 events</td>
+                  <td className="p-4 text-center">1 birthday/year</td>
+                  <td className="p-4 text-center">Up to 3 birthdays/year</td>
                 </tr>
                 <tr className="bg-gray-50">
                   <td className="p-4 font-medium text-gray-900">Maximum Guests</td>
-                  <td className="p-4 text-center">Unlimited</td>
+                  <td className="p-4 text-center">10 guests</td>
                   <td className="p-4 text-center">Unlimited</td>
                   <td className="p-4 text-center">Unlimited</td>
                 </tr>
                 <tr>
+                  <td className="p-4 font-medium text-gray-900">Email Invitations</td>
+                  <td className="p-4 text-center">—</td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                </tr>
+                <tr className="bg-gray-50">
                   <td className="p-4 font-medium text-gray-900">AI Theme Recommendations</td>
                   <td className="p-4 text-center">—</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
-                <tr className="bg-gray-50">
+                <tr>
                   <td className="p-4 font-medium text-gray-900">Custom Themes & Printables</td>
                   <td className="p-4 text-center">—</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
+                <tr className="bg-gray-50">
+                  <td className="p-4 font-medium text-gray-900">Vendor Recommendations</td>
+                  <td className="p-4 text-center">—</td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center">Premium Network</td>
+                </tr>
                 <tr>
-                  <td className="p-4 font-medium text-gray-900">Multi-Event Management</td>
+                  <td className="p-4 font-medium text-gray-900">Concierge & Consultation</td>
                   <td className="p-4 text-center">—</td>
                   <td className="p-4 text-center">—</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
@@ -274,7 +292,7 @@ export default function PricingPage() {
                   <td className="p-4 font-medium text-gray-900">Support Level</td>
                   <td className="p-4 text-center">Community</td>
                   <td className="p-4 text-center">Email</td>
-                  <td className="p-4 text-center">Priority</td>
+                  <td className="p-4 text-center">Priority 24/7</td>
                 </tr>
               </tbody>
             </table>
@@ -314,10 +332,10 @@ export default function PricingPage() {
         <div className="container mx-auto px-4 py-20">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-4xl font-bold mb-6">
-              Ready to Create Magical Celebrations?
+              Ready to Create Magical Birthday Celebrations?
             </h2>
             <p className="text-xl mb-8 text-purple-100">
-              Join thousands of happy parents who've planned unforgettable parties with our pay-per-event system.
+              Join thousands of happy parents who've planned unforgettable birthday parties with our annual packages.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
