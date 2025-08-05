@@ -1,3 +1,98 @@
+## [usr-1754363160922]
+**User Request:** First lets deploy to Vercel - I am seeing this error in Vercel 
+
+[22:57:54.587] Running build in Washington, D.C., USA (East) – iad1
+[22:57:54.587] Build machine configuration: 2 cores, 8 GB
+[22:57:54.611] Cloning github.com/magicalbirthdayplanner/magical-birthday-planner-1754362591587 (Branch: master, Commit: c57603a)
+[22:57:54.751] Previous build caches not available
+[22:57:55.099] Cloning completed: 488.000ms
+[22:57:55.743] Running "vercel build"
+[22:57:57.317] Vercel CLI 44.6.4
+[22:57:58.047] Installing dependencies...
+[22:58:12.278] 
+[22:58:12.279] added 315 packages in 14s
+[22:58:12.279] 
+[22:58:12.280] 45 packages are looking for funding
+[22:58:12.280]   run `npm fund` for details
+[22:58:12.516] Detected Next.js version: 14.2.30
+[22:58:12.521] Running "npm run build"
+[22:58:12.647] 
+[22:58:12.649] > ideavo-nextjs@0.1.0 build
+[22:58:12.650] > next build
+[22:58:12.650] 
+[22:58:13.543] Attention: Next.js now collects completely anonymous telemetry regarding usage.
+[22:58:13.544] This information is used to shape Next.js' roadmap and prioritize features.
+[22:58:13.545] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[22:58:13.545] https://nextjs.org/telemetry
+[22:58:13.545] 
+[22:58:13.694]   ▲ Next.js 14.2.30
+[22:58:13.697]   - Environments: .env
+[22:58:13.697] 
+[22:58:13.754]    Creating an optimized production build ...
+[22:58:34.880] <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+[22:58:35.034]  ⚠ Compiled with warnings
+[22:58:35.035] 
+[22:58:35.035] ./node_modules/@supabase/supabase-js/dist/module/index.js
+[22:58:35.035] A Node.js API is used (process.version at line: 17) which is not supported in the Edge Runtime.
+[22:58:35.036] Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+[22:58:35.036] 
+[22:58:35.036] Import trace for requested module:
+[22:58:35.036] ./node_modules/@supabase/supabase-js/dist/module/index.js
+[22:58:35.037] ./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+[22:58:35.037] ./node_modules/@supabase/ssr/dist/module/index.js
+[22:58:35.037] 
+[22:58:35.037] ./node_modules/@supabase/supabase-js/dist/module/index.js
+[22:58:35.037] A Node.js API is used (process.version at line: 18) which is not supported in the Edge Runtime.
+[22:58:35.037] Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+[22:58:35.038] 
+[22:58:35.038] Import trace for requested module:
+[22:58:35.038] ./node_modules/@supabase/supabase-js/dist/module/index.js
+[22:58:35.038] ./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+[22:58:35.038] ./node_modules/@supabase/ssr/dist/module/index.js
+[22:58:35.038] 
+[22:58:35.039] ./node_modules/@supabase/supabase-js/dist/module/index.js
+[22:58:35.039] A Node.js API is used (process.version at line: 21) which is not supported in the Edge Runtime.
+[22:58:39] Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+[22:58:35.039] 
+[22:58:35.039] Import trace for requested module:
+[22:58:35.039] ./node_modules/@supabase/supabase-js/dist/module/index.js
+[22:58:35.040] ./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+[22:58:35.040] ./node_modules/@supabase/ssr/dist/module/index.js
+[22:58:35.040] 
+[22:58:51.007] ✓ Compiled successfully
+[22:58:51.008]    Linting and checking validity of types ...
+[22:59:03.549]    Collecting page data ...
+[22:59:04.060] Prisma has detected that this project was built on Vercel, which caches dependencies. This leads to an outdated Prisma Client because Prisma's auto-generation isn't triggered. To fix this, make sure to run the `prisma generate` command during the build process.
+[22:59:04.060] 
+[22:59:04.061] Learn how: https://pris.ly/d/vercel-build
+[22:59:04.061] PrismaClientInitializationError: Prisma has detected that this project was built on Vercel, which caches dependencies. This leads to an outdated Prisma Client because Prisma's auto-generation isn't triggered. To fix this, make sure to run the `prisma generate` command during the build process.
+[22:59:04.062] 
+[22:59:04.062] Learn how: https://pris.ly/d/vercel-build
+[22:59:04.062]     at Ba (/vercel/path0/node_modules/@prisma/client/runtime/library.js:33:69)
+[22:59:04.062]     at new t (/vercel/path0/node_modules/@prisma/client/runtime/library.js:130:739)
+[22:59:04.062]     at 5475 (/vercel/path0/.next/server/app/api/user/parties/route.js:1:1576)
+[22:59:04.063]     at t (/vercel/path0/.next/server/webpack-runtime.js:1:143)
+[22:59:04.066]     at r (/vercel/path0/.next/server/app/api/user/parties/route.js:2:35645)
+[22:59:04.066]     at /vercel/path0/.next/server/app/api/user/parties/route.js:2:35684
+[22:59:04.066]     at t.X (/vercel/path0/.next/server/webpack-runtime.js:1:1285)
+[22:59:04.066]     at /vercel/path0/.next/server/app/api/user/parties/route.js:2:35658
+[22:59:04.066]     at Object.<anonymous> (/vercel/path0/.next/server/app/api/user/parties/route.js:2:35711)
+[22:59:04.067]     at Module._compile (node:internal/modules/cjs/loader:1730:14) {
+[22:59:04.067]   clientVersion: '5.22.0',
+[22:59:04.072]   errorCode: undefined
+[22:59:04.072] }
+[22:59:04.081] 
+[22:59:04.082] > Build error occurred
+[22:59:04.083] Error: Failed to collect page data for /api/user/parties
+[22:59:04.083]     at /vercel/path0/node_modules/next/dist/build/utils.js:1269:15
+[22:59:04.083]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+[22:59:04.083]   type: 'Error'
+[22:59:04.083] }
+[22:59:04.108] Error: Command "npm run build" exited with 1
+[22:59:07.542] Exiting build container
+**Response Summary:** Successfully resolved the Vercel deployment build failure caused by Prisma Client initialization issues. The root cause was Vercel's dependency caching system preventing Prisma Client auto-generation during the build process. Fixed by updating the build script in package.json to include `prisma generate` before `next build`, ensuring the Prisma Client is properly generated on each deployment. The build now completes successfully with all pages properly generated. Local testing confirmed the fix works correctly with Prisma Client v5.22.0 generating properly and Next.js 14.2.30 building without errors. The application is now ready for successful Vercel deployment.
+**Files Modified:** package.json
+
 ## [usr-1754359381080]
 **User Request:** I have procured a new domain  : magicalbirthdayplanner.com 
 
