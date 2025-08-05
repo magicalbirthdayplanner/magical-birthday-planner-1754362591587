@@ -1,3 +1,8 @@
+## [usr-1754364827098]
+**User Request:** disable AMAZON_API_KEY, WALMART_API_KEY, TEMU_API_KEY, YELP_API_KEY, GOOGLE_MAPS_API_KEY for now from vercel deployment 
+**Response Summary:** Successfully disabled the 5 specified API keys from Vercel deployment by removing them from the environment configuration file (lib/env-config.ts). This prevents these optional third-party API integrations from being required during deployment, addressing any potential issues with missing API keys. The build completed successfully, confirming the changes don't break existing functionality.
+**Files Modified:** lib/env-config.ts
+
 ## [usr-1754364437555]
 **User Request:** https://magical-birthday-planner-1754362591.vercel.app/env-check
 
