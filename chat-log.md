@@ -1,3 +1,10 @@
+## [usr-1754364122714]
+**User Request:** Deployment request did not have a git author with access to the project on Vercel
+
+Error from vercel 
+**Response Summary:** Fixed Vercel deployment access issue by updating git configuration. Changed git author from "Ideavo AI <ideavo.ai@gmail.com>" to "ideavo-ai <noreply@github.com>" to match the GitHub account that has access to the Vercel project. Pushed a test commit to verify the fix works.
+**Files Modified:** git configuration (.git/config), created and removed temporary .vercel-fix file
+
 ## [usr-1754363579797]
 **User Request:** Vercel deployment failed
 
