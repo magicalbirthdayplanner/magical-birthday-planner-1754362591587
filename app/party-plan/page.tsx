@@ -15,6 +15,7 @@ import ShoppingSuite from "@/components/ShoppingSuite";
 import Activities from "@/components/Activities";
 import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
+import CakeBakeryTab from "@/components/CakeBakeryTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { getParty, updateParty, addGuest, updateGuest, deleteGuest, updateInvitationStatus } from "@/lib/party-actions";
 import { 
@@ -53,6 +54,7 @@ import {
   ShoppingBag,
   Home,
   UtensilsCrossed,
+  Cake,
 } from "lucide-react";
 
 interface PartyData {
@@ -839,56 +841,61 @@ export default function PartyPlanPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex w-full overflow-x-auto lg:grid lg:grid-cols-11 mb-6 sm:mb-8 h-auto p-1 gap-1">
-            <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <PartyPopper className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Overview</span>
-              <span className="sm:hidden">Main</span>
-            </TabsTrigger>
-            <TabsTrigger value="budget" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-              Budget
-            </TabsTrigger>
-            <TabsTrigger value="shopping" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <ShoppingBag className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Shopping</span>
-              <span className="sm:hidden">Shop</span>
-            </TabsTrigger>
-            <TabsTrigger value="venue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <Home className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Venue</span>
-              <span className="sm:hidden">Place</span>
-            </TabsTrigger>
-            <TabsTrigger value="food" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <UtensilsCrossed className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Food</span>
-              <span className="sm:hidden">Eat</span>
-            </TabsTrigger>
-            <TabsTrigger value="checklist" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Checklist</span>
-              <span className="sm:hidden">Tasks</span>
-            </TabsTrigger>
-            <TabsTrigger value="guests" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-              Guests
-            </TabsTrigger>
-            <TabsTrigger value="invitations" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden md:inline">Invitations</span>
-              <span className="md:hidden">RSVP</span>
-            </TabsTrigger>
-            <TabsTrigger value="activities" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <Music className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden md:inline">Activities</span>
-              <span className="md:hidden">Games</span>
-            </TabsTrigger>
-            <TabsTrigger value="timeline" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
-              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden lg:inline">Timeline</span>
-              <span className="lg:hidden">Time</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto mb-6 sm:mb-8">
+            <TabsList className="inline-flex w-max min-w-full lg:w-full lg:grid lg:grid-cols-11 h-auto p-2 gap-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm">
+              <TabsTrigger value="overview" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <PartyPopper className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="hidden sm:inline">Overview</span>
+                <span className="sm:hidden">Main</span>
+              </TabsTrigger>
+              <TabsTrigger value="budget" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                Budget
+              </TabsTrigger>
+              <TabsTrigger value="shopping" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="hidden sm:inline">Shopping</span>
+                <span className="sm:hidden">Shop</span>
+              </TabsTrigger>
+              <TabsTrigger value="venue" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                Venue
+              </TabsTrigger>
+              <TabsTrigger value="food" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <UtensilsCrossed className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                Food
+              </TabsTrigger>
+              <TabsTrigger value="cake" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <Cake className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="hidden sm:inline">Cake & Bakery</span>
+                <span className="sm:hidden">Cake</span>
+              </TabsTrigger>
+              <TabsTrigger value="checklist" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="hidden sm:inline">Checklist</span>
+                <span className="sm:hidden">Tasks</span>
+              </TabsTrigger>
+              <TabsTrigger value="guests" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                Guests
+              </TabsTrigger>
+              <TabsTrigger value="invitations" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="hidden md:inline">Invitations</span>
+                <span className="md:hidden">RSVP</span>
+              </TabsTrigger>
+              <TabsTrigger value="activities" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <Music className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="hidden md:inline">Activities</span>
+                <span className="md:hidden">Games</span>
+              </TabsTrigger>
+              <TabsTrigger value="timeline" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
+                <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="hidden lg:inline">Timeline</span>
+                <span className="lg:hidden">Time</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4 sm:space-y-6">
@@ -1008,6 +1015,15 @@ export default function PartyPlanPage() {
           {/* Food Tab */}
           <TabsContent value="food" className="space-y-6">
             <FoodTab
+              zipCode={partyData?.zipCode}
+              partyId={currentPartyId || partyData?.childName || 'party'}
+              guestCount={guests.length}
+            />
+          </TabsContent>
+
+          {/* Cake & Bakery Tab */}
+          <TabsContent value="cake" className="space-y-6">
+            <CakeBakeryTab
               zipCode={partyData?.zipCode}
               partyId={currentPartyId || partyData?.childName || 'party'}
               guestCount={guests.length}

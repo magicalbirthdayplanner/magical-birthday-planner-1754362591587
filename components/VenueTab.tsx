@@ -249,7 +249,7 @@ export default function VenueTab({ zipCode, partyId, guestCount = 0 }: VenueTabP
       {/* Header */}
       <div className="text-center">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          AI-Powered Venue Recommendations
+          Venue Recommendations
         </h2>
         <p className="text-gray-600 dark:text-gray-300">
           Find the perfect venue for your party based on location, preferences, and guest count

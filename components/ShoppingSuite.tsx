@@ -75,39 +75,11 @@ interface ShoppingSuiteProps {
 
 const SHOPPING_CATEGORIES = [
   {
-    id: 'cake',
-    name: 'Cake & Bakeries',
-    icon: <Cake className="h-6 w-6" />,
-    color: 'from-pink-500 to-rose-500',
-    bgColor: 'bg-pink-50 dark:bg-pink-900/20'
-  },
-  {
-    id: 'venue',
-    name: 'Venue Booking',
-    icon: <Home className="h-6 w-6" />,
-    color: 'from-blue-500 to-indigo-500',
-    bgColor: 'bg-blue-50 dark:bg-blue-900/20'
-  },
-  {
     id: 'decor',
     name: 'Decor/Balloons',
     icon: <Palette className="h-6 w-6" />,
     color: 'from-purple-500 to-violet-500',
     bgColor: 'bg-purple-50 dark:bg-purple-900/20'
-  },
-  {
-    id: 'food',
-    name: 'Food & Pizza',
-    icon: <UtensilsCrossed className="h-6 w-6" />,
-    color: 'from-orange-500 to-amber-500',
-    bgColor: 'bg-orange-50 dark:bg-orange-900/20'
-  },
-  {
-    id: 'beverages',
-    name: 'Beverages',
-    icon: <Wine className="h-6 w-6" />,
-    color: 'from-emerald-500 to-teal-500',
-    bgColor: 'bg-emerald-50 dark:bg-emerald-900/20'
   },
   {
     id: 'gifts',
@@ -426,7 +398,7 @@ export default function ShoppingSuite({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
             {SHOPPING_CATEGORIES.map((category) => (
               <Card 
                 key={category.id}

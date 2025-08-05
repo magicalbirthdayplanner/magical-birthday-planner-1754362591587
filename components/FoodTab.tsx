@@ -313,7 +313,7 @@ export default function FoodTab({ zipCode, partyId, guestCount = 0 }: FoodTabPro
       {/* Header */}
       <div className="text-center">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
-          AI-Powered Food Vendor Recommendations
+          Food Vendor Recommendations
         </h2>
         <p className="text-gray-600 dark:text-gray-300">
           Find the best food options for your party with cuisine variety and dietary accommodations
