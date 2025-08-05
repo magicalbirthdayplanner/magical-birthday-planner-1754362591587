@@ -1,11 +1,9 @@
 "use server"
 
-import { PrismaClient } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 export async function getCurrentUser() {
   const supabase = createServerComponentClient({ cookies })

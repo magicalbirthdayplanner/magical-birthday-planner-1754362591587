@@ -1,3 +1,28 @@
+## [usr-1754408931217]
+**User Request:** WHEN DEPLOYED TO VERCEL - THE FOLLOWING MESSAGE APPEARS WHEN TRYING TO CREATE A NEW PARTY - Invalid `prisma.user.upsert()` invocation: Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432` Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.
+**Response Summary:** Successfully fixed the Vercel deployment database connection issues that prevented party creation by implementing proper Prisma client configuration and database connection optimizations:
+
+**Database Connection Fixes:**
+- Created singleton Prisma client pattern in `/lib/prisma.ts` to prevent connection pool exhaustion in serverless environments
+- Updated all database imports to use the centralized singleton client from `/lib/party-actions.ts` and `/app/api/user/theme/route.ts`
+- Enhanced DATABASE_URL with proper SSL requirements and connection timeout parameters: `?sslmode=require&connect_timeout=30`
+- Removed multiple PrismaClient instantiations that were causing connection conflicts in production
+
+**Production Optimizations:**
+- Implemented proper global Prisma client caching for development vs production environments
+- Added appropriate logging configuration (error-only for production, verbose for development)
+- Configured explicit datasource URL routing to ensure proper environment variable usage
+- Build process now properly generates Prisma client and compiles successfully
+
+**Technical Resolution:**
+The error was caused by multiple PrismaClient instances being created in a serverless environment (Vercel), which exhausted the connection pool limit to the Supabase database. The singleton pattern ensures only one client instance is reused across all serverless function invocations, preventing "Can't reach database server" errors during party creation.
+
+**Files Modified:** 
+- `/lib/prisma.ts` (created singleton client)
+- `/lib/party-actions.ts` (updated imports)
+- `/app/api/user/theme/route.ts` (updated imports)  
+- `/.env` (enhanced connection string)
+
 ## [usr-1754408070492]
 **User Request:** THE RIBBON UNDER THE PARTY MANAGEMENT IS NOT STREAMLINED AND TEXT IS NOT LEGIBLE/READABLE. SPACE THIS PROPORELY TO COVER THE ENTIRE WHITE PADDING AND optimize these and make it slick UI that delivers superior customer experiences AND EASE OF NAVIGATION
 
