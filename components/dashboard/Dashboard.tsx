@@ -193,13 +193,13 @@ export default function Dashboard() {
 
         {/* Stats Cards - Enhanced with Visual Grouping and Better Spacing */}
         <div className="space-y-8 mb-8">
-          {/* Planning & Progress Overview Section */}
+          {/* Planning & Progress Overview Section - 5 Cards */}
           <div className="space-y-4">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Planning Overview</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               <Card className="border-2 border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-base font-bold text-purple-800 dark:text-purple-200">Active Parties</CardTitle>
@@ -244,16 +244,7 @@ export default function Dashboard() {
                   </p>
                 </CardContent>
               </Card>
-            </div>
-          </div>
 
-          {/* Guest Management Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-cyan-600 rounded-full"></div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Guest Management</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <Card className="border-2 border-blue-200 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-base font-bold text-blue-800 dark:text-blue-200">Total Guests</CardTitle>
@@ -269,23 +260,18 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-indigo-200 dark:border-indigo-700 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <Card className="border-2 border-orange-200 dark:border-orange-700 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-base font-bold text-indigo-800 dark:text-indigo-200">Quick Actions</CardTitle>
-                  <div className="p-2 rounded-full bg-indigo-600 shadow-sm">
-                    <Plus className="h-5 w-5 text-white" />
+                  <CardTitle className="text-base font-bold text-orange-800 dark:text-orange-200">Party Progress</CardTitle>
+                  <div className="p-2 rounded-full bg-orange-600 shadow-sm">
+                    <Clock className="h-5 w-5 text-white" />
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button
-                    asChild
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
-                  >
-                    <Link href="/create-party">
-                      <Plus className="w-4 h-4 mr-2" />
-                      New Party
-                    </Link>
-                  </Button>
+                <CardContent className="space-y-2">
+                  <div className="text-3xl font-black text-orange-700 dark:text-orange-300">{upcomingParties.length > 0 ? Math.round(upcomingParties.reduce((sum, party) => sum + (party.checkedTasks / party.totalTasks), 0) / upcomingParties.length * 100) : 0}%</div>
+                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                    average completion
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -300,13 +286,13 @@ export default function Dashboard() {
           </div>
           
           <Tabs defaultValue="upcoming" className="space-y-6">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 shadow-lg">
-              <TabsTrigger value="upcoming" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 shadow-lg rounded-lg overflow-hidden">
+              <TabsTrigger value="upcoming" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-md mx-1 my-1">
                 <Clock className="w-4 h-4" />
                 <span className="hidden sm:inline">Upcoming ({upcomingParties.length})</span>
                 <span className="sm:hidden">Upcoming</span>
               </TabsTrigger>
-              <TabsTrigger value="completed" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">
+              <TabsTrigger value="completed" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-md mx-1 my-1">
                 <CheckCircle className="w-4 h-4" />
                 <span className="hidden sm:inline">Completed ({completedParties.length})</span>
                 <span className="sm:hidden">Done</span>

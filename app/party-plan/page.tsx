@@ -863,20 +863,20 @@ export default function PartyPlanPage() {
           
           <Tabs defaultValue="overview" className="w-full">
             <div className="overflow-x-auto mb-8">
-              <TabsList className="inline-flex w-max min-w-full lg:w-full lg:grid lg:grid-cols-11 h-auto p-3 gap-3 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 shadow-lg rounded-xl">
+              <TabsList className="flex flex-wrap justify-center lg:grid lg:grid-cols-11 w-full h-auto p-2 gap-2 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 shadow-lg rounded-xl">
                 {/* Overview & Planning Group */}
-                <TabsTrigger value="overview" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20">
+                <TabsTrigger value="overview" className="flex items-center justify-center gap-2 text-sm font-medium px-3 py-2.5 min-w-0 flex-1 lg:flex-none rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20">
                   <PartyPopper className="h-4 w-4 shrink-0" />
                   <span className="hidden sm:inline">Overview</span>
                   <span className="sm:hidden">Main</span>
                 </TabsTrigger>
-                <TabsTrigger value="budget" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-green-50 dark:hover:bg-green-900/20">
+                <TabsTrigger value="budget" className="flex items-center justify-center gap-2 text-sm font-medium px-3 py-2.5 min-w-0 flex-1 lg:flex-none rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-green-50 dark:hover:bg-green-900/20">
                   <DollarSign className="h-4 w-4 shrink-0" />
-                  Budget
+                  <span className="truncate">Budget</span>
                 </TabsTrigger>
-                <TabsTrigger value="checklist" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                <TabsTrigger value="checklist" className="flex items-center justify-center gap-2 text-sm font-medium px-3 py-2.5 min-w-0 flex-1 lg:flex-none rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Checklist</span>
+                  <span className="hidden sm:inline truncate">Checklist</span>
                   <span className="sm:hidden">Tasks</span>
                 </TabsTrigger>
                 <TabsTrigger value="timeline" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
@@ -901,7 +901,7 @@ export default function PartyPlanPage() {
                 </TabsTrigger>
                 <TabsTrigger value="cake" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-pink-50 dark:hover:bg-pink-900/20">
                   <Cake className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Cake & Bakery</span>
+                  <span className="hidden sm:inline">Cake</span>
                   <span className="sm:hidden">Cake</span>
                 </TabsTrigger>
                 
@@ -1047,7 +1047,7 @@ export default function PartyPlanPage() {
             />
           </TabsContent>
 
-          {/* Cake & Bakery Tab */}
+          {/* Cake Tab */}
           <TabsContent value="cake" className="space-y-6">
             <CakeBakeryTab
               zipCode={partyData?.zipCode}
