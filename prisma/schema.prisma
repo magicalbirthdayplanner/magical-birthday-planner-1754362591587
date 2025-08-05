@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,78 +8,71 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  name        String?
-  theme       String?  @default("light") // UI theme preference
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  parties     Party[]
-  
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  theme     String?  @default("light")
+  parties   Party[]
+
   @@map("users")
 }
 
 model Party {
-  id              String   @id @default(cuid())
-  childName       String
-  childAge        Int
-  childGender     String?
-  partyDate       DateTime
-  theme           String
-  interests       String[] // Array of child's interests
-  favoriteColors  String[] // Array of favorite colors
-  guestCount      Int?
-  budget          Float?
-  location        String?
-  checklistData   Json?    // Stores checklist progress and custom tasks
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  guests          Guest[]
-  invitations     Invitation[]
-  
+  id             String       @id @default(cuid())
+  childName      String
+  childAge       Int
+  childGender    String?
+  partyDate      DateTime
+  theme          String
+  interests      String[]
+  favoriteColors String[]
+  guestCount     Int?
+  budget         Float?
+  location       String?
+  checklistData  Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  userId         String
+  guests         Guest[]
+  invitations    Invitation[]
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("parties")
 }
 
 model Guest {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?
-  phone     String?
-  type      GuestType @default(ADULT) // ADULT, CHILD
-  age       Int?     // For child guests
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
+  id          String       @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  type        GuestType    @default(ADULT)
+  age         Int?
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   partyId     String
   party       Party        @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  
   invitations Invitation[]
-  
+
   @@map("guests")
 }
 
 model Invitation {
-  id          String         @id @default(cuid())
+  id          String           @id @default(cuid())
   status      InvitationStatus @default(PENDING)
   sentAt      DateTime?
   respondedAt DateTime?
-  message     String?        // Custom invitation message
-  notes       String?        // RSVP notes from guest
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  
+  message     String?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   partyId     String
-  party       Party          @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  
   guestId     String
-  guest       Guest          @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  
+  guest       Guest            @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  party       Party            @relation(fields: [partyId], references: [id], onDelete: Cascade)
+
   @@unique([partyId, guestId])
   @@map("invitations")
 }
@@ -93,9 +83,9 @@ enum GuestType {
 }
 
 enum InvitationStatus {
-  PENDING    // Not yet sent
-  SENT       // Invitation sent, awaiting response
-  ACCEPTED   // Guest accepted
-  DECLINED   // Guest declined
-  MAYBE      // Guest is unsure
+  PENDING
+  SENT
+  ACCEPTED
+  DECLINED
+  MAYBE
 }

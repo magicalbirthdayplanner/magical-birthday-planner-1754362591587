@@ -1,3 +1,30 @@
+## [usr-1754420809450]
+**User Request:** Invalid `prisma.user.upsert()` invocation: Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432` Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`
+
+THE ABOVE ERROR HAPPENS WHEN TRYING TO CREATE NEW PARTY PLAN IN VERCEL - https://magical-birthday-planner.vercel.app/create-party
+**Response Summary:** Enhanced database connection resilience for Vercel serverless deployment to resolve persistent "Can't reach database server" errors during party creation. Implemented comprehensive retry mechanisms and connection optimization specifically for serverless environments.
+
+**Database Connection Enhancements:**
+- Enhanced DATABASE_URL with extended timeout parameters: `connect_timeout=60&pool_timeout=60&pgbouncer=true`
+- Upgraded Prisma client configuration with 20-second transaction timeouts for serverless optimization
+- Added pre-operation database health checks using `ensureDbConnection()` function
+- Implemented exponential backoff retry mechanism (1s, 2s, 4s delays) with connection reset on failures
+- Added intelligent connection error detection and automatic reconnection for "Can't reach database server" errors
+
+**Serverless Environment Optimizations:**
+- Enhanced retry logic specifically for Vercel's serverless function constraints
+- Added database connection verification before critical operations (user upsert and party creation)
+- Implemented graceful connection reset and reconnection on detected connection failures
+- Configured extended transaction timeouts (20 seconds) to handle serverless cold starts
+
+**Technical Improvements:**
+- `retryWithExponentialBackoff()` function with 3 retry attempts and intelligent backoff delays
+- Connection health monitoring with `prisma.$queryRaw` SELECT 1 verification
+- Automatic `prisma.$disconnect()` and reconnection cycles on connection errors
+- Enhanced error logging and debugging information for production troubleshooting
+
+**Files Modified:** `/lib/prisma.ts`, `/lib/party-actions.ts`, `/.env`
+
 ## [usr-1754408931217]
 **User Request:** WHEN DEPLOYED TO VERCEL - THE FOLLOWING MESSAGE APPEARS WHEN TRYING TO CREATE A NEW PARTY - Invalid `prisma.user.upsert()` invocation: Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432` Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.
 **Response Summary:** Successfully fixed the Vercel deployment database connection issues that prevented party creation by implementing proper Prisma client configuration and database connection optimizations:

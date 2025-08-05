@@ -5,6 +5,62 @@ import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 
+// Database connection health check
+async function ensureDbConnection() {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    console.log('Database connection verified')
+  } catch (error) {
+    console.error('Database connection failed, attempting reconnection:', error)
+    // Force reconnection by disconnecting and reconnecting
+    await prisma.$disconnect()
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    await prisma.$queryRaw`SELECT 1`
+    console.log('Database reconnection successful')
+  }
+}
+
+// Retry mechanism for database operations in serverless environments
+async function retryWithExponentialBackoff<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: Error | null = null
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (error) {
+      lastError = error as Error
+      console.error(`Database operation attempt ${attempt + 1} failed:`, error)
+      
+      // Don't retry on the last attempt
+      if (attempt === maxRetries) {
+        break
+      }
+      
+      // For connection errors, try to reconnect
+      if (error instanceof Error && error.message.includes("Can't reach database server")) {
+        console.log('Connection error detected, forcing reconnection...')
+        try {
+          await prisma.$disconnect()
+          await new Promise(resolve => setTimeout(resolve, 500))
+        } catch (disconnectError) {
+          console.error('Error during disconnect:', disconnectError)
+        }
+      }
+      
+      // Exponential backoff: wait 1s, 2s, 4s, etc.
+      const delay = baseDelay * Math.pow(2, attempt)
+      console.log(`Retrying in ${delay}ms...`)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+  
+  throw lastError || new Error('Database operation failed after all retries')
+}
+
 export async function getCurrentUser() {
   const supabase = createServerComponentClient({ cookies })
   const { data: { user } } = await supabase.auth.getUser()
@@ -34,34 +90,41 @@ export async function createParty(partyData: {
     
     console.log('Authenticated user:', { id: user.id, email: user.email })
 
-    // Create user in database if doesn't exist
-    const dbUser = await prisma.user.upsert({
-      where: { email: user.email! },
-      update: {},
-      create: {
-        id: user.id,
-        email: user.email!,
-        name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
-      },
-    })
+    // Ensure database connection is healthy before creating user
+    await ensureDbConnection()
+    
+    // Create user in database if doesn't exist with retry mechanism
+    const dbUser = await retryWithExponentialBackoff(async () => {
+      return await prisma.user.upsert({
+        where: { email: user.email! },
+        update: {},
+        create: {
+          id: user.id,
+          email: user.email!,
+          name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
+        },
+      })
+    }, 3)
     
     console.log('Database user created/updated:', dbUser)
 
-    const party = await prisma.party.create({
-      data: {
-        childName: partyData.childName,
-        childAge: partyData.childAge,
-        childGender: partyData.childGender || null,
-        partyDate: partyData.partyDate,
-        theme: partyData.theme,
-        interests: partyData.interests,
-        favoriteColors: partyData.favoriteColors,
-        guestCount: partyData.guestCount || null,
-        budget: partyData.budget || null,
-        location: partyData.location || null,
-        userId: user.id,
-      },
-    })
+    const party = await retryWithExponentialBackoff(async () => {
+      return await prisma.party.create({
+        data: {
+          childName: partyData.childName,
+          childAge: partyData.childAge,
+          childGender: partyData.childGender || null,
+          partyDate: partyData.partyDate,
+          theme: partyData.theme,
+          interests: partyData.interests,
+          favoriteColors: partyData.favoriteColors,
+          guestCount: partyData.guestCount || null,
+          budget: partyData.budget || null,
+          location: partyData.location || null,
+          userId: user.id,
+        },
+      })
+    }, 3)
 
     console.log('Party created successfully:', party)
 

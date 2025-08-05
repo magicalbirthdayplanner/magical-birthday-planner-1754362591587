@@ -11,6 +11,11 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
       url: process.env.DATABASE_URL,
     },
   },
+  // Optimize transaction timeouts for serverless environments
+  transactionOptions: {
+    timeout: 20000, // 20 seconds
+    maxWait: 20000, // 20 seconds 
+  },
 })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
