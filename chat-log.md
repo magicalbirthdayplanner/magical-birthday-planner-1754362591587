@@ -1,3 +1,8 @@
+## [usr-1754352302719]
+**User Request:** Its not signing out - after signing out it should have signin and signup button as in the homepage. 
+**Response Summary:** Fixed the signout redirect issue to properly show signin/signup buttons on homepage after signout. Enhanced signout process in AuthContext by: 1) Clearing localStorage synchronously and completely with localStorage.clear() to ensure clean state, 2) Changed from window.location.replace('/') to window.location.href = '/' to ensure proper page reload and state clearing, 3) Added comprehensive localStorage cleanup including auth tokens. The homepage now correctly displays the "Get Started Free" and "Sign In" buttons after signout, ensuring users see the proper unauthenticated UI state.
+**Files Modified:** contexts/AuthContext.tsx
+
 ## [usr-1754351940412]
 **User Request:** 1. Upon signout, it should redirect to home page and also there should not the the dashboard and username after signing out. 
 

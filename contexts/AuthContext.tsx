@@ -153,26 +153,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null)
       setLoading(false)
       
-      // Fire-and-forget Supabase signout (don't await to avoid delays)
+      // Clear localStorage immediately (synchronously)
+      try {
+        localStorage.removeItem('partyData')
+        localStorage.removeItem('partyChecklist')
+        localStorage.removeItem('partyGuests')
+        localStorage.removeItem('partyBudget')
+        localStorage.removeItem('partyShoppingList')
+        // Clear any auth-related localStorage
+        localStorage.removeItem('supabase.auth.token')
+        localStorage.clear() // Clear all localStorage to ensure clean state
+      } catch (localStorageError) {
+        console.warn('Failed to clear localStorage:', localStorageError)
+      }
+      
+      // Sign out from Supabase (fire-and-forget for speed)
       supabase.auth.signOut().catch(error => {
         console.warn('Supabase signout warning (non-blocking):', error)
       })
       
-      // Clear localStorage in parallel (don't await to avoid delays)
-      Promise.resolve().then(() => {
-        try {
-          localStorage.removeItem('partyData')
-          localStorage.removeItem('partyChecklist')
-          localStorage.removeItem('partyGuests')
-          localStorage.removeItem('partyBudget')
-          localStorage.removeItem('partyShoppingList')
-        } catch (localStorageError) {
-          console.warn('Failed to clear localStorage:', localStorageError)
-        }
-      })
-      
-      // Immediate redirect for ultrafast signout experience
-      window.location.replace('/')
+      // Force a complete page reload to ensure clean state
+      // Using href instead of replace to ensure browser history is correct
+      window.location.href = '/'
       
       return { error: null }
     } catch (error) {
