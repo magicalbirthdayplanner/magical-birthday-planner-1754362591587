@@ -13,6 +13,8 @@ import RSVPTracker from "@/components/RSVPTracker";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
 import ShoppingSuite from "@/components/ShoppingSuite";
 import Activities from "@/components/Activities";
+import VenueTab from "@/components/VenueTab";
+import FoodTab from "@/components/FoodTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { getParty, updateParty, addGuest, updateGuest, deleteGuest, updateInvitationStatus } from "@/lib/party-actions";
 import { 
@@ -49,6 +51,8 @@ import {
   Info,
   DollarSign,
   ShoppingBag,
+  Home,
+  UtensilsCrossed,
 } from "lucide-react";
 
 interface PartyData {
@@ -835,7 +839,7 @@ export default function PartyPlanPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex w-full overflow-x-auto lg:grid lg:grid-cols-9 mb-6 sm:mb-8 h-auto p-1 gap-1">
+          <TabsList className="flex w-full overflow-x-auto lg:grid lg:grid-cols-11 mb-6 sm:mb-8 h-auto p-1 gap-1">
             <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <PartyPopper className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -849,6 +853,16 @@ export default function PartyPlanPage() {
               <ShoppingBag className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Shopping</span>
               <span className="sm:hidden">Shop</span>
+            </TabsTrigger>
+            <TabsTrigger value="venue" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
+              <Home className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Venue</span>
+              <span className="sm:hidden">Place</span>
+            </TabsTrigger>
+            <TabsTrigger value="food" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
+              <UtensilsCrossed className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Food</span>
+              <span className="sm:hidden">Eat</span>
             </TabsTrigger>
             <TabsTrigger value="checklist" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3 whitespace-nowrap min-w-fit">
               <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -979,6 +993,24 @@ export default function PartyPlanPage() {
               childAge={parseInt(partyData?.childAge || '5')}
               theme={partyData?.selectedTheme}
               partyId={partyData?.childName || 'party'}
+            />
+          </TabsContent>
+
+          {/* Venue Tab */}
+          <TabsContent value="venue" className="space-y-6">
+            <VenueTab
+              zipCode={partyData?.zipCode}
+              partyId={currentPartyId || partyData?.childName || 'party'}
+              guestCount={guests.length}
+            />
+          </TabsContent>
+
+          {/* Food Tab */}
+          <TabsContent value="food" className="space-y-6">
+            <FoodTab
+              zipCode={partyData?.zipCode}
+              partyId={currentPartyId || partyData?.childName || 'party'}
+              guestCount={guests.length}
             />
           </TabsContent>
 
