@@ -1,3 +1,10 @@
+## [usr-1754365496697]
+**User Request:** https://magical-birthday-planner.vercel.app/
+
+Thats going to be the temp URL in vercel 
+**Response Summary:** Updated project base URL configuration to the new Vercel deployment URL. Changed base URL from https://magicalbirthdayplanner.com to https://magical-birthday-planner.vercel.app in the .ideavo/baseurl file for proper callback URLs and redirects.
+**Files Modified:** .ideavo/baseurl
+
 ## [usr-1754365124554]
 **User Request:** This is the error after deploying to vercel . help me fix it 
 
