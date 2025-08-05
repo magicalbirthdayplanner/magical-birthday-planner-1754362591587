@@ -32,17 +32,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         console.warn('Failed to load user theme from database, using system preference:', error);
       }
       
-      // Fallback to system preference if database is unavailable or user not authenticated
-      try {
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          setTheme('dark');
-        } else {
-          setTheme('light');
-        }
-      } catch (mediaError) {
-        console.warn('Error checking system theme preference:', mediaError);
-        setTheme('light');
-      }
+      // Fallback to light mode by default (no system preference detection)
+      setTheme('light');
     };
 
     loadUserTheme();
