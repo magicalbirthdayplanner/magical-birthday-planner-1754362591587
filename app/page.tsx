@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PartyPopper, Sparkles, Users, Calendar, CheckCircle2, Star, Calendar as CalendarIcon, User } from "lucide-react";
+import { PartyPopper, Sparkles, Users, Calendar, CheckCircle2, Star, Calendar as CalendarIcon, User, Crown, Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -240,6 +240,180 @@ export default function Home() {
               <h3 className="text-xl font-semibold mb-2 dark:text-gray-100">Get Your Plan</h3>
               <p className="text-gray-600 dark:text-gray-300">Receive personalized suggestions, checklists, and inspiration</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Preview Section */}
+      <section className="py-16 bg-white dark:bg-slate-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+              🎉 50% Off First 3 Months
+            </Badge>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              Choose Your Perfect Plan
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              From casual planning to professional events, find the plan that fits your celebration needs
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free Plan */}
+            <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105">
+              <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
+                    <Star className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Free
+                </CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">
+                  Perfect for trying out party planning
+                </CardDescription>
+                <div className="flex items-baseline mt-4">
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$0</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">/forever</span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">1 party plan per month</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 10 guests per party</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Basic themes & templates</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Email invitations</span>
+                  </li>
+                </ul>
+                <Button className="w-full" variant="outline" asChild>
+                  <Link href="/signup">Get Started Free</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Starter Plan - Most Popular */}
+            <Card className="relative border-2 border-blue-500 shadow-lg scale-105">
+              <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-center py-2 text-sm font-medium">
+                🌟 Most Popular
+              </div>
+              <CardHeader className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 pt-12">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500">
+                    <Zap className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Starter
+                </CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">
+                  Ideal for occasional party planners
+                </CardDescription>
+                <div className="flex items-baseline mt-4">
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$9.99</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">/month</span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">5 party plans per month</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 25 guests per party</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">AI-powered theme recommendations</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Advanced checklist templates</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Guest RSVP tracking</span>
+                  </li>
+                </ul>
+                <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600" asChild>
+                  <Link href="/signup?plan=starter">Start Planning</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Professional Plan */}
+            <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105">
+              <CardHeader className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500">
+                    <Crown className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Professional
+                </CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">
+                  For frequent party organizers
+                </CardDescription>
+                <div className="flex items-baseline mt-4">
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$19.99</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">/month</span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">15 party plans per month</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 100 guests per party</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Custom theme creation</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Budget tracking & analytics</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Priority support</span>
+                  </li>
+                </ul>
+                <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" asChild>
+                  <Link href="/signup?plan=professional">Go Professional</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Need more features? Check out our Premium plan for unlimited parties and enterprise features.
+            </p>
+            <Button variant="outline" size="lg" asChild>
+              <Link href="/pricing" className="inline-flex items-center">
+                View All Plans & Features
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

@@ -84,6 +84,15 @@ A modern, responsive web application designed to help parents plan magical birth
   - Party statistics and progress tracking
   - Quick access to continue planning
   - Real-time guest count and task completion metrics
+- **💳 Comprehensive Pricing & Subscription System**: Full MicroSaaS monetization
+  - Intelligent 4-tier pricing model (Free, Starter, Professional, Premium)
+  - Beautiful pricing page with feature comparison and FAQ
+  - Home page pricing preview with compelling call-to-action
+  - Account management page with profile, subscription, and billing tabs
+  - DoDo Payments integration for secure payment processing
+  - Subscription management API with upgrade/downgrade capabilities
+  - Webhook system for real-time payment and subscription updates
+  - Usage tracking and limits based on subscription tiers
 
 ### Planned Features
 - **🔔 Smart Reminders**: Automated timeline notifications
@@ -102,6 +111,7 @@ A modern, responsive web application designed to help parents plan magical birth
 - **Database**: Prisma ORM + Supabase PostgreSQL
 - **Authentication**: Supabase Auth
 - **AI Integration**: OpenAI GPT-4o for personalized theme recommendations
+- **Payments**: DoDo Payments gateway for subscription management
 
 ## 🚀 Getting Started
 
@@ -138,6 +148,7 @@ npm start
 - Popular themes preview (6 themes displayed)
 - Feature highlights (AI suggestions, checklists, guest management, reminders)
 - How it works (3-step process)
+- **Pricing preview section** with 3-tier comparison and upgrade CTAs
 - Sign-up and sign-in links integrated throughout
 
 ### 2. Authentication Pages
@@ -166,7 +177,22 @@ npm start
 - Progress indicators and navigation
 - Form validation and local storage persistence
 
-### 5. Party Plan Results (`/party-plan`)
+### 5. Pricing Page (`/pricing`)
+- **Comprehensive pricing tiers**: Free, Starter ($9.99), Professional ($19.99), Premium ($39.99)
+- **Feature comparison table**: Detailed breakdown of all plan features and limits
+- **FAQ section**: Common questions about pricing, billing, and features
+- **Special promotions**: 50% off first 3 months and 14-day free trial
+- **Compelling CTAs**: Upgrade buttons with plan-specific signup links
+- **Beautiful design**: Gradient themes, hover effects, and professional layout
+
+### 6. Account Management (`/account`)
+- **Profile tab**: Edit personal information, view member details, usage statistics
+- **Subscription tab**: Current plan overview, upgrade options, payment methods
+- **Notifications tab**: Email preferences, party reminders, marketing settings
+- **Billing tab**: Invoice history, payment receipts, account security
+- **Comprehensive interface**: Tabbed navigation with progress tracking and analytics
+
+### 7. Party Plan Results (`/party-plan`)
 - **Overview Tab**: Theme details, party information, guest statistics, quick actions
 - **Budget Tab**: Complete budget tracking and AI-powered allocation system
 - **Shopping Tab**: Comprehensive party shopping platform
@@ -264,6 +290,13 @@ npm start
 - Row Level Security (RLS) policies for data protection
 - Mobile-responsive design across all components
 - Build optimization and error-free compilation
+- **Complete Subscription & Billing System**:
+  - 4-tier pricing model with intelligent business logic
+  - DoDo Payments integration for secure payment processing
+  - Subscription management with upgrade/downgrade capabilities
+  - Real-time webhook handling for payment events
+  - Usage tracking and limits enforcement
+  - Comprehensive billing history and invoice management
 
 ### 🔄 Ready for Enhancement
 - **Production Migration**: Guest management currently uses localStorage for immediate functionality

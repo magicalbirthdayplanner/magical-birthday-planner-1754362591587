@@ -42,6 +42,18 @@ export const ENV_VARIABLES: EnvVariable[] = [
     required: false,
     instructions: "Use '2025-01-01-preview' or latest available API version from Azure OpenAI documentation"
   },
+  {
+    name: "DODO_PAYMENTS_API_KEY",
+    description: "DoDo Payments API key for subscription handling and payment processing",
+    required: false,
+    instructions: "Go to [DoDo Payments Dashboard](https://app.dodopayments.com) → Settings → API Keys → Copy your Live or Test API key"
+  },
+  {
+    name: "DODO_PAYMENTS_WEBHOOK_SECRET",
+    description: "DoDo Payments webhook secret for secure webhook verification",
+    required: false,
+    instructions: "Go to [DoDo Payments Dashboard](https://app.dodopayments.com) → Webhooks → Copy the webhook secret"
+  },
 ];
 
 export interface EnvVariable {
