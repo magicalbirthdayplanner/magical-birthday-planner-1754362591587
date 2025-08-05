@@ -260,7 +260,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Free Plan */}
+            {/* Essential Party (Free) */}
             <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105">
               <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
                 <div className="flex items-center justify-between mb-4">
@@ -269,10 +269,10 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  🎉 Lite Party
+                  🎉 Essential Party
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Perfect for trying out party planning
+                  Perfect for first-time users and simple celebrations
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$0</span>
@@ -287,7 +287,7 @@ export default function Home() {
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 10 guests per party</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Unlimited guests</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -304,7 +304,7 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Starter Plan - Most Popular */}
+            {/* Magical Party - Most Popular */}
             <Card className="relative border-2 border-blue-500 shadow-lg scale-105">
               <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-center py-2 text-sm font-medium">
                 🌟 Most Popular
@@ -319,10 +319,10 @@ export default function Home() {
                   ✨ Magical Party
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Single child birthday or special event
+                  Perfect for most birthday parties and celebrations
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$14.99</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$19.99</span>
                   <span className="text-gray-600 dark:text-gray-400 ml-2">one-time</span>
                 </div>
               </CardHeader>
@@ -330,32 +330,32 @@ export default function Home() {
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">5 party plans per month</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">1 event creation</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 25 guests per party</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Unlimited guests</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">AI-powered theme recommendations</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">AI-powered theme suggestions</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Advanced checklist templates</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Premium templates & themes</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Guest RSVP tracking</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Advanced RSVP tracking</span>
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600" asChild>
-                  <Link href="/signup?plan=starter">Start Planning</Link>
+                  <Link href="/signup?plan=magical">Plan My Event</Link>
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Professional Plan */}
+            {/* Ultimate Party */}
             <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105">
               <CardHeader className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
                 <div className="flex items-center justify-between mb-4">
@@ -364,25 +364,25 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Professional
+                  👑 Ultimate Party
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  For frequent party organizers
+                  For special occasions and professional planners
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$19.99</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">/month</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$39.99</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">one-time</span>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">15 party plans per month</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 3 events</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 100 guests per party</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Unlimited guests</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -390,7 +390,7 @@ export default function Home() {
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Budget tracking & analytics</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Vendor recommendations</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -398,7 +398,7 @@ export default function Home() {
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" asChild>
-                  <Link href="/signup?plan=professional">Go Professional</Link>
+                  <Link href="/signup?plan=ultimate">Create Ultimate Event</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -406,11 +406,11 @@ export default function Home() {
 
           <div className="text-center mt-12">
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Need more features? Check out our Premium plan for unlimited parties and enterprise features.
+              Ready to plan your perfect celebration? Choose the package that fits your event needs.
             </p>
             <Button variant="outline" size="lg" asChild>
               <Link href="/pricing" className="inline-flex items-center">
-                View All Plans & Features
+                View All Packages & Features
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

@@ -1,3 +1,39 @@
+## [usr-1754437425531]
+**User Request:** update the 3 pricing tier in the home page - https://cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai/ with pricing and other details
+**Response Summary:** Successfully updated the home page pricing section to align with the current 3-tier event-based pricing system, removing all guest limitations and implementing consistent pricing structure across the application.
+
+**Key Updates Made:**
+🎯 **3-Tier Pricing Alignment:**
+- Updated home page pricing section to match the current pricing page structure
+- Replaced outdated "Lite Party" with "🎉 Essential Party" (Free)
+- Updated "✨ Magical Party" from $14.99 to $19.99 (one-time) 
+- Renamed "Professional" to "👑 Ultimate Party" ($39.99 one-time)
+
+🚫 **Removed Guest Limitations:**
+- Eliminated all guest count restrictions (10, 25, 100 guests)
+- Applied "Unlimited guests" across all three tiers
+- Simplified decision-making for users by removing confusing limitations
+
+🎨 **Event-Based Model Updates:**
+- Updated pricing language from monthly subscriptions to one-time event packages
+- Changed all "/month" references to "one-time" for paid tiers
+- Updated CTAs to match event-focused approach ("Plan My Event", "Create Ultimate Event")
+
+💰 **Feature Alignment:**
+- Essential Party: 1 event, unlimited guests, basic features
+- Magical Party: 1 event, unlimited guests, AI-powered features, premium templates
+- Ultimate Party: Up to 3 events, unlimited guests, custom themes, vendor recommendations
+
+🔧 **Technical Improvements:**
+- Updated all plan links to match current package naming conventions
+- Fixed CTA text from "plans" to "packages" terminology
+- Maintained responsive design and visual consistency
+- Build completed successfully with no errors
+
+**Files Modified:** 
+- app/page.tsx (complete pricing section restructure)
+- chat-log.md (documentation update)
+
 ## [usr-1754437087988]
 **User Request:** I only need 3 pricing tiers. Suggest me and remove the number of guests as limitation
 
