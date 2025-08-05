@@ -7,42 +7,28 @@ export interface ProfanityResult {
   sanitizedText: string;
 }
 
-// Comprehensive list of inappropriate words to filter
-// Includes general profanity, offensive language, and inappropriate content
+// Restricted list focusing only on foul language, nudity, and violence
+// Only includes truly inappropriate content for children's parties
 const PROFANITY_LIST = [
-  // Explicit sexual content
-  'sex', 'fuck', 'fucking', 'fucked', 'shit', 'shit', 'damn', 'hell',
-  'dick', 'penis', 'cock', 'pussy', 'vagina', 'boob', 'boobs', 'breast', 'breasts',
-  'ass', 'asshole', 'bitch', 'bastard', 'slut', 'whore', 'porn', 'porno',
+  // Foul language / Explicit profanity
+  'fuck', 'fucking', 'fucked', 'shit', 'damn', 'bitch', 'bastard', 'asshole',
   
-  // Inappropriate body parts and sexual references
-  'nude', 'naked', 'horny', 'sexy', 'orgasm', 'masturbate', 'rape',
-  'tits', 'titties', 'nipple', 'nipples', 'butt', 'butthole', 'anus',
+  // Nudity and explicit sexual content
+  'nude', 'naked', 'sex', 'penis', 'cock', 'pussy', 'vagina', 'porn', 'porno',
+  'tits', 'titties', 'nipple', 'nipples', 'butthole', 'anus',
+  'horny', 'sexy', 'orgasm', 'masturbate', 'rape', 'slut', 'whore',
   
   // Violence and harmful content
-  'kill', 'murder', 'suicide', 'bomb', 'gun', 'weapon', 'violence', 'hurt',
-  'pain', 'torture', 'abuse', 'harm', 'dangerous', 'threat',
-  
-  // Drugs and substances
-  'drugs', 'weed', 'marijuana', 'cocaine', 'heroin', 'meth', 'alcohol', 'beer',
-  'wine', 'drunk', 'high', 'smoke', 'smoking', 'cigarette',
-  
-  // Hate speech and discrimination
-  'hate', 'racist', 'racism', 'nazi', 'terrorist', 'extremist',
-  
-  // Other inappropriate content
-  'stupid', 'idiot', 'moron', 'retard', 'loser', 'ugly', 'fat', 'skinny',
-  'gay' // when used inappropriately
+  'kill', 'murder', 'suicide', 'bomb', 'gun', 'weapon', 'violence',
+  'torture', 'abuse', 'harm', 'dangerous', 'threat'
 ];
 
-// Additional variations and common misspellings
+// Additional variations and common misspellings for restricted words only
 const PROFANITY_VARIATIONS = [
   'f*ck', 'f**k', 'fck', 'fuk', 'fook', 'phuck',
   's*it', 's**t', 'sh1t', 'sht',
-  'd*ck', 'd**k', 'dik', 'dck',
   'b*tch', 'b**ch', 'btch', 'bich',
-  'a*s', 'a**', 'azz', '@ss',
-  'h*ll', 'h**l', 'hel', 'heck' // borderline but in children's context
+  '@ss', 'azz'
 ];
 
 // Combined profanity list

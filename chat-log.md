@@ -1,3 +1,11 @@
+## [usr-1754368058951]
+**User Request:** In the Tell us more, only restrict to Foul, Nudity and Violence language. For example, Hello Kitty is a accepetable word, but when i type hello - i get the following message. Slightly relax the definitions
+
+The word "hello" is not appropriate for children's parties. Please use family-friendly language.
+
+**Response Summary:** Relaxed the content filtering system in the "Tell us more" field to only restrict truly inappropriate content. Modified the profanity filter to focus exclusively on foul language, nudity, and violence while allowing innocuous words like "hello", "Hello Kitty", and other appropriate children's party content. Removed overly restrictive words from the filter list including basic words that were incorrectly flagged as inappropriate. The filter now only blocks explicit profanity, sexual content, and violence-related terms, making the system much more user-friendly while maintaining child safety for party planning.
+**Files Modified:** lib/profanity-filter.ts
+
 ## [usr-1754367564219]
 **User Request:** I want to update my Azure OpenAI model to GPT4.1 . Use the below credentials and make changes across the project to use the new model and ensure that AI generated recommendations are being applied in the theme selection based on user input 
 
