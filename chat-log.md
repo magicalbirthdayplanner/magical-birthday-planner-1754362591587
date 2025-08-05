@@ -1,3 +1,10 @@
+## [usr-1754365925725]
+**User Request:** 1. Have to press signout 2 times to truly sign out of the application. Please check this. 
+
+
+**Response Summary:** Fixed the double signout issue by identifying and resolving problematic authentication patterns in the AuthContext. The issue was caused by: 1) SignUp/SignIn functions unnecessarily calling signOut() before authentication, creating race conditions. 2) SignOut function using fire-and-forget pattern with immediate page reload. Fixed by: removing unnecessary signOut calls from signUp/signIn, implementing proper async signOut with error handling, and adding redirect logic to Header component.
+**Files Modified:** contexts/AuthContext.tsx, components/Header.tsx
+
 ## [usr-1754365496697]
 **User Request:** https://magical-birthday-planner.vercel.app/
 

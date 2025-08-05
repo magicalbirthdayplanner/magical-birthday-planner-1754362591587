@@ -77,9 +77,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, displayName?: string) => {
     try {
-      // First ensure no existing session
-      await supabase.auth.signOut()
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -110,9 +107,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // First ensure no existing session
-      await supabase.auth.signOut()
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -171,33 +165,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsSigningOut(true)
       
-      // Clear local state immediately for instant UI update
-      setUser(null)
-      setSession(null)
-      setLoading(false)
+      // Sign out from Supabase first and wait for completion
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Supabase signout error:', error)
+        setIsSigningOut(false)
+        return { error }
+      }
       
-      // Clear localStorage immediately (synchronously)
+      // Clear localStorage after successful signout
       try {
         localStorage.removeItem('partyData')
         localStorage.removeItem('partyChecklist')
-        localStorage.removeItem('partyGuests')
+        localStorage.removeItem('partyGuests')    
         localStorage.removeItem('partyBudget')
         localStorage.removeItem('partyShoppingList')
         // Clear any auth-related localStorage
-        localStorage.removeItem('supabase.auth.token')
-        localStorage.clear() // Clear all localStorage to ensure clean state
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('supabase.auth.')) {
+            localStorage.removeItem(key)
+          }
+        })
       } catch (localStorageError) {
         console.warn('Failed to clear localStorage:', localStorageError)
       }
       
-      // Sign out from Supabase (fire-and-forget for speed)
-      supabase.auth.signOut().catch(error => {
-        console.warn('Supabase signout warning (non-blocking):', error)
-      })
-      
-      // Force a complete page reload to ensure clean state
-      // Using href instead of replace to ensure browser history is correct
-      window.location.href = '/'
+      // Clear local state after successful signout
+      setUser(null)
+      setSession(null)
+      setIsSigningOut(false)
       
       return { error: null }
     } catch (error) {

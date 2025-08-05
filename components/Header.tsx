@@ -20,8 +20,11 @@ export function Header() {
     if (isSigningOut) return; // Prevent multiple clicks
     
     try {
-      await signOut();
-      // AuthContext handles all state management and redirect
+      const { error } = await signOut();
+      if (!error) {
+        // Redirect to home page after successful signout
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('Unexpected error during signout:', error);
     }
