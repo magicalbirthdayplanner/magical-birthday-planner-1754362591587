@@ -247,6 +247,9 @@ export default function PartyPlanPage() {
     };
 
     const loadPartyDetails = (party: any) => {
+      // CRITICAL: Set the current party ID for all subsequent operations
+      setCurrentPartyId(party.id);
+      
       // Set party data
       setPartyData({
         childName: party.childName,
