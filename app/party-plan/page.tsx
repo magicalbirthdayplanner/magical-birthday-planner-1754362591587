@@ -717,185 +717,211 @@ export default function PartyPlanPage() {
           </p>
         </div>
 
-        {/* Progress Card with Enhanced Countdown Timeline */}
-        <Card className="mb-6 sm:mb-8 border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-          <CardHeader className="px-4 sm:px-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-              {/* Planning Progress */}
-              <div className="md:border-r md:border-gray-200 md:dark:border-slate-600 md:pr-6 pb-4 md:pb-0">
-                <CardTitle className="flex items-center gap-2 mb-3">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  Planning Progress
-                </CardTitle>
-                
-                {/* Gradient Box Container */}
-                <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-700">
-                  <CardDescription className="mb-3">
-                    {completedTasks} of {totalTasks} tasks completed
-                  </CardDescription>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">Progress</span>
-                    <span className="text-lg font-bold text-purple-600">
-                      {Math.round(progressPercentage)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
-                    <div 
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${progressPercentage}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Budget Overview */}
-              <div className="border-r border-gray-200 dark:border-slate-600 pr-6">
-                <CardTitle className="flex items-center gap-2 mb-3">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                  Budget Tracker
-                </CardTitle>
-                
-                {/* Gradient Box Container */}
-                <div 
-                  className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-700 cursor-pointer hover:bg-gradient-to-r hover:from-green-100 hover:via-blue-100 hover:to-purple-100 dark:hover:from-green-800/20 dark:hover:via-blue-800/20 dark:hover:to-purple-800/20 transition-colors"
-                  onClick={() => {
-                    const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
-                    if (budgetTab) budgetTab.click();
-                  }}
-                >
-                  <CardDescription className="mb-3">
-                    {(() => {
-                      const { totalBudget, totalSpent } = getBudgetData(); 
-                      return totalBudget > 0 ? `$${totalSpent.toFixed(0)} of $${totalBudget} spent` : 'Click to set budget';
-                    })()}
-                  </CardDescription>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">Budget Used</span>
-                    <span className="text-lg font-bold text-green-600">
-                      {Math.round(getBudgetData().percentage)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
-                    <div 
-                      className="bg-gradient-to-r from-green-600 to-emerald-600 h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${getBudgetData().percentage}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Party Countdown */}
-              <div>
-                <CardTitle className="flex items-center gap-2 mb-3">
-                  <Timer className="h-5 w-5 text-blue-600" />
-                  Party Countdown
-                </CardTitle>
-                
-                {/* Days Until Party Display */}
-                <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-700">
-                  {/* Days Count */}
-                  <div className="text-center mb-3">
-                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      {Math.abs(daysUntilParty)}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
-                      {daysUntilParty === 1 ? 'day until party!' : daysUntilParty === 0 ? 'Party is today!' : daysUntilParty < 0 ? 'days ago' : 'days until party!'}
-                    </div>
-                  </div>
-                  
-                  {/* Progress Bar */}
-                  <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${(() => {
-                          try {
-                            if (partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) && daysUntilParty > 0) {
-                              const today = new Date();
-                              const partyDate = new Date(partyData.partyDate);
-                              if (!isNaN(today.getTime()) && !isNaN(partyDate.getTime())) {
-                                // Calculate total duration from when planning started (assume 6 weeks ago)
-                                const planningStartDate = new Date(partyDate);
-                                planningStartDate.setDate(planningStartDate.getDate() - 42); // 6 weeks before
-                                const totalPlanningDays = Math.ceil((partyDate.getTime() - planningStartDate.getTime()) / (1000 * 60 * 60 * 24));
-                                const daysPassed = Math.ceil((today.getTime() - planningStartDate.getTime()) / (1000 * 60 * 60 * 24));
-                                return Math.max(0, Math.min(100, (daysPassed / totalPlanningDays) * 100));
-                              }
-                            } else if (daysUntilParty <= 0) {
-                              return 100; // Party has passed or is today
-                            }
-                            return 10; // Default small progress
-                          } catch (error) {
-                            console.error('Error calculating timeline progress:', error);
-                            return 10;
-                          }
-                        })()}%` 
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
+        {/* Progress Card with Enhanced Countdown Timeline - Improved Visual Organization */}
+        <div className="space-y-6 mb-8">
+          {/* Party Overview Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Party Overview</h2>
             </div>
-          </CardHeader>
-        </Card>
+            
+            <Card className="border-2 border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-lg">
+              <CardHeader className="px-6 py-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Planning Progress */}
+                  <div className="space-y-4">
+                    <CardTitle className="flex items-center gap-3 text-lg font-bold text-purple-800 dark:text-purple-200">
+                      <div className="p-2 rounded-full bg-green-600 shadow-sm">
+                        <CheckCircle2 className="h-5 w-5 text-white" />
+                      </div>
+                      Planning Progress
+                    </CardTitle>
+                    
+                    {/* Progress Content */}
+                    <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                      <CardDescription className="mb-3 text-purple-700 dark:text-purple-300 font-medium">
+                        {completedTasks} of {totalTasks} tasks completed
+                      </CardDescription>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">Progress</span>
+                        <span className="text-xl font-black text-purple-700 dark:text-purple-300">
+                          {Math.round(progressPercentage)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4 shadow-inner">
+                        <div 
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 h-4 rounded-full transition-all duration-500 shadow-sm"
+                          style={{ width: `${progressPercentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="w-full">
-          <div className="overflow-x-auto mb-6 sm:mb-8">
-            <TabsList className="inline-flex w-max min-w-full lg:w-full lg:grid lg:grid-cols-11 h-auto p-2 gap-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm">
-              <TabsTrigger value="overview" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <PartyPopper className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="hidden sm:inline">Overview</span>
-                <span className="sm:hidden">Main</span>
-              </TabsTrigger>
-              <TabsTrigger value="budget" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                Budget
-              </TabsTrigger>
-              <TabsTrigger value="shopping" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="hidden sm:inline">Shopping</span>
-                <span className="sm:hidden">Shop</span>
-              </TabsTrigger>
-              <TabsTrigger value="venue" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                Venue
-              </TabsTrigger>
-              <TabsTrigger value="food" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <UtensilsCrossed className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                Food
-              </TabsTrigger>
-              <TabsTrigger value="cake" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <Cake className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="hidden sm:inline">Cake & Bakery</span>
-                <span className="sm:hidden">Cake</span>
-              </TabsTrigger>
-              <TabsTrigger value="checklist" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="hidden sm:inline">Checklist</span>
-                <span className="sm:hidden">Tasks</span>
-              </TabsTrigger>
-              <TabsTrigger value="guests" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                Guests
-              </TabsTrigger>
-              <TabsTrigger value="invitations" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="hidden md:inline">Invitations</span>
-                <span className="md:hidden">RSVP</span>
-              </TabsTrigger>
-              <TabsTrigger value="activities" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <Music className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="hidden md:inline">Activities</span>
-                <span className="md:hidden">Games</span>
-              </TabsTrigger>
-              <TabsTrigger value="timeline" className="flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2.5 whitespace-nowrap rounded-lg">
-                <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span className="hidden lg:inline">Timeline</span>
-                <span className="lg:hidden">Time</span>
-              </TabsTrigger>
-            </TabsList>
+                  {/* Budget Overview */}
+                  <div className="space-y-4">
+                    <CardTitle className="flex items-center gap-3 text-lg font-bold text-green-800 dark:text-green-200">
+                      <div className="p-2 rounded-full bg-green-600 shadow-sm">
+                        <DollarSign className="h-5 w-5 text-white" />
+                      </div>
+                      Budget Tracker
+                    </CardTitle>
+                    
+                    {/* Budget Content */}
+                    <div 
+                      className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700 cursor-pointer hover:bg-gradient-to-r hover:from-green-100 hover:via-blue-100 hover:to-purple-100 dark:hover:from-green-800/20 dark:hover:via-blue-800/20 dark:hover:to-purple-800/20 transition-all duration-200 hover:shadow-md"
+                      onClick={() => {
+                        const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
+                        if (budgetTab) budgetTab.click();
+                      }}
+                    >
+                      <CardDescription className="mb-3 text-green-700 dark:text-green-300 font-medium">
+                        {(() => {
+                          const { totalBudget, totalSpent } = getBudgetData(); 
+                          return totalBudget > 0 ? `$${totalSpent.toFixed(0)} of $${totalBudget} spent` : 'Click to set budget';
+                        })()}
+                      </CardDescription>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-green-600 dark:text-green-400 font-medium">Budget Used</span>
+                        <span className="text-xl font-black text-green-700 dark:text-green-300">
+                          {Math.round(getBudgetData().percentage)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4 shadow-inner">
+                        <div 
+                          className="bg-gradient-to-r from-green-600 to-emerald-600 h-4 rounded-full transition-all duration-500 shadow-sm"
+                          style={{ width: `${getBudgetData().percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Party Countdown */}
+                  <div className="space-y-4">
+                    <CardTitle className="flex items-center gap-3 text-lg font-bold text-blue-800 dark:text-blue-200">
+                      <div className="p-2 rounded-full bg-blue-600 shadow-sm">
+                        <Timer className="h-5 w-5 text-white" />
+                      </div>
+                      Party Countdown
+                    </CardTitle>
+                    
+                    {/* Countdown Content */}
+                    <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                      {/* Days Count */}
+                      <div className="text-center mb-4">
+                        <div className="text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                          {Math.abs(daysUntilParty)}
+                        </div>
+                        <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                          {daysUntilParty === 1 ? 'day until party!' : daysUntilParty === 0 ? 'Party is today!' : daysUntilParty < 0 ? 'days ago' : 'days until party!'}
+                        </div>
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
+                        <div 
+                          className="h-full bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 rounded-full transition-all duration-500 shadow-sm"
+                          style={{ 
+                            width: `${(() => {
+                              try {
+                                if (partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) && daysUntilParty > 0) {
+                                  const today = new Date();
+                                  const partyDate = new Date(partyData.partyDate);
+                                  if (!isNaN(today.getTime()) && !isNaN(partyDate.getTime())) {
+                                    const planningStartDate = new Date(partyDate);
+                                    planningStartDate.setDate(planningStartDate.getDate() - 42);
+                                    const totalPlanningDays = Math.ceil((partyDate.getTime() - planningStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                                    const daysPassed = Math.ceil((today.getTime() - planningStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                                    return Math.max(0, Math.min(100, (daysPassed / totalPlanningDays) * 100));
+                                  }
+                                } else if (daysUntilParty <= 0) {
+                                  return 100;
+                                }
+                                return 10;
+                              } catch (error) {
+                                console.error('Error calculating timeline progress:', error);
+                                return 10;
+                              }
+                            })()}%` 
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
           </div>
+        </div>
+
+        {/* Main Content Tabs - Enhanced Visual Organization */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-8 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Party Management</h2>
+          </div>
+          
+          <Tabs defaultValue="overview" className="w-full">
+            <div className="overflow-x-auto mb-8">
+              <TabsList className="inline-flex w-max min-w-full lg:w-full lg:grid lg:grid-cols-11 h-auto p-3 gap-3 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 shadow-lg rounded-xl">
+                {/* Overview & Planning Group */}
+                <TabsTrigger value="overview" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20">
+                  <PartyPopper className="h-4 w-4 shrink-0" />
+                  <span className="hidden sm:inline">Overview</span>
+                  <span className="sm:hidden">Main</span>
+                </TabsTrigger>
+                <TabsTrigger value="budget" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-green-50 dark:hover:bg-green-900/20">
+                  <DollarSign className="h-4 w-4 shrink-0" />
+                  Budget
+                </TabsTrigger>
+                <TabsTrigger value="checklist" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <span className="hidden sm:inline">Checklist</span>
+                  <span className="sm:hidden">Tasks</span>
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                  <Clock className="h-4 w-4 shrink-0" />
+                  <span className="hidden lg:inline">Timeline</span>
+                  <span className="lg:hidden">Time</span>
+                </TabsTrigger>
+                
+                {/* Shopping & Vendors Group */}
+                <TabsTrigger value="shopping" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-orange-50 dark:hover:bg-orange-900/20">
+                  <ShoppingBag className="h-4 w-4 shrink-0" />
+                  <span className="hidden sm:inline">Shopping</span>
+                  <span className="sm:hidden">Shop</span>
+                </TabsTrigger>
+                <TabsTrigger value="venue" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-amber-50 dark:hover:bg-amber-900/20">
+                  <Home className="h-4 w-4 shrink-0" />
+                  Venue
+                </TabsTrigger>
+                <TabsTrigger value="food" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20">
+                  <UtensilsCrossed className="h-4 w-4 shrink-0" />
+                  Food
+                </TabsTrigger>
+                <TabsTrigger value="cake" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-pink-50 dark:hover:bg-pink-900/20">
+                  <Cake className="h-4 w-4 shrink-0" />
+                  <span className="hidden sm:inline">Cake & Bakery</span>
+                  <span className="sm:hidden">Cake</span>
+                </TabsTrigger>
+                
+                {/* Guest Management Group */}
+                <TabsTrigger value="guests" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-teal-50 dark:hover:bg-teal-900/20">
+                  <Users className="h-4 w-4 shrink-0" />
+                  Guests
+                </TabsTrigger>
+                <TabsTrigger value="invitations" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-cyan-50 dark:hover:bg-cyan-900/20">
+                  <Mail className="h-4 w-4 shrink-0" />
+                  <span className="hidden md:inline">Invitations</span>
+                  <span className="md:hidden">RSVP</span>
+                </TabsTrigger>
+                <TabsTrigger value="activities" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/20">
+                  <Music className="h-4 w-4 shrink-0" />
+                  <span className="hidden md:inline">Activities</span>
+                  <span className="md:hidden">Games</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4 sm:space-y-6">
@@ -1738,7 +1764,8 @@ export default function PartyPlanPage() {
             </Card>
 
           </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

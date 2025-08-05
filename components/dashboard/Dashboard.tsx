@@ -191,75 +191,127 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-          <Card className="dark:bg-slate-800 dark:border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">Active Parties</CardTitle>
-              <Calendar className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">{upcomingParties.length}</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400">
-                {upcomingParties.length === 1 ? 'party' : 'parties'} in planning
-              </p>
-            </CardContent>
-          </Card>
+        {/* Stats Cards - Enhanced with Visual Grouping and Better Spacing */}
+        <div className="space-y-8 mb-8">
+          {/* Planning & Progress Overview Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Planning Overview</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="border-2 border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-base font-bold text-purple-800 dark:text-purple-200">Active Parties</CardTitle>
+                  <div className="p-2 rounded-full bg-purple-600 shadow-sm">
+                    <Calendar className="h-5 w-5 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="text-3xl font-black text-purple-700 dark:text-purple-300">{upcomingParties.length}</div>
+                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                    {upcomingParties.length === 1 ? 'party' : 'parties'} in planning
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card className="dark:bg-slate-800 dark:border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">Total Guests</CardTitle>
-              <Users className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">{totalGuests}</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400">
-                across all parties
-              </p>
-            </CardContent>
-          </Card>
+              <Card className="border-2 border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-base font-bold text-green-800 dark:text-green-200">Tasks Completed</CardTitle>
+                  <div className="p-2 rounded-full bg-green-600 shadow-sm">
+                    <CheckCircle className="h-5 w-5 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="text-3xl font-black text-green-700 dark:text-green-300">{completedTasks}/{totalTasks}</div>
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                    {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% complete
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card className="dark:bg-slate-800 dark:border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">Tasks Completed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">{completedTasks}/{totalTasks}</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400">
-                {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% complete
-              </p>
-            </CardContent>
-          </Card>
+              <Card className="border-2 border-yellow-200 dark:border-yellow-700 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-base font-bold text-yellow-800 dark:text-yellow-200">Memories Created</CardTitle>
+                  <div className="p-2 rounded-full bg-yellow-600 shadow-sm">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="text-3xl font-black text-yellow-700 dark:text-yellow-300">{completedParties.length}</div>
+                  <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                    magical celebrations
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
-          <Card className="dark:bg-slate-800 dark:border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-200">Completed Parties</CardTitle>
-              <Sparkles className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">{completedParties.length}</div>
-              <p className="text-xs text-muted-foreground dark:text-gray-400">
-                magical memories created
-              </p>
-            </CardContent>
-          </Card>
+          {/* Guest Management Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-cyan-600 rounded-full"></div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Guest Management</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <Card className="border-2 border-blue-200 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-base font-bold text-blue-800 dark:text-blue-200">Total Guests</CardTitle>
+                  <div className="p-2 rounded-full bg-blue-600 shadow-sm">
+                    <Users className="h-5 w-5 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="text-3xl font-black text-blue-700 dark:text-blue-300">{totalGuests}</div>
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                    across all parties
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-indigo-200 dark:border-indigo-700 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-base font-bold text-indigo-800 dark:text-indigo-200">Quick Actions</CardTitle>
+                  <div className="p-2 rounded-full bg-indigo-600 shadow-sm">
+                    <Plus className="h-5 w-5 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button
+                    asChild
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    <Link href="/create-party">
+                      <Plus className="w-4 h-4 mr-2" />
+                      New Party
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
 
-        {/* Parties Section */}
-        <Tabs defaultValue="upcoming" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full max-w-sm sm:max-w-md grid-cols-2 dark:bg-slate-800">
-            <TabsTrigger value="upcoming" className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4">
-              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Upcoming ({upcomingParties.length})</span>
-              <span className="sm:hidden">Upcoming</span>
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4">
-              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Completed ({completedParties.length})</span>
-              <span className="sm:hidden">Done</span>
-            </TabsTrigger>
-          </TabsList>
+        {/* Parties Section - Enhanced with Visual Separation */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-red-500 rounded-full"></div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Your Parties</h2>
+          </div>
+          
+          <Tabs defaultValue="upcoming" className="space-y-6">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 shadow-lg">
+              <TabsTrigger value="upcoming" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">
+                <Clock className="w-4 h-4" />
+                <span className="hidden sm:inline">Upcoming ({upcomingParties.length})</span>
+                <span className="sm:hidden">Upcoming</span>
+              </TabsTrigger>
+              <TabsTrigger value="completed" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">
+                <CheckCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Completed ({completedParties.length})</span>
+                <span className="sm:hidden">Done</span>
+              </TabsTrigger>
+            </TabsList>
 
           <TabsContent value="upcoming" className="space-y-4 sm:space-y-6">
             {upcomingParties.length > 0 ? (
@@ -269,19 +321,23 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-12 dark:bg-slate-800 dark:border-slate-700">
-                <CardContent>
-                  <PartyPopper className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                  <CardTitle className="text-lg mb-2 dark:text-gray-100">No parties planned yet</CardTitle>
-                  <CardDescription className="mb-4 dark:text-gray-300">
-                    Ready to create your first magical birthday party?
-                  </CardDescription>
+              <Card className="text-center py-16 border-2 border-dashed border-orange-200 dark:border-orange-700 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 shadow-lg">
+                <CardContent className="space-y-6">
+                  <div className="p-4 rounded-full bg-orange-100 dark:bg-orange-900/30 w-fit mx-auto">
+                    <PartyPopper className="w-16 h-16 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <CardTitle className="text-2xl font-bold text-orange-800 dark:text-orange-200">No parties planned yet</CardTitle>
+                    <CardDescription className="text-orange-700 dark:text-orange-300 max-w-md mx-auto">
+                      Ready to create your first magical birthday party? Let's get started with the planning!
+                    </CardDescription>
+                  </div>
                   <Button
                     asChild
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 px-8 py-3"
                   >
                     <Link href="/create-party">
-                      <Plus className="w-4 h-4 mr-2" />
+                      <Plus className="w-5 h-5 mr-2" />
                       Create Your First Party
                     </Link>
                   </Button>
@@ -298,18 +354,23 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-12 dark:bg-slate-800 dark:border-slate-700">
-                <CardContent>
-                  <Sparkles className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                  <CardTitle className="text-lg mb-2 dark:text-gray-100">No completed parties yet</CardTitle>
-                  <CardDescription className="dark:text-gray-300">
-                    Your magical memories will appear here once you've celebrated!
-                  </CardDescription>
+              <Card className="text-center py-16 border-2 border-dashed border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg">
+                <CardContent className="space-y-6">
+                  <div className="p-4 rounded-full bg-green-100 dark:bg-green-900/30 w-fit mx-auto">
+                    <Sparkles className="w-16 h-16 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <CardTitle className="text-2xl font-bold text-green-800 dark:text-green-200">No completed parties yet</CardTitle>
+                    <CardDescription className="text-green-700 dark:text-green-300 max-w-md mx-auto">
+                      Your magical memories will appear here once you've celebrated your parties!
+                    </CardDescription>
+                  </div>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
       </div>
     </div>
   )
