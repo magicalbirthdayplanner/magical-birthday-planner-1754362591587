@@ -6,15 +6,15 @@ import Link from "next/link"
 
 const pricingTiers = [
   {
-    name: "🎉 Lite Party",
+    name: "🎉 Essential Party",
     price: 0,
-    description: "Perfect for trying out party planning",
+    description: "Perfect for first-time users and simple celebrations",
     icon: Star,
     gradient: "from-purple-500 to-pink-500",
     bgGradient: "from-purple-50 to-pink-50",
     features: [
       "1 event creation",
-      "Up to 10 guests",
+      "Unlimited guests",
       "Basic themes & templates",
       "Simple checklist",
       "Email invites",
@@ -28,104 +28,57 @@ const pricingTiers = [
     cta: "Start Free Event",
     ctaVariant: "outline" as const,
     popular: false,
-    bestFor: "Trial/Testing"
+    bestFor: "First-time users & simple celebrations"
   },
   {
     name: "✨ Magical Party",
-    price: 14.99,
-    description: "Single child birthday or special event",
+    price: 19.99,
+    description: "Perfect for most birthday parties and celebrations",
     icon: Zap,
     gradient: "from-blue-500 to-cyan-500",
     bgGradient: "from-blue-50 to-cyan-50",
     features: [
+      "All Essential features",
       "AI-powered theme suggestions",
-      "Up to 25 guests",
-      "Premium templates",
+      "Unlimited guests",
+      "Premium templates & themes",
+      "Advanced RSVP tracking",
       "Shopping list integration",
-      "RSVP tracking",
       "Custom invitations",
       "Budget planning tools",
+      "Printable decorations",
       "Email support"
     ],
-    limitations: [
-      "Limited to 1 event"
-    ],
+    limitations: [],
     cta: "Plan My Event",
     ctaVariant: "default" as const,
     popular: true,
-    bestFor: "Single child / One-time event"
+    bestFor: "Most parents planning birthday parties"
   },
   {
-    name: "💫 Ultimate Party",
-    price: 24.99,
-    description: "Larger parties with more customization",
+    name: "👑 Ultimate Party",
+    price: 39.99,
+    description: "For special occasions and professional planners",
     icon: Crown,
     gradient: "from-emerald-500 to-teal-500",
     bgGradient: "from-emerald-50 to-teal-50",
     features: [
-      "All Magical Party features",
+      "All Magical features",
       "Custom theme creation",
-      "Advanced RSVP tracking",
+      "Unlimited guests",
       "Vendor recommendations",
-      "Printable decorations",
-      "Guest management tools",
-      "Timeline automation",
+      "Advanced analytics",
       "Export capabilities",
+      "Template sharing",
+      "Multi-event management (up to 3 events)",
+      "API access",
       "Priority support"
     ],
-    limitations: [
-      "Limited to 1 event"
-    ],
+    limitations: [],
     cta: "Create Ultimate Event",
     ctaVariant: "default" as const,
     popular: false,
-    bestFor: "Larger parties / More customization"
-  },
-  {
-    name: "👑 Party Bundle",
-    price: 39.99,
-    description: "Plan up to 3 events within a year",
-    icon: Sparkles,
-    gradient: "from-violet-500 to-purple-500",
-    bgGradient: "from-violet-50 to-purple-50",
-    features: [
-      "Plan up to 3 events in 1 year",
-      "All Ultimate Party features",
-      "Multi-event management",
-      "Template sharing between events",
-      "Bulk guest import",
-      "Advanced analytics",
-      "Priority support",
-      "Save 40% vs individual purchases"
-    ],
-    limitations: [],
-    cta: "Get Bundle Deal",
-    ctaVariant: "default" as const,
-    popular: false,
-    bestFor: "Siblings or repeat events"
-  },
-  {
-    name: "🏢 Planner Pro",
-    price: "Custom",
-    description: "For event planners and agencies",
-    icon: Crown,
-    gradient: "from-amber-500 to-orange-500",
-    bgGradient: "from-amber-50 to-orange-50",
-    features: [
-      "Unlimited events",
-      "White-labeling options",
-      "Advanced analytics",
-      "API access",
-      "Team collaboration",
-      "Custom integrations",
-      "Dedicated account manager",
-      "24/7 support"
-    ],
-    limitations: [],
-    cta: "Contact Sales",
-    ctaVariant: "default" as const,
-    popular: false,
-    bestFor: "Event planners / Agencies"
+    bestFor: "Special occasions & professional planners"
   }
 ]
 
@@ -176,7 +129,7 @@ export default function PricingPage() {
 
       {/* Pricing Cards */}
       <div className="container mx-auto px-4 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {pricingTiers.map((tier, index) => (
             <Card 
               key={tier.name} 
@@ -195,11 +148,6 @@ export default function PricingPage() {
                   <div className={`p-3 rounded-full bg-gradient-to-r ${tier.gradient}`}>
                     <tier.icon className="h-6 w-6 text-white" />
                   </div>
-                  {tier.price === "Custom" && (
-                    <Badge variant="secondary" className="text-xs">
-                      Custom
-                    </Badge>
-                  )}
                 </div>
                 <CardTitle className="text-xl font-bold text-gray-900">
                   {tier.name}
@@ -209,10 +157,10 @@ export default function PricingPage() {
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
                   <span className="text-3xl font-bold text-gray-900">
-                    {tier.price === "Custom" ? "Custom" : `$${tier.price}`}
+                    ${tier.price}
                   </span>
                   <span className="text-gray-600 ml-2 text-sm">
-                    {tier.price === 0 ? "forever" : tier.price === "Custom" ? "pricing" : "one-time"}
+                    {tier.price === 0 ? "forever" : "one-time"}
                   </span>
                 </div>
                 <div className="mt-2">
@@ -256,7 +204,7 @@ export default function PricingPage() {
                   variant={tier.ctaVariant}
                   asChild
                 >
-                  <Link href={tier.price === 0 ? "/signup" : tier.price === "Custom" ? "/contact" : `/create-party?package=${tier.name.replace(/[^a-zA-Z]/g, '').toLowerCase()}`}>
+                  <Link href={tier.price === 0 ? "/signup" : `/create-party?package=${tier.name.replace(/[^a-zA-Z]/g, '').toLowerCase()}`}>
                     {tier.cta}
                   </Link>
                 </Button>
@@ -286,7 +234,7 @@ export default function PricingPage() {
                   {pricingTiers.map((tier) => (
                     <th key={tier.name} className="text-center p-4">
                       <div className="font-semibold text-gray-900 text-sm">{tier.name}</div>
-                      <div className="text-xs text-gray-500">{tier.price === "Custom" ? "Custom" : tier.price === 0 ? "Free" : `$${tier.price} one-time`}</div>
+                      <div className="text-xs text-gray-500">{tier.price === 0 ? "Free" : `$${tier.price} one-time`}</div>
                     </th>
                   ))}
                 </tr>
@@ -296,14 +244,10 @@ export default function PricingPage() {
                   <td className="p-4 font-medium text-gray-900">Events Included</td>
                   <td className="p-4 text-center">1</td>
                   <td className="p-4 text-center">1</td>
-                  <td className="p-4 text-center">1</td>
-                  <td className="p-4 text-center">3 events/year</td>
-                  <td className="p-4 text-center">Unlimited</td>
+                  <td className="p-4 text-center">Up to 3 events</td>
                 </tr>
                 <tr className="bg-gray-50">
                   <td className="p-4 font-medium text-gray-900">Maximum Guests</td>
-                  <td className="p-4 text-center">10</td>
-                  <td className="p-4 text-center">25</td>
                   <td className="p-4 text-center">Unlimited</td>
                   <td className="p-4 text-center">Unlimited</td>
                   <td className="p-4 text-center">Unlimited</td>
@@ -313,32 +257,24 @@ export default function PricingPage() {
                   <td className="p-4 text-center">—</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
                 <tr className="bg-gray-50">
                   <td className="p-4 font-medium text-gray-900">Custom Themes & Printables</td>
                   <td className="p-4 text-center">—</td>
-                  <td className="p-4 text-center">—</td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
                 <tr>
-                  <td className="p-4 font-medium text-gray-900">Advanced Features</td>
+                  <td className="p-4 font-medium text-gray-900">Multi-Event Management</td>
                   <td className="p-4 text-center">—</td>
-                  <td className="p-4 text-center">Basic</td>
-                  <td className="p-4 text-center">Advanced</td>
-                  <td className="p-4 text-center">Multi-Event</td>
-                  <td className="p-4 text-center">Enterprise</td>
+                  <td className="p-4 text-center">—</td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
                 <tr className="bg-gray-50">
                   <td className="p-4 font-medium text-gray-900">Support Level</td>
                   <td className="p-4 text-center">Community</td>
                   <td className="p-4 text-center">Email</td>
                   <td className="p-4 text-center">Priority</td>
-                  <td className="p-4 text-center">Priority</td>
-                  <td className="p-4 text-center">24/7 Dedicated</td>
                 </tr>
               </tbody>
             </table>
