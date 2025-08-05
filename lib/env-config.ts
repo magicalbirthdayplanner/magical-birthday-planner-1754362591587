@@ -20,7 +20,7 @@ export const ENV_VARIABLES: EnvVariable[] = [
   },
   {
     name: "AZURE_OPENAI_API_KEY",
-    description: "Azure OpenAI API key for AI-powered theme recommendations using GPT-4o mini",
+    description: "Azure OpenAI API key for AI-powered theme recommendations using GPT-4.1",
     required: false,
     instructions: "Go to Azure Portal → Your OpenAI Resource → Keys and Endpoint → Copy 'Key 1' or 'Key 2'"
   },
@@ -32,15 +32,15 @@ export const ENV_VARIABLES: EnvVariable[] = [
   },
   {
     name: "AZURE_OPENAI_DEPLOYMENT_NAME",
-    description: "Azure OpenAI deployment name for GPT-4o mini model",
+    description: "Azure OpenAI deployment name for GPT-4.1 model",
     required: false,
-    instructions: "The deployment name you created in Azure OpenAI Studio (e.g., 'gpt-4o-mini')"
+    instructions: "The deployment name you created in Azure OpenAI Studio (e.g., 'gpt-4.1')"
   },
   {
     name: "AZURE_OPENAI_API_VERSION",
     description: "Azure OpenAI API version",
     required: false,
-    instructions: "Use '2024-02-01' or latest available API version from Azure OpenAI documentation"
+    instructions: "Use '2025-01-01-preview' or latest available API version from Azure OpenAI documentation"
   },
 ];
 
