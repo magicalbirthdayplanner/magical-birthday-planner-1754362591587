@@ -1,3 +1,8 @@
+## [usr-1754356067493]
+**User Request:** when hit create hit create party plan,  the error message - Invalid `prisma.user.upsert()` invocation: The column `theme` does not exist in the current database appears
+**Response Summary:** Resolved the Prisma database schema synchronization error by identifying that the `theme` column was defined in the schema but not properly synced to the database. Investigated the User model in prisma/schema.prisma and confirmed the theme column exists with proper default value. Executed `npx prisma db push` to synchronize the database schema with the Prisma schema, which resolved the "column theme does not exist" error. The user.upsert() calls in lib/party-actions.ts now work correctly. Build completed successfully with schema synchronized.
+**Files Modified:** None (database schema synchronization performed)
+
 ## [usr-1754355567319]
 **User Request:** I created a new user - arunexprasad@gmail.com and authenticated using email but clicking on the link gives this message - http://localhost:3000/#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired
 
