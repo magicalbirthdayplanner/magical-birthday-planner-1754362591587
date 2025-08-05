@@ -167,9 +167,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-3 sm:p-4 pt-16 sm:pt-20">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4 sm:gap-0">
+        {/* Header - Reduced margins */}
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3 sm:gap-0">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <PartyPopper className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
@@ -191,55 +191,55 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats Cards - Enhanced with Visual Grouping and Better Spacing */}
-        <div className="space-y-8 mb-8">
-          {/* Planning & Progress Overview Section - 5 Cards */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Planning Overview</h2>
+        {/* Stats Cards - Reduced spacing and optimized layout */}
+        <div className="space-y-5 mb-6">
+          {/* Planning & Progress Overview Section - Compact design */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-6 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Planning Overview</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="border-2 border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-base font-bold text-purple-800 dark:text-purple-200">Active Parties</CardTitle>
-                  <div className="p-2 rounded-full bg-purple-600 shadow-sm">
-                    <Calendar className="h-5 w-5 text-white" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card className="border-2 border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-bold text-purple-800 dark:text-purple-200">Active Parties</CardTitle>
+                  <div className="p-1.5 rounded-full bg-purple-600 shadow-sm">
+                    <Calendar className="h-4 w-4 text-white" />
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="text-3xl font-black text-purple-700 dark:text-purple-300">{upcomingParties.length}</div>
-                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                <CardContent className="pt-1 space-y-1">
+                  <div className="text-2xl font-black text-purple-700 dark:text-purple-300">{upcomingParties.length}</div>
+                  <p className="text-xs font-medium text-purple-600 dark:text-purple-400">
                     {upcomingParties.length === 1 ? 'party' : 'parties'} in planning
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-base font-bold text-green-800 dark:text-green-200">Tasks Completed</CardTitle>
-                  <div className="p-2 rounded-full bg-green-600 shadow-sm">
-                    <CheckCircle className="h-5 w-5 text-white" />
+              <Card className="border-2 border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-bold text-green-800 dark:text-green-200">Tasks Completed</CardTitle>
+                  <div className="p-1.5 rounded-full bg-green-600 shadow-sm">
+                    <CheckCircle className="h-4 w-4 text-white" />
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="text-3xl font-black text-green-700 dark:text-green-300">{completedTasks}/{totalTasks}</div>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                <CardContent className="pt-1 space-y-1">
+                  <div className="text-2xl font-black text-green-700 dark:text-green-300">{completedTasks}/{totalTasks}</div>
+                  <p className="text-xs font-medium text-green-600 dark:text-green-400">
                     {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% complete
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-blue-200 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-base font-bold text-blue-800 dark:text-blue-200">Total Guests</CardTitle>
-                  <div className="p-2 rounded-full bg-blue-600 shadow-sm">
-                    <Users className="h-5 w-5 text-white" />
+              <Card className="border-2 border-blue-200 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-bold text-blue-800 dark:text-blue-200">Total Guests</CardTitle>
+                  <div className="p-1.5 rounded-full bg-blue-600 shadow-sm">
+                    <Users className="h-4 w-4 text-white" />
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="text-3xl font-black text-blue-700 dark:text-blue-300">{totalGuests}</div>
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                <CardContent className="pt-1 space-y-1">
+                  <div className="text-2xl font-black text-blue-700 dark:text-blue-300">{totalGuests}</div>
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
                     across all parties
                   </p>
                 </CardContent>
@@ -248,52 +248,56 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Parties Section - Enhanced with Visual Separation */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-red-500 rounded-full"></div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Your Parties</h2>
+        {/* Parties Section - Optimized with reduced spacing */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-500 rounded-full"></div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Your Parties</h2>
           </div>
           
-          <Tabs defaultValue="upcoming" className="space-y-6">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 shadow-lg rounded-lg overflow-hidden">
-              <TabsTrigger value="upcoming" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-md mx-1 my-1 hover:bg-purple-50 dark:hover:bg-purple-900/20">
-                <Clock className="w-4 h-4" />
-                <span className="hidden sm:inline">Upcoming ({upcomingParties.length})</span>
-                <span className="sm:hidden">Upcoming</span>
+          <Tabs defaultValue="upcoming" className="space-y-4">
+            <TabsList className="grid w-full max-w-sm mx-auto grid-cols-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-sm rounded-lg p-1">
+              <TabsTrigger 
+                value="upcoming" 
+                className="flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=inactive]:text-gray-600 dark:data-[state=inactive]:text-gray-300 transition-all duration-200 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/20"
+              >
+                <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Upcoming ({upcomingParties.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="completed" className="flex items-center gap-2 text-sm font-medium px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-md mx-1 my-1 hover:bg-green-50 dark:hover:bg-green-900/20">
-                <CheckCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">Completed ({completedParties.length})</span>
-                <span className="sm:hidden">Done</span>
+              <TabsTrigger 
+                value="completed" 
+                className="flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=inactive]:text-gray-600 dark:data-[state=inactive]:text-gray-300 transition-all duration-200 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20"
+              >
+                <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Done ({completedParties.length})</span>
               </TabsTrigger>
             </TabsList>
 
-          <TabsContent value="upcoming" className="space-y-4 sm:space-y-6">
+          <TabsContent value="upcoming" className="space-y-4">
             {upcomingParties.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {upcomingParties.map((party) => (
                   <PartyCard key={party.id} party={party} onDelete={handleDeleteParty} />
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-16 border-2 border-dashed border-orange-200 dark:border-orange-700 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 shadow-lg">
-                <CardContent className="space-y-6">
-                  <div className="p-4 rounded-full bg-orange-100 dark:bg-orange-900/30 w-fit mx-auto">
-                    <PartyPopper className="w-16 h-16 text-orange-600 dark:text-orange-400" />
+              <Card className="text-center py-12 border-2 border-dashed border-orange-200 dark:border-orange-700 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 shadow-md">
+                <CardContent className="space-y-4">
+                  <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/30 w-fit mx-auto">
+                    <PartyPopper className="w-12 h-12 text-orange-600 dark:text-orange-400" />
                   </div>
-                  <div className="space-y-2">
-                    <CardTitle className="text-2xl font-bold text-orange-800 dark:text-orange-200">No parties planned yet</CardTitle>
-                    <CardDescription className="text-orange-700 dark:text-orange-300 max-w-md mx-auto">
-                      Ready to create your first magical birthday party? Let's get started with the planning!
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-200">No parties planned yet</CardTitle>
+                    <CardDescription className="text-orange-700 dark:text-orange-300 max-w-sm mx-auto text-sm">
+                      Ready to create your first magical birthday party? Let's get started!
                     </CardDescription>
                   </div>
                   <Button
                     asChild
-                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 px-8 py-3"
+                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 px-6 py-2"
                   >
                     <Link href="/create-party">
-                      <Plus className="w-5 h-5 mr-2" />
+                      <Plus className="w-4 h-4 mr-2" />
                       Create Your First Party
                     </Link>
                   </Button>
@@ -302,22 +306,22 @@ export default function Dashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="completed" className="space-y-6">
+          <TabsContent value="completed" className="space-y-4">
             {completedParties.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {completedParties.map((party) => (
                   <PartyCard key={party.id} party={party} onDelete={handleDeleteParty} />
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-16 border-2 border-dashed border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg">
-                <CardContent className="space-y-6">
-                  <div className="p-4 rounded-full bg-green-100 dark:bg-green-900/30 w-fit mx-auto">
-                    <Sparkles className="w-16 h-16 text-green-600 dark:text-green-400" />
+              <Card className="text-center py-12 border-2 border-dashed border-green-200 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-md">
+                <CardContent className="space-y-4">
+                  <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 w-fit mx-auto">
+                    <Sparkles className="w-12 h-12 text-green-600 dark:text-green-400" />
                   </div>
-                  <div className="space-y-2">
-                    <CardTitle className="text-2xl font-bold text-green-800 dark:text-green-200">No completed parties yet</CardTitle>
-                    <CardDescription className="text-green-700 dark:text-green-300 max-w-md mx-auto">
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl font-bold text-green-800 dark:text-green-200">No completed parties yet</CardTitle>
+                    <CardDescription className="text-green-700 dark:text-green-300 max-w-sm mx-auto text-sm">
                       Your magical memories will appear here once you've celebrated your parties!
                     </CardDescription>
                   </div>
