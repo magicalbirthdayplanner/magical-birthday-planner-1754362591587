@@ -862,60 +862,60 @@ export default function PartyPlanPage() {
           </div>
           
           <Tabs defaultValue="overview" className="w-full">
-            <div className="overflow-x-auto mb-8">
-              <TabsList className="flex flex-wrap justify-center lg:grid lg:grid-cols-11 w-full h-auto p-2 gap-2 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 shadow-lg rounded-xl">
+            <div className="overflow-x-auto mb-6">
+              <TabsList className="flex w-full h-auto p-1.5 gap-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-md rounded-xl">
                 {/* Overview & Planning Group */}
-                <TabsTrigger value="overview" className="flex items-center justify-center gap-2 text-sm font-medium px-3 py-2.5 min-w-0 flex-1 lg:flex-none rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20">
-                  <PartyPopper className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Overview</span>
-                  <span className="sm:hidden">Main</span>
+                <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-gray-700 dark:text-gray-300">
+                  <PartyPopper className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Overview</span>
                 </TabsTrigger>
-                <TabsTrigger value="budget" className="flex items-center justify-center gap-2 text-sm font-medium px-3 py-2.5 min-w-0 flex-1 lg:flex-none rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-green-50 dark:hover:bg-green-900/20">
-                  <DollarSign className="h-4 w-4 shrink-0" />
-                  <span className="truncate">Budget</span>
+                
+                <TabsTrigger value="budget" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-green-50 dark:hover:bg-green-900/20 text-gray-700 dark:text-gray-300">
+                  <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Budget</span>
                 </TabsTrigger>
                 
                 {/* Shopping & Vendors Group */}
-                <TabsTrigger value="shopping" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-orange-50 dark:hover:bg-orange-900/20">
-                  <ShoppingBag className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Shopping</span>
-                  <span className="sm:hidden">Shop</span>
+                <TabsTrigger value="shopping" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-gray-700 dark:text-gray-300">
+                  <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Shopping</span>
                 </TabsTrigger>
-                <TabsTrigger value="venue" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-amber-50 dark:hover:bg-amber-900/20">
-                  <Home className="h-4 w-4 shrink-0" />
-                  Venue
+                
+                <TabsTrigger value="venue" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-gray-700 dark:text-gray-300">
+                  <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Venue</span>
                 </TabsTrigger>
-                <TabsTrigger value="food" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20">
-                  <UtensilsCrossed className="h-4 w-4 shrink-0" />
-                  Food
+                
+                <TabsTrigger value="food" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300">
+                  <UtensilsCrossed className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Food</span>
                 </TabsTrigger>
-                <TabsTrigger value="cake" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-pink-50 dark:hover:bg-pink-900/20">
-                  <Cake className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Cake</span>
-                  <span className="sm:hidden">Cake</span>
+                
+                <TabsTrigger value="cake" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-pink-50 dark:hover:bg-pink-900/20 text-gray-700 dark:text-gray-300">
+                  <Cake className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Cake</span>
                 </TabsTrigger>
                 
                 {/* Guest Management Group */}
-                <TabsTrigger value="guests" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-teal-50 dark:hover:bg-teal-900/20">
-                  <Users className="h-4 w-4 shrink-0" />
-                  Guests
+                <TabsTrigger value="guests" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-teal-50 dark:hover:bg-teal-900/20 text-gray-700 dark:text-gray-300">
+                  <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Guests</span>
                 </TabsTrigger>
-                <TabsTrigger value="activities" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/20">
-                  <Music className="h-4 w-4 shrink-0" />
-                  <span className="hidden md:inline">Activities</span>
-                  <span className="md:hidden">Games</span>
+                
+                <TabsTrigger value="activities" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/20 text-gray-700 dark:text-gray-300">
+                  <Music className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Activities</span>
                 </TabsTrigger>
                 
                 {/* Timeline & Tasks Group - Moved to End */}
-                <TabsTrigger value="timeline" className="flex items-center gap-2 text-sm font-medium px-4 py-3 whitespace-nowrap rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
-                  <Clock className="h-4 w-4 shrink-0" />
-                  <span className="hidden lg:inline">Timeline</span>
-                  <span className="lg:hidden">Time</span>
+                <TabsTrigger value="timeline" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-gray-700 dark:text-gray-300">
+                  <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Timeline</span>
                 </TabsTrigger>
-                <TabsTrigger value="checklist" className="flex items-center justify-center gap-2 text-sm font-medium px-3 py-2.5 min-w-0 flex-1 lg:flex-none rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                  <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline truncate">Checklist</span>
-                  <span className="sm:hidden">Tasks</span>
+                
+                <TabsTrigger value="checklist" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300">
+                  <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="truncate font-semibold">Checklist</span>
                 </TabsTrigger>
               </TabsList>
             </div>
