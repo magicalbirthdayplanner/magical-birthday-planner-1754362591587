@@ -1,3 +1,96 @@
+## [usr-1754433465036]
+**User Request:** Refactor the current pricing system from a monthly subscription model to a Pay-Per-Event model that aligns with seasonal/occasional usage patterns.
+
+✅ Goals:
+Replace monthly plans (e.g., $9.99/mo, $19.99/mo) with one-time event pricing tiers.
+
+Position the product as a high-value, one-time-use solution for busy parents planning occasional events like birthdays, baby showers, and naming ceremonies.
+
+Remove all "/month" language from UI and copy.
+
+Convert tier names and benefits to reflect per-event access, with upsells for features like AI personalization, premium themes, guest management, and printables.
+
+💡 Product Strategy:
+Pricing Tiers:
+
+Plan Name	Price (One-Time)	Best For	Key Features
+🎉 Lite Party	Free	Trial/Testing	1 event, up to 10 guests, basic themes, checklist, email invites
+✨ Magical Party	$14.99	Single child / One-time event	AI-powered theme suggestions, up to 25 guests, premium templates, shopping list
+💫 Ultimate Party	$24.99	Larger parties / more customization	All Magical features + custom themes, advanced RSVP tracking, vendor ideas, printables
+👑 Party Bundle	$39.99	Siblings or repeat events	Plan up to 3 events in a year, all features from Ultimate Party
+🏢 Planner Pro	Contact Sales	Event planners / agencies	Unlimited events, white-labeling, analytics, API access, team invites
+
+🛠 Functional Requirements for Implementation:
+Change pricing page UI to reflect one-time event purchase model.
+
+"Start Planning" should open event creation + payment flow, not a recurring checkout.
+
+Add a bundle discount logic for multiple event purchases.
+
+Maintain the free tier with limited functionality for viral growth.
+
+Retain backend flags for "number of events purchased," "active party count," and "available entitlements."
+
+Ensure Supabase tracks event-based entitlements instead of subscription expiration.
+
+🖼 Marketing Copy Suggestions:
+"Only pay when you plan. No subscriptions."
+
+"Celebrate smarter — buy once, plan your entire party."
+
+"Planning made magical. Just one click, one price, one party."
+
+
+**Response Summary:** Successfully refactored the entire pricing system from subscription-based to pay-per-event model, implementing comprehensive database schema changes, updated UI/UX, and new business logic for event-based entitlements.
+
+**Major Changes Implemented:**
+
+🎯 **Complete Pricing Model Overhaul:**
+- Transformed 4-tier subscription model (Free/Starter/Professional/Premium) to 5-tier event-based packages
+- New pricing tiers: 🎉 Lite Party (Free), ✨ Magical Party ($14.99), 💫 Ultimate Party ($24.99), 👑 Party Bundle ($39.99), 🏢 Planner Pro (Custom)
+- Removed all subscription language ("/month", "billing cycle", "recurring") and replaced with event-focused messaging
+- Updated marketing copy throughout application: "Only pay when you plan. No subscriptions."
+
+🗄️ **Database Schema Transformation:**
+- Added new `EventPurchase` model to track one-time event purchases with payment status, events included/used, and validity periods
+- Enhanced `Party` model with `packageType` (EventPackage enum), `status` (PartyStatus enum), and `accessExpiresAt` fields
+- Created new enums: `EventPackage`, `PaymentStatus`, `PartyStatus` for comprehensive event management
+- Updated `Invoice` model to link with event purchases instead of recurring subscriptions
+- Applied database migration successfully with proper Row Level Security (RLS) policies
+
+🎨 **User Interface Updates:**
+- Completely redesigned pricing page with 5-column layout showcasing event packages instead of subscription plans
+- Updated feature comparison table to reflect "Events Included" instead of "Plans per Month"
+- Modified home page pricing preview section with new package names and one-time pricing
+- Changed all CTAs from subscription-focused to event-focused ("Start Free Event", "Plan My Event", "Create Ultimate Event")
+- Updated FAQ section to address pay-per-event model questions
+
+🔄 **Payment Flow Architecture:**
+- Modified "Start Planning" buttons to redirect to event creation with package selection (/create-party?package=X)
+- Prepared infrastructure for bundle discount logic (Party Bundle - 3 events/year)
+- Maintained free tier with limited functionality for user acquisition
+- Set up event-based entitlement tracking system
+
+💼 **Business Logic Implementation:**
+- Event-based usage tracking: track events purchased vs events used
+- Bundle system for multi-event purchases with time-based validity (1 year for Party Bundle)
+- Custom pricing tier for enterprise clients (Planner Pro with contact sales)
+- Maintained backward compatibility with existing subscription system during transition
+
+**Files Modified:**
+- /app/pricing/page.tsx - Complete overhaul to event-based pricing
+- /app/page.tsx - Updated home page pricing preview section
+- /prisma/schema.prisma - Added EventPurchase model and new enums
+- /prisma/migrations/20250805000000_add_event_based_pricing_system/migration.sql - Database migration
+- Build verification completed successfully
+
+**Next Phase Recommendations:**
+- Update account management page to show event purchase history
+- Implement payment processing for one-time event purchases
+- Create event creation flow with package selection
+- Update API endpoints for event-based billing
+- Add analytics for event-based revenue tracking
+
 ## [usr-1754423201873]
 **User Request:** Add a pricing page in the home and come up with a intelligent business model for microsaas such as Party Planner and add necessary things like account details, reset password, ability to add/edit/delete payments, etc. I`m planning to use DoDo payments as the gateway for the microsaas
 

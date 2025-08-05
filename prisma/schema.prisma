@@ -18,6 +18,7 @@ model User {
   subscription   Subscription?
   paymentMethods PaymentMethod[]
   invoices       Invoice[]
+  eventPurchases EventPurchase[]
 
   @@map("users")
 }
@@ -35,12 +36,17 @@ model Party {
   budget         Float?
   location       String?
   checklistData  Json?
+  packageType    EventPackage @default(LITE_PARTY)
+  status         PartyStatus  @default(PLANNING)
+  accessExpiresAt DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   userId         String
+  eventPurchaseId String?
   guests         Guest[]
   invitations    Invitation[]
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventPurchase  EventPurchase? @relation(fields: [eventPurchaseId], references: [id])
 
   @@map("parties")
 }
@@ -97,6 +103,26 @@ model Subscription {
   @@map("subscriptions")
 }
 
+model EventPurchase {
+  id              String        @id @default(cuid())
+  userId          String
+  packageType     EventPackage
+  amount          Float
+  currency        String        @default("USD")
+  status          PaymentStatus @default(PENDING)
+  eventsIncluded  Int           @default(1)
+  eventsUsed      Int           @default(0)
+  validUntil      DateTime?     // For bundle purchases
+  paymentIntentId String?       @unique
+  transactionId   String?       @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parties         Party[]
+
+  @@map("event_purchases")
+}
+
 model PaymentMethod {
   id               String             @id @default(cuid())
   userId           String
@@ -125,6 +151,8 @@ model Invoice {
   paidAt            DateTime?
   stripeInvoiceId   String?       @unique
   downloadUrl       String?
+  packageType       EventPackage?
+  eventPurchaseId   String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -150,6 +178,30 @@ enum SubscriptionPlan {
   STARTER
   PROFESSIONAL
   PREMIUM
+}
+
+enum EventPackage {
+  LITE_PARTY
+  MAGICAL_PARTY
+  ULTIMATE_PARTY
+  PARTY_BUNDLE
+  PLANNER_PRO
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
+enum PartyStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+  CANCELED
 }
 
 enum SubscriptionStatus {

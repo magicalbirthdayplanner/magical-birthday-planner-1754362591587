@@ -6,130 +6,153 @@ import Link from "next/link"
 
 const pricingTiers = [
   {
-    name: "Free",
+    name: "🎉 Lite Party",
     price: 0,
     description: "Perfect for trying out party planning",
     icon: Star,
     gradient: "from-purple-500 to-pink-500",
     bgGradient: "from-purple-50 to-pink-50",
     features: [
-      "1 party plan per month",
-      "Up to 10 guests per party",
+      "1 event creation",
+      "Up to 10 guests",
       "Basic themes & templates",
-      "Simple checklist management",
-      "Email invitations",
+      "Simple checklist",
+      "Email invites",
       "Community support"
     ],
     limitations: [
-      "Limited AI recommendations",
+      "No AI recommendations",
       "No custom themes",
-      "No advanced analytics"
+      "No printables"
     ],
-    cta: "Get Started Free",
+    cta: "Start Free Event",
     ctaVariant: "outline" as const,
-    popular: false
+    popular: false,
+    bestFor: "Trial/Testing"
   },
   {
-    name: "Starter",
-    price: 9.99,
-    description: "Ideal for occasional party planners",
+    name: "✨ Magical Party",
+    price: 14.99,
+    description: "Single child birthday or special event",
     icon: Zap,
     gradient: "from-blue-500 to-cyan-500",
     bgGradient: "from-blue-50 to-cyan-50",
     features: [
-      "5 party plans per month",
-      "Up to 25 guests per party",
-      "All premium themes",
-      "AI-powered theme recommendations",
-      "Advanced checklist templates",
-      "Custom invitation templates",
-      "Guest RSVP tracking",
+      "AI-powered theme suggestions",
+      "Up to 25 guests",
+      "Premium templates",
       "Shopping list integration",
+      "RSVP tracking",
+      "Custom invitations",
+      "Budget planning tools",
       "Email support"
     ],
     limitations: [
-      "Limited vendor recommendations"
+      "Limited to 1 event"
     ],
-    cta: "Start Planning",
+    cta: "Plan My Event",
     ctaVariant: "default" as const,
-    popular: true
+    popular: true,
+    bestFor: "Single child / One-time event"
   },
   {
-    name: "Professional",
-    price: 19.99,
-    description: "For frequent party organizers & small businesses",
+    name: "💫 Ultimate Party",
+    price: 24.99,
+    description: "Larger parties with more customization",
     icon: Crown,
     gradient: "from-emerald-500 to-teal-500",
     bgGradient: "from-emerald-50 to-teal-50",
     features: [
-      "15 party plans per month",
-      "Up to 100 guests per party",
-      "All features from Starter",
+      "All Magical Party features",
       "Custom theme creation",
-      "Advanced AI recommendations",
-      "Vendor recommendation system",
-      "Budget tracking & analytics",
-      "Bulk invitation management",
-      "Party timeline automation",
-      "Export guest lists & reports",
-      "Priority email support"
+      "Advanced RSVP tracking",
+      "Vendor recommendations",
+      "Printable decorations",
+      "Guest management tools",
+      "Timeline automation",
+      "Export capabilities",
+      "Priority support"
     ],
-    limitations: [],
-    cta: "Go Professional",
+    limitations: [
+      "Limited to 1 event"
+    ],
+    cta: "Create Ultimate Event",
     ctaVariant: "default" as const,
-    popular: false
+    popular: false,
+    bestFor: "Larger parties / More customization"
   },
   {
-    name: "Premium",
+    name: "👑 Party Bundle",
     price: 39.99,
-    description: "Ultimate solution for event planners & agencies",
+    description: "Plan up to 3 events within a year",
     icon: Sparkles,
     gradient: "from-violet-500 to-purple-500",
     bgGradient: "from-violet-50 to-purple-50",
     features: [
-      "Unlimited party plans",
-      "Unlimited guests",
-      "All features from Professional",
-      "White-label customization",
-      "Advanced analytics dashboard",
-      "Multi-user team management",
-      "API access for integrations",
-      "Custom integrations support",
+      "Plan up to 3 events in 1 year",
+      "All Ultimate Party features",
+      "Multi-event management",
+      "Template sharing between events",
+      "Bulk guest import",
+      "Advanced analytics",
+      "Priority support",
+      "Save 40% vs individual purchases"
+    ],
+    limitations: [],
+    cta: "Get Bundle Deal",
+    ctaVariant: "default" as const,
+    popular: false,
+    bestFor: "Siblings or repeat events"
+  },
+  {
+    name: "🏢 Planner Pro",
+    price: "Custom",
+    description: "For event planners and agencies",
+    icon: Crown,
+    gradient: "from-amber-500 to-orange-500",
+    bgGradient: "from-amber-50 to-orange-50",
+    features: [
+      "Unlimited events",
+      "White-labeling options",
+      "Advanced analytics",
+      "API access",
+      "Team collaboration",
+      "Custom integrations",
       "Dedicated account manager",
-      "24/7 phone & chat support",
-      "Custom training sessions"
+      "24/7 support"
     ],
     limitations: [],
     cta: "Contact Sales",
     ctaVariant: "default" as const,
-    popular: false
+    popular: false,
+    bestFor: "Event planners / Agencies"
   }
 ]
 
 const faqs = [
   {
-    question: "Can I change my plan anytime?",
-    answer: "Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately and we'll prorate any charges."
+    question: "How does pay-per-event pricing work?",
+    answer: "You only pay when you plan an event. No monthly subscriptions, no recurring charges. Purchase a package, plan your party, and you're done until your next celebration."
   },
   {
-    question: "What happens if I exceed my plan limits?",
-    answer: "We'll notify you when you're approaching your limits. You can upgrade your plan or wait for the next billing cycle when limits reset."
+    question: "What happens after I purchase an event package?",
+    answer: "You get immediate access to all the features included in your package. Create your event, invite guests, and plan your perfect party. Your access remains active until your event is complete."
   },
   {
-    question: "Is there a free trial for paid plans?",
-    answer: "Yes! All paid plans come with a 14-day free trial. No credit card required to start your trial."
+    question: "Can I upgrade my package after purchase?",
+    answer: "Yes! You can upgrade to a higher-tier package at any time. We'll credit your original purchase toward the upgrade cost."
   },
   {
     question: "Do you offer refunds?",
-    answer: "We offer a 30-day money-back guarantee. If you're not satisfied, contact our support team for a full refund."
+    answer: "We offer a 7-day money-back guarantee. If you're not satisfied with your package, contact our support team for a full refund."
   },
   {
     question: "What payment methods do you accept?",
     answer: "We accept all major credit cards, debit cards, and PayPal through our secure payment processor DoDo Payments."
   },
   {
-    question: "Can I cancel my subscription anytime?",
-    answer: "Absolutely! You can cancel your subscription at any time. Your account will remain active until the end of your current billing period."
+    question: "How long do I have access to my event after purchase?",
+    answer: "Your event remains accessible for 90 days after your party date, giving you time to download photos, export guest lists, and save memories."
   }
 ]
 
@@ -140,20 +163,20 @@ export default function PricingPage() {
       <div className="container mx-auto px-4 pt-20 pb-12">
         <div className="text-center max-w-3xl mx-auto">
           <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-            🎉 Limited Time: 50% Off First 3 Months
+            🎉 Only pay when you plan. No subscriptions.
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6">
-            Choose Your Perfect Plan
+            Choose Your Perfect Event Package
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            From casual party planning to professional event management, we have the perfect plan to make every celebration magical.
+            From single birthday parties to multi-event planning, we have the perfect package to make every celebration magical. Pay once, plan once, celebrate forever.
           </p>
         </div>
       </div>
 
       {/* Pricing Cards */}
       <div className="container mx-auto px-4 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
           {pricingTiers.map((tier, index) => (
             <Card 
               key={tier.name} 
@@ -172,41 +195,46 @@ export default function PricingPage() {
                   <div className={`p-3 rounded-full bg-gradient-to-r ${tier.gradient}`}>
                     <tier.icon className="h-6 w-6 text-white" />
                   </div>
-                  {tier.name === "Premium" && (
+                  {tier.price === "Custom" && (
                     <Badge variant="secondary" className="text-xs">
                       Custom
                     </Badge>
                   )}
                 </div>
-                <CardTitle className="text-2xl font-bold text-gray-900">
+                <CardTitle className="text-xl font-bold text-gray-900">
                   {tier.name}
                 </CardTitle>
-                <CardDescription className="text-gray-600">
+                <CardDescription className="text-gray-600 text-sm">
                   {tier.description}
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900">
-                    ${tier.price}
+                  <span className="text-3xl font-bold text-gray-900">
+                    {tier.price === "Custom" ? "Custom" : `$${tier.price}`}
                   </span>
-                  <span className="text-gray-600 ml-2">
-                    {tier.price > 0 ? "/month" : "forever"}
+                  <span className="text-gray-600 ml-2 text-sm">
+                    {tier.price === 0 ? "forever" : tier.price === "Custom" ? "pricing" : "one-time"}
+                  </span>
+                </div>
+                <div className="mt-2">
+                  <span className="text-xs text-gray-500 font-medium">
+                    Best for: {tier.bestFor}
                   </span>
                 </div>
               </CardHeader>
 
-              <CardContent className="p-6">
-                <ul className="space-y-3 mb-6">
+              <CardContent className="p-4">
+                <ul className="space-y-2 mb-6">
                   {tier.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700 text-sm">{feature}</span>
+                      <Check className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700 text-xs">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 {tier.limitations.length > 0 && (
-                  <div className="border-t pt-4 mb-6">
-                    <p className="text-xs text-gray-500 mb-2">Limitations:</p>
+                  <div className="border-t pt-3 mb-4">
+                    <p className="text-xs text-gray-500 mb-1">Limitations:</p>
                     <ul className="space-y-1">
                       {tier.limitations.map((limitation, limitIndex) => (
                         <li key={limitIndex} className="text-xs text-gray-400">
@@ -218,7 +246,7 @@ export default function PricingPage() {
                 )}
 
                 <Button 
-                  className={`w-full ${
+                  className={`w-full text-sm ${
                     tier.popular 
                       ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' 
                       : tier.ctaVariant === 'outline' 
@@ -228,7 +256,7 @@ export default function PricingPage() {
                   variant={tier.ctaVariant}
                   asChild
                 >
-                  <Link href={tier.name === "Free" ? "/signup" : "/signup?plan=" + tier.name.toLowerCase()}>
+                  <Link href={tier.price === 0 ? "/signup" : tier.price === "Custom" ? "/contact" : `/create-party?package=${tier.name.replace(/[^a-zA-Z]/g, '').toLowerCase()}`}>
                     {tier.cta}
                   </Link>
                 </Button>
@@ -242,69 +270,75 @@ export default function PricingPage() {
       <div className="container mx-auto px-4 pb-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Compare All Features
+            Compare All Packages
           </h2>
           <p className="text-gray-600">
-            See what's included in each plan to make the best choice for your needs.
+            See what's included in each package to make the best choice for your event.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-w-5xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-w-6xl mx-auto">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="text-left p-6 font-semibold text-gray-900">Features</th>
+                  <th className="text-left p-4 font-semibold text-gray-900">Features</th>
                   {pricingTiers.map((tier) => (
-                    <th key={tier.name} className="text-center p-6">
-                      <div className="font-semibold text-gray-900">{tier.name}</div>
-                      <div className="text-sm text-gray-500">${tier.price}/mo</div>
+                    <th key={tier.name} className="text-center p-4">
+                      <div className="font-semibold text-gray-900 text-sm">{tier.name}</div>
+                      <div className="text-xs text-gray-500">{tier.price === "Custom" ? "Custom" : tier.price === 0 ? "Free" : `$${tier.price} one-time`}</div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 <tr>
-                  <td className="p-6 font-medium text-gray-900">Party Plans per Month</td>
-                  <td className="p-6 text-center">1</td>
-                  <td className="p-6 text-center">5</td>
-                  <td className="p-6 text-center">15</td>
-                  <td className="p-6 text-center">Unlimited</td>
+                  <td className="p-4 font-medium text-gray-900">Events Included</td>
+                  <td className="p-4 text-center">1</td>
+                  <td className="p-4 text-center">1</td>
+                  <td className="p-4 text-center">1</td>
+                  <td className="p-4 text-center">3 events/year</td>
+                  <td className="p-4 text-center">Unlimited</td>
                 </tr>
                 <tr className="bg-gray-50">
-                  <td className="p-6 font-medium text-gray-900">Maximum Guests</td>
-                  <td className="p-6 text-center">10</td>
-                  <td className="p-6 text-center">25</td>
-                  <td className="p-6 text-center">100</td>
-                  <td className="p-6 text-center">Unlimited</td>
+                  <td className="p-4 font-medium text-gray-900">Maximum Guests</td>
+                  <td className="p-4 text-center">10</td>
+                  <td className="p-4 text-center">25</td>
+                  <td className="p-4 text-center">Unlimited</td>
+                  <td className="p-4 text-center">Unlimited</td>
+                  <td className="p-4 text-center">Unlimited</td>
                 </tr>
                 <tr>
-                  <td className="p-6 font-medium text-gray-900">AI Theme Recommendations</td>
-                  <td className="p-6 text-center">Basic</td>
-                  <td className="p-6 text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></td>
-                  <td className="p-6 text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></td>
-                  <td className="p-6 text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></td>
+                  <td className="p-4 font-medium text-gray-900">AI Theme Recommendations</td>
+                  <td className="p-4 text-center">—</td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
                 <tr className="bg-gray-50">
-                  <td className="p-6 font-medium text-gray-900">Custom Themes</td>
-                  <td className="p-6 text-center">—</td>
-                  <td className="p-6 text-center">—</td>
-                  <td className="p-6 text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></td>
-                  <td className="p-6 text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></td>
+                  <td className="p-4 font-medium text-gray-900">Custom Themes & Printables</td>
+                  <td className="p-4 text-center">—</td>
+                  <td className="p-4 text-center">—</td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
                 <tr>
-                  <td className="p-6 font-medium text-gray-900">Analytics & Reports</td>
-                  <td className="p-6 text-center">—</td>
-                  <td className="p-6 text-center">Basic</td>
-                  <td className="p-6 text-center">Advanced</td>
-                  <td className="p-6 text-center">Enterprise</td>
+                  <td className="p-4 font-medium text-gray-900">Advanced Features</td>
+                  <td className="p-4 text-center">—</td>
+                  <td className="p-4 text-center">Basic</td>
+                  <td className="p-4 text-center">Advanced</td>
+                  <td className="p-4 text-center">Multi-Event</td>
+                  <td className="p-4 text-center">Enterprise</td>
                 </tr>
                 <tr className="bg-gray-50">
-                  <td className="p-6 font-medium text-gray-900">Support Level</td>
-                  <td className="p-6 text-center">Community</td>
-                  <td className="p-6 text-center">Email</td>
-                  <td className="p-6 text-center">Priority Email</td>
-                  <td className="p-6 text-center">24/7 Phone & Chat</td>
+                  <td className="p-4 font-medium text-gray-900">Support Level</td>
+                  <td className="p-4 text-center">Community</td>
+                  <td className="p-4 text-center">Email</td>
+                  <td className="p-4 text-center">Priority</td>
+                  <td className="p-4 text-center">Priority</td>
+                  <td className="p-4 text-center">24/7 Dedicated</td>
                 </tr>
               </tbody>
             </table>
@@ -319,7 +353,7 @@ export default function PricingPage() {
             Frequently Asked Questions
           </h2>
           <p className="text-gray-600">
-            Everything you need to know about our pricing and plans.
+            Everything you need to know about our event-based pricing.
           </p>
         </div>
 
@@ -347,7 +381,7 @@ export default function PricingPage() {
               Ready to Create Magical Celebrations?
             </h2>
             <p className="text-xl mb-8 text-purple-100">
-              Join thousands of happy parents who've already planned unforgettable parties with our platform.
+              Join thousands of happy parents who've planned unforgettable parties with our pay-per-event system.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -355,7 +389,7 @@ export default function PricingPage() {
                 className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
                 asChild
               >
-                <Link href="/signup">Start Free Trial</Link>
+                <Link href="/signup">Start Free Event</Link>
               </Button>
               <Button 
                 size="lg" 

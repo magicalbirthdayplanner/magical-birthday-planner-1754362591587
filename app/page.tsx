@@ -249,13 +249,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-              🎉 50% Off First 3 Months
+              🎉 Only pay when you plan. No subscriptions.
             </Badge>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Choose Your Perfect Plan
+              Choose Your Perfect Package
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              From casual planning to professional events, find the plan that fits your celebration needs
+              From single birthday parties to multi-event planning, find the package that makes every celebration magical
             </p>
           </div>
 
@@ -269,7 +269,7 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Free
+                  🎉 Lite Party
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
                   Perfect for trying out party planning
@@ -283,7 +283,7 @@ export default function Home() {
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">1 party plan per month</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">1 event creation</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -299,7 +299,7 @@ export default function Home() {
                   </li>
                 </ul>
                 <Button className="w-full" variant="outline" asChild>
-                  <Link href="/signup">Get Started Free</Link>
+                  <Link href="/signup">Start Free Event</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -316,14 +316,14 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Starter
+                  ✨ Magical Party
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Ideal for occasional party planners
+                  Single child birthday or special event
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$9.99</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">/month</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$14.99</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">one-time</span>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
