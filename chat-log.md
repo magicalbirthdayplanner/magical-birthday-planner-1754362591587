@@ -1,3 +1,68 @@
+## [usr-1754366133790]
+**User Request:** Update the landing page demo flow for party planning as follows:
+
+Initial Demo Flow:
+When the user clicks "Try Demo" on the landing page, allow them to proceed into the demo mode and begin planning a party—no authentication or "Please sign in to create a party plan" message should display at this point.
+
+Create Party Plan Action:
+Only when the user attempts to finalize or save by clicking "Create My Party Plan", check for authentication:
+
+If not signed in, show a prompt/modal encouraging the user to sign up or sign in. The modal should include a brief message explaining that signing in is required to save, access AI-powered recommendations, and keep their party plans safe.
+
+User Experience:
+
+The demo should feel as frictionless as possible, showcasing the app's features without barriers.
+
+Ensure that all demo features (theme selection, planning steps, etc.) work normally up until saving.
+
+Only block at the save/finalize step and present the login/sign up call-to-action at that moment.
+
+Technical:
+
+Refactor or relocate the current sign-in prompt logic out of the initial demo flow.
+
+Ensure that demo mode data is cleared if the user signs up, signs in, or completes the demo without authentication.
+
+This will create a seamless trial experience that only requires authentication at the point of real data persistence or AI use.
+
+**Response Summary:** Successfully refactored the party planning demo flow to provide a seamless, frictionless experience for users:
+
+**Key Changes Made:**
+1. **Created AuthModal Component** (`/components/AuthModal.tsx`) - A professional modal dialog that appears when users try to save their party plan without authentication, featuring:
+   - Clear benefits messaging about saving plans and accessing AI features
+   - Prominent "Create Free Account" and "Sign In" buttons
+   - "Continue exploring demo" option to maintain demo flow
+   - Beautiful gradient design matching the app's aesthetic
+
+2. **Refactored Create-Party Flow** (`/app/create-party/page.tsx`):
+   - **Removed Early Authentication Barriers**: Eliminated the useEffect that immediately showed "Please sign in" error when users weren't authenticated
+   - **Demo Mode Enhancement**: Users can now complete all 5 steps of the party wizard (child info, date selection, theme selection, budget, and planning) without any authentication prompts
+   - **Authentication Check Only at Save**: Authentication is now only checked when users click "Create My Party Plan" button, triggering the AuthModal instead of an error message
+   - **Improved Button Behavior**: Removed `disabled={!user}` condition from the final submit button so demo users can click it and see the modal
+   - **Demo Data Clearing**: Added automatic cleanup of demo data when users sign in
+
+3. **Enhanced User Experience**:
+   - **Seamless Demo Flow**: Users can explore all party planning features (AI theme recommendations, budget tracking, timeline planning) without barriers
+   - **Smart Authentication Prompt**: Only when users want to save/finalize their plan do they see the elegant modal asking them to sign up
+   - **Clear Value Proposition**: The modal explains why signing in is beneficial (save plans, AI features, RSVP management)
+   - **Graceful Fallback**: Users can continue exploring the demo even after seeing the auth modal
+
+4. **Technical Implementation**:
+   - Added `showAuthModal` state management
+   - Modified `handleSubmit` to show modal instead of error for unauthenticated users
+   - Preserved all existing functionality for authenticated users
+   - Maintained data persistence and auto-save features for signed-in users
+
+**User Experience Impact:**
+- **Before**: Users hitting authentication barriers immediately upon starting demo
+- **After**: Complete freedom to explore all features with authentication only required at the final save step
+
+The demo now provides instant gratification and showcases the full value of the party planning platform before asking users to commit to signing up. This creates a much more engaging trial experience that should improve conversion rates while maintaining security for saved party data.
+
+**Files Modified:** 
+- `/components/AuthModal.tsx` (created)
+- `/app/create-party/page.tsx` (modified - removed early auth checks, added modal integration, improved UX flow)
+
 ## [usr-1754365925725]
 **User Request:** 1. Have to press signout 2 times to truly sign out of the application. Please check this. 
 

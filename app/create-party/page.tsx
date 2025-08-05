@@ -19,6 +19,7 @@ import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@
 import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
 import { useAuth } from "@/contexts/AuthContext";
 import { createParty, updateParty } from "@/lib/party-actions";
+import AuthModal from "@/components/AuthModal";
 
 const interestOptions = [
   "Animals", "Art & Crafts", "Cars", "Dancing", "Music", "Sports", "Science",
@@ -331,6 +332,14 @@ const getFallbackRecommendations = (childName: string, age: number, interests: s
 
 export default function CreatePartyPage() {
   const { user } = useAuth();
+
+  // Clear demo data when user signs in
+  useEffect(() => {
+    if (user && localStorage.getItem('demoPartyData')) {
+      // User has signed in, clear demo data
+      localStorage.removeItem('demoPartyData');
+    }
+  }, [user]);
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [partyData, setPartyData] = useState<PartyData>({
@@ -352,6 +361,7 @@ export default function CreatePartyPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [customThemeMode, setCustomThemeMode] = useState(false);
   const [showClassicThemes, setShowClassicThemes] = useState(false);
   const [showCustomOptions, setShowCustomOptions] = useState(false);
@@ -424,14 +434,6 @@ export default function CreatePartyPage() {
     return () => clearTimeout(saveTimeout);
   }, [partyData, user]);
 
-  // Ensure user is authenticated for party creation
-  useEffect(() => {
-    if (!user) {
-      setSubmitError('Please sign in to create a party plan');
-    } else {
-      setSubmitError(null);
-    }
-  }, [user]);
 
   // Rotate placeholder text every 5 seconds
   useEffect(() => {
@@ -578,7 +580,7 @@ export default function CreatePartyPage() {
 
   const handleSubmit = async () => {
     if (!user) {
-      setSubmitError('Please sign in to create a party plan');
+      setShowAuthModal(true);
       return;
     }
 
@@ -792,7 +794,7 @@ export default function CreatePartyPage() {
                 // For step 5, show Create My Party Plan button aligned with Back button
                 <Button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !user}
+                  disabled={isSubmitting}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 sm:px-8 text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
@@ -2082,6 +2084,14 @@ export default function CreatePartyPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="Save Your Party Plan"
+        description="Sign in to save your party plan, access AI-powered recommendations, and keep your celebrations safe and organized."
+      />
     </div>
   );
 }
