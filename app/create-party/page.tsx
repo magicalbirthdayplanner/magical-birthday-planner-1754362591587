@@ -2010,7 +2010,7 @@ export default function CreatePartyPage() {
                   </div>
 
                   {/* Card 6: Chosen Theme */}
-                  <div className="bg-gradient-to-br from-pink-50 to-rose-100 dark:from-pink-900/20 dark:to-rose-900/30 p-6 rounded-xl border border-pink-200 dark:border-pink-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                  <div className="bg-gradient-to-br from-pink-50 to-rose-100 dark:from-pink-900/20 dark:to-rose-900/30 p-6 rounded-xl border border-pink-200 dark:border-pink-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">
                       {(() => {
                         const aiTheme = partyData.aiRecommendations?.find(t => t.id === partyData.selectedTheme);
