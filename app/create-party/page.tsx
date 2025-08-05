@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -329,6 +330,7 @@ const getFallbackRecommendations = (childName: string, age: number, interests: s
 
 export default function CreatePartyPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [partyData, setPartyData] = useState<PartyData>({
     childName: "",
@@ -584,7 +586,7 @@ export default function CreatePartyPage() {
 
       // Navigate to party plan with the new party ID
       await new Promise(resolve => setTimeout(resolve, 1500));
-      window.location.href = `/party-plan?id=${result.party.id}`;
+      router.push(`/party-plan?id=${result.party.id}`);
 
     } catch (error) {
       console.error('Error creating party:', error);
