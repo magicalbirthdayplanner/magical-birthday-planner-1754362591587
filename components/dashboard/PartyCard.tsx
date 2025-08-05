@@ -1,9 +1,11 @@
 "use client"
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar, Users, CheckCircle, Clock, Edit, Trash2 } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Calendar, Users, CheckCircle, Clock, Edit, X } from 'lucide-react'
 import { format } from 'date-fns'
 import Link from 'next/link'
 
@@ -74,10 +76,21 @@ const getDaysUntilParty = (date: Date) => {
 }
 
 export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  
   const progressPercentage = party.totalTasks > 0 ? (party.checkedTasks / party.totalTasks) * 100 : 0
   const themeGradient = getThemeColors(party.theme)
   const statusColor = getStatusColor(party.status)
   const daysUntil = getDaysUntilParty(party.date)
+
+  const handleDeleteConfirm = () => {
+    if (deleteConfirmation === 'DELETE' && onDelete) {
+      onDelete(party.id)
+      setIsDeleteDialogOpen(false)
+      setDeleteConfirmation('')
+    }
+  }
 
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200 overflow-hidden dark:bg-slate-800 dark:border-slate-700">
@@ -94,9 +107,62 @@ export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
               {party.theme} Theme
             </p>
           </div>
-          <Badge className={`${statusColor} text-xs flex-shrink-0 ml-2`}>
-            {party.status}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={`${statusColor} text-xs flex-shrink-0`}>
+              {party.status}
+            </Badge>
+            {onDelete && (
+              <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-red-600">Delete Party</DialogTitle>
+                    <DialogDescription className="space-y-2">
+                      <p>You are about to delete {party.childName}'s {party.age}th Birthday party.</p>
+                      <p className="font-semibold text-red-600">⚠️ WARNING: This action is irreversible!</p>
+                      <p>All party data, guests, invitations, and planning progress will be permanently deleted.</p>
+                      <p>To confirm deletion, type <span className="font-mono bg-gray-100 px-1 rounded">DELETE</span> below:</p>
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <input
+                      type="text"
+                      value={deleteConfirmation}
+                      onChange={(e) => setDeleteConfirmation(e.target.value)}
+                      placeholder="Type DELETE to confirm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    />
+                  </div>
+                  <DialogFooter className="gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsDeleteDialogOpen(false)
+                        setDeleteConfirmation('')
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteConfirm}
+                      disabled={deleteConfirmation !== 'DELETE'}
+                    >
+                      DELETE Party
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
       </CardHeader>
       
@@ -159,17 +225,6 @@ export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
               className="px-2 sm:px-3"
             >
               <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-            </Button>
-          )}
-          
-          {onDelete && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDelete(party.id)}
-              className="text-red-600 hover:text-red-700 hover:border-red-300"
-            >
-              <Trash2 className="w-4 h-4" />
             </Button>
           )}
         </div>

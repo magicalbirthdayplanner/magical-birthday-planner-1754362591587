@@ -9,7 +9,7 @@ import { Plus, PartyPopper, Calendar, Users, CheckCircle, Clock, Sparkles } from
 import { useAuth } from '@/contexts/AuthContext'
 import PartyCard from './PartyCard'
 import Link from 'next/link'
-import { getUserParties } from '@/lib/party-actions'
+import { getUserParties, deleteParty } from '@/lib/party-actions'
 
 interface Party {
   id: string
@@ -126,6 +126,20 @@ export default function Dashboard() {
 
     loadParties()
   }, [user])
+
+  const handleDeleteParty = async (partyId: string) => {
+    try {
+      const result = await deleteParty(partyId)
+      if (result.success) {
+        // Remove the party from local state
+        setParties(prevParties => prevParties.filter(party => party.id !== partyId))
+      } else {
+        console.error('Failed to delete party:', result.error)
+      }
+    } catch (error) {
+      console.error('Error deleting party:', error)
+    }
+  }
 
   const upcomingParties = parties.filter(party => party.status === 'upcoming')
   const completedParties = parties.filter(party => party.status === 'completed')
@@ -251,7 +265,7 @@ export default function Dashboard() {
             {upcomingParties.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {upcomingParties.map((party) => (
-                  <PartyCard key={party.id} party={party} />
+                  <PartyCard key={party.id} party={party} onDelete={handleDeleteParty} />
                 ))}
               </div>
             ) : (
@@ -280,7 +294,7 @@ export default function Dashboard() {
             {completedParties.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {completedParties.map((party) => (
-                  <PartyCard key={party.id} party={party} />
+                  <PartyCard key={party.id} party={party} onDelete={handleDeleteParty} />
                 ))}
               </div>
             ) : (
