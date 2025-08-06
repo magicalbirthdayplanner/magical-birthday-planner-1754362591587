@@ -466,48 +466,11 @@ export default function CreatePartyPage() {
     }
   }, []);
 
-  // Auto-save functionality with database persistence
+  // Auto-save functionality - only save to localStorage during wizard
   useEffect(() => {
-    const autoSave = async () => {
-      // Save to localStorage immediately for offline backup
-      localStorage.setItem('partyData', JSON.stringify(partyData));
-      
-      // If user is authenticated and has sufficient data, also save to database
-      if (user && partyData.childName && partyData.childAge && partyData.partyDate) {
-        try {
-          // Call createParty server action for auto-save when user has basic party info
-          const createPayload = {
-            childName: partyData.childName,
-            childAge: partyData.childAge,
-            childGender: partyData.childGender || '',
-            partyDate: partyData.partyDate,
-            theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
-            interests: partyData.childInterests || [],
-            favoriteColors: partyData.favoriteColors || [],
-            guestCount: partyData.guestCount || 0,
-            budget: partyData.budget || undefined,
-            location: partyData.zipCode || '',
-          };
-
-          // Only auto-save if we have the minimum required data
-          if (createPayload.childName && createPayload.partyDate) {
-            console.log('Auto-saving party data to database...');
-            const result = await createParty(createPayload);
-            if (result.success && result.party?.id) {
-              // Store the party ID for future updates
-              setPartyData(prev => ({ ...prev, partyId: result.party.id }));
-            }
-          }
-        } catch (error) {
-          console.error('Auto-save failed, data preserved in localStorage:', error);
-        }
-      }
-    };
-
-    const saveTimeout = setTimeout(autoSave, 2000); // Auto-save every 2 seconds after changes
-    
-    return () => clearTimeout(saveTimeout);
-  }, [partyData, user]);
+    // Only save to localStorage during the wizard process
+    localStorage.setItem('partyData', JSON.stringify(partyData));
+  }, [partyData]);
 
 
   // Rotate placeholder text every 5 seconds
@@ -786,6 +749,7 @@ export default function CreatePartyPage() {
           guestCount: partyData.guestCount,
           budget: partyData.budget || undefined,
           location: partyData.zipCode,
+          status: 'ACTIVE' as const,
         };
 
         console.log('Creating party with payload:', createPayload)

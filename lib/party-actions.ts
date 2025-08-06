@@ -138,6 +138,7 @@ export async function createParty(partyData: {
   guestCount?: number
   budget?: number
   location?: string
+  status?: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELED'
 }) {
   try {
     console.log('🎉 Starting party creation process with data:', partyData)
@@ -185,6 +186,7 @@ export async function createParty(partyData: {
           guestCount: partyData.guestCount || null,
           budget: partyData.budget || null,
           location: partyData.location || null,
+          status: partyData.status || 'PLANNING',
           userId: user.id,
         },
       })
@@ -223,6 +225,7 @@ export async function updateParty(partyId: string, updates: Partial<{
   budget: number
   location: string
   checklistData: any
+  status: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELED'
 }>) {
   try {
     const user = await getCurrentUser()
@@ -301,6 +304,9 @@ export async function getUserParties() {
     const parties = await prisma.party.findMany({
       where: {
         userId: user.id,
+        status: {
+          in: ['ACTIVE', 'COMPLETED']
+        }
       },
       include: {
         guests: true,

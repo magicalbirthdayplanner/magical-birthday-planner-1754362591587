@@ -1,3 +1,30 @@
+## [usr-1754449197665]
+**User Request:** Upon checking the supabase, there is suddenly lot of table entries (19) created for the table parties.  Probably the 5s autosave is causing this issue but verify and investigate/ all the party entries in the database are half filled or not complete all of them refereing to 2 or 3 users. 
+
+Only when the party wizard goes to step 5 and when the user clicks create my party plan, the database should populate as a party entry and the same should reflect in the upcoming parties dashboard 
+
+**Response Summary:** Successfully investigated and fixed the autosave issue that was creating multiple incomplete party entries in the database. The problem was identified as a 2-second autosave functionality that repeatedly called `createParty()` instead of updating existing parties, resulting in 19 duplicate database entries.
+
+**Root Cause Analysis:**
+- **Autosave Interval**: Found 2-second autosave (not 5-second as initially suspected) in `useAutoSave` hook at lines 469-510 of create-party/page.tsx
+- **Multiple Database Creation Points**: Identified 3 separate locations calling `createParty()`:
+  1. Autosave functionality (every 2 seconds after data changes) - **ALWAYS created new party**
+  2. Step 5 handleSubmit (when user clicks "Create My Party Plan")
+  3. Fallback logic in handleSubmit when no partyId exists
+- **No Update Logic**: Autosave always called `createParty()` instead of checking for existing party and using `updateParty()`
+- **Race Conditions**: partyId setting from autosave could fail before user reached step 5
+
+**Technical Fixes Implemented:**
+1. **Removed Database Autosave**: Eliminated problematic autosave database creation functionality - now only saves to localStorage during wizard
+2. **Party Status Tracking**: Added `status` parameter to `createParty()` and `updateParty()` functions to track party completion state
+3. **Active Party Creation**: Modified handleSubmit to set party status as 'ACTIVE' when user completes step 5
+4. **Dashboard Filtering**: Updated `getUserParties()` to only return parties with status 'ACTIVE' or 'COMPLETED', filtering out incomplete 'PLANNING' parties
+5. **Single Creation Point**: Ensured parties are only created in database when user clicks "Create My Party Plan" in step 5
+
+**Files Modified:**
+- app/create-party/page.tsx (removed autosave database logic, updated handleSubmit)
+- lib/party-actions.ts (added status parameter to createParty/updateParty, filtered getUserParties)
+
 ## [usr-1754448663311]
 **User Request:** after entering details in step 4, unable to proceed to step 5, the next button is greyed out'
 **Response Summary:** Fixed critical step 4 validation bug where the next button remained greyed out even after completing all required fields. The issue was caused by missing field initialization in the component state and lack of localStorage restoration functionality.
