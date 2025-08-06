@@ -2132,7 +2132,7 @@ export default function CreatePartyPage() {
                 {/* Updated Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Card 1: Birthday Star */}
-                  <div className="bg-gradient-to-br from-yellow-50 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/30 p-6 rounded-xl border border-yellow-200 dark:border-yellow-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                  <div className="bg-gradient-to-br from-yellow-50 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/30 p-6 rounded-xl border border-yellow-200 dark:border-yellow-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">⭐</div>
                     <h3 className="font-bold text-yellow-800 dark:text-yellow-200 mb-2 text-lg">Birthday Star</h3>
                     <div className="text-yellow-700 dark:text-yellow-300 font-semibold text-lg">{partyData.childName}</div>
@@ -2144,8 +2144,8 @@ export default function CreatePartyPage() {
                   </div>
 
                   {/* Card 2: Location */}
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
-                    <div className="text-5xl mb-4">🏴</div>
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
+                    <div className="text-5xl mb-4">{partyData.country ? countryOptions.find(c => c.code === partyData.country)?.flag || '🏴' : '🏴'}</div>
                     <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Location</h3>
                     <div className="text-blue-700 dark:text-blue-300 font-semibold text-lg">
                       {partyData.zipCode || 'Not set'}
@@ -2156,7 +2156,7 @@ export default function CreatePartyPage() {
                   </div>
 
                   {/* Card 3: Guest Count */}
-                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">👥</div>
                     <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-2 text-lg">Guests</h3>
                     <div className="text-purple-700 dark:text-purple-300 font-semibold text-lg">
@@ -2168,8 +2168,17 @@ export default function CreatePartyPage() {
                   </div>
 
                   {/* Card 4: Party Date */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300">
-                    <div className="text-5xl mb-4">📅</div>
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
+                    <div className="text-5xl mb-4">
+                      {partyData.partyDate ? (
+                        <div className="relative inline-block">
+                          <span className="text-4xl">📅</span>
+                          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 text-xs font-bold text-gray-800 bg-white rounded px-1">
+                            {partyData.partyDate.getDate()}
+                          </div>
+                        </div>
+                      ) : '📅'}
+                    </div>
                     <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Party Date</h3>
                     <div className="text-blue-700 dark:text-blue-300 font-semibold text-lg">
                       {partyData.partyDate?.toLocaleDateString('en-US', { 
@@ -2184,11 +2193,11 @@ export default function CreatePartyPage() {
                   </div>
 
                   {/* Card 5: Budget */}
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 p-6 rounded-xl border border-green-200 dark:border-green-700 shadow-lg transform hover:scale-105 transition-all duration-300">
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 p-6 rounded-xl border border-green-200 dark:border-green-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">💰</div>
                     <h3 className="font-bold text-green-800 dark:text-green-200 mb-2 text-lg">Budget</h3>
                     <div className="text-green-700 dark:text-green-300 font-semibold text-lg">
-                      {partyData.budget ? `$${partyData.budget}` : 'Not set'}
+                      {partyData.budget ? `${currencyOptions.find(c => c.code === partyData.currency)?.symbol || '$'}${partyData.budget}` : 'Not set'}
                     </div>
                     <div className="text-green-600 dark:text-green-400 text-sm mt-2">
                       <span className="bg-green-200 dark:bg-green-800 px-2 py-1 rounded-full">Party fund 💵</span>
