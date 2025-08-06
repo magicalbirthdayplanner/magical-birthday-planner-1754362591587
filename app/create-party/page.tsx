@@ -402,7 +402,10 @@ export default function CreatePartyPage() {
     isLoadingAI: false,
     classicTheme: "",
     budget: undefined,
+    currency: "USD",
     zipCode: "",
+    country: "",
+    zipCodeError: undefined,
     guestCount: undefined
   });
   const [isNavigating, setIsNavigating] = useState(false);
@@ -438,6 +441,30 @@ export default function CreatePartyPage() {
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholderExamples[0]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Restore from localStorage on component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem('partyData');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        // Ensure required fields are initialized if missing from saved data
+        const restoredData = {
+          ...parsedData,
+          currency: parsedData.currency || "USD",
+          country: parsedData.country || "",
+          zipCodeError: parsedData.zipCodeError || undefined,
+          // Convert partyDate back to Date object if it exists
+          partyDate: parsedData.partyDate ? new Date(parsedData.partyDate) : undefined
+        };
+        setPartyData(restoredData);
+      } catch (error) {
+        console.error('Error parsing saved party data:', error);
+        // If parsing fails, start fresh
+        localStorage.removeItem('partyData');
+      }
+    }
+  }, []);
 
   // Auto-save functionality with database persistence
   useEffect(() => {
