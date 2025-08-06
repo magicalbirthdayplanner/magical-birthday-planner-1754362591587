@@ -249,13 +249,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-              🎉 Only pay when you plan. No subscriptions.
+              🎂 Annual birthday pricing. No monthly subscriptions.
             </Badge>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               Choose Your Perfect Package
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              From single birthday parties to multi-event planning, find the package that makes every celebration magical
+              From single birthday celebrations to multi-child families, find the annual package that makes every birthday magical
             </p>
           </div>
 
@@ -287,7 +287,7 @@ export default function Home() {
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Unlimited guests</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Max 10 guests</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -295,7 +295,7 @@ export default function Home() {
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Email invitations</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Simple checklist</span>
                   </li>
                 </ul>
                 <Button className="w-full" variant="outline" asChild>
@@ -319,7 +319,7 @@ export default function Home() {
                   ✨ Magical Party
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Perfect for most birthday parties and celebrations
+                  $19.99/one-time for 1 birthday in a calendar year
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$19.99</span>
@@ -330,7 +330,7 @@ export default function Home() {
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">1 event creation</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">1 birthday/year</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -367,7 +367,7 @@ export default function Home() {
                   👑 Ultimate Party
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  For special occasions and professional planners
+                  $39.99/one-time for up to 3 birthdays in a calendar year
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$39.99</span>
@@ -378,7 +378,7 @@ export default function Home() {
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 3 events</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 3 birthdays/year</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />

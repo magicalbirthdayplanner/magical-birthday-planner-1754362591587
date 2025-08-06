@@ -1,3 +1,38 @@
+## [usr-1754438625589]
+**User Request:** Update the pricing details from this page - https://cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai/pricing
+
+to 
+
+https://cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai/
+
+Both pages are currently having information that is not consistent. Eg, The detailed pricing sheets says max 10 guests but home page shows unlimited guests
+**Response Summary:** Successfully resolved pricing inconsistencies between the detailed pricing page and home page by updating the home page to match the accurate pricing structure from the pricing page.
+
+**Key Inconsistencies Fixed:**
+🎯 **Essential Party Updates:**
+- Fixed guest limit from "Unlimited guests" to "Max 10 guests" 
+- Removed "Email invitations" feature (not available in Essential tier)
+- Updated features to match pricing page limitations
+
+💰 **Annual Birthday Pricing Alignment:**
+- Updated Magical Party description to "$19.99/one-time for 1 birthday in a calendar year"
+- Updated Ultimate Party description to "$39.99/one-time for up to 3 birthdays in a calendar year"
+- Changed event terminology from generic "events" to birthday-specific language
+
+🎂 **Birthday-Focused Messaging:**
+- Updated pricing section badge from "Only pay when you plan" to "Annual birthday pricing"
+- Changed section description to emphasize "birthday celebrations" and "multi-child families"
+- Updated event counts: "1 birthday/year" and "Up to 3 birthdays/year"
+
+**Technical Updates:**
+- Modified `/app/page.tsx` pricing preview section
+- Ensured consistent feature listings across both pages
+- Maintained visual design and user experience
+- Build completed successfully with no breaking changes
+
+The home page now accurately reflects the detailed pricing structure, ensuring users receive consistent information about guest limits, pricing model, and birthday-focused annual packages.
+**Files Modified:** app/page.tsx
+
 ## [usr-1754438117139]
 **User Request:** In the essential party, max guests is only 10 and no email invitation
 
