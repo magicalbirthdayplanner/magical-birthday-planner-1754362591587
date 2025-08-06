@@ -38,6 +38,7 @@ interface UserProfile {
   displayName?: string;
   avatar?: string;
   createdAt: string;
+  isSupeadmin?: boolean;
   subscription?: {
     planType: 'FREE' | 'STARTER' | 'PROFESSIONAL' | 'PREMIUM';
     status: 'ACTIVE' | 'CANCELED' | 'PAST_DUE';
@@ -54,32 +55,28 @@ interface UserProfile {
 
 const planDetails = {
   FREE: {
-    name: "Free",
-    price: "$0",
+    name: "Essential Party",
     icon: Star,
     color: "text-purple-600",
     bgColor: "bg-purple-100",
-    features: ["1 party/month", "10 guests max", "Basic themes"]
+    features: ["1 party/month", "Max 10 guests", "Basic themes"]
   },
   STARTER: {
-    name: "Starter",
-    price: "$9.99",
+    name: "Magical Party",
     icon: Zap,
     color: "text-blue-600",
     bgColor: "bg-blue-100",
-    features: ["5 parties/month", "25 guests max", "AI recommendations"]
+    features: ["1 birthday/year", "Unlimited guests", "AI recommendations"]
   },
   PROFESSIONAL: {
-    name: "Professional",
-    price: "$19.99",
+    name: "Ultimate Party",
     icon: Crown,
     color: "text-emerald-600",
     bgColor: "bg-emerald-100",
-    features: ["15 parties/month", "100 guests max", "Custom themes"]
+    features: ["Up to 3 birthdays/year", "Unlimited guests", "Premium features"]
   },
   PREMIUM: {
     name: "Premium",
-    price: "$39.99",
     icon: Sparkles,
     color: "text-violet-600",
     bgColor: "bg-violet-100",
@@ -101,6 +98,18 @@ export default function AccountPage() {
     reminders: true,
     marketing: false
   });
+  
+  const handlePlanChange = (newPlan: 'FREE' | 'STARTER' | 'PROFESSIONAL' | 'PREMIUM') => {
+    if (userProfile?.isSupeadmin && userProfile.subscription) {
+      setUserProfile({
+        ...userProfile,
+        subscription: {
+          ...userProfile.subscription,
+          planType: newPlan
+        }
+      });
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -109,6 +118,9 @@ export default function AccountPage() {
     }
 
     if (user) {
+      // Check if user is superadmin
+      const isSupeadmin = user.email === "arunexprasad@gmail.com";
+      
       // Mock user profile data - in real app, fetch from API
       const mockProfile: UserProfile = {
         id: user.id,
@@ -116,6 +128,7 @@ export default function AccountPage() {
         name: user.user_metadata?.name || user.email?.split("@")[0] || "",
         displayName: user.user_metadata?.display_name,
         createdAt: user.created_at || new Date().toISOString(),
+        isSupeadmin,
         subscription: {
           planType: "FREE",
           status: "ACTIVE",
@@ -346,8 +359,7 @@ export default function AccountPage() {
                       <PlanIcon className={`h-6 w-6 ${currentPlan.color}`} />
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold">{currentPlan.name} Plan</h3>
-                      <p className="text-gray-600">{currentPlan.price}/month</p>
+                      <h3 className="text-xl font-semibold">{currentPlan.name}</h3>
                       <div className="flex gap-2 mt-2">
                         {currentPlan.features.map((feature, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
@@ -372,16 +384,43 @@ export default function AccountPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-4 mt-6">
-                  <Button asChild>
-                    <Link href="/pricing">Upgrade Plan</Link>
-                  </Button>
-                  {userProfile.subscription?.planType !== 'FREE' && (
-                    <Button variant="outline">
-                      Manage Subscription
+                {userProfile.isSupeadmin ? (
+                  <div className="mt-6">
+                    <div className="mb-4">
+                      <Badge className="bg-red-100 text-red-800">SUPERADMIN</Badge>
+                      <p className="text-sm text-gray-600 mt-1">Testing access - switch between any plan</p>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {Object.entries(planDetails).map(([key, plan]) => {
+                        const PlanIcon = plan.icon;
+                        const isActive = userProfile.subscription?.planType === key;
+                        return (
+                          <Button
+                            key={key}
+                            variant={isActive ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handlePlanChange(key as any)}
+                            className={`flex flex-col h-auto p-3 ${isActive ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                          >
+                            <PlanIcon className={`h-4 w-4 mb-1 ${plan.color}`} />
+                            <span className="text-xs font-medium">{plan.name}</span>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-4 mt-6">
+                    <Button asChild>
+                      <Link href="/pricing">Upgrade Plan</Link>
                     </Button>
-                  )}
-                </div>
+                    {userProfile.subscription?.planType !== 'FREE' && (
+                      <Button variant="outline">
+                        Manage Subscription
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
