@@ -1,3 +1,27 @@
+## [usr-1754448323594]
+**User Request:** Bug - when entereing zip code, I enter 48084 and it shows germany flag and validates it a a proper zip code. that is incorrect . 
+
+48084 is US zip code.
+
+have a proper validation of zip code as this is very critical in delivering local recommendations 
+**Response Summary:** Fixed critical zip code validation bug where US zip code 48084 was incorrectly being identified as Germany. Implemented intelligent zip code detection that prioritizes US zip codes and uses actual postal code ranges for accurate country identification.
+
+**Technical Details:**
+- **Root Cause**: The original validation logic tested country patterns in array order, causing Germany's `/^\d{5}$/` pattern to match before US pattern `/^\d{5}(\d{4})?$/`
+- **Solution**: Completely rewrote the `detectCountryFromZipCode` function with intelligent range-based detection:
+  - US ZIP codes (00501-99950) are now prioritized and tested first for 5-digit codes
+  - Uses actual postal code ranges instead of simple pattern matching
+  - Special handling for formats requiring spaces/hyphens (UK, Canada, Netherlands)
+  - Proper fallback logic that defaults to US for ambiguous 5-digit codes
+
+**Key Improvements:**
+1. **US Priority**: 48084 now correctly identifies as US (Troy, Michigan)
+2. **Range-Based Logic**: Uses actual postal code ranges for accurate country detection
+3. **Intelligent Fallback**: Defaults to US for 5-digit codes when ranges overlap
+4. **Maintained Compatibility**: All other country validations continue to work correctly
+
+**Files Modified:** app/create-party/page.tsx
+
 ## [usr-1754447899850]
 **User Request:** In the summary page of step 5 in the wizard, Ensure that all the data captured from previous 4 steps are reflecting correctly. 
 

@@ -538,38 +538,54 @@ export default function CreatePartyPage() {
   const detectCountryFromZipCode = (zipCode: string) => {
     const cleanZip = zipCode.replace(/[\s\-]/g, '');
     
-    // Patterns for country detection (ordered by specificity)
-    const detectionPatterns = [
-      { country: 'GB', pattern: /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i },
-      { country: 'CA', pattern: /^[A-Z]\d[A-Z]\s*\d[A-Z]\d$/i },
-      { country: 'NL', pattern: /^\d{4}\s*[A-Z]{2}$/i },
-      { country: 'JP', pattern: /^\d{3}-?\d{4}$/ },
-      { country: 'BR', pattern: /^\d{5}-?\d{3}$/ },
-      { country: 'IN', pattern: /^\d{6}$/ },
-      { country: 'CN', pattern: /^\d{6}$/ },
-      { country: 'SG', pattern: /^\d{6}$/ },
-      { country: 'DE', pattern: /^\d{5}$/ },
-      { country: 'FR', pattern: /^\d{5}$/ },
-      { country: 'IT', pattern: /^\d{5}$/ },
-      { country: 'ES', pattern: /^\d{5}$/ },
-      { country: 'KR', pattern: /^\d{5}$/ },
-      { country: 'MX', pattern: /^\d{5}$/ },
-      { country: 'SE', pattern: /^\d{5}$/ },
-      { country: 'AU', pattern: /^\d{4}$/ },
-      { country: 'NO', pattern: /^\d{4}$/ },
-      { country: 'DK', pattern: /^\d{4}$/ },
-      { country: 'ZA', pattern: /^\d{4}$/ },
-      { country: 'US', pattern: /^\d{5}(\d{4})?$/ } // US pattern last as it's most common
-    ];
+    // Test original zipCode for patterns that require spaces/hyphens first (UK, CA, NL)
+    if (/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(zipCode)) return 'GB';
+    if (/^[A-Z]\d[A-Z]\s*\d[A-Z]\d$/i.test(zipCode)) return 'CA';
+    if (/^\d{4}\s*[A-Z]{2}$/i.test(zipCode)) return 'NL';
     
-    // Test original zipCode for patterns that require spaces/hyphens
-    for (const { country, pattern } of detectionPatterns.slice(0, 3)) {
-      if (pattern.test(zipCode)) return country;
+    // For 5-digit zip codes, use intelligent detection based on actual ranges
+    if (/^\d{5}$/.test(cleanZip)) {
+      const zipNum = parseInt(cleanZip, 10);
+      
+      // US ZIP code ranges (00501-99950) - prioritize US first as most common
+      if (zipNum >= 501 && zipNum <= 99950) {
+        // Additional US validation - exclude known non-US ranges
+        // Germany uses 01000-99999, but US has wider coverage and priority
+        return 'US';
+      }
+      
+      // If not in US range, check other countries with 5-digit codes
+      // German postal codes: 01000-99999
+      if (zipNum >= 1000 && zipNum <= 99999) return 'DE';
+      
+      // Default to US for any 5-digit code (US has broadest coverage)
+      return 'US';
     }
     
-    // Test cleanZip for all other patterns
-    for (const { country, pattern } of detectionPatterns.slice(3)) {
-      if (pattern.test(cleanZip)) return country;
+    // Extended ZIP+4 codes (US only)
+    if (/^\d{5}-?\d{4}$/.test(cleanZip)) return 'US';
+    
+    // Other specific patterns
+    if (/^\d{3}-?\d{4}$/.test(cleanZip)) return 'JP';
+    if (/^\d{5}-?\d{3}$/.test(cleanZip)) return 'BR';
+    
+    // 6-digit codes
+    if (/^\d{6}$/.test(cleanZip)) {
+      // India: 100000-999999
+      if (cleanZip.length === 6 && parseInt(cleanZip.substring(0, 1)) >= 1) return 'IN';
+      // China: 100000-999999  
+      return 'CN';
+    }
+    
+    // 4-digit codes
+    if (/^\d{4}$/.test(cleanZip)) {
+      const zipNum = parseInt(cleanZip, 10);
+      // Australia: 0200-9999
+      if (zipNum >= 200) return 'AU';
+      // Norway: 0010-9999
+      if (zipNum >= 10) return 'NO';
+      // Default to Denmark for other 4-digit codes
+      return 'DK';
     }
     
     return null;
