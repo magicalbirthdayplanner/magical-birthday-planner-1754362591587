@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby, AlertTriangle, DollarSign, MapPin, Globe, CreditCard } from "lucide-react";
+import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby, AlertTriangle, DollarSign, MapPin, Globe, CreditCard, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
@@ -534,15 +534,59 @@ export default function CreatePartyPage() {
     return profanityResult;
   };
 
-  // Zip code validation function
-  const validateZipCode = (zipCode: string, countryCode?: string) => {
-    if (!zipCode || zipCode.trim() === '') {
-      return 'Postal code is required';
+  // Auto-detect country from zip code format
+  const detectCountryFromZipCode = (zipCode: string) => {
+    const cleanZip = zipCode.replace(/[\s\-]/g, '');
+    
+    // Patterns for country detection (ordered by specificity)
+    const detectionPatterns = [
+      { country: 'GB', pattern: /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i },
+      { country: 'CA', pattern: /^[A-Z]\d[A-Z]\s*\d[A-Z]\d$/i },
+      { country: 'NL', pattern: /^\d{4}\s*[A-Z]{2}$/i },
+      { country: 'JP', pattern: /^\d{3}-?\d{4}$/ },
+      { country: 'BR', pattern: /^\d{5}-?\d{3}$/ },
+      { country: 'IN', pattern: /^\d{6}$/ },
+      { country: 'CN', pattern: /^\d{6}$/ },
+      { country: 'SG', pattern: /^\d{6}$/ },
+      { country: 'DE', pattern: /^\d{5}$/ },
+      { country: 'FR', pattern: /^\d{5}$/ },
+      { country: 'IT', pattern: /^\d{5}$/ },
+      { country: 'ES', pattern: /^\d{5}$/ },
+      { country: 'KR', pattern: /^\d{5}$/ },
+      { country: 'MX', pattern: /^\d{5}$/ },
+      { country: 'SE', pattern: /^\d{5}$/ },
+      { country: 'AU', pattern: /^\d{4}$/ },
+      { country: 'NO', pattern: /^\d{4}$/ },
+      { country: 'DK', pattern: /^\d{4}$/ },
+      { country: 'ZA', pattern: /^\d{4}$/ },
+      { country: 'US', pattern: /^\d{5}(\d{4})?$/ } // US pattern last as it's most common
+    ];
+    
+    // Test original zipCode for patterns that require spaces/hyphens
+    for (const { country, pattern } of detectionPatterns.slice(0, 3)) {
+      if (pattern.test(zipCode)) return country;
     }
     
-    // Default to US if no country selected
-    const country = countryCode || 'US';
+    // Test cleanZip for all other patterns
+    for (const { country, pattern } of detectionPatterns.slice(3)) {
+      if (pattern.test(cleanZip)) return country;
+    }
+    
+    return null;
+  };
+
+  // Enhanced zip code validation with auto-detection
+  const validateZipCodeWithDetection = (zipCode: string) => {
+    if (!zipCode || zipCode.trim() === '') {
+      return { error: 'Zip code is required', detectedCountry: null };
+    }
+    
+    const detectedCountry = detectCountryFromZipCode(zipCode);
     const cleanZip = zipCode.replace(/[\s\-]/g, '');
+    
+    if (!detectedCountry) {
+      return { error: 'Invalid zip code format - please check your entry', detectedCountry: null };
+    }
     
     // Country-specific validation patterns
     const patterns: { [key: string]: { pattern: RegExp; format: string } } = {
@@ -568,39 +612,38 @@ export default function CreatePartyPage() {
       ZA: { pattern: /^\d{4}$/, format: '8001' }
     };
     
-    const countryPattern = patterns[country];
+    const countryPattern = patterns[detectedCountry];
     if (!countryPattern) {
-      return 'Please select a valid country first';
+      return { error: 'Unsupported country format', detectedCountry };
     }
     
     // For UK and Canada, use original zipCode (with spaces) for validation
-    const testValue = (country === 'GB' || country === 'CA' || country === 'NL') ? zipCode : cleanZip;
+    const testValue = (detectedCountry === 'GB' || detectedCountry === 'CA' || detectedCountry === 'NL') ? zipCode : cleanZip;
     
     if (!countryPattern.pattern.test(testValue)) {
-      const countryName = countryOptions.find(c => c.code === country)?.name || country;
-      return `Please enter a valid ${countryName} postal code (e.g., ${countryPattern.format})`;
+      const countryName = countryOptions.find(c => c.code === detectedCountry)?.name || detectedCountry;
+      return { error: `Please enter a valid ${countryName} zip code (e.g., ${countryPattern.format})`, detectedCountry };
     }
     
-    return null;
+    return { error: null, detectedCountry };
   };
 
-  // Handle zip code input with live validation
+  // Handle zip code input with auto-detection and validation
   const handleZipCodeChange = (value: string) => {
-    const error = validateZipCode(value, partyData.country);
+    const result = validateZipCodeWithDetection(value);
     setPartyData({ 
       ...partyData, 
       zipCode: value,
-      zipCodeError: error || undefined 
+      country: result.detectedCountry || partyData.country,
+      zipCodeError: result.error || undefined 
     });
   };
 
-  // Handle country change and re-validate zip code
-  const handleCountryChange = (countryCode: string) => {
-    const zipCodeError = partyData.zipCode ? validateZipCode(partyData.zipCode, countryCode) : undefined;
+  // Handle currency change from dropdown
+  const handleCurrencyChange = (currencyCode: string) => {
     setPartyData({ 
       ...partyData, 
-      country: countryCode,
-      zipCodeError: zipCodeError || undefined
+      currency: currencyCode
     });
   };
 
@@ -1929,100 +1972,75 @@ export default function CreatePartyPage() {
             )}
 
 
-            {/* Step 4: Party Details - Currency, Budget, Country, Zip Code, Guest Count */}
+            {/* Step 4: Party Details - Streamlined Budget with Currency, Zip Code with Auto-Detection, Guest Count */}
             {step === 4 && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Currency Selection */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
-                      <CreditCard className="h-4 w-4 text-green-600" />
-                      Currency
-                    </Label>
-                    <Select value={partyData.currency || ''} onValueChange={(value) => setPartyData({ ...partyData, currency: value })}>
-                      <SelectTrigger className="h-12 text-lg dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {currencyOptions.map((currency) => (
-                          <SelectItem key={currency.code} value={currency.code}>
-                            <div className="flex items-center gap-3">
-                              <span className="text-lg font-semibold">{currency.symbol}</span>
-                              <span>{currency.name}</span>
-                              <span className="text-gray-500 text-sm">({currency.code})</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-gray-500">Select your preferred currency</p>
-                  </div>
-
-                  {/* Budget Input */}
+                  {/* Budget Input with Embedded Currency Selection */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
                       <DollarSign className="h-4 w-4 text-green-600" />
                       Party Budget
                     </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 font-semibold">
-                        {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.symbol || '$' : '$'}
-                      </span>
+                    <div className="flex gap-2">
+                      {/* Currency Selector Button */}
+                      <Select value={partyData.currency || 'USD'} onValueChange={handleCurrencyChange}>
+                        <SelectTrigger className="w-20 h-12 text-lg font-semibold dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
+                          <SelectValue>
+                            {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.symbol || '$' : '$'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {currencyOptions.map((currency) => (
+                            <SelectItem key={currency.code} value={currency.code}>
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg font-semibold">{currency.symbol}</span>
+                                <span className="text-sm">{currency.code}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      {/* Budget Input */}
                       <Input
                         type="number"
                         placeholder="Enter budget amount"
                         value={partyData.budget || ''}
                         onChange={(e) => setPartyData({ ...partyData, budget: e.target.value ? parseFloat(e.target.value) : undefined })}
-                        className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                        className="flex-1 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
                         min="0"
                         step="10"
                       />
                     </div>
-                    <p className="text-xs text-gray-500">How much would you like to spend on the party?</p>
+                    <p className="text-xs text-gray-500">
+                      Click {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.symbol || '$' : '$'} to change currency • Budget helps us recommend the right options
+                    </p>
                   </div>
 
-                  {/* Country Selection */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
-                      <Globe className="h-4 w-4 text-orange-600" />
-                      Country
-                    </Label>
-                    <Select value={partyData.country || ''} onValueChange={handleCountryChange}>
-                      <SelectTrigger className="h-12 text-lg dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
-                        <SelectValue placeholder="Select country" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {countryOptions.map((country) => (
-                          <SelectItem key={country.code} value={country.code}>
-                            <div className="flex items-center gap-3">
-                              <span className="text-lg">{country.flag}</span>
-                              <span>{country.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-gray-500">Select your country for postal code validation</p>
-                  </div>
-
-                  {/* Postal Code Input */}
+                  {/* Zip Code Input with Auto Country Detection */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
                       <MapPin className="h-4 w-4 text-blue-600" />
-                      {partyData.country ? countryOptions.find(c => c.code === partyData.country)?.postalFormat || 'Postal Code' : 'Postal Code'}
+                      Zip Code
                     </Label>
                     <div className="relative">
+                      {/* Country Flag Display (Auto-detected) */}
+                      {partyData.country && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-lg">
+                          {countryOptions.find(c => c.code === partyData.country)?.flag}
+                        </div>
+                      )}
                       <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         type="text"
-                        placeholder={partyData.country ? 
-                          `Enter ${countryOptions.find(c => c.code === partyData.country)?.postalFormat?.toLowerCase() || 'postal code'}` : 
-                          'Enter postal code'}
+                        placeholder="Enter zip code (any country)"
                         value={partyData.zipCode || ''}
                         onChange={(e) => handleZipCodeChange(e.target.value)}
                         className={cn(
-                          "pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200",
-                          partyData.zipCodeError && "border-red-500 focus:border-red-500 focus:ring-red-500"
+                          "pl-10 pr-12 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200",
+                          partyData.zipCodeError && "border-red-500 focus:border-red-500 focus:ring-red-500",
+                          partyData.country && !partyData.zipCodeError && "border-green-500 focus:border-green-500"
                         )}
                         maxLength={15}
                       />
@@ -2033,12 +2051,15 @@ export default function CreatePartyPage() {
                         {partyData.zipCodeError}
                       </p>
                     )}
-                    {partyData.country && (
-                      <p className="text-xs text-gray-500">
-                        Format: {countryOptions.find(c => c.code === partyData.country)?.example || 'See country examples'}
+                    {partyData.country && !partyData.zipCodeError && partyData.zipCode && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Valid {countryOptions.find(c => c.code === partyData.country)?.name} zip code detected
                       </p>
                     )}
-                    <p className="text-xs text-gray-500">Help us suggest local vendors and activities</p>
+                    <p className="text-xs text-gray-500">
+                      Country auto-detected from format • Helps us suggest local vendors
+                    </p>
                   </div>
 
                   {/* Guest Count Input */}
@@ -2063,10 +2084,10 @@ export default function CreatePartyPage() {
                   </div>
                 </div>
 
-                {/* Visual Summary Preview */}
+                {/* Streamlined Visual Summary Preview */}
                 <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-yellow-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-700">
-                  <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-4 text-lg text-center">Party Summary Preview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                  <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-4 text-lg text-center">Party Planning Summary</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                     <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
                       <div className="text-2xl mb-2">💰</div>
                       <div className="font-semibold text-green-600">Budget</div>
@@ -2076,32 +2097,29 @@ export default function CreatePartyPage() {
                           'Not set'}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.name : ''}
-                      </div>
-                    </div>
-                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
-                      <div className="text-2xl mb-2">🌍</div>
-                      <div className="font-semibold text-orange-600">Country</div>
-                      <div className="text-lg flex items-center justify-center gap-2">
-                        {partyData.country ? 
-                          <>
-                            <span>{countryOptions.find(c => c.code === partyData.country)?.flag}</span>
-                            <span className="text-sm">{countryOptions.find(c => c.code === partyData.country)?.name}</span>
-                          </> : 
-                          'Not set'}
+                        {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.name : 'Select currency'}
                       </div>
                     </div>
                     <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
                       <div className="text-2xl mb-2">📍</div>
-                      <div className="font-semibold text-blue-600">
-                        {partyData.country ? countryOptions.find(c => c.code === partyData.country)?.postalFormat || 'Postal Code' : 'Postal Code'}
+                      <div className="font-semibold text-blue-600">Location</div>
+                      <div className="text-lg flex items-center justify-center gap-2">
+                        {partyData.country && partyData.zipCode ? 
+                          <>
+                            <span>{countryOptions.find(c => c.code === partyData.country)?.flag}</span>
+                            <span className="text-sm">{partyData.zipCode}</span>
+                          </> : 
+                          'Not set'}
                       </div>
-                      <div className="text-lg">{partyData.zipCode || 'Not set'}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {partyData.country ? countryOptions.find(c => c.code === partyData.country)?.name : 'Auto-detected'}
+                      </div>
                     </div>
                     <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
                       <div className="text-2xl mb-2">👥</div>
                       <div className="font-semibold text-purple-600">Guests</div>
                       <div className="text-lg">{partyData.guestCount || 'Not set'}</div>
+                      <div className="text-xs text-gray-500 mt-1">Expected attendees</div>
                     </div>
                   </div>
                 </div>
