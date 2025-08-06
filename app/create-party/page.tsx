@@ -749,7 +749,7 @@ export default function CreatePartyPage() {
           guestCount: partyData.guestCount,
           budget: partyData.budget || undefined,
           location: partyData.zipCode,
-          status: 'ACTIVE' as const,
+          status: 'PLANNING' as const,
         };
 
         console.log('Creating party with payload:', createPayload)

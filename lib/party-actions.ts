@@ -305,7 +305,7 @@ export async function getUserParties() {
       where: {
         userId: user.id,
         status: {
-          in: ['ACTIVE', 'COMPLETED']
+          in: ['PLANNING', 'ACTIVE', 'COMPLETED']
         }
       },
       include: {
