@@ -226,44 +226,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-3 sm:p-4 pt-16 sm:pt-20">
       <div className="max-w-7xl mx-auto">
-        {/* Plan Display Section */}
-        {(() => {
-          const plan = planDetails[userPlan];
-          const PlanIcon = plan.icon;
-          return (
-            <div className="mb-6">
-              <div className={`relative overflow-hidden rounded-xl bg-gradient-to-r ${plan.gradientFrom} ${plan.gradientTo} p-6 shadow-lg`}>
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
-                        <PlanIcon className="h-8 w-8 text-white" />
-                      </div>
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">
-                        {plan.name} Plan
-                      </h2>
-                      <p className="text-white/90 text-sm font-medium">
-                        Your current subscription tier
-                      </p>
-                    </div>
-                  </div>
-                  <div className="hidden sm:flex items-center space-x-2">
-                    <div className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
-                      <span className="text-white text-sm font-semibold">Active</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Decorative elements */}
-                <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10"></div>
-                <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-white/5"></div>
-              </div>
-            </div>
-          );
-        })()}
 
         {/* Header - Reduced margins */}
         <div className="mb-4 sm:mb-6">

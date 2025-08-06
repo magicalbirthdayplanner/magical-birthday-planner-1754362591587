@@ -1,3 +1,44 @@
+## [usr-1754450149321]
+**User Request:** Remove the plan detail above the welcome page - The plan detail should appear at the right top corner upon clicking name above the dashboard and profile management etc. From there, upon clicking the plan, we can upgrade or downgrade the plan. remove subscription feature from the account settings page and move everything to the drop down menu of the profile button on the top right corner 
+
+**Response Summary:** Successfully reorganized plan management by removing dashboard plan banner and creating comprehensive plan management system in user dropdown menu, while removing subscription features from account settings page.
+
+**Implementation Details:**
+- **Dashboard Plan Removal**: Completely removed the gradient plan banner section from above the dashboard welcome area
+  - Eliminated the prominent plan display that was positioned above the "Welcome back" message
+  - Cleaned up dashboard layout by removing plan-specific gradient styling and decorative elements
+  - Maintained clean dashboard focus on party planning statistics and management
+
+- **Header Dropdown Enhancement**: Added comprehensive plan management to user dropdown menu
+  - Added plan display section showing current plan with icon, name, and active status badge
+  - Implemented "Manage Plan" submenu with upgrade/downgrade functionality
+  - For superadmin users: Added plan switching capability with current plan highlighting
+  - For regular users: Added upgrade links, billing history, and payment methods access
+  - Integrated plan change synchronization with localStorage and event dispatching
+  - Enhanced dropdown with proper visual hierarchy and status indicators
+
+- **Account Settings Cleanup**: Removed subscription tab and related functionality
+  - Removed "Subscription" tab from account settings navigation (now 3-tab layout instead of 4)
+  - Eliminated entire subscription tab content including current plan display
+  - Removed payment methods section and plan switching controls from account page
+  - Streamlined account settings to focus on profile, notifications, and billing history only
+
+- **Plan Management Centralization**: All subscription features now accessible through header dropdown
+  - Plan viewing, switching, and upgrade options consolidated in single location
+  - Maintained superadmin functionality with seamless plan switching
+  - Added visual feedback for current plan status and management options
+  - Enhanced user experience with intuitive plan management workflow
+
+**User Experience Improvements:**
+- Cleaner dashboard layout without visual clutter from plan banners
+- Centralized plan management accessible from any page via header dropdown
+- Simplified account settings focused on core profile management
+- Improved navigation flow for subscription and billing management
+- Enhanced visual hierarchy with proper plan status indicators
+
+**Build Status:** ✅ Compiled successfully - all plan management reorganization implemented without breaking changes
+**Files Modified:** components/dashboard/Dashboard.tsx, components/Header.tsx, app/account/page.tsx
+
 ## [usr-1754448139497]
 **User Request:** 1. The plan name can be shown above the dashboard with the colors instead of showing it along the user name as it is cluttered and not giving a good look and feel 
 

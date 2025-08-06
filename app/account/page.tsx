@@ -203,14 +203,10 @@ export default function AccountPage() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
-            </TabsTrigger>
-            <TabsTrigger value="subscription" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Subscription
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
@@ -341,110 +337,6 @@ export default function AccountPage() {
             </Card>
           </TabsContent>
 
-          {/* Subscription Tab */}
-          <TabsContent value="subscription" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Current Plan
-                </CardTitle>
-                <CardDescription>
-                  Manage your subscription and billing details
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-200 dark:border-purple-700">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-full ${currentPlan.bgColor}`}>
-                      <PlanIcon className={`h-6 w-6 ${currentPlan.color}`} />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold">{currentPlan.name}</h3>
-                      <div className="flex gap-2 mt-2">
-                        {currentPlan.features.map((feature, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge 
-                      className={userProfile.subscription?.status === 'ACTIVE' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'}
-                    >
-                      {userProfile.subscription?.status || 'ACTIVE'}
-                    </Badge>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-                      {userProfile.subscription?.cancelAtPeriodEnd 
-                        ? 'Cancels on' 
-                        : 'Renews on'
-                      } {new Date(userProfile.subscription?.currentPeriodEnd || '').toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-
-                {userProfile.isSupeadmin ? (
-                  <div className="mt-6">
-                    <div className="mb-4">
-                      <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">SUPERADMIN</Badge>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Testing access - switch between any plan</p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {Object.entries(planDetails).map(([key, plan]) => {
-                        const PlanIcon = plan.icon;
-                        const isActive = userProfile.subscription?.planType === key;
-                        return (
-                          <Button
-                            key={key}
-                            variant={isActive ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handlePlanChange(key as any)}
-                            className={`flex flex-col h-auto p-3 ${isActive ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
-                          >
-                            <PlanIcon className={`h-4 w-4 mb-1 ${plan.color}`} />
-                            <span className="text-xs font-medium">{plan.name}</span>
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-4 mt-6">
-                    <Button asChild>
-                      <Link href="/pricing">Upgrade Plan</Link>
-                    </Button>
-                    {userProfile.subscription?.planType !== 'FREE' && (
-                      <Button variant="outline">
-                        Manage Subscription
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Payment Methods */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Payment Methods
-                </CardTitle>
-                <CardDescription>
-                  Manage your payment methods and billing information
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">No payment methods added yet</p>
-                  <Button>Add Payment Method</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-6">

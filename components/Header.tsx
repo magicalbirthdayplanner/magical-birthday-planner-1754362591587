@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, User, LogOut, Calendar, Loader2, Settings, Star, Zap, Crown } from 'lucide-react';
+import { Home, User, LogOut, Calendar, Loader2, Settings, Star, Zap, Crown, CreditCard, ChevronRight } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useState, useEffect } from 'react';
@@ -82,6 +85,20 @@ export function Header() {
     }
   };
 
+  const handlePlanChange = (newPlan: 'FREE' | 'STARTER' | 'PROFESSIONAL') => {
+    if (user && user.email === "arunexprasad@gmail.com") {
+      setUserPlan(newPlan);
+      
+      // Store plan in localStorage
+      localStorage.setItem('superadmin_plan', newPlan);
+      
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('planChanged', { 
+        detail: { plan: newPlan } 
+      }));
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
@@ -131,6 +148,91 @@ export function Header() {
                         Profile Management
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    
+                    {/* Plan Display and Management */}
+                    <div className="px-2 py-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {(() => {
+                            const plan = planDetails[userPlan];
+                            const PlanIcon = plan.icon;
+                            return (
+                              <>
+                                <div className={`p-1 rounded-full ${plan.bgColor}`}>
+                                  <PlanIcon className={`h-3 w-3 ${plan.color}`} />
+                                </div>
+                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                  {plan.name} Plan
+                                </span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                        <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-xs px-2 py-0.5">
+                          Active
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Plan Management Submenu */}
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger className="flex items-center">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        <span>Manage Plan</span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-48">
+                        {user && user.email === "arunexprasad@gmail.com" ? (
+                          <>
+                            {Object.entries(planDetails).map(([key, plan]) => {
+                              const PlanIcon = plan.icon;
+                              const isActive = userPlan === key;
+                              return (
+                                <DropdownMenuItem
+                                  key={key}
+                                  onClick={() => handlePlanChange(key as any)}
+                                  className={`flex items-center justify-between ${isActive ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <div className={`p-1 rounded-full ${plan.bgColor}`}>
+                                      <PlanIcon className={`h-3 w-3 ${plan.color}`} />
+                                    </div>
+                                    <span className="text-sm">{plan.name}</span>
+                                  </div>
+                                  {isActive && (
+                                    <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs">
+                                      Current
+                                    </Badge>
+                                  )}
+                                </DropdownMenuItem>
+                              );
+                            })}
+                            <DropdownMenuSeparator />
+                            <div className="px-2 py-1">
+                              <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 text-xs">
+                                SUPERADMIN MODE
+                              </Badge>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <DropdownMenuItem asChild>
+                              <Link href="/pricing" className="flex items-center justify-between">
+                                <span>Upgrade Plan</span>
+                                <ChevronRight className="h-3 w-3" />
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <span>Billing History</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <span>Payment Methods</span>
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={handleSignOut} 
