@@ -19,20 +19,20 @@ const planDetails = {
   FREE: {
     name: "Essential",
     icon: Star,
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
+    color: "text-purple-700 dark:text-purple-400",
+    bgColor: "bg-purple-100 dark:bg-purple-900/30",
   },
   STARTER: {
     name: "Magical",
     icon: Zap,
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
+    color: "text-blue-700 dark:text-blue-400",
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
   },
   PROFESSIONAL: {
     name: "Ultimate",
     icon: Crown,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-100",
+    color: "text-amber-700 dark:text-amber-400",
+    bgColor: "bg-amber-100 dark:bg-amber-900/30",
   }
 };
 
@@ -111,27 +111,39 @@ export function Header() {
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex flex-col items-start space-y-0 px-2 sm:px-3 py-1">
-                      <div className="flex items-center space-x-1 sm:space-x-2">
-                        <User className="h-4 w-4" />
-                        <span className="hidden md:inline text-sm max-w-32 truncate">
-                          {user.user_metadata?.display_name || user.email?.split('@')[0] || 'Account'}
-                        </span>
-                      </div>
-                      {/* Subtle plan indication */}
-                      <div className="hidden md:flex items-center space-x-1 ml-5">
-                        {(() => {
-                          const plan = planDetails[userPlan];
-                          const PlanIcon = plan.icon;
-                          return (
-                            <>
-                              <PlanIcon className={`h-3 w-3 ${plan.color}`} />
-                              <span className={`text-xs ${plan.color} font-medium`}>
-                                {plan.name}
-                              </span>
-                            </>
-                          );
-                        })()}
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-3 px-3 sm:px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <div className="relative">
+                          <User className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                          {/* Plan status indicator */}
+                          {(() => {
+                            const plan = planDetails[userPlan];
+                            const PlanIcon = plan.icon;
+                            return (
+                              <div className={`absolute -bottom-1 -right-1 ${plan.bgColor} rounded-full p-0.5`}>
+                                <PlanIcon className={`h-2 w-2 ${plan.color}`} />
+                              </div>
+                            );
+                          })()}
+                        </div>
+                        <div className="hidden md:flex flex-col items-start">
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 max-w-32 truncate leading-tight">
+                            {user.user_metadata?.display_name || user.email?.split('@')[0] || 'Account'}
+                          </span>
+                          {/* Enhanced plan indication with badge style */}
+                          {(() => {
+                            const plan = planDetails[userPlan];
+                            const PlanIcon = plan.icon;
+                            return (
+                              <div className={`flex items-center space-x-1 mt-0.5 px-2 py-0.5 ${plan.bgColor} rounded-full`}>
+                                <PlanIcon className={`h-2.5 w-2.5 ${plan.color}`} />
+                                <span className={`text-xs ${plan.color} font-semibold tracking-wide`}>
+                                  {plan.name}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </div>
                       </div>
                     </Button>
                   </DropdownMenuTrigger>
