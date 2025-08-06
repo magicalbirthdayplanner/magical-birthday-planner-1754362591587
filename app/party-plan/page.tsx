@@ -218,14 +218,18 @@ export default function PartyPlanPage() {
         const urlParams = new URLSearchParams(window.location.search);
         const partyId = urlParams.get('id');
         
+        console.log('Debug - Party loading:', { partyId, currentPath: window.location.pathname + window.location.search });
+        
         if (!partyId) {
           // If no specific party ID, get the user's most recent party
+          console.log('No party ID provided, fetching user parties...');
           const partiesResult = await fetch('/api/user/parties');
           if (!partiesResult.ok) {
-            throw new Error('Failed to load parties');
+            throw new Error(`Failed to load parties (Status: ${partiesResult.status})`);
           }
           
           const { parties } = await partiesResult.json();
+          console.log('User parties fetched:', { partiesCount: parties?.length });
           if (!parties || parties.length === 0) {
             setError('No party found. Please create a party first.');
             setLoading(false);
@@ -234,14 +238,21 @@ export default function PartyPlanPage() {
           
           // Use the most recent party
           const latestParty = parties[parties.length - 1];
+          console.log('Using latest party:', { partyId: latestParty.id, childName: latestParty.childName });
           loadPartyDetails(latestParty);
         } else {
           // Load specific party by ID
+          console.log(`Loading specific party with ID: ${partyId}`);
           const result = await getParty(partyId);
+          console.log('Party fetch result:', { success: result.success, hasParty: !!result.party, error: result.error });
+          
           if (!result.success || !result.party) {
-            throw new Error(result.error || 'Party not found');
+            const errorMessage = result.error || 'Party not found or access denied';
+            console.error('Failed to load party:', { partyId, error: result.error });
+            throw new Error(`${errorMessage} (Party ID: ${partyId})`);
           }
           
+          console.log('Party loaded successfully:', { partyId: result.party.id, childName: result.party.childName });
           loadPartyDetails(result.party);
         }
       } catch (error) {
@@ -681,19 +692,30 @@ export default function PartyPlanPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-4 max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
+        <div className="text-center max-w-lg">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-6">
             <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Error</h3>
-            <p className="text-red-600 dark:text-red-300 mb-4">{error}</p>
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Unable to Load Party</h3>
+            <p className="text-red-600 dark:text-red-300 mb-4 text-sm">{error}</p>
+            <div className="text-xs text-red-500 dark:text-red-400 bg-red-100 dark:bg-red-900/30 p-2 rounded border text-left">
+              <p className="font-medium mb-1">Possible causes:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Party was not saved to database properly</li>
+                <li>You don't have permission to access this party</li>
+                <li>The party ID in the URL is invalid</li>
+                <li>Authentication session expired</li>
+              </ul>
+            </div>
           </div>
-          <Button onClick={() => window.location.href = '/create-party'} className="mr-3">
-            Create New Party
-          </Button>
-          <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>
-            Go to Dashboard
-          </Button>
+          <div className="space-x-3">
+            <Button onClick={() => window.location.href = '/create-party'} className="bg-gradient-to-r from-purple-600 to-pink-600">
+              Create New Party
+            </Button>
+            <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>
+              Go to Dashboard
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -1031,7 +1053,7 @@ export default function PartyPlanPage() {
             <SimpleBudgetTracker
               partyId={partyData?.childName || 'party'}
               initialBudget={partyData?.budget}
-              childAge={parseInt(partyData?.childAge || '5')}
+              childAge={parseInt(partyData?.childAge || '0')}
             />
           </TabsContent>
 
@@ -1040,7 +1062,7 @@ export default function PartyPlanPage() {
             <ShoppingSuite
               partyBudget={partyData?.budget}
               zipCode={partyData?.zipCode}
-              childAge={parseInt(partyData?.childAge || '5')}
+              childAge={parseInt(partyData?.childAge || '0')}
               theme={partyData?.selectedTheme}
               partyId={partyData?.childName || 'party'}
             />
@@ -1192,7 +1214,7 @@ export default function PartyPlanPage() {
                 <BulkInvitations
                   partyId={partyData?.childName || 'party'}
                   childName={partyData?.childName || ''}
-                  childAge={parseInt(partyData?.childAge || '0')}
+                  childAge={partyData?.childAge ? parseInt(partyData.childAge.toString()) : 0}
                   partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
                   partyTime="2:00 PM"
                   partyLocation="TBD"
@@ -1221,7 +1243,7 @@ export default function PartyPlanPage() {
           <TabsContent value="activities" className="space-y-6">
             <Activities
               theme={partyData?.selectedTheme || 'default'}
-              childAge={parseInt(partyData?.childAge || '5')}
+              childAge={parseInt(partyData?.childAge || '0')}
               guestCount={guests.length}
             />
           </TabsContent>
