@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, User, LogOut, Calendar, Loader2 } from 'lucide-react';
+import { Home, User, LogOut, Calendar, Loader2, Settings } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -71,6 +71,12 @@ export function Header() {
                       <Link href="/dashboard" className="flex items-center">
                         <Calendar className="mr-2 h-4 w-4" />
                         Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/account" className="flex items-center">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Profile Management
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

@@ -1,3 +1,22 @@
+## [usr-1754439246859]
+**User Request:** Not able to see the Profile Management tab under the name of the signed in user. It should be visible on clicking the signed in user, below dashboard and above sign out button 
+**Response Summary:** Successfully added the Profile Management menu item to the user dropdown navigation in the Header component. The Profile Management tab now appears correctly positioned between Dashboard and Sign Out in the user dropdown menu.
+
+**Implementation Details:**
+- Added Settings icon import to the Header component from Lucide React
+- Created new DropdownMenuItem for Profile Management linking to `/account` page
+- Positioned the menu item between Dashboard and Sign Out as requested
+- Used Settings icon for consistent visual design
+- Build completed successfully with no compilation errors
+
+**Navigation Flow:**
+- User clicks on their name in the header
+- Dropdown menu now shows: Dashboard → Profile Management → Sign Out
+- Profile Management links to the existing comprehensive account management page at `/account`
+
+The Profile Management tab is now fully functional and provides access to the complete account management interface including profile editing, subscription management, notifications, and billing settings.
+**Files Modified:** components/Header.tsx
+
 ## [usr-1754438625589]
 **User Request:** Update the pricing details from this page - https://cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai/pricing
 
