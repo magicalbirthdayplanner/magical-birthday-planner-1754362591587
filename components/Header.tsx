@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, User, LogOut, Calendar, Loader2, Settings } from 'lucide-react';
+import { Home, User, LogOut, Calendar, Loader2, Settings, Star, Zap, Crown } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,61 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from 'react';
+
+const planDetails = {
+  FREE: {
+    name: "Essential",
+    icon: Star,
+    color: "text-purple-600",
+    bgColor: "bg-purple-100",
+  },
+  STARTER: {
+    name: "Magical",
+    icon: Zap,
+    color: "text-blue-600",
+    bgColor: "bg-blue-100",
+  },
+  PROFESSIONAL: {
+    name: "Ultimate",
+    icon: Crown,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-100",
+  }
+};
+
+type PlanType = 'FREE' | 'STARTER' | 'PROFESSIONAL';
 
 export function Header() {
   const { user, signOut, isSigningOut } = useAuth();
+  const [userPlan, setUserPlan] = useState<PlanType>('FREE');
+
+  // Listen for plan changes from localStorage or account page
+  useEffect(() => {
+    if (user) {
+      // Check if user is superadmin for plan switching functionality
+      const isSupeadmin = user.email === "arunexprasad@gmail.com";
+      if (isSupeadmin) {
+        // Listen for plan changes stored in localStorage for superadmin
+        const storedPlan = localStorage.getItem('superadmin_plan') as PlanType;
+        if (storedPlan && planDetails[storedPlan]) {
+          setUserPlan(storedPlan);
+        }
+        
+        // Set up event listener for plan changes
+        const handlePlanChange = (event: CustomEvent) => {
+          setUserPlan(event.detail.plan);
+        };
+        
+        window.addEventListener('planChanged', handlePlanChange as EventListener);
+        
+        return () => {
+          window.removeEventListener('planChanged', handlePlanChange as EventListener);
+        };
+      }
+    }
+  }, [user]);
 
   const handleSignOut = async () => {
     if (isSigningOut) return; // Prevent multiple clicks
@@ -59,11 +111,28 @@ export function Header() {
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3">
-                      <User className="h-4 w-4" />
-                      <span className="hidden md:inline text-sm max-w-32 truncate">
-                        {user.user_metadata?.display_name || user.email?.split('@')[0] || 'Account'}
-                      </span>
+                    <Button variant="ghost" size="sm" className="flex flex-col items-start space-y-0 px-2 sm:px-3 py-1">
+                      <div className="flex items-center space-x-1 sm:space-x-2">
+                        <User className="h-4 w-4" />
+                        <span className="hidden md:inline text-sm max-w-32 truncate">
+                          {user.user_metadata?.display_name || user.email?.split('@')[0] || 'Account'}
+                        </span>
+                      </div>
+                      {/* Subtle plan indication */}
+                      <div className="hidden md:flex items-center space-x-1 ml-5">
+                        {(() => {
+                          const plan = planDetails[userPlan];
+                          const PlanIcon = plan.icon;
+                          return (
+                            <>
+                              <PlanIcon className={`h-3 w-3 ${plan.color}`} />
+                              <span className={`text-xs ${plan.color} font-medium`}>
+                                {plan.name}
+                              </span>
+                            </>
+                          );
+                        })()}
+                      </div>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">

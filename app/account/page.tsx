@@ -40,7 +40,7 @@ interface UserProfile {
   createdAt: string;
   isSupeadmin?: boolean;
   subscription?: {
-    planType: 'FREE' | 'STARTER' | 'PROFESSIONAL' | 'PREMIUM';
+    planType: 'FREE' | 'STARTER' | 'PROFESSIONAL';
     status: 'ACTIVE' | 'CANCELED' | 'PAST_DUE';
     currentPeriodEnd: string;
     cancelAtPeriodEnd: boolean;
@@ -74,13 +74,6 @@ const planDetails = {
     color: "text-emerald-600",
     bgColor: "bg-emerald-100",
     features: ["Up to 3 birthdays/year", "Unlimited guests", "Premium features"]
-  },
-  PREMIUM: {
-    name: "Premium",
-    icon: Sparkles,
-    color: "text-violet-600",
-    bgColor: "bg-violet-100",
-    features: ["Unlimited parties", "Unlimited guests", "White-label"]
   }
 };
 
@@ -99,7 +92,7 @@ export default function AccountPage() {
     marketing: false
   });
   
-  const handlePlanChange = (newPlan: 'FREE' | 'STARTER' | 'PROFESSIONAL' | 'PREMIUM') => {
+  const handlePlanChange = (newPlan: 'FREE' | 'STARTER' | 'PROFESSIONAL') => {
     if (userProfile?.isSupeadmin && userProfile.subscription) {
       setUserProfile({
         ...userProfile,
@@ -108,6 +101,14 @@ export default function AccountPage() {
           planType: newPlan
         }
       });
+      
+      // Store plan in localStorage for header component
+      localStorage.setItem('superadmin_plan', newPlan);
+      
+      // Dispatch event to notify header component
+      window.dispatchEvent(new CustomEvent('planChanged', { 
+        detail: { plan: newPlan } 
+      }));
     }
   };
 
@@ -390,7 +391,7 @@ export default function AccountPage() {
                       <Badge className="bg-red-100 text-red-800">SUPERADMIN</Badge>
                       <p className="text-sm text-gray-600 mt-1">Testing access - switch between any plan</p>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       {Object.entries(planDetails).map(([key, plan]) => {
                         const PlanIcon = plan.icon;
                         const isActive = userProfile.subscription?.planType === key;
