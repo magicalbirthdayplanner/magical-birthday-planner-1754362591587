@@ -1,3 +1,35 @@
+## [usr-1754524152165]
+**User Request:** Change the essential party plan price to $9.99 for 1 event creation.
+
+**Response Summary:** Successfully updated the Essential Party plan pricing from $0 (free) to $9.99 for 1 event creation across all pricing-related files and configurations. The changes maintain consistency in the pricing display and payment integration throughout the application.
+
+**Technical Changes:**
+1. **Pricing Page Updates** (app/pricing/page.tsx):
+   - Changed Essential Party price from $0 to $9.99
+   - Updated pricing display logic to remove "free forever" references
+   - Modified CTA button text from "Start Free Event" to "Plan Essential Event"
+   - Updated comparison table to reflect new pricing structure
+
+2. **DoDo Payments Configuration** (lib/dodo-payments.ts):
+   - Added new ESSENTIAL plan configuration with $9.99 one-time pricing
+   - Defined proper feature limits for Essential plan (1 event, 10 guests max)
+   - Set interval to "one-time" to match pricing model
+
+3. **Home Page Pricing Section** (app/page.tsx):
+   - Updated Essential Party display price from $0 to $9.99
+   - Changed pricing interval from "/forever" to "/one-time"
+   - Modified CTA button styling and link destination
+   - Updated button text to "Plan Essential Event"
+
+4. **Global CTA Updates**:
+   - Updated generic "Start Free Event" references to "Get Started"
+   - Ensured consistent pricing messaging across the application
+
+**Files Modified:** 
+- app/pricing/page.tsx
+- lib/dodo-payments.ts  
+- app/page.tsx
+
 ## [usr-1754451938935]
 **User Request:** Error message screenshot - Please fix this bug - Not able to create party plan and there are still default values of Arrav, Aug 9th 2025, 4 years old , safari theme, budget $77, zip 48084 and 44 guests
 

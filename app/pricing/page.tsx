@@ -7,7 +7,7 @@ import Link from "next/link"
 const pricingTiers = [
   {
     name: "🎉 Essential Party",
-    price: 0,
+    price: 9.99,
     description: "Perfect for first-time users and simple celebrations",
     icon: Star,
     gradient: "from-purple-500 to-pink-500",
@@ -25,7 +25,7 @@ const pricingTiers = [
       "No custom themes",
       "No printables"
     ],
-    cta: "Start Free Event",
+    cta: "Plan Essential Event",
     ctaVariant: "outline" as const,
     popular: false,
     bestFor: "First-time users & simple celebrations"
@@ -166,7 +166,7 @@ export default function PricingPage() {
                     ${tier.price}
                   </span>
                   <span className="text-gray-600 ml-2 text-sm">
-                    {tier.price === 0 ? "forever" : "one-time"}
+                    one-time
                   </span>
                 </div>
                 <div className="mt-2">
@@ -210,7 +210,7 @@ export default function PricingPage() {
                   variant={tier.ctaVariant}
                   asChild
                 >
-                  <Link href={tier.price === 0 ? "/signup" : `/create-party?package=${tier.name.replace(/[^a-zA-Z]/g, '').toLowerCase()}`}>
+                  <Link href={`/create-party?package=${tier.name.replace(/[^a-zA-Z]/g, '').toLowerCase()}`}>
                     {tier.cta}
                   </Link>
                 </Button>
@@ -240,7 +240,7 @@ export default function PricingPage() {
                   {pricingTiers.map((tier) => (
                     <th key={tier.name} className="text-center p-4">
                       <div className="font-semibold text-gray-900 text-sm">{tier.name}</div>
-                      <div className="text-xs text-gray-500">{tier.price === 0 ? "Free" : `$${tier.price} one-time`}</div>
+                      <div className="text-xs text-gray-500">${tier.price} one-time</div>
                     </th>
                   ))}
                 </tr>
@@ -343,7 +343,7 @@ export default function PricingPage() {
                 className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
                 asChild
               >
-                <Link href="/signup">Start Free Event</Link>
+                <Link href="/signup">Get Started</Link>
               </Button>
               <Button 
                 size="lg" 

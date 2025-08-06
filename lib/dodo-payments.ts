@@ -209,6 +209,24 @@ export function getDodoPaymentsClient(): DodoPaymentsClient | null {
 
 // Subscription plan configurations
 export const SUBSCRIPTION_PLANS = {
+  ESSENTIAL: {
+    id: 'essential_onetime',
+    name: 'Essential Party',
+    price: 9.99,
+    currency: 'USD',
+    interval: 'one-time',
+    features: {
+      eventsCreation: 1,
+      maxGuests: 10,
+      basicThemes: true,
+      simpleChecklist: true,
+      communitySupport: true,
+      emailInvitations: false,
+      aiRecommendations: false,
+      customThemes: false,
+      printables: false
+    }
+  },
   STARTER: {
     id: 'starter_monthly',
     name: 'Starter',

@@ -275,8 +275,8 @@ export default function Home() {
                   Perfect for first-time users and simple celebrations
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$0</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">/forever</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$9.99</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">/one-time</span>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
@@ -298,8 +298,8 @@ export default function Home() {
                     <span className="text-gray-700 dark:text-gray-300 text-sm">Simple checklist</span>
                   </li>
                 </ul>
-                <Button className="w-full" variant="outline" asChild>
-                  <Link href="/signup">Start Free Event</Link>
+                <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90" asChild>
+                  <Link href="/create-party?package=essentialparty">Plan Essential Event</Link>
                 </Button>
               </CardContent>
             </Card>
