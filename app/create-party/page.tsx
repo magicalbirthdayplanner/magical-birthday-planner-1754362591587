@@ -392,7 +392,7 @@ export default function CreatePartyPage() {
   const [step, setStep] = useState(1);
   const [partyData, setPartyData] = useState<PartyData>({
     childName: "",
-    childAge: 1,
+    childAge: 0,
     childGender: "",
     childInterests: [],
     favoriteColors: [],
@@ -402,7 +402,7 @@ export default function CreatePartyPage() {
     isLoadingAI: false,
     classicTheme: "",
     budget: undefined,
-    currency: "USD",
+    currency: "",
     zipCode: "",
     country: "",
     zipCodeError: undefined,
@@ -814,7 +814,7 @@ export default function CreatePartyPage() {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return partyData.childName.trim() !== "" && partyData.childAge >= 1 && partyData.childGender !== "" && partyData.partyDate !== undefined;
+        return partyData.childName.trim() !== "" && partyData.childAge > 0 && partyData.childGender !== "" && partyData.partyDate !== undefined;
       case 2:
         // For classic themes, just require theme selection
         // For custom themes, require interests
@@ -828,7 +828,7 @@ export default function CreatePartyPage() {
       case 3:
         return partyData.selectedTheme !== "";
       case 4:
-        return partyData.currency && partyData.budget !== undefined && partyData.country && partyData.zipCode !== "" && !partyData.zipCodeError && partyData.guestCount !== undefined; // Step 4 requires currency, budget, country, valid postal code, and guest count
+        return partyData.currency && partyData.currency !== "" && partyData.budget !== undefined && partyData.country && partyData.zipCode !== "" && !partyData.zipCodeError && partyData.guestCount !== undefined; // Step 4 requires currency, budget, country, valid postal code, and guest count
       case 5:
         return true; // Step 5 is always valid since it's just the summary/creation step
       default:

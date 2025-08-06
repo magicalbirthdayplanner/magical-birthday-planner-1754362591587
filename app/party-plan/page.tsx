@@ -679,6 +679,26 @@ export default function PartyPlanPage() {
     return () => clearInterval(interval);
   }, [partyData]);
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-4 max-w-md">
+            <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Error</h3>
+            <p className="text-red-600 dark:text-red-300 mb-4">{error}</p>
+          </div>
+          <Button onClick={() => window.location.href = '/create-party'} className="mr-3">
+            Create New Party
+          </Button>
+          <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>
+            Go to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!partyData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">

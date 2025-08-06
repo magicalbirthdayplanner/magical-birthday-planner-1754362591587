@@ -1,3 +1,44 @@
+## [usr-1754449796898]
+**User Request:** In the party wizard, there are some default enteries like name, date of party, age, budget, zip code and guest. please auto clear all this. 
+
+Whenever a new party is creared, all the field shuold be blank
+
+currently when trying to create a new party p the message appears when trying to create a party plan - "Party not found or access denied"
+
+**Response Summary:** Successfully resolved two critical issues with the party wizard:
+
+**Issue 1: Default Field Pre-population**
+- Identified that party wizard had several default values pre-filled: childAge defaulted to 1, currency defaulted to "USD"
+- **Fixed**: Changed childAge from default value `1` to `0` (requires user selection > 0 for validation)
+- **Fixed**: Changed currency from default "USD" to empty string `""` (requires user selection)
+- Updated step validation to require currency selection (must be non-empty string)
+- All other fields were already blank by default (childName, zipCode, budget, guestCount, etc.)
+
+**Issue 2: "Party not found or access denied" Error**
+- **Root Cause**: party-plan page had no error display UI - errors were logged to console but never shown to users
+- The error occurs when getParty() fails due to invalid party ID or permission issues
+- **Fixed**: Added proper error display component with:
+  - Clear error message display with AlertTriangle icon
+  - Red-themed error styling with proper dark mode support
+  - Two action buttons: "Create New Party" and "Go to Dashboard"
+  - Improved user experience for error scenarios
+
+**Technical Changes:**
+1. **create-party/page.tsx**:
+   - Modified initial partyData state: `childAge: 0` instead of `1`
+   - Modified initial partyData state: `currency: ""` instead of `"USD"`
+   - Updated step 1 validation: changed `childAge >= 1` to `childAge > 0`
+   - Updated step 4 validation: added `currency !== ""` check
+
+2. **party-plan/page.tsx**:
+   - Added error state display UI before the loading state check
+   - Error component shows clear error message with proper styling
+   - Provides user-friendly navigation options when errors occur
+
+**Files Modified:** 
+- app/create-party/page.tsx (default values removal and validation fixes)
+- app/party-plan/page.tsx (error display UI implementation)
+
 ## [usr-1754449197665]
 **User Request:** Upon checking the supabase, there is suddenly lot of table entries (19) created for the table parties.  Probably the 5s autosave is causing this issue but verify and investigate/ all the party entries in the database are half filled or not complete all of them refereing to 2 or 3 users. 
 
