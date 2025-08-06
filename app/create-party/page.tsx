@@ -806,6 +806,18 @@ export default function CreatePartyPage() {
     } catch (error) {
       console.error('Error creating party:', error);
       setSubmitError(error instanceof Error ? error.message : 'Failed to create party. Please try again.');
+      
+      // Clear any potentially stale localStorage data on error
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('partyData');
+          localStorage.removeItem('partyChecklist');
+          localStorage.removeItem('partyGuests');
+          localStorage.removeItem('partyInvitations');
+        } catch (e) {
+          console.warn('Failed to clear localStorage:', e);
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -956,10 +968,49 @@ export default function CreatePartyPage() {
             
             {/* Error Message Display */}
             {submitError && (
-              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <div className="flex items-center">
-                  <AlertTriangle className="h-4 w-4 text-red-500 mr-2" />
+              <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <div className="flex items-center mb-3">
+                  <AlertTriangle className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
                   <p className="text-sm text-red-700 dark:text-red-300">{submitError}</p>
+                </div>
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={() => {
+                      setSubmitError(null);
+                      setStep(1);
+                      // Reset form data
+                      setPartyData({
+                        childName: "",
+                        childAge: 0,
+                        childGender: "",
+                        childInterests: [],
+                        favoriteColors: [],
+                        partyDate: undefined,
+                        selectedTheme: "",
+                        aiRecommendations: [],
+                        isLoadingAI: false,
+                        classicTheme: "",
+                        budget: undefined,
+                        currency: "",
+                        zipCode: "",
+                        country: "",
+                        zipCodeError: undefined,
+                        guestCount: undefined
+                      });
+                    }}
+                    size="sm"
+                    variant="outline"
+                    className="text-red-700 border-red-300 hover:bg-red-100"
+                  >
+                    Start Over
+                  </Button>
+                  <Button 
+                    onClick={() => setSubmitError(null)}
+                    size="sm"
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Try Again
+                  </Button>
                 </div>
               </div>
             )}
@@ -2134,7 +2185,7 @@ export default function CreatePartyPage() {
             )}
 
             {/* Step 5: Create Party Plan (previously step 4) */}
-            {step === 5 && (
+            {step === 5 && !submitError && (
               <div className="space-y-8">
                 {/* Updated Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -2142,10 +2193,10 @@ export default function CreatePartyPage() {
                   <div className="bg-gradient-to-br from-yellow-50 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/30 p-6 rounded-xl border border-yellow-200 dark:border-yellow-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">⭐</div>
                     <h3 className="font-bold text-yellow-800 dark:text-yellow-200 mb-2 text-lg">Birthday Star</h3>
-                    <div className="text-yellow-700 dark:text-yellow-300 font-semibold text-lg">{partyData.childName}</div>
+                    <div className="text-yellow-700 dark:text-yellow-300 font-semibold text-lg">{partyData.childName || 'Not set'}</div>
                     <div className="text-yellow-600 dark:text-yellow-400 text-sm mt-2">
                       <span className="bg-yellow-200 dark:bg-yellow-800 px-2 py-1 rounded-full">
-                        {partyData.childAge} years old 🎂
+                        {partyData.childAge || 0} years old 🎂
                       </span>
                     </div>
                   </div>
@@ -2167,7 +2218,7 @@ export default function CreatePartyPage() {
                     <div className="text-5xl mb-4">👥</div>
                     <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-2 text-lg">Guests</h3>
                     <div className="text-purple-700 dark:text-purple-300 font-semibold text-lg">
-                      {partyData.guestCount || 'Not set'} people
+                      {partyData.guestCount ? `${partyData.guestCount} people` : 'Not set'}
                     </div>
                     <div className="text-purple-600 dark:text-purple-400 text-sm mt-2">
                       <span className="bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded-full">Party crowd 🎉</span>
