@@ -25,7 +25,8 @@ import {
   Download,
   Edit,
   Save,
-  X
+  X,
+  Check
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -203,10 +204,14 @@ export default function AccountPage() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
+            </TabsTrigger>
+            <TabsTrigger value="subscription" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Subscription
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
@@ -337,6 +342,230 @@ export default function AccountPage() {
             </Card>
           </TabsContent>
 
+          {/* Subscription Tab */}
+          <TabsContent value="subscription" className="space-y-6">
+            {/* Current Plan Card */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <div className={`p-2 rounded-full ${currentPlan.bgColor}`}>
+                        <PlanIcon className={`h-5 w-5 ${currentPlan.color}`} />
+                      </div>
+                      Current Plan: {currentPlan.name}
+                    </CardTitle>
+                    <CardDescription>
+                      Your current subscription details and usage
+                    </CardDescription>
+                  </div>
+                  <Badge className={currentPlan.bgColor}>
+                    {userProfile.subscription?.status || 'ACTIVE'}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Plan Features</h4>
+                    <ul className="space-y-1">
+                      {currentPlan.features.map((feature, index) => (
+                        <li key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                          <Check className="h-3 w-3 text-green-500 mr-2" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Usage This Month</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">Parties Created</span>
+                        <span className="font-medium">{userProfile.usageStats?.partiesThisMonth || 0}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">Total Guests</span>
+                        <span className="font-medium">{userProfile.usageStats?.guestsThisMonth || 0}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">AI Requests</span>
+                        <span className="font-medium">{userProfile.usageStats?.aiRequestsThisMonth || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Upgrade Options */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-amber-500" />
+                  Upgrade Your Plan
+                </CardTitle>
+                <CardDescription>
+                  Unlock more features with our premium plans
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Essential Plan */}
+                  <div className="border rounded-lg p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Star className="h-5 w-5 text-purple-600" />
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Essential Party</h3>
+                      </div>
+                      <Badge variant="outline" className="text-xs">$9.99</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                      Perfect for simple celebrations with basic features
+                    </p>
+                    <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
+                      <li>• 1 event creation</li>
+                      <li>• Max 10 guests</li>
+                      <li>• Basic themes</li>
+                      <li>• Community support</li>
+                    </ul>
+                    <Button 
+                      className="w-full text-xs bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      asChild
+                    >
+                      <a 
+                        href="https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        Upgrade to Essential
+                      </a>
+                    </Button>
+                  </div>
+
+                  {/* Magical Plan */}
+                  <div className="border-2 border-blue-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 relative">
+                    <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs">
+                      Most Popular
+                    </Badge>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-blue-600" />
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Magical Party</h3>
+                      </div>
+                      <Badge variant="outline" className="text-xs">$19.99</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                      Perfect for birthday celebrations with AI features
+                    </p>
+                    <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
+                      <li>• 1 birthday/year</li>
+                      <li>• Unlimited guests</li>
+                      <li>• AI recommendations</li>
+                      <li>• Premium themes</li>
+                    </ul>
+                    <Button 
+                      className="w-full text-xs bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+                      asChild
+                    >
+                      <a 
+                        href="https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        Upgrade to Magical
+                      </a>
+                    </Button>
+                  </div>
+
+                  {/* Ultimate Plan */}
+                  <div className="border rounded-lg p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Crown className="h-5 w-5 text-amber-600" />
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Ultimate Party</h3>
+                      </div>
+                      <Badge variant="outline" className="text-xs">$39.99</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                      Premium package for multiple celebrations
+                    </p>
+                    <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
+                      <li>• Up to 3 birthdays/year</li>
+                      <li>• Unlimited guests</li>
+                      <li>• Premium features</li>
+                      <li>• Priority support</li>
+                    </ul>
+                    <Button 
+                      className="w-full text-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                      asChild
+                    >
+                      <a 
+                        href="https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        Upgrade to Ultimate
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="h-4 w-4 text-blue-500 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        Need help choosing?
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                        Contact our support team for personalized recommendations based on your party planning needs.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Plan Management */}
+            {userProfile.subscription && userProfile.subscription.planType !== 'FREE' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Manage Your Subscription
+                  </CardTitle>
+                  <CardDescription>
+                    Update your subscription settings and preferences
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        Current Period
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">
+                        Valid until {new Date(userProfile.subscription.currentPeriodEnd).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Badge variant="outline">
+                      {userProfile.subscription.cancelAtPeriodEnd ? 'Ends at period' : 'Auto-renew'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      View Usage Details
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Download Receipt
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-6">

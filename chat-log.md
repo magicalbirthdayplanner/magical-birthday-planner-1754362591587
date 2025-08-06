@@ -1,3 +1,65 @@
+## [usr-1754524582595]
+**User Request:** Add subscription options in the account settings - one should be able to upgrade or downgrade 
+
+These are the Dodo payment links 
+
+Essential Plan - https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1
+
+Magical Plan - 
+https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1
+
+Ultimate Plan - 
+https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1
+
+**Response Summary:** Successfully implemented a comprehensive subscription management system in the account settings page. Added a dedicated "Subscription" tab with current plan overview, upgrade/downgrade options using the provided DoDo payment links, and subscription management features.
+
+**Technical Implementation:**
+1. **Account Page Navigation Enhancement**:
+   - Expanded tab layout from 3 to 4 tabs to include new Subscription tab
+   - Added CreditCard icon for the subscription tab
+   - Updated grid layout to accommodate new tab structure
+
+2. **Current Plan Display**:
+   - Created comprehensive current plan card showing plan details, status, and features
+   - Integrated existing plan configuration (Essential Party/FREE, Magical Party/STARTER, Ultimate Party/PROFESSIONAL)
+   - Added usage statistics display showing monthly party creation, guest count, and AI requests
+   - Visual plan representation with appropriate icons and color schemes
+
+3. **Upgrade Options Implementation**:
+   - Built responsive 3-column grid layout for all available plans
+   - **Essential Plan Card** ($9.99):
+     - Purple gradient design with Star icon
+     - Basic feature list (1 event, 10 guests max, basic themes, community support)
+     - Direct link to DoDo payment: `pdt_Jw4ObhU8ojSaq87wELhsm`
+   - **Magical Plan Card** ($19.99):
+     - Blue gradient design with Zap icon and "Most Popular" badge
+     - Enhanced feature list (1 birthday/year, unlimited guests, AI recommendations, premium themes)
+     - Direct link to DoDo payment: `pdt_rSGRT2hBbKsoln84yQgHC`
+   - **Ultimate Plan Card** ($39.99):
+     - Amber gradient design with Crown icon
+     - Premium feature list (up to 3 birthdays/year, unlimited guests, priority support)
+     - Direct link to DoDo payment: `pdt_v3NFp5Zq587xbPoPLd29x`
+
+4. **Payment Integration**:
+   - All upgrade buttons open DoDo payment checkout in new tabs
+   - Proper `rel="noopener noreferrer"` security attributes
+   - Consistent button styling with plan-specific gradient colors
+   - Clear pricing display and feature differentiation
+
+5. **Subscription Management Features**:
+   - Conditional subscription management section for paid users
+   - Current period display with renewal status
+   - Action buttons for viewing usage details and downloading receipts
+   - Help section with contact information for support
+
+6. **User Experience Enhancements**:
+   - Responsive design working across desktop and mobile
+   - Consistent theme integration with existing app design
+   - Clear feature comparison and benefit communication
+   - Professional layout with proper spacing and visual hierarchy
+
+**Files Modified:** app/account/page.tsx
+
 ## [usr-1754524152165]
 **User Request:** Change the essential party plan price to $9.99 for 1 event creation.
 
