@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby, AlertTriangle, DollarSign, MapPin } from "lucide-react";
+import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby, AlertTriangle, DollarSign, MapPin, Globe, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
@@ -37,6 +37,52 @@ const colorOptions = [
   { name: "Orange", value: "orange", color: "#FF8C00" },
   { name: "Red", value: "red", color: "#FF6347" },
   { name: "Rainbow", value: "rainbow", color: "linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7, #DDA0DD)" }
+];
+
+const currencyOptions = [
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "British Pound" },
+  { code: "CAD", symbol: "$", name: "Canadian Dollar" },
+  { code: "AUD", symbol: "$", name: "Australian Dollar" },
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+  { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
+  { code: "KRW", symbol: "₩", name: "South Korean Won" },
+  { code: "SGD", symbol: "$", name: "Singapore Dollar" },
+  { code: "HKD", symbol: "$", name: "Hong Kong Dollar" },
+  { code: "CHF", symbol: "Fr", name: "Swiss Franc" },
+  { code: "SEK", symbol: "kr", name: "Swedish Krona" },
+  { code: "NOK", symbol: "kr", name: "Norwegian Krone" },
+  { code: "DKK", symbol: "kr", name: "Danish Krone" },
+  { code: "MXN", symbol: "$", name: "Mexican Peso" },
+  { code: "BRL", symbol: "R$", name: "Brazilian Real" },
+  { code: "AED", symbol: "د.إ", name: "UAE Dirham" },
+  { code: "SAR", symbol: "ر.س", name: "Saudi Riyal" },
+  { code: "ZAR", symbol: "R", name: "South African Rand" }
+];
+
+const countryOptions = [
+  { code: "US", name: "United States", flag: "🇺🇸", postalFormat: "Zip Code", example: "12345 or 12345-6789" },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧", postalFormat: "Postcode", example: "SW1A 1AA" },
+  { code: "CA", name: "Canada", flag: "🇨🇦", postalFormat: "Postal Code", example: "K1A 0A6" },
+  { code: "AU", name: "Australia", flag: "🇦🇺", postalFormat: "Postcode", example: "2000" },
+  { code: "DE", name: "Germany", flag: "🇩🇪", postalFormat: "Postleitzahl", example: "10115" },
+  { code: "FR", name: "France", flag: "🇫🇷", postalFormat: "Code Postal", example: "75001" },
+  { code: "JP", name: "Japan", flag: "🇯🇵", postalFormat: "Postal Code", example: "100-0001" },
+  { code: "IN", name: "India", flag: "🇮🇳", postalFormat: "PIN Code", example: "110001" },
+  { code: "CN", name: "China", flag: "🇨🇳", postalFormat: "Postal Code", example: "100000" },
+  { code: "KR", name: "South Korea", flag: "🇰🇷", postalFormat: "Postal Code", example: "03001" },
+  { code: "SG", name: "Singapore", flag: "🇸🇬", postalFormat: "Postal Code", example: "018956" },
+  { code: "NL", name: "Netherlands", flag: "🇳🇱", postalFormat: "Postcode", example: "1012 JS" },
+  { code: "IT", name: "Italy", flag: "🇮🇹", postalFormat: "CAP", example: "00118" },
+  { code: "ES", name: "Spain", flag: "🇪🇸", postalFormat: "Código Postal", example: "28001" },
+  { code: "SE", name: "Sweden", flag: "🇸🇪", postalFormat: "Postnummer", example: "11122" },
+  { code: "NO", name: "Norway", flag: "🇳🇴", postalFormat: "Postnummer", example: "0010" },
+  { code: "DK", name: "Denmark", flag: "🇩🇰", postalFormat: "Postnummer", example: "1050" },
+  { code: "MX", name: "Mexico", flag: "🇲🇽", postalFormat: "Código Postal", example: "01000" },
+  { code: "BR", name: "Brazil", flag: "🇧🇷", postalFormat: "CEP", example: "01310-100" },
+  { code: "ZA", name: "South Africa", flag: "🇿🇦", postalFormat: "Postal Code", example: "8001" }
 ];
 
 const classicThemes = [
@@ -188,6 +234,8 @@ interface PartyData {
   isLoadingAI?: boolean;
   classicTheme?: string; // New field for classic theme selection
   budget?: number; // New field for party budget
+  currency?: string; // New field for selected currency
+  country?: string; // New field for selected country
   zipCode?: string; // New field for zip code
   guestCount?: number; // New field for number of guests
   zipCodeError?: string; // New field for zip code validation error
@@ -487,19 +535,50 @@ export default function CreatePartyPage() {
   };
 
   // Zip code validation function
-  const validateZipCode = (zipCode: string) => {
+  const validateZipCode = (zipCode: string, countryCode?: string) => {
     if (!zipCode || zipCode.trim() === '') {
-      return 'Zip code is required';
+      return 'Postal code is required';
     }
     
-    // Remove spaces and hyphens for validation
+    // Default to US if no country selected
+    const country = countryCode || 'US';
     const cleanZip = zipCode.replace(/[\s\-]/g, '');
     
-    // Check for US zip code formats: 5 digits or 9 digits (5+4)
-    const zipPattern = /^\d{5}(\d{4})?$/;
+    // Country-specific validation patterns
+    const patterns: { [key: string]: { pattern: RegExp; format: string } } = {
+      US: { pattern: /^\d{5}(\d{4})?$/, format: '12345 or 12345-6789' },
+      GB: { pattern: /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i, format: 'SW1A 1AA' },
+      CA: { pattern: /^[A-Z]\d[A-Z]\s*\d[A-Z]\d$/i, format: 'K1A 0A6' },
+      AU: { pattern: /^\d{4}$/, format: '2000' },
+      DE: { pattern: /^\d{5}$/, format: '10115' },
+      FR: { pattern: /^\d{5}$/, format: '75001' },
+      JP: { pattern: /^\d{3}-?\d{4}$/, format: '100-0001' },
+      IN: { pattern: /^\d{6}$/, format: '110001' },
+      CN: { pattern: /^\d{6}$/, format: '100000' },
+      KR: { pattern: /^\d{5}$/, format: '03001' },
+      SG: { pattern: /^\d{6}$/, format: '018956' },
+      NL: { pattern: /^\d{4}\s*[A-Z]{2}$/i, format: '1012 JS' },
+      IT: { pattern: /^\d{5}$/, format: '00118' },
+      ES: { pattern: /^\d{5}$/, format: '28001' },
+      SE: { pattern: /^\d{5}$/, format: '11122' },
+      NO: { pattern: /^\d{4}$/, format: '0010' },
+      DK: { pattern: /^\d{4}$/, format: '1050' },
+      MX: { pattern: /^\d{5}$/, format: '01000' },
+      BR: { pattern: /^\d{5}-?\d{3}$/, format: '01310-100' },
+      ZA: { pattern: /^\d{4}$/, format: '8001' }
+    };
     
-    if (!zipPattern.test(cleanZip)) {
-      return 'Please enter a valid US zip code (e.g., 12345 or 12345-6789)';
+    const countryPattern = patterns[country];
+    if (!countryPattern) {
+      return 'Please select a valid country first';
+    }
+    
+    // For UK and Canada, use original zipCode (with spaces) for validation
+    const testValue = (country === 'GB' || country === 'CA' || country === 'NL') ? zipCode : cleanZip;
+    
+    if (!countryPattern.pattern.test(testValue)) {
+      const countryName = countryOptions.find(c => c.code === country)?.name || country;
+      return `Please enter a valid ${countryName} postal code (e.g., ${countryPattern.format})`;
     }
     
     return null;
@@ -507,11 +586,21 @@ export default function CreatePartyPage() {
 
   // Handle zip code input with live validation
   const handleZipCodeChange = (value: string) => {
-    const error = validateZipCode(value);
+    const error = validateZipCode(value, partyData.country);
     setPartyData({ 
       ...partyData, 
       zipCode: value,
       zipCodeError: error || undefined 
+    });
+  };
+
+  // Handle country change and re-validate zip code
+  const handleCountryChange = (countryCode: string) => {
+    const zipCodeError = partyData.zipCode ? validateZipCode(partyData.zipCode, countryCode) : undefined;
+    setPartyData({ 
+      ...partyData, 
+      country: countryCode,
+      zipCodeError: zipCodeError || undefined
     });
   };
 
@@ -689,7 +778,7 @@ export default function CreatePartyPage() {
       case 3:
         return partyData.selectedTheme !== "";
       case 4:
-        return partyData.budget !== undefined && partyData.zipCode !== "" && !partyData.zipCodeError && partyData.guestCount !== undefined; // Step 4 requires budget, valid zip code, and guest count
+        return partyData.currency && partyData.budget !== undefined && partyData.country && partyData.zipCode !== "" && !partyData.zipCodeError && partyData.guestCount !== undefined; // Step 4 requires currency, budget, country, valid postal code, and guest count
       case 5:
         return true; // Step 5 is always valid since it's just the summary/creation step
       default:
@@ -1840,10 +1929,35 @@ export default function CreatePartyPage() {
             )}
 
 
-            {/* Step 4: Party Details - Budget, Zip Code, Guest Count */}
+            {/* Step 4: Party Details - Currency, Budget, Country, Zip Code, Guest Count */}
             {step === 4 && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Currency Selection */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <CreditCard className="h-4 w-4 text-green-600" />
+                      Currency
+                    </Label>
+                    <Select value={partyData.currency || ''} onValueChange={(value) => setPartyData({ ...partyData, currency: value })}>
+                      <SelectTrigger className="h-12 text-lg dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {currencyOptions.map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg font-semibold">{currency.symbol}</span>
+                              <span>{currency.name}</span>
+                              <span className="text-gray-500 text-sm">({currency.code})</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">Select your preferred currency</p>
+                  </div>
+
                   {/* Budget Input */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
@@ -1851,7 +1965,9 @@ export default function CreatePartyPage() {
                       Party Budget
                     </Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 font-semibold">
+                        {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.symbol || '$' : '$'}
+                      </span>
                       <Input
                         type="number"
                         placeholder="Enter budget amount"
@@ -1865,30 +1981,61 @@ export default function CreatePartyPage() {
                     <p className="text-xs text-gray-500">How much would you like to spend on the party?</p>
                   </div>
 
-                  {/* Zip Code Input */}
+                  {/* Country Selection */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <Globe className="h-4 w-4 text-orange-600" />
+                      Country
+                    </Label>
+                    <Select value={partyData.country || ''} onValueChange={handleCountryChange}>
+                      <SelectTrigger className="h-12 text-lg dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {countryOptions.map((country) => (
+                          <SelectItem key={country.code} value={country.code}>
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg">{country.flag}</span>
+                              <span>{country.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">Select your country for postal code validation</p>
+                  </div>
+
+                  {/* Postal Code Input */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
                       <MapPin className="h-4 w-4 text-blue-600" />
-                      Zip Code
+                      {partyData.country ? countryOptions.find(c => c.code === partyData.country)?.postalFormat || 'Postal Code' : 'Postal Code'}
                     </Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         type="text"
-                        placeholder="Enter zip code"
+                        placeholder={partyData.country ? 
+                          `Enter ${countryOptions.find(c => c.code === partyData.country)?.postalFormat?.toLowerCase() || 'postal code'}` : 
+                          'Enter postal code'}
                         value={partyData.zipCode || ''}
                         onChange={(e) => handleZipCodeChange(e.target.value)}
                         className={cn(
                           "pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200",
                           partyData.zipCodeError && "border-red-500 focus:border-red-500 focus:ring-red-500"
                         )}
-                        maxLength={10}
+                        maxLength={15}
                       />
                     </div>
                     {partyData.zipCodeError && (
                       <p className="text-xs text-red-500 flex items-center gap-1">
                         <AlertTriangle className="h-3 w-3" />
                         {partyData.zipCodeError}
+                      </p>
+                    )}
+                    {partyData.country && (
+                      <p className="text-xs text-gray-500">
+                        Format: {countryOptions.find(c => c.code === partyData.country)?.example || 'See country examples'}
                       </p>
                     )}
                     <p className="text-xs text-gray-500">Help us suggest local vendors and activities</p>
@@ -1919,15 +2066,36 @@ export default function CreatePartyPage() {
                 {/* Visual Summary Preview */}
                 <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-yellow-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-700">
                   <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-4 text-lg text-center">Party Summary Preview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
                     <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
                       <div className="text-2xl mb-2">💰</div>
                       <div className="font-semibold text-green-600">Budget</div>
-                      <div className="text-lg">{partyData.budget ? `$${partyData.budget}` : 'Not set'}</div>
+                      <div className="text-lg">
+                        {partyData.budget && partyData.currency ? 
+                          `${currencyOptions.find(c => c.code === partyData.currency)?.symbol || '$'}${partyData.budget}` : 
+                          'Not set'}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.name : ''}
+                      </div>
                     </div>
                     <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
-                      <div className="text-2xl mb-2">🗺️</div>
-                      <div className="font-semibold text-blue-600">Location</div>
+                      <div className="text-2xl mb-2">🌍</div>
+                      <div className="font-semibold text-orange-600">Country</div>
+                      <div className="text-lg flex items-center justify-center gap-2">
+                        {partyData.country ? 
+                          <>
+                            <span>{countryOptions.find(c => c.code === partyData.country)?.flag}</span>
+                            <span className="text-sm">{countryOptions.find(c => c.code === partyData.country)?.name}</span>
+                          </> : 
+                          'Not set'}
+                      </div>
+                    </div>
+                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
+                      <div className="text-2xl mb-2">📍</div>
+                      <div className="font-semibold text-blue-600">
+                        {partyData.country ? countryOptions.find(c => c.code === partyData.country)?.postalFormat || 'Postal Code' : 'Postal Code'}
+                      </div>
                       <div className="text-lg">{partyData.zipCode || 'Not set'}</div>
                     </div>
                     <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
