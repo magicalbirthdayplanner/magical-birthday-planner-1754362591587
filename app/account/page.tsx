@@ -57,22 +57,22 @@ const planDetails = {
   FREE: {
     name: "Essential Party",
     icon: Star,
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
+    color: "text-purple-600 dark:text-purple-400",
+    bgColor: "bg-purple-100 dark:bg-purple-900/30",
     features: ["1 party/month", "Max 10 guests", "Basic themes"]
   },
   STARTER: {
     name: "Magical Party",
     icon: Zap,
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
+    color: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
     features: ["1 birthday/year", "Unlimited guests", "AI recommendations"]
   },
   PROFESSIONAL: {
     name: "Ultimate Party",
     icon: Crown,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-100",
+    color: "text-amber-600 dark:text-amber-400",
+    bgColor: "bg-amber-100 dark:bg-amber-900/30",
     features: ["Up to 3 birthdays/year", "Unlimited guests", "Premium features"]
   }
 };
@@ -176,10 +176,10 @@ export default function AccountPage() {
 
   if (loading || !userProfile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your account...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading your account...</p>
         </div>
       </div>
     );
@@ -189,13 +189,13 @@ export default function AccountPage() {
   const PlanIcon = currentPlan.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-            <p className="text-gray-600 mt-1">Manage your profile, subscription, and preferences</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Account Settings</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your profile, subscription, and preferences</p>
           </div>
           <Button variant="outline" asChild>
             <Link href="/dashboard">Back to Dashboard</Link>
@@ -264,9 +264,9 @@ export default function AccountPage() {
                       type="email"
                       value={userProfile.email}
                       disabled
-                      className="bg-gray-50"
+                      className="bg-gray-50 dark:bg-gray-800"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
                   </div>
                   <div>
                     <Label htmlFor="name">Full Name</Label>
@@ -292,7 +292,7 @@ export default function AccountPage() {
                     <Input
                       value={new Date(userProfile.createdAt).toLocaleDateString()}
                       disabled
-                      className="bg-gray-50"
+                      className="bg-gray-50 dark:bg-gray-800"
                     />
                   </div>
                 </div>
@@ -312,29 +312,29 @@ export default function AccountPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                       {userProfile.usageStats?.partiesThisMonth || 0}
                     </div>
-                    <div className="text-sm text-gray-600">Parties This Month</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Parties This Month</div>
                   </div>
-                  <div className="text-center p-4 bg-pink-50 rounded-lg">
-                    <div className="text-2xl font-bold text-pink-600">
+                  <div className="text-center p-4 bg-pink-50 dark:bg-pink-900/30 rounded-lg">
+                    <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
                       {userProfile.usageStats?.totalParties || 0}
                     </div>
-                    <div className="text-sm text-gray-600">Total Parties</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Total Parties</div>
                   </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {userProfile.usageStats?.guestsThisMonth || 0}
                     </div>
-                    <div className="text-sm text-gray-600">Guests This Month</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">Guests This Month</div>
                   </div>
-                  <div className="text-center p-4 bg-emerald-50 rounded-lg">
-                    <div className="text-2xl font-bold text-emerald-600">
+                  <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                       {userProfile.usageStats?.aiRequestsThisMonth || 0}
                     </div>
-                    <div className="text-sm text-gray-600">AI Requests</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">AI Requests</div>
                   </div>
                 </div>
               </CardContent>
@@ -354,7 +354,7 @@ export default function AccountPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
+                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-200 dark:border-purple-700">
                   <div className="flex items-center gap-4">
                     <div className={`p-3 rounded-full ${currentPlan.bgColor}`}>
                       <PlanIcon className={`h-6 w-6 ${currentPlan.color}`} />
@@ -372,11 +372,11 @@ export default function AccountPage() {
                   </div>
                   <div className="text-right">
                     <Badge 
-                      className={userProfile.subscription?.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                      className={userProfile.subscription?.status === 'ACTIVE' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'}
                     >
                       {userProfile.subscription?.status || 'ACTIVE'}
                     </Badge>
-                    <p className="text-sm text-gray-600 mt-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
                       {userProfile.subscription?.cancelAtPeriodEnd 
                         ? 'Cancels on' 
                         : 'Renews on'
@@ -388,8 +388,8 @@ export default function AccountPage() {
                 {userProfile.isSupeadmin ? (
                   <div className="mt-6">
                     <div className="mb-4">
-                      <Badge className="bg-red-100 text-red-800">SUPERADMIN</Badge>
-                      <p className="text-sm text-gray-600 mt-1">Testing access - switch between any plan</p>
+                      <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">SUPERADMIN</Badge>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Testing access - switch between any plan</p>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       {Object.entries(planDetails).map(([key, plan]) => {

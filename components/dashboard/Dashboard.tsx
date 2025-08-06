@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, PartyPopper, Calendar, Users, CheckCircle, Clock, Sparkles } from 'lucide-react'
+import { Plus, PartyPopper, Calendar, Users, CheckCircle, Clock, Sparkles, Star, Zap, Crown } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import PartyCard from './PartyCard'
 import Link from 'next/link'
@@ -23,10 +23,69 @@ interface Party {
   status: 'upcoming' | 'completed' | 'cancelled'
 }
 
+const planDetails = {
+  FREE: {
+    name: "Essential",
+    icon: Star,
+    color: "text-purple-700 dark:text-purple-400",
+    bgColor: "bg-purple-100 dark:bg-purple-900/30",
+    borderColor: "border-purple-300 dark:border-purple-700",
+    gradientFrom: "from-purple-500",
+    gradientTo: "to-purple-600"
+  },
+  STARTER: {
+    name: "Magical",
+    icon: Zap,
+    color: "text-blue-700 dark:text-blue-400",
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
+    borderColor: "border-blue-300 dark:border-blue-700",
+    gradientFrom: "from-blue-500",
+    gradientTo: "to-blue-600"
+  },
+  PROFESSIONAL: {
+    name: "Ultimate",
+    icon: Crown,
+    color: "text-amber-700 dark:text-amber-400",
+    bgColor: "bg-amber-100 dark:bg-amber-900/30",
+    borderColor: "border-amber-300 dark:border-amber-700",
+    gradientFrom: "from-amber-500",
+    gradientTo: "to-amber-600"
+  }
+};
+
+type PlanType = 'FREE' | 'STARTER' | 'PROFESSIONAL';
+
 export default function Dashboard() {
   const { user } = useAuth()
   const [parties, setParties] = useState<Party[]>([])
   const [loading, setLoading] = useState(true)
+  const [userPlan, setUserPlan] = useState<PlanType>('FREE')
+
+  // Listen for plan changes from localStorage or account page
+  useEffect(() => {
+    if (user) {
+      // Check if user is superadmin for plan switching functionality
+      const isSupeadmin = user.email === "arunexprasad@gmail.com";
+      if (isSupeadmin) {
+        // Listen for plan changes stored in localStorage for superadmin
+        const storedPlan = localStorage.getItem('superadmin_plan') as PlanType;
+        if (storedPlan && planDetails[storedPlan]) {
+          setUserPlan(storedPlan);
+        }
+        
+        // Set up event listener for plan changes
+        const handlePlanChange = (event: CustomEvent) => {
+          setUserPlan(event.detail.plan);
+        };
+        
+        window.addEventListener('planChanged', handlePlanChange as EventListener);
+        
+        return () => {
+          window.removeEventListener('planChanged', handlePlanChange as EventListener);
+        };
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     const loadParties = async () => {
@@ -167,6 +226,45 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-3 sm:p-4 pt-16 sm:pt-20">
       <div className="max-w-7xl mx-auto">
+        {/* Plan Display Section */}
+        {(() => {
+          const plan = planDetails[userPlan];
+          const PlanIcon = plan.icon;
+          return (
+            <div className="mb-6">
+              <div className={`relative overflow-hidden rounded-xl bg-gradient-to-r ${plan.gradientFrom} ${plan.gradientTo} p-6 shadow-lg`}>
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+                        <PlanIcon className="h-8 w-8 text-white" />
+                      </div>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">
+                        {plan.name} Plan
+                      </h2>
+                      <p className="text-white/90 text-sm font-medium">
+                        Your current subscription tier
+                      </p>
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center space-x-2">
+                    <div className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+                      <span className="text-white text-sm font-semibold">Active</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Decorative elements */}
+                <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10"></div>
+                <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-white/5"></div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Header - Reduced margins */}
         <div className="mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3 sm:gap-0">

@@ -111,40 +111,11 @@ export function Header() {
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-3 px-3 sm:px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <div className="relative">
-                          <User className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                          {/* Plan status indicator */}
-                          {(() => {
-                            const plan = planDetails[userPlan];
-                            const PlanIcon = plan.icon;
-                            return (
-                              <div className={`absolute -bottom-1 -right-1 ${plan.bgColor} rounded-full p-0.5`}>
-                                <PlanIcon className={`h-2 w-2 ${plan.color}`} />
-                              </div>
-                            );
-                          })()}
-                        </div>
-                        <div className="hidden md:flex flex-col items-start">
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 max-w-32 truncate leading-tight">
-                            {user.user_metadata?.display_name || user.email?.split('@')[0] || 'Account'}
-                          </span>
-                          {/* Enhanced plan indication with badge style */}
-                          {(() => {
-                            const plan = planDetails[userPlan];
-                            const PlanIcon = plan.icon;
-                            return (
-                              <div className={`flex items-center space-x-1 mt-0.5 px-2 py-0.5 ${plan.bgColor} rounded-full`}>
-                                <PlanIcon className={`h-2.5 w-2.5 ${plan.color}`} />
-                                <span className={`text-xs ${plan.color} font-semibold tracking-wide`}>
-                                  {plan.name}
-                                </span>
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      </div>
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-2 px-3 sm:px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 rounded-lg">
+                      <User className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                      <span className="hidden md:inline text-sm font-medium text-gray-900 dark:text-gray-100 max-w-32 truncate">
+                        {user.user_metadata?.display_name || user.email?.split('@')[0] || 'Account'}
+                      </span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
