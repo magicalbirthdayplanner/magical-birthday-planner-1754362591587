@@ -41,7 +41,7 @@ interface UserProfile {
   createdAt: string;
   isSupeadmin?: boolean;
   subscription?: {
-    planType: 'FREE' | 'STARTER' | 'PROFESSIONAL';
+    planType: 'STARTER' | 'PLUS' | 'PRO';
     status: 'ACTIVE' | 'CANCELED' | 'PAST_DUE';
     currentPeriodEnd: string;
     cancelAtPeriodEnd: boolean;
@@ -55,26 +55,29 @@ interface UserProfile {
 }
 
 const planDetails = {
-  FREE: {
-    name: "Essential Party",
+  STARTER: {
+    name: "🎯 Starter",
     icon: Star,
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
-    features: ["1 party/month", "Max 10 guests", "Basic themes"]
+    features: ["1 event", "Up to 15 guests", "Basic themes", "Basic checklist"],
+    price: "$9.99 one-time"
   },
-  STARTER: {
-    name: "Magical Party",
+  PLUS: {
+    name: "✨ Plus", 
     icon: Zap,
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    features: ["1 birthday/year", "Unlimited guests", "AI recommendations"]
+    features: ["Unlimited events", "Unlimited guests", "Premium themes", "AI-powered suggestions"],
+    price: "$19.99 one-time"
   },
-  PROFESSIONAL: {
-    name: "Ultimate Party",
+  PRO: {
+    name: "👑 Pro",
     icon: Crown,
-    color: "text-amber-600 dark:text-amber-400",
-    bgColor: "bg-amber-100 dark:bg-amber-900/30",
-    features: ["Up to 3 birthdays/year", "Unlimited guests", "Premium features"]
+    color: "text-emerald-600 dark:text-emerald-400",
+    bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
+    features: ["Everything in Plus", "Custom theme creation", "Vendor recommendations", "Priority support", "Admin/team tools"],
+    price: "$4.99/month or $39.99/year"
   }
 };
 
@@ -93,7 +96,7 @@ export default function AccountPage() {
     marketing: false
   });
   
-  const handlePlanChange = (newPlan: 'FREE' | 'STARTER' | 'PROFESSIONAL') => {
+  const handlePlanChange = (newPlan: 'STARTER' | 'PLUS' | 'PRO') => {
     if (userProfile?.isSupeadmin && userProfile.subscription) {
       setUserProfile({
         ...userProfile,
@@ -132,7 +135,7 @@ export default function AccountPage() {
         createdAt: user.created_at || new Date().toISOString(),
         isSupeadmin,
         subscription: {
-          planType: "FREE",
+          planType: "STARTER",
           status: "ACTIVE",
           currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           cancelAtPeriodEnd: false
@@ -186,7 +189,7 @@ export default function AccountPage() {
     );
   }
 
-  const currentPlan = planDetails[userProfile.subscription?.planType || 'FREE'];
+  const currentPlan = planDetails[userProfile.subscription?.planType || 'STARTER'];
   const PlanIcon = currentPlan.icon;
 
   return (
@@ -406,108 +409,121 @@ export default function AccountPage() {
                   Upgrade Your Plan
                 </CardTitle>
                 <CardDescription>
-                  Unlock more features with our premium plans
+                  Unlock more features with our updated plans
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Essential Plan */}
-                  <div className="border rounded-lg p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30">
+                  {/* Starter Plan */}
+                  <div className={`border rounded-lg p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 ${
+                    userProfile.subscription?.planType === 'STARTER' ? 'border-purple-300 bg-purple-50/50' : ''
+                  }`}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Star className="h-5 w-5 text-purple-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Essential Party</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎯 Starter</h3>
                       </div>
                       <Badge variant="outline" className="text-xs">$9.99</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      Perfect for simple celebrations with basic features
+                      Perfect for single event planning
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• 1 event creation</li>
-                      <li>• Max 10 guests</li>
+                      <li>• 1 event</li>
+                      <li>• Up to 15 guests</li>
                       <li>• Basic themes</li>
-                      <li>• Community support</li>
+                      <li>• Basic checklist</li>
                     </ul>
-                    <Button 
-                      className="w-full text-xs bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                      asChild
-                    >
-                      <a 
-                        href="https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                    {userProfile.subscription?.planType === 'STARTER' ? (
+                      <Badge className="w-full text-center py-2 bg-purple-100 text-purple-800">
+                        Current Plan
+                      </Badge>
+                    ) : (
+                      <Button 
+                        className="w-full text-xs bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                        asChild
                       >
-                        Upgrade to Essential
-                      </a>
-                    </Button>
+                        <Link href="/pricing">
+                          Choose Starter
+                        </Link>
+                      </Button>
+                    )}
                   </div>
 
-                  {/* Magical Plan */}
-                  <div className="border-2 border-blue-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 relative">
+                  {/* Plus Plan */}
+                  <div className={`border-2 border-blue-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 relative ${
+                    userProfile.subscription?.planType === 'PLUS' ? 'border-blue-300 bg-blue-50/50' : ''
+                  }`}>
                     <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs">
                       Most Popular
                     </Badge>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Zap className="h-5 w-5 text-blue-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Magical Party</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">✨ Plus</h3>
                       </div>
                       <Badge variant="outline" className="text-xs">$19.99</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      Perfect for birthday celebrations with AI features
+                      Unlimited events after single payment
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• 1 birthday/year</li>
+                      <li>• Unlimited events</li>
                       <li>• Unlimited guests</li>
-                      <li>• AI recommendations</li>
                       <li>• Premium themes</li>
+                      <li>• AI-powered suggestions</li>
                     </ul>
-                    <Button 
-                      className="w-full text-xs bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
-                      asChild
-                    >
-                      <a 
-                        href="https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                    {userProfile.subscription?.planType === 'PLUS' ? (
+                      <Badge className="w-full text-center py-2 bg-blue-100 text-blue-800">
+                        Current Plan
+                      </Badge>
+                    ) : (
+                      <Button 
+                        className="w-full text-xs bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+                        asChild
                       >
-                        Upgrade to Magical
-                      </a>
-                    </Button>
+                        <Link href="/pricing">
+                          Upgrade to Plus
+                        </Link>
+                      </Button>
+                    )}
                   </div>
 
-                  {/* Ultimate Plan */}
-                  <div className="border rounded-lg p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30">
+                  {/* Pro Plan */}
+                  <div className={`border rounded-lg p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 ${
+                    userProfile.subscription?.planType === 'PRO' ? 'border-emerald-300 bg-emerald-50/50' : ''
+                  }`}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <Crown className="h-5 w-5 text-amber-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Ultimate Party</h3>
+                        <Crown className="h-5 w-5 text-emerald-600" />
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">👑 Pro</h3>
                       </div>
-                      <Badge variant="outline" className="text-xs">$39.99</Badge>
+                      <Badge variant="outline" className="text-xs">$4.99/mo</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      Premium package for multiple celebrations
+                      Advanced features with ongoing support
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• Up to 3 birthdays/year</li>
-                      <li>• Unlimited guests</li>
-                      <li>• Premium features</li>
+                      <li>• Everything in Plus</li>
+                      <li>• Custom theme creation</li>
+                      <li>• Vendor recommendations</li>
                       <li>• Priority support</li>
+                      <li>• Admin/team tools</li>
                     </ul>
-                    <Button 
-                      className="w-full text-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-                      asChild
-                    >
-                      <a 
-                        href="https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                    {userProfile.subscription?.planType === 'PRO' ? (
+                      <Badge className="w-full text-center py-2 bg-emerald-100 text-emerald-800">
+                        Current Plan
+                      </Badge>
+                    ) : (
+                      <Button 
+                        className="w-full text-xs bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                        asChild
                       >
-                        Upgrade to Ultimate
-                      </a>
-                    </Button>
+                        <Link href="/pricing">
+                          Upgrade to Pro
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -528,7 +544,7 @@ export default function AccountPage() {
             </Card>
 
             {/* Plan Management */}
-            {userProfile.subscription && userProfile.subscription.planType !== 'FREE' && (
+            {userProfile.subscription && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

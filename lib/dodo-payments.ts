@@ -209,74 +209,69 @@ export function getDodoPaymentsClient(): DodoPaymentsClient | null {
 
 // Subscription plan configurations
 export const SUBSCRIPTION_PLANS = {
-  ESSENTIAL: {
-    id: 'essential_onetime',
-    name: 'Essential Party',
+  STARTER: {
+    id: 'starter_onetime',
+    name: 'Starter',
     price: 9.99,
     currency: 'USD',
     interval: 'one-time',
     features: {
       eventsCreation: 1,
-      maxGuests: 10,
+      maxGuests: 15,
       basicThemes: true,
-      simpleChecklist: true,
+      basicChecklist: true,
       communitySupport: true,
-      emailInvitations: false,
+      premiumThemes: false,
       aiRecommendations: false,
       customThemes: false,
-      printables: false
+      vendorRecommendations: false,
+      prioritySupport: false,
+      adminTools: false
     }
   },
-  STARTER: {
-    id: 'starter_monthly',
-    name: 'Starter',
-    price: 9.99,
-    currency: 'USD',
-    interval: 'month',
-    features: {
-      partiesPerMonth: 5,
-      maxGuests: 25,
-      aiRecommendations: true,
-      customThemes: false,
-      analytics: false,
-      prioritySupport: false
-    }
-  },
-  PROFESSIONAL: {
-    id: 'professional_monthly',
-    name: 'Professional',
+  PLUS: {
+    id: 'plus_onetime',
+    name: 'Plus',
     price: 19.99,
     currency: 'USD',
-    interval: 'month',
+    interval: 'one-time',
     features: {
-      partiesPerMonth: 15,
-      maxGuests: 100,
+      eventsCreation: -1, // unlimited
+      maxGuests: -1, // unlimited
+      basicThemes: true,
+      premiumThemes: true,
       aiRecommendations: true,
-      customThemes: true,
-      analytics: true,
-      prioritySupport: true
+      basicChecklist: true,
+      emailSupport: true,
+      customThemes: false,
+      vendorRecommendations: false,
+      prioritySupport: false,
+      adminTools: false
     }
   },
-  PREMIUM: {
-    id: 'premium_monthly',
-    name: 'Premium',
-    price: 39.99,
+  PRO: {
+    id: 'pro_monthly',
+    name: 'Pro',
+    price: 4.99,
     currency: 'USD',
     interval: 'month',
+    annualPrice: 39.99,
     features: {
-      partiesPerMonth: -1, // unlimited
+      eventsCreation: -1, // unlimited
       maxGuests: -1, // unlimited
+      basicThemes: true,
+      premiumThemes: true,
       aiRecommendations: true,
       customThemes: true,
-      analytics: true,
+      vendorRecommendations: true,
       prioritySupport: true,
-      whiteLabel: true,
-      dedicatedSupport: true
+      adminTools: true,
+      teamTools: true
     }
   }
 } as const;
 
-export type SubscriptionPlan = keyof typeof SUBSCRIPTION_PLANS;
+export type SubscriptionPlan = 'STARTER' | 'PLUS' | 'PRO';
 
 export {
   type DodoPaymentsConfig,
