@@ -1,3 +1,55 @@
+## [usr-1754527087920]
+**User Request:** I have revised the subscription plans  - Use this and implment changes in the home page, subscription under account settings etc
+
+🎈 Starter — $9.99 (One-Time)
+A quick and easy starting point for parents seeking basic help.
+Includes:
+
+Theme suggestions based on age
+
+Smart checklist & timeline
+
+Simple invitation creator
+
+Email support (72-hour response)
+
+🧁 Plus — $14.99 (One-Time)
+Smart and simple AI-powered birthday planning for busy parents.
+Includes everything in Starter, plus:
+
+Personalized activity ideas
+
+RSVP tracking
+
+Task reminders
+
+Basic budget tracker (manual input)
+
+Email support (48-hour response)
+
+✨ Pro — $29.99 (One-Time)
+All-in-one planning experience with advanced support and recommendations.
+Includes everything in Plus, plus:
+
+Vendor recommendations (cakes, decor, entertainment)
+
+Personalized food suggestions by age & theme
+
+Smart budget tracker with cost insights
+
+Priority email support (24-hour response)
+
+**Response Summary:** Successfully implemented comprehensive pricing plan updates across the entire application with the new three-tier structure: Starter ($9.99), Plus ($14.99), and Pro ($29.99) - all one-time payments. Updated all pricing configurations, feature sets, and user-facing content to reflect the revised subscription plans with detailed feature descriptions and support response times.
+
+**Technical Implementation:**
+1. **Updated Pricing Configuration**: Modified `lib/dodo-payments.ts` with new pricing structure, feature sets, and all plans as one-time payments
+2. **Home Page Updates**: Updated pricing preview section with new plan names (🎈 Starter, 🧁 Plus, ✨ Pro), pricing ($9.99, $14.99, $29.99), and detailed feature descriptions matching the user specifications
+3. **Pricing Page Overhaul**: Complete redesign of `/pricing` page removing monthly/annual toggle, updating plan cards, feature comparison table, and FAQ section for one-time payment model
+4. **Account Settings Updates**: Updated subscription management in `/account` page with new plan details, pricing, and feature descriptions in both current plan display and upgrade options
+5. **Feature Alignment**: Ensured all feature descriptions match exactly with user specifications including support response times, budget tracker types, and vendor recommendation details
+
+**Files Modified:** lib/dodo-payments.ts, app/page.tsx, app/pricing/page.tsx, app/account/page.tsx
+
 ## [usr-1754526613607]
 **User Request:** Make the same changes in the home page - Starter Plan, Plus Plan and Pro plan. Currently it is reflecting essential, magical and ultimate 
 **Response Summary:** Updated the home page pricing section to use the new pricing plan names: Starter Plan, Plus Plan, and Pro Plan, replacing the old names (Essential Party, Magical Party, Ultimate Party) to maintain consistency with the recent pricing model changes.

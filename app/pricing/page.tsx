@@ -10,83 +10,85 @@ import { useState } from "react"
 
 const pricingTiers = [
   {
-    name: "🎯 Starter",
+    name: "🎈 Starter",
     price: 9.99,
     annualPrice: 9.99,
-    description: "Perfect for single event planning",
+    description: "A quick and easy starting point for parents seeking basic help.",
     icon: Star,
     gradient: "from-purple-500 to-pink-500",
     bgGradient: "from-purple-50 to-pink-50",
     features: [
-      "1 event",
-      "Up to 15 guests",
-      "Basic themes",
-      "Basic checklist"
+      "Theme suggestions based on age",
+      "Smart checklist & timeline",
+      "Simple invitation creator",
+      "Email support (72-hour response)"
     ],
     limitations: [],
     cta: "Choose Plan",
     ctaVariant: "outline" as const,
     popular: false,
-    bestFor: "Entry-level plan for new users or one-time parties",
+    bestFor: "Perfect starting point for basic help",
     isOneTime: true
   },
   {
-    name: "✨ Plus",
-    price: 19.99,
-    annualPrice: 19.99,
-    description: "Everything you need for unlimited events",
+    name: "🧁 Plus",
+    price: 14.99,
+    annualPrice: 14.99,
+    description: "Smart and simple AI-powered birthday planning for busy parents.",
     icon: Zap,
     gradient: "from-blue-500 to-cyan-500",
     bgGradient: "from-blue-50 to-cyan-50",
     features: [
-      "Unlimited events",
-      "Unlimited guests",
-      "Premium themes",
-      "AI-powered suggestions"
+      "Everything in Starter, plus:",
+      "Personalized activity ideas",
+      "RSVP tracking",
+      "Task reminders",
+      "Basic budget tracker (manual input)",
+      "Email support (48-hour response)"
     ],
     limitations: [],
     cta: "Choose Plan",
     ctaVariant: "default" as const,
     popular: true,
-    bestFor: "Unlimited parties after single payment",
+    bestFor: "Smart AI-powered planning for busy parents",
     isOneTime: true
   },
   {
-    name: "👑 Pro",
-    price: 4.99,
-    annualPrice: 39.99,
-    description: "Advanced features with subscription benefits",
+    name: "✨ Pro",
+    price: 29.99,
+    annualPrice: 29.99,
+    description: "All-in-one planning experience with advanced support and recommendations.",
     icon: Crown,
     gradient: "from-emerald-500 to-teal-500",
     bgGradient: "from-emerald-50 to-teal-50",
     features: [
-      "Everything in Plus",
-      "Custom theme creation",
-      "Vendor recommendations",
-      "Priority support",
-      "Admin/team tools"
+      "Everything in Plus, plus:",
+      "Vendor recommendations (cakes, decor, entertainment)",
+      "Personalized food suggestions by age & theme",
+      "Smart budget tracker with cost insights",
+      "Priority email support (24-hour response)"
     ],
     limitations: [],
     cta: "Choose Plan",
     ctaVariant: "default" as const,
     popular: false,
-    bestFor: "Professional features with ongoing support",
-    isSubscription: true
+    bestFor: "All-in-one planning with advanced features",
+    isOneTime: true
   }
 ]
 
 const faqs = [
   {
-    question: "What's the difference between one-time and subscription pricing?",
-    answer: "Starter and Plus are one-time payments giving you permanent access. Pro is a subscription with ongoing premium features, priority support, and regular updates."
+    question: "Are all plans one-time payments?",
+    answer: "Yes! All our plans (Starter, Plus, and Pro) are one-time payments with no monthly subscriptions. Pay once and use the features forever."
   },
   {
     question: "Can I upgrade between plans?",
     answer: "Yes! You can upgrade from Starter to Plus or Pro at any time. We'll credit your original purchase toward the upgrade cost."
   },
   {
-    question: "What happens if I exceed plan limits?",
-    answer: "For Starter, you'll be prompted to upgrade when you reach 15 guests or try to create a second event. Plus and Pro have no limits on events and guests."
+    question: "What's included in each plan?",
+    answer: "Starter includes basic planning tools. Plus adds personalized features like AI activity suggestions and RSVP tracking. Pro includes everything plus vendor recommendations and priority support."
   },
   {
     question: "Do you offer refunds?",
@@ -97,48 +99,26 @@ const faqs = [
     answer: "We accept all major credit cards, debit cards, and PayPal through our secure payment processor DoDo Payments."
   },
   {
-    question: "How does the Pro subscription work?",
-    answer: "Pro offers monthly ($4.99) or annual ($39.99) billing with a 33% discount for annual payment. Cancel anytime with no long-term commitment."
+    question: "How do the support response times work?",
+    answer: "Starter includes 72-hour email support, Plus gets 48-hour response times, and Pro receives priority 24-hour email support for faster assistance."
   }
 ]
 
 export default function PricingPage() {
-  const [isAnnual, setIsAnnual] = useState(false)
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Header */}
       <div className="container mx-auto px-4 pt-20 pb-12">
         <div className="text-center max-w-3xl mx-auto">
           <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-            ✨ Clear, simple pricing. No hidden fees.
+            🎂 One-time payments only. No monthly subscriptions.
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6">
             Choose Your Perfect Plan
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            From single events to unlimited parties, we have the perfect plan to make every celebration magical. Clear pricing, powerful features.
+            Simple, transparent pricing with no hidden fees. Pay once and enjoy all features forever - perfect for planning magical birthday celebrations.
           </p>
-          
-          {/* Pricing Toggle for Pro Plan */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <span className={`text-sm ${!isAnnual ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-              Monthly
-            </span>
-            <Switch
-              checked={isAnnual}
-              onCheckedChange={setIsAnnual}
-              className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-purple-500 data-[state=checked]:to-pink-500"
-            />
-            <span className={`text-sm ${isAnnual ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-              Annual
-            </span>
-            {isAnnual && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                Save 33%
-              </Badge>
-            )}
-          </div>
         </div>
       </div>
 
@@ -146,9 +126,8 @@ export default function PricingPage() {
       <div className="container mx-auto px-4 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {pricingTiers.map((tier, index) => {
-            const displayPrice = tier.isSubscription && isAnnual ? tier.annualPrice : tier.price
-            const billingPeriod = tier.isOneTime ? 'one-time' : 
-                                 tier.isSubscription ? (isAnnual ? '/year' : '/month') : 'one-time'
+            const displayPrice = tier.price
+            const billingPeriod = '(One-Time)'
             
             return (
               <Card 
@@ -183,13 +162,6 @@ export default function PricingPage() {
                       {billingPeriod}
                     </span>
                   </div>
-                  {tier.isSubscription && isAnnual && (
-                    <div className="mt-1">
-                      <span className="text-xs text-green-600 font-medium">
-                        Save ${(tier.price * 12 - tier.annualPrice).toFixed(2)} annually
-                      </span>
-                    </div>
-                  )}
                   <div className="mt-2">
                     <span className="text-xs text-gray-500 font-medium">
                       {tier.bestFor}
@@ -247,73 +219,79 @@ export default function PricingPage() {
                 <tr>
                   <th className="text-left p-4 font-semibold text-gray-900">Features</th>
                   <th className="text-center p-4">
-                    <div className="font-semibold text-gray-900 text-sm">🎯 Starter</div>
+                    <div className="font-semibold text-gray-900 text-sm">🎈 Starter</div>
                     <div className="text-xs text-gray-500">$9.99 one-time</div>
                   </th>
                   <th className="text-center p-4">
-                    <div className="font-semibold text-gray-900 text-sm">✨ Plus</div>
-                    <div className="text-xs text-gray-500">$19.99 one-time</div>
+                    <div className="font-semibold text-gray-900 text-sm">🧁 Plus</div>
+                    <div className="text-xs text-gray-500">$14.99 one-time</div>
                   </th>
                   <th className="text-center p-4">
-                    <div className="font-semibold text-gray-900 text-sm">👑 Pro</div>
-                    <div className="text-xs text-gray-500">$4.99/mo or $39.99/year</div>
+                    <div className="font-semibold text-gray-900 text-sm">✨ Pro</div>
+                    <div className="text-xs text-gray-500">$29.99 one-time</div>
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 <tr>
-                  <td className="p-4 font-medium text-gray-900">Events</td>
-                  <td className="p-4 text-center text-sm">1 event</td>
-                  <td className="p-4 text-center text-sm">Unlimited</td>
-                  <td className="p-4 text-center text-sm">Unlimited</td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900">Maximum Guests</td>
-                  <td className="p-4 text-center text-sm">15 guests</td>
-                  <td className="p-4 text-center text-sm">Unlimited</td>
-                  <td className="p-4 text-center text-sm">Unlimited</td>
-                </tr>
-                <tr>
-                  <td className="p-4 font-medium text-gray-900">Basic Themes</td>
+                  <td className="p-4 font-medium text-gray-900">Theme Suggestions</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
                 <tr className="bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900">Premium Themes</td>
+                  <td className="p-4 font-medium text-gray-900">Smart Checklist & Timeline</td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                </tr>
+                <tr>
+                  <td className="p-4 font-medium text-gray-900">Simple Invitation Creator</td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="p-4 font-medium text-gray-900">Personalized Activity Ideas</td>
                   <td className="p-4 text-center text-gray-400">—</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
                 <tr>
-                  <td className="p-4 font-medium text-gray-900">AI-Powered Suggestions</td>
+                  <td className="p-4 font-medium text-gray-900">RSVP Tracking</td>
                   <td className="p-4 text-center text-gray-400">—</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
                 <tr className="bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900">Custom Theme Creation</td>
+                  <td className="p-4 font-medium text-gray-900">Task Reminders</td>
                   <td className="p-4 text-center text-gray-400">—</td>
-                  <td className="p-4 text-center text-gray-400">—</td>
+                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
                 <tr>
+                  <td className="p-4 font-medium text-gray-900">Budget Tracker</td>
+                  <td className="p-4 text-center text-gray-400">—</td>
+                  <td className="p-4 text-center text-sm">Manual Input</td>
+                  <td className="p-4 text-center text-sm">Smart with Insights</td>
+                </tr>
+                <tr className="bg-gray-50">
                   <td className="p-4 font-medium text-gray-900">Vendor Recommendations</td>
                   <td className="p-4 text-center text-gray-400">—</td>
                   <td className="p-4 text-center text-gray-400">—</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
-                <tr className="bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900">Admin/Team Tools</td>
+                <tr>
+                  <td className="p-4 font-medium text-gray-900">Personalized Food Suggestions</td>
                   <td className="p-4 text-center text-gray-400">—</td>
                   <td className="p-4 text-center text-gray-400">—</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
                 </tr>
-                <tr>
-                  <td className="p-4 font-medium text-gray-900">Support Level</td>
-                  <td className="p-4 text-center text-sm">Community</td>
-                  <td className="p-4 text-center text-sm">Email</td>
-                  <td className="p-4 text-center text-sm">Priority Support</td>
+                <tr className="bg-gray-50">
+                  <td className="p-4 font-medium text-gray-900">Email Support Response</td>
+                  <td className="p-4 text-center text-sm">72-hour</td>
+                  <td className="p-4 text-center text-sm">48-hour</td>
+                  <td className="p-4 text-center text-sm">24-hour Priority</td>
                 </tr>
               </tbody>
             </table>
@@ -328,7 +306,7 @@ export default function PricingPage() {
             Frequently Asked Questions
           </h2>
           <p className="text-gray-600">
-            Everything you need to know about our event-based pricing.
+            Everything you need to know about our simple, one-time pricing plans.
           </p>
         </div>
 

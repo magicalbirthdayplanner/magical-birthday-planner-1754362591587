@@ -269,37 +269,37 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  🎉 Starter Plan
+                  🎈 Starter
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Perfect for first-time users and simple celebrations
+                  A quick and easy starting point for parents seeking basic help.
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$9.99</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">/one-time</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">(One-Time)</span>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">1 event creation</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Theme suggestions based on age</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Max 10 guests</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Smart checklist & timeline</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Basic themes & templates</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Simple invitation creator</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Simple checklist</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Email support (72-hour response)</span>
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90" asChild>
-                  <Link href="/create-party?package=essentialparty">Plan Essential Event</Link>
+                  <Link href="/create-party?package=starter">Choose Starter</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -316,41 +316,42 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  ✨ Plus Plan
+                  🧁 Plus
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  $19.99/one-time for 1 birthday in a calendar year
+                  Smart and simple AI-powered birthday planning for busy parents.
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$19.99</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">one-time</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$14.99</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">(One-Time)</span>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">Includes everything in Starter, plus:</div>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">1 birthday/year</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Personalized activity ideas</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Unlimited guests</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">RSVP tracking</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">AI-powered theme suggestions</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Task reminders</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Premium templates & themes</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Basic budget tracker (manual input)</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Advanced RSVP tracking</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Email support (48-hour response)</span>
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600" asChild>
-                  <Link href="/signup?plan=magical">Plan My Event</Link>
+                  <Link href="/signup?plan=plus">Choose Plus</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -364,41 +365,38 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  👑 Pro Plan
+                  ✨ Pro
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  $39.99/one-time for up to 3 birthdays in a calendar year
+                  All-in-one planning experience with advanced support and recommendations.
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$39.99</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">one-time</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$29.99</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">(One-Time)</span>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">Includes everything in Plus, plus:</div>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Up to 3 birthdays/year</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Vendor recommendations (cakes, decor, entertainment)</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Unlimited guests</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Personalized food suggestions by age & theme</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Custom theme creation</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Smart budget tracker with cost insights</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Vendor recommendations</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Priority support</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">Priority email support (24-hour response)</span>
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" asChild>
-                  <Link href="/signup?plan=ultimate">Create Ultimate Event</Link>
+                  <Link href="/signup?plan=pro">Choose Pro</Link>
                 </Button>
               </CardContent>
             </Card>

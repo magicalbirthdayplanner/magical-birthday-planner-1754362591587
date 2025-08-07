@@ -56,28 +56,28 @@ interface UserProfile {
 
 const planDetails = {
   STARTER: {
-    name: "🎯 Starter",
+    name: "🎈 Starter",
     icon: Star,
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
-    features: ["1 event", "Up to 15 guests", "Basic themes", "Basic checklist"],
-    price: "$9.99 one-time"
+    features: ["Theme suggestions based on age", "Smart checklist & timeline", "Simple invitation creator", "Email support (72-hour response)"],
+    price: "$9.99 (One-Time)"
   },
   PLUS: {
-    name: "✨ Plus", 
+    name: "🧁 Plus", 
     icon: Zap,
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    features: ["Unlimited events", "Unlimited guests", "Premium themes", "AI-powered suggestions"],
-    price: "$19.99 one-time"
+    features: ["Everything in Starter", "Personalized activity ideas", "RSVP tracking", "Task reminders", "Basic budget tracker", "Email support (48-hour response)"],
+    price: "$14.99 (One-Time)"
   },
   PRO: {
-    name: "👑 Pro",
+    name: "✨ Pro",
     icon: Crown,
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
-    features: ["Everything in Plus", "Custom theme creation", "Vendor recommendations", "Priority support", "Admin/team tools"],
-    price: "$4.99/month or $39.99/year"
+    features: ["Everything in Plus", "Vendor recommendations", "Personalized food suggestions", "Smart budget tracker with insights", "Priority email support (24-hour response)"],
+    price: "$29.99 (One-Time)"
   }
 };
 
@@ -421,18 +421,18 @@ export default function AccountPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Star className="h-5 w-5 text-purple-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎯 Starter</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎈 Starter</h3>
                       </div>
                       <Badge variant="outline" className="text-xs">$9.99</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      Perfect for single event planning
+                      A quick and easy starting point for parents seeking basic help.
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• 1 event</li>
-                      <li>• Up to 15 guests</li>
-                      <li>• Basic themes</li>
-                      <li>• Basic checklist</li>
+                      <li>• Theme suggestions based on age</li>
+                      <li>• Smart checklist & timeline</li>
+                      <li>• Simple invitation creator</li>
+                      <li>• Email support (72-hour)</li>
                     </ul>
                     {userProfile.subscription?.planType === 'STARTER' ? (
                       <Badge className="w-full text-center py-2 bg-purple-100 text-purple-800">
@@ -460,18 +460,19 @@ export default function AccountPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Zap className="h-5 w-5 text-blue-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">✨ Plus</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🧁 Plus</h3>
                       </div>
-                      <Badge variant="outline" className="text-xs">$19.99</Badge>
+                      <Badge variant="outline" className="text-xs">$14.99</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      Unlimited events after single payment
+                      Smart and simple AI-powered birthday planning for busy parents.
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• Unlimited events</li>
-                      <li>• Unlimited guests</li>
-                      <li>• Premium themes</li>
-                      <li>• AI-powered suggestions</li>
+                      <li>• Everything in Starter</li>
+                      <li>• Personalized activity ideas</li>
+                      <li>• RSVP tracking</li>
+                      <li>• Task reminders</li>
+                      <li>• Basic budget tracker</li>
                     </ul>
                     {userProfile.subscription?.planType === 'PLUS' ? (
                       <Badge className="w-full text-center py-2 bg-blue-100 text-blue-800">
@@ -496,19 +497,19 @@ export default function AccountPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Crown className="h-5 w-5 text-emerald-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">👑 Pro</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">✨ Pro</h3>
                       </div>
-                      <Badge variant="outline" className="text-xs">$4.99/mo</Badge>
+                      <Badge variant="outline" className="text-xs">$29.99</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      Advanced features with ongoing support
+                      All-in-one planning experience with advanced support and recommendations.
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
                       <li>• Everything in Plus</li>
-                      <li>• Custom theme creation</li>
                       <li>• Vendor recommendations</li>
-                      <li>• Priority support</li>
-                      <li>• Admin/team tools</li>
+                      <li>• Personalized food suggestions</li>
+                      <li>• Smart budget tracker</li>
+                      <li>• Priority support (24-hour)</li>
                     </ul>
                     {userProfile.subscription?.planType === 'PRO' ? (
                       <Badge className="w-full text-center py-2 bg-emerald-100 text-emerald-800">

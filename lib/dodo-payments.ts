@@ -219,54 +219,71 @@ export const SUBSCRIPTION_PLANS = {
       eventsCreation: 1,
       maxGuests: 15,
       basicThemes: true,
-      basicChecklist: true,
-      communitySupport: true,
+      themeSuggestions: true,
+      smartChecklist: true,
+      simpleInvitations: true,
+      emailSupport: '72-hour response',
       premiumThemes: false,
       aiRecommendations: false,
-      customThemes: false,
+      rsvpTracking: false,
+      taskReminders: false,
+      budgetTracker: false,
       vendorRecommendations: false,
       prioritySupport: false,
+      customThemes: false,
       adminTools: false
     }
   },
   PLUS: {
     id: 'plus_onetime',
     name: 'Plus',
-    price: 19.99,
+    price: 14.99,
     currency: 'USD',
     interval: 'one-time',
     features: {
       eventsCreation: -1, // unlimited
       maxGuests: -1, // unlimited
       basicThemes: true,
+      themeSuggestions: true,
+      smartChecklist: true,
+      simpleInvitations: true,
+      personalizedActivities: true,
+      rsvpTracking: true,
+      taskReminders: true,
+      budgetTracker: 'manual input',
+      emailSupport: '48-hour response',
       premiumThemes: true,
       aiRecommendations: true,
-      basicChecklist: true,
-      emailSupport: true,
-      customThemes: false,
       vendorRecommendations: false,
       prioritySupport: false,
+      customThemes: false,
       adminTools: false
     }
   },
   PRO: {
-    id: 'pro_monthly',
+    id: 'pro_onetime',
     name: 'Pro',
-    price: 4.99,
+    price: 29.99,
     currency: 'USD',
-    interval: 'month',
-    annualPrice: 39.99,
+    interval: 'one-time',
     features: {
       eventsCreation: -1, // unlimited
       maxGuests: -1, // unlimited
       basicThemes: true,
+      themeSuggestions: true,
+      smartChecklist: true,
+      simpleInvitations: true,
+      personalizedActivities: true,
+      rsvpTracking: true,
+      taskReminders: true,
+      budgetTracker: 'smart with cost insights',
+      vendorRecommendations: 'cakes, decor, entertainment',
+      personalizedFoodSuggestions: true,
+      prioritySupport: '24-hour response',
       premiumThemes: true,
       aiRecommendations: true,
       customThemes: true,
-      vendorRecommendations: true,
-      prioritySupport: true,
-      adminTools: true,
-      teamTools: true
+      adminTools: true
     }
   }
 } as const;
