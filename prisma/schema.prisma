@@ -25,66 +25,104 @@ model User {
 }
 
 model Party {
-  id             String       @id @default(cuid())
-  childName      String
-  childAge       Int
-  childGender    String?
-  partyDate      DateTime
-  theme          String
-  interests      String[]
-  favoriteColors String[]
-  guestCount     Int?
-  budget         Float?
-  location       String?
-  checklistData  Json?
-  packageType    EventPackage @default(LITE_PARTY)
-  status         PartyStatus  @default(PLANNING)
-  accessExpiresAt DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  userId         String
-  eventPurchaseId String?
-  guests         Guest[]
-  invitations    Invitation[]
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventPurchase  EventPurchase? @relation(fields: [eventPurchaseId], references: [id])
+  id               String       @id @default(cuid())
+  childName        String
+  childAge         Int
+  childGender      String?
+  partyDate        DateTime
+  partyTime        String?      // Party time as string
+  partyLocation    String?      // Full party address/location
+  theme            String
+  interests        String[]
+  favoriteColors   String[]
+  guestCount       Int?
+  maxGuests        Int?         // Maximum guest limit based on plan
+  budget           Float?
+  location         String?      // Legacy location field
+  checklistData    Json?
+  packageType      EventPackage @default(LITE_PARTY)
+  status           PartyStatus  @default(PLANNING)
+  accessExpiresAt  DateTime?
+  rsvpDeadline     DateTime?    // RSVP deadline date
+  hostName         String?      // Host name for invitations
+  hostEmail        String?      // Host email for replies
+  hostPhone        String?      // Host contact number
+  customInstructions String?    // Special instructions for guests
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  userId           String
+  eventPurchaseId  String?
+  guests           Guest[]
+  invitations      Invitation[]
+  templates        InvitationTemplate[]
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventPurchase    EventPurchase? @relation(fields: [eventPurchaseId], references: [id])
 
   @@map("parties")
 }
 
 model Guest {
-  id          String       @id @default(cuid())
-  name        String
-  email       String?
-  phone       String?
-  type        GuestType    @default(ADULT)
-  age         Int?
-  notes       String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  partyId     String
-  party       Party        @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  invitations Invitation[]
+  id            String       @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  type          GuestType    @default(ADULT)
+  age           Int?
+  notes         String?
+  tags          String[]     @default([])
+  category      String?      // Custom category for grouping
+  dietaryReqs   String?      // Dietary requirements/restrictions
+  emergencyContact String?   // Emergency contact for children
+  importedFrom  String?      // CSV, manual, etc.
+  isVip         Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  partyId       String
+  party         Party        @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  invitations   Invitation[]
 
   @@map("guests")
 }
 
 model Invitation {
-  id          String           @id @default(cuid())
-  status      InvitationStatus @default(PENDING)
-  sentAt      DateTime?
-  respondedAt DateTime?
-  message     String?
-  notes       String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  partyId     String
-  guestId     String
-  guest       Guest            @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  party       Party            @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  id            String           @id @default(cuid())
+  status        InvitationStatus @default(PENDING)
+  sentAt        DateTime?
+  respondedAt   DateTime?
+  message       String?
+  notes         String?
+  templateId    String?
+  customMessage String?
+  rsvpToken     String?          @unique // For unique RSVP links
+  emailSent     Boolean          @default(false)
+  smsSent       Boolean          @default(false)
+  reminderCount Int              @default(0)
+  lastReminderAt DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  partyId       String
+  guestId       String
+  guest         Guest            @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  party         Party            @relation(fields: [partyId], references: [id], onDelete: Cascade)
 
   @@unique([partyId, guestId])
   @@map("invitations")
+}
+
+model InvitationTemplate {
+  id          String    @id @default(cuid())
+  name        String
+  subject     String
+  content     String
+  theme       String?
+  isDefault   Boolean   @default(false)
+  isCustom    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  partyId     String?
+  party       Party?    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+
+  @@map("invitation_templates")
 }
 
 model Subscription {
@@ -230,12 +268,18 @@ enum InvoiceStatus {
 enum GuestType {
   ADULT
   CHILD
+  FAMILY
+  COUPLE
 }
 
 enum InvitationStatus {
   PENDING
   SENT
+  DELIVERED
+  OPENED
   ACCEPTED
   DECLINED
   MAYBE
+  BOUNCED
+  FAILED
 }
