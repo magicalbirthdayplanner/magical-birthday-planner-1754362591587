@@ -1,3 +1,12 @@
+## [usr-1754538906834]
+**User Request:** Unable to read the text on the tab due to poor color and gradient selection
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-06 at 11.54.31 PM.png
+
+**Response Summary:** Fixed tab text visibility issue in the Party Management interface by replacing dynamic template literal classes with proper Tailwind CSS classes and inline styles. The problem was caused by poor contrast between text color (text-gray-700) and light hover backgrounds (bg-teal-50), making text nearly invisible especially on the "Guests" and "Checklist" tabs. Implemented a solution that uses high-contrast colors (text-gray-900 dark:text-gray-100) for inactive tabs with neutral hover states (hover:bg-gray-100 dark:hover:bg-gray-700) and CSS custom properties for active state gradients to ensure proper rendering. This ensures excellent readability across all tab states while maintaining the beautiful gradient designs for active tabs.
+
+**Files Modified:** app/party-plan/page.tsx (fixed TabsTrigger styling for better text contrast and visibility)
+
 ## [usr-1754538585835]
 **User Request:** In Party Management tab, when clicking the tabs, due to the gradient colors, unable to read. Make changes to all types of plans. 
 

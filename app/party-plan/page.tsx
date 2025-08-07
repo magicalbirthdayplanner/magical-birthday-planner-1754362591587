@@ -1049,7 +1049,29 @@ export default function PartyPlanPage() {
                     <TabsTrigger
                       key={tab.id}
                       value={tab.id}
-                      className={`flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:${tab.gradient} data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold transition-all duration-200 hover:${tab.hoverColor} text-gray-700 dark:text-gray-300 data-[state=active]:border-none`}
+                      className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg transition-all duration-200 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 data-[state=active]:bg-gradient-to-r data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold data-[state=active]:border-none"
+                      style={{
+                        '--tw-gradient-from': tab.id === 'overview' ? '#a855f7' : 
+                                             tab.id === 'budget' ? '#10b981' :
+                                             tab.id === 'shopping' ? '#f97316' :
+                                             tab.id === 'venue' ? '#f59e0b' :
+                                             tab.id === 'food' ? '#ef4444' :
+                                             tab.id === 'cake' ? '#ec4899' :
+                                             tab.id === 'guests' ? '#14b8a6' :
+                                             tab.id === 'activities' ? '#8b5cf6' :
+                                             tab.id === 'timeline' ? '#6366f1' :
+                                             tab.id === 'checklist' ? '#3b82f6' : '#6366f1',
+                        '--tw-gradient-to': tab.id === 'overview' ? '#ec4899' : 
+                                           tab.id === 'budget' ? '#059669' :
+                                           tab.id === 'shopping' ? '#dc2626' :
+                                           tab.id === 'venue' ? '#f97316' :
+                                           tab.id === 'food' ? '#ec4899' :
+                                           tab.id === 'cake' ? '#f43f5e' :
+                                           tab.id === 'guests' ? '#06b6d4' :
+                                           tab.id === 'activities' ? '#a855f7' :
+                                           tab.id === 'timeline' ? '#a855f7' :
+                                           tab.id === 'checklist' ? '#06b6d4' : '#a855f7'
+                      } as any}
                     >
                       <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                       <span className="truncate font-semibold">{tab.label}</span>
