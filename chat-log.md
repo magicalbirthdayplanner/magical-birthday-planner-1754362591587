@@ -1,3 +1,12 @@
+## [usr-1754537875956]
+**User Request:** The next button ay step 4 in the wizard  is disabled after entering all the details. 
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-06 at 11.36.01 PM.png
+
+**Response Summary:** Fixed the disabled Next button issue in step 4 of the party creation wizard. The problem was that the initial state for currency was set to an empty string ("") while the form displayed USD as the default value. The validation logic required both currency to exist AND not be empty, creating a mismatch between the displayed default and actual state. Fixed by initializing the currency field to "USD" in the initial partyData state, ensuring proper validation and enabling the Next button when all required fields (budget, currency, country, zipCode, guestCount) are completed.
+
+**Files Modified:** app/create-party/page.tsx (updated currency initialization from "" to "USD")
+
 ## [usr-1754537066102]
 **User Request:** Dynamic Tabs per Subscription Plan in Party Management
 

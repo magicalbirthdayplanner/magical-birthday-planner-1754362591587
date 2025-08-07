@@ -402,7 +402,7 @@ export default function CreatePartyPage() {
     isLoadingAI: false,
     classicTheme: "",
     budget: undefined,
-    currency: "",
+    currency: "USD", // Initialize with default USD currency
     zipCode: "",
     country: "",
     zipCodeError: undefined,
