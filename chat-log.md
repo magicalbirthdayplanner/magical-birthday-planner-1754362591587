@@ -1,3 +1,8 @@
+## [usr-1754526613607]
+**User Request:** Make the same changes in the home page - Starter Plan, Plus Plan and Pro plan. Currently it is reflecting essential, magical and ultimate 
+**Response Summary:** Updated the home page pricing section to use the new pricing plan names: Starter Plan, Plus Plan, and Pro Plan, replacing the old names (Essential Party, Magical Party, Ultimate Party) to maintain consistency with the recent pricing model changes.
+**Files Modified:** app/page.tsx
+
 ## [usr-1754526366922]
 **User Request:** Task: Update the Party Planner app's pricing model and UI to use the following three clear, user-friendly plans. Replace any confusing or redundant old tiers with these new options. Ensure upgrade logic, access controls, and UI messaging are consistent and easy to understand.
 

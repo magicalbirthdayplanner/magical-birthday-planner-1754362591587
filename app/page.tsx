@@ -269,7 +269,7 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  🎉 Essential Party
+                  🎉 Starter Plan
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
                   Perfect for first-time users and simple celebrations
@@ -316,7 +316,7 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  ✨ Magical Party
+                  ✨ Plus Plan
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
                   $19.99/one-time for 1 birthday in a calendar year
@@ -364,7 +364,7 @@ export default function Home() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  👑 Ultimate Party
+                  👑 Pro Plan
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
                   $39.99/one-time for up to 3 birthdays in a calendar year
