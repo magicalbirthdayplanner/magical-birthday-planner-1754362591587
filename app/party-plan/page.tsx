@@ -1049,28 +1049,19 @@ export default function PartyPlanPage() {
                     <TabsTrigger
                       key={tab.id}
                       value={tab.id}
-                      className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg transition-all duration-200 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 data-[state=active]:bg-gradient-to-r data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold data-[state=active]:border-none"
+                      className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg transition-all duration-200 text-gray-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-gray-100 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold data-[state=active]:border-none data-[state=active]:transform data-[state=active]:scale-[1.02]"
                       style={{
-                        '--tw-gradient-from': tab.id === 'overview' ? '#a855f7' : 
-                                             tab.id === 'budget' ? '#10b981' :
-                                             tab.id === 'shopping' ? '#f97316' :
-                                             tab.id === 'venue' ? '#f59e0b' :
-                                             tab.id === 'food' ? '#ef4444' :
-                                             tab.id === 'cake' ? '#ec4899' :
-                                             tab.id === 'guests' ? '#14b8a6' :
-                                             tab.id === 'activities' ? '#8b5cf6' :
-                                             tab.id === 'timeline' ? '#6366f1' :
-                                             tab.id === 'checklist' ? '#3b82f6' : '#6366f1',
-                        '--tw-gradient-to': tab.id === 'overview' ? '#ec4899' : 
-                                           tab.id === 'budget' ? '#059669' :
-                                           tab.id === 'shopping' ? '#dc2626' :
-                                           tab.id === 'venue' ? '#f97316' :
-                                           tab.id === 'food' ? '#ec4899' :
-                                           tab.id === 'cake' ? '#f43f5e' :
-                                           tab.id === 'guests' ? '#06b6d4' :
-                                           tab.id === 'activities' ? '#a855f7' :
-                                           tab.id === 'timeline' ? '#a855f7' :
-                                           tab.id === 'checklist' ? '#06b6d4' : '#a855f7'
+                        backgroundImage: tab.id === 'overview' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' : 
+                                        tab.id === 'budget' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
+                                        tab.id === 'shopping' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
+                                        tab.id === 'venue' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' :
+                                        tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
+                                        tab.id === 'cake' ? 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f472b6 100%)' :
+                                        tab.id === 'guests' ? 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #2dd4bf 100%)' :
+                                        tab.id === 'activities' ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%)' :
+                                        tab.id === 'timeline' ? 'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)' :
+                                        tab.id === 'checklist' ? 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%)' : 
+                                        'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)'
                       } as any}
                     >
                       <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
