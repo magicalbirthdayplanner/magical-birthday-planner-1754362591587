@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import GuestList, { Guest, Invitation } from "@/components/GuestList";
 import BulkInvitations from "@/components/BulkInvitations";
 import RSVPTracker from "@/components/RSVPTracker";
@@ -17,6 +18,7 @@ import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getParty, updateParty, addGuest, updateGuest, deleteGuest, updateInvitationStatus } from "@/lib/party-actions";
 import { 
   PartyPopper, 
@@ -55,7 +57,9 @@ import {
   Home,
   UtensilsCrossed,
   Cake,
+  Crown,
 } from "lucide-react";
+import Link from "next/link";
 
 interface PartyData {
   childName: string;
@@ -137,6 +141,7 @@ const themeData = {
 
 export default function PartyPlanPage() {
   const { user } = useAuth();
+  const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();
   const [partyData, setPartyData] = useState<PartyData | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
@@ -153,6 +158,136 @@ export default function PartyPlanPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPartyId, setCurrentPartyId] = useState<string | null>(null);
+
+  // Tab configuration based on subscription plans
+  const tabConfigs = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: PartyPopper,
+      gradient: 'from-purple-500 to-pink-500',
+      hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
+      allowedPlans: ['overview'] // Always allowed (included in all plans)
+    },
+    {
+      id: 'budget',
+      label: 'Budget',
+      icon: DollarSign,
+      gradient: 'from-green-500 to-emerald-500',
+      hoverColor: 'bg-green-50 dark:bg-green-900/20',
+      allowedPlans: ['budget'] // Plus and Pro plans
+    },
+    {
+      id: 'shopping',
+      label: 'Shopping',
+      icon: ShoppingBag,
+      gradient: 'from-orange-500 to-red-500',
+      hoverColor: 'bg-orange-50 dark:bg-orange-900/20',
+      allowedPlans: ['shopping'] // Pro plan only
+    },
+    {
+      id: 'venue',
+      label: 'Venue',
+      icon: Home,
+      gradient: 'from-amber-500 to-orange-500',
+      hoverColor: 'bg-amber-50 dark:bg-amber-900/20',
+      allowedPlans: ['venue'] // Pro plan only
+    },
+    {
+      id: 'food',
+      label: 'Food',
+      icon: UtensilsCrossed,
+      gradient: 'from-red-500 to-pink-500',
+      hoverColor: 'bg-red-50 dark:bg-red-900/20',
+      allowedPlans: ['food'] // Pro plan only
+    },
+    {
+      id: 'cake',
+      label: 'Cake',
+      icon: Cake,
+      gradient: 'from-pink-500 to-rose-500',
+      hoverColor: 'bg-pink-50 dark:bg-pink-900/20',
+      allowedPlans: ['cake'] // Pro plan only
+    },
+    {
+      id: 'guests',
+      label: 'Guests',
+      icon: Users,
+      gradient: 'from-teal-500 to-cyan-500',
+      hoverColor: 'bg-teal-50 dark:bg-teal-900/20',
+      allowedPlans: ['guests'] // Always allowed (included in all plans)
+    },
+    {
+      id: 'activities',
+      label: 'Activities',
+      icon: Music,
+      gradient: 'from-violet-500 to-purple-500',
+      hoverColor: 'bg-violet-50 dark:bg-violet-900/20',
+      allowedPlans: ['activities'] // Plus and Pro plans
+    },
+    {
+      id: 'timeline',
+      label: 'Timeline',
+      icon: Clock,
+      gradient: 'from-indigo-500 to-purple-500',
+      hoverColor: 'bg-indigo-50 dark:bg-indigo-900/20',
+      allowedPlans: ['timeline'] // Always allowed (included in all plans)
+    },
+    {
+      id: 'checklist',
+      label: 'Checklist',
+      icon: CheckCircle2,
+      gradient: 'from-blue-500 to-cyan-500',
+      hoverColor: 'bg-blue-50 dark:bg-blue-900/20',
+      allowedPlans: ['checklist'] // Always allowed (included in all plans)
+    }
+  ];
+
+  // Get tabs allowed for current subscription plan
+  const allowedTabs = tabConfigs.filter(tab => isTabAllowed(tab.id));
+
+  // Create upgrade notification component for restricted content
+  const UpgradeNotification = ({ tabName }: { tabName: string }) => (
+    <div className="flex flex-col items-center justify-center min-h-[400px] p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
+      <div className="text-center space-y-4">
+        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-full flex items-center justify-center">
+          <Crown className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            Premium Feature
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md">
+            {getRestrictedMessage(tabName)}
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+          <Button asChild className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+            <Link href="/pricing">
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade Plan
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/pricing">
+              Compare Plans
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Protected tab content wrapper
+  const ProtectedTabContent = ({ tabName, children, className = "" }: { 
+    tabName: string; 
+    children: React.ReactNode; 
+    className?: string;
+  }) => (
+    <TabsContent value={tabName} className={className}>
+      {isTabAllowed(tabName) ? children : <UpgradeNotification tabName={tabName} />}
+    </TabsContent>
+  );
 
   // Save checklist data to database (no auto-save, manual save on changes)
   const saveChecklistData = async (checklistData: ChecklistItem[]) => {
@@ -906,59 +1041,19 @@ export default function PartyPlanPage() {
           <Tabs defaultValue="overview" className="w-full">
             <div className="overflow-x-auto mb-6">
               <TabsList className="flex w-full h-auto p-1.5 gap-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-md rounded-xl">
-                {/* Overview & Planning Group */}
-                <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-gray-700 dark:text-gray-300">
-                  <PartyPopper className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Overview</span>
-                </TabsTrigger>
-                
-                <TabsTrigger value="budget" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-green-50 dark:hover:bg-green-900/20 text-gray-700 dark:text-gray-300">
-                  <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Budget</span>
-                </TabsTrigger>
-                
-                {/* Shopping & Vendors Group */}
-                <TabsTrigger value="shopping" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-gray-700 dark:text-gray-300">
-                  <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Shopping</span>
-                </TabsTrigger>
-                
-                <TabsTrigger value="venue" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-gray-700 dark:text-gray-300">
-                  <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Venue</span>
-                </TabsTrigger>
-                
-                <TabsTrigger value="food" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300">
-                  <UtensilsCrossed className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Food</span>
-                </TabsTrigger>
-                
-                <TabsTrigger value="cake" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-pink-50 dark:hover:bg-pink-900/20 text-gray-700 dark:text-gray-300">
-                  <Cake className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Cake</span>
-                </TabsTrigger>
-                
-                {/* Guest Management Group */}
-                <TabsTrigger value="guests" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-teal-50 dark:hover:bg-teal-900/20 text-gray-700 dark:text-gray-300">
-                  <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Guests</span>
-                </TabsTrigger>
-                
-                <TabsTrigger value="activities" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-violet-50 dark:hover:bg-violet-900/20 text-gray-700 dark:text-gray-300">
-                  <Music className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Activities</span>
-                </TabsTrigger>
-                
-                {/* Timeline & Tasks Group - Moved to End */}
-                <TabsTrigger value="timeline" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-gray-700 dark:text-gray-300">
-                  <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Timeline</span>
-                </TabsTrigger>
-                
-                <TabsTrigger value="checklist" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300">
-                  <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="truncate font-semibold">Checklist</span>
-                </TabsTrigger>
+                {allowedTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      className={`flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:${tab.gradient} data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:${tab.hoverColor} text-gray-700 dark:text-gray-300`}
+                    >
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                      <span className="truncate font-semibold">{tab.label}</span>
+                    </TabsTrigger>
+                  );
+                })}
               </TabsList>
             </div>
 
@@ -1049,16 +1144,16 @@ export default function PartyPlanPage() {
           </TabsContent>
 
           {/* Budget Tab */}
-          <TabsContent value="budget" className="space-y-6">
+          <ProtectedTabContent tabName="budget" className="space-y-6">
             <SimpleBudgetTracker
               partyId={partyData?.childName || 'party'}
               initialBudget={partyData?.budget}
               childAge={parseInt(partyData?.childAge || '0')}
             />
-          </TabsContent>
+          </ProtectedTabContent>
 
           {/* Shopping Tab */}
-          <TabsContent value="shopping" className="space-y-6">
+          <ProtectedTabContent tabName="shopping" className="space-y-6">
             <ShoppingSuite
               partyBudget={partyData?.budget}
               zipCode={partyData?.zipCode}
@@ -1066,34 +1161,34 @@ export default function PartyPlanPage() {
               theme={partyData?.selectedTheme}
               partyId={partyData?.childName || 'party'}
             />
-          </TabsContent>
+          </ProtectedTabContent>
 
           {/* Venue Tab */}
-          <TabsContent value="venue" className="space-y-6">
+          <ProtectedTabContent tabName="venue" className="space-y-6">
             <VenueTab
               zipCode={partyData?.zipCode}
               partyId={currentPartyId || partyData?.childName || 'party'}
               guestCount={guests.length}
             />
-          </TabsContent>
+          </ProtectedTabContent>
 
           {/* Food Tab */}
-          <TabsContent value="food" className="space-y-6">
+          <ProtectedTabContent tabName="food" className="space-y-6">
             <FoodTab
               zipCode={partyData?.zipCode}
               partyId={currentPartyId || partyData?.childName || 'party'}
               guestCount={guests.length}
             />
-          </TabsContent>
+          </ProtectedTabContent>
 
           {/* Cake Tab */}
-          <TabsContent value="cake" className="space-y-6">
+          <ProtectedTabContent tabName="cake" className="space-y-6">
             <CakeBakeryTab
               zipCode={partyData?.zipCode}
               partyId={currentPartyId || partyData?.childName || 'party'}
               guestCount={guests.length}
             />
-          </TabsContent>
+          </ProtectedTabContent>
 
           {/* Checklist Tab */}
           <TabsContent value="checklist" className="space-y-6">
@@ -1240,13 +1335,13 @@ export default function PartyPlanPage() {
           </TabsContent>
 
           {/* Activities Tab */}
-          <TabsContent value="activities" className="space-y-6">
+          <ProtectedTabContent tabName="activities" className="space-y-6">
             <Activities
               theme={partyData?.selectedTheme || 'default'}
               childAge={parseInt(partyData?.childAge || '0')}
               guestCount={guests.length}
             />
-          </TabsContent>
+          </ProtectedTabContent>
 
 
           {/* Timeline Tab */}

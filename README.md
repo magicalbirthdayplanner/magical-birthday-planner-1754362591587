@@ -85,7 +85,7 @@ A modern, responsive web application designed to help parents plan magical birth
   - Quick access to continue planning
   - Real-time guest count and task completion metrics
 - **💳 Comprehensive Pricing & Subscription System**: Full MicroSaaS monetization
-  - Intelligent 4-tier pricing model (Free, Starter, Professional, Premium)
+  - 3-tier pricing model (Starter/Plus/Pro) with one-time payments
   - Beautiful pricing page with feature comparison and FAQ
   - Home page pricing preview with compelling call-to-action
   - Account management page with profile, subscription, and billing tabs
@@ -93,6 +93,14 @@ A modern, responsive web application designed to help parents plan magical birth
   - Subscription management API with upgrade/downgrade capabilities
   - Webhook system for real-time payment and subscription updates
   - Usage tracking and limits based on subscription tiers
+- **🎯 Dynamic Tab Management Per Subscription Plan**: Intelligent feature gating system
+  - Real-time tab visibility based on user's current subscription plan
+  - Starter Plan: Overview, Guests, Timeline, Checklist tabs
+  - Plus Plan: Adds Budget and Activities tabs to Starter features
+  - Pro Plan: All tabs including Shopping, Venue, Food, and Cake
+  - Seamless plan switching with immediate tab updates (no refresh required)
+  - Elegant upgrade notifications for restricted features
+  - Database-backed plan persistence with real-time synchronization
 
 ### Planned Features
 - **🔔 Smart Reminders**: Automated timeline notifications

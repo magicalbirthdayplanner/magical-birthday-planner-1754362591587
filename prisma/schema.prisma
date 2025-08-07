@@ -11,6 +11,7 @@ model User {
   id             String        @id @default(cuid())
   email          String        @unique
   name           String?
+  currentPlan    SubscriptionPlan @default(FREE)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   theme          String?       @default("light")
@@ -174,10 +175,9 @@ model UsageLimit {
 }
 
 enum SubscriptionPlan {
-  FREE
-  STARTER
-  PROFESSIONAL
-  PREMIUM
+  FREE          // Starter plan (FREE tier - basic features)
+  STARTER       // Plus plan ($14.99 - enhanced features)
+  PROFESSIONAL  // Pro plan ($29.99 - all features)
 }
 
 enum EventPackage {

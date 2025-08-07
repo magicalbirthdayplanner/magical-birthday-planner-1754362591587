@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Home, User, LogOut, Calendar, Loader2, Settings, Star, Zap, Crown, CreditCard, ChevronRight } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,59 +18,33 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useState, useEffect } from 'react';
+import { toast } from '@/hooks/use-toast';
 
-const planDetails = {
+const planIcons = {
+  FREE: Star,
+  STARTER: Zap,
+  PROFESSIONAL: Crown,
+};
+
+const planColors = {
   FREE: {
-    name: "Starter",
-    icon: Star,
     color: "text-purple-700 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
   },
   STARTER: {
-    name: "Plus",
-    icon: Zap,
     color: "text-blue-700 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
   },
   PROFESSIONAL: {
-    name: "Pro",
-    icon: Crown,
     color: "text-amber-700 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
   }
 };
 
-type PlanType = 'FREE' | 'STARTER' | 'PROFESSIONAL';
-
 export function Header() {
   const { user, signOut, isSigningOut } = useAuth();
-  const [userPlan, setUserPlan] = useState<PlanType>('FREE');
-
-  // Listen for plan changes from localStorage or account page
-  useEffect(() => {
-    if (user) {
-      // Check if user is superadmin for plan switching functionality
-      const isSupeadmin = user.email === "arunexprasad@gmail.com";
-      if (isSupeadmin) {
-        // Listen for plan changes stored in localStorage for superadmin
-        const storedPlan = localStorage.getItem('superadmin_plan') as PlanType;
-        if (storedPlan && planDetails[storedPlan]) {
-          setUserPlan(storedPlan);
-        }
-        
-        // Set up event listener for plan changes
-        const handlePlanChange = (event: CustomEvent) => {
-          setUserPlan(event.detail.plan);
-        };
-        
-        window.addEventListener('planChanged', handlePlanChange as EventListener);
-        
-        return () => {
-          window.removeEventListener('planChanged', handlePlanChange as EventListener);
-        };
-      }
-    }
-  }, [user]);
+  const { currentPlan, planDetails, updateUserPlan, loading } = useSubscription();
+  const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
 
   const handleSignOut = async () => {
     if (isSigningOut) return; // Prevent multiple clicks
@@ -85,17 +60,25 @@ export function Header() {
     }
   };
 
-  const handlePlanChange = (newPlan: 'FREE' | 'STARTER' | 'PROFESSIONAL') => {
-    if (user && user.email === "arunexprasad@gmail.com") {
-      setUserPlan(newPlan);
-      
-      // Store plan in localStorage
-      localStorage.setItem('superadmin_plan', newPlan);
-      
-      // Dispatch event to notify other components
-      window.dispatchEvent(new CustomEvent('planChanged', { 
-        detail: { plan: newPlan } 
-      }));
+  const handlePlanChange = async (newPlan: 'FREE' | 'STARTER' | 'PROFESSIONAL') => {
+    if (isUpdatingPlan || newPlan === currentPlan) return;
+    
+    try {
+      setIsUpdatingPlan(true);
+      await updateUserPlan(newPlan);
+      toast({
+        title: "Plan Updated",
+        description: `Successfully switched to ${planDetails.displayName} plan!`,
+      });
+    } catch (error) {
+      console.error('Error updating plan:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update subscription plan. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingPlan(false);
     }
   };
 
@@ -155,15 +138,15 @@ export function Header() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           {(() => {
-                            const plan = planDetails[userPlan];
-                            const PlanIcon = plan.icon;
+                            const PlanIcon = planIcons[currentPlan];
+                            const colors = planColors[currentPlan];
                             return (
                               <>
-                                <div className={`p-1 rounded-full ${plan.bgColor}`}>
-                                  <PlanIcon className={`h-3 w-3 ${plan.color}`} />
+                                <div className={`p-1 rounded-full ${colors.bgColor}`}>
+                                  <PlanIcon className={`h-3 w-3 ${colors.color}`} />
                                 </div>
                                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                  {plan.name} Plan
+                                  {planDetails.displayName} Plan
                                 </span>
                               </>
                             );
@@ -182,54 +165,43 @@ export function Header() {
                         <span>Manage Plan</span>
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent className="w-48">
-                        {user && user.email === "arunexprasad@gmail.com" ? (
-                          <>
-                            {Object.entries(planDetails).map(([key, plan]) => {
-                              const PlanIcon = plan.icon;
-                              const isActive = userPlan === key;
-                              return (
-                                <DropdownMenuItem
-                                  key={key}
-                                  onClick={() => handlePlanChange(key as any)}
-                                  className={`flex items-center justify-between ${isActive ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    <div className={`p-1 rounded-full ${plan.bgColor}`}>
-                                      <PlanIcon className={`h-3 w-3 ${plan.color}`} />
-                                    </div>
-                                    <span className="text-sm">{plan.name}</span>
-                                  </div>
-                                  {isActive && (
-                                    <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs">
-                                      Current
-                                    </Badge>
-                                  )}
-                                </DropdownMenuItem>
-                              );
-                            })}
-                            <DropdownMenuSeparator />
-                            <div className="px-2 py-1">
-                              <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 text-xs">
-                                SUPERADMIN MODE
-                              </Badge>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <DropdownMenuItem asChild>
-                              <Link href="/pricing" className="flex items-center justify-between">
-                                <span>Upgrade Plan</span>
-                                <ChevronRight className="h-3 w-3" />
-                              </Link>
+                        {(['FREE', 'STARTER', 'PROFESSIONAL'] as const).map((planKey) => {
+                          const PlanIcon = planIcons[planKey];
+                          const colors = planColors[planKey];
+                          const isActive = currentPlan === planKey;
+                          const plan = { displayName: planKey === 'FREE' ? 'Starter' : planKey === 'STARTER' ? 'Plus' : 'Pro' };
+                          
+                          return (
+                            <DropdownMenuItem
+                              key={planKey}
+                              onClick={() => handlePlanChange(planKey)}
+                              disabled={isUpdatingPlan}
+                              className={`flex items-center justify-between ${isActive ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <div className={`p-1 rounded-full ${colors.bgColor}`}>
+                                  <PlanIcon className={`h-3 w-3 ${colors.color}`} />
+                                </div>
+                                <span className="text-sm">{plan.displayName}</span>
+                              </div>
+                              {isActive && (
+                                <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs">
+                                  Current
+                                </Badge>
+                              )}
+                              {isUpdatingPlan && (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              )}
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <span>Billing History</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <span>Payment Methods</span>
-                            </DropdownMenuItem>
-                          </>
-                        )}
+                          );
+                        })}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/pricing" className="flex items-center justify-between">
+                            <span>View All Plans</span>
+                            <ChevronRight className="h-3 w-3" />
+                          </Link>
+                        </DropdownMenuItem>
                       </DropdownMenuSubContent>
                     </DropdownMenuSub>
 
