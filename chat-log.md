@@ -1,3 +1,8 @@
+## [usr-1754530273204]
+**User Request:** Update the plan names under the profile name in the right corner - under manage plans - currently it shows essential and magical and ultimate - change to starter, plus and pro and bring consistency 
+**Response Summary:** Successfully updated the plan names displayed under the profile dropdown menu in the header for consistency. Changed plan names from "Essential", "Magical", and "Ultimate" to "Starter", "Plus", and "Pro" respectively. Updated the plan details configuration in both Header.tsx and Dashboard.tsx components. Verified consistency with the account management page plan naming which already used the correct "Starter", "Plus", "Pro" naming convention. Build completed successfully with no errors.
+**Files Modified:** components/Header.tsx, components/dashboard/Dashboard.tsx
+
 ## [usr-1754529745485]
 **User Request:** Remove Email support Email support (72-hour response) from all the plans. It is generally not required
 

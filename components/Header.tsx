@@ -20,19 +20,19 @@ import { useState, useEffect } from 'react';
 
 const planDetails = {
   FREE: {
-    name: "Essential",
+    name: "Starter",
     icon: Star,
     color: "text-purple-700 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
   },
   STARTER: {
-    name: "Magical",
+    name: "Plus",
     icon: Zap,
     color: "text-blue-700 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
   },
   PROFESSIONAL: {
-    name: "Ultimate",
+    name: "Pro",
     icon: Crown,
     color: "text-amber-700 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
