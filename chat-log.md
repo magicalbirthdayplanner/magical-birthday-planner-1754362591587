@@ -1,3 +1,12 @@
+## [usr-1754525612481]
+**User Request:** after sigining in, In the foot of the home page, next to the button dashboard, the button "start a new party" is not visible due to color in white theme. Please fix this 
+
+ 
+**Response Summary:** Fixed the "Start New Party" button visibility issue in the home page footer. The button was invisible in white theme because it used white text on a white background. Updated the button styling to have proper hover states with better color contrast.
+
+**Files Modified:** 
+- app/page.tsx - Updated the "Start New Party" button styling in the CTA section to change hover:bg-white/10 to hover:bg-white hover:text-purple-600 for better visibility and contrast
+
 ## [usr-1754524582595]
 **User Request:** Add subscription options in the account settings - one should be able to upgrade or downgrade 
 

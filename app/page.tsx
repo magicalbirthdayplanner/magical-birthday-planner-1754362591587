@@ -437,7 +437,7 @@ export default function Home() {
                   </Button>
                 </Link>
                 <Link href="/create-party" className="w-full sm:w-auto">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white/10 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-purple-600 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold">
                     <PartyPopper className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Start New Party
                   </Button>
