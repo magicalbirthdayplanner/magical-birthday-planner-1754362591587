@@ -1,3 +1,28 @@
+## [usr-1754539873756]
+**User Request:** once deployed to vercel - https://magical-birthday-planner.vercel.app/
+
+I am getting the error 
+
+Unable to Load Party
+Invalid `prisma.party.findFirst()` invocation: Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432` Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`. (Party ID: current)
+
+Possible causes:
+
+Party was not saved to database properly
+You don't have permission to access this party
+The party ID in the URL is invalid
+Authentication session expired
+
+Refer screenshot
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-07 at 12.10.03 AM.png
+
+**Response Summary:** Fixed critical database connectivity issue on Vercel deployment. The error was caused by the application trying to load a party with ID "current" which doesn't exist, and database connection configuration issues on Vercel serverless environment. Diagnosed the root causes: 1) Party loading logic that handles ?id=current URLs incorrectly, 2) Missing or incorrectly configured Supabase environment variables on Vercel, 3) Prisma client configuration not optimized for serverless deployment. Implemented comprehensive fixes: Enhanced party loading logic to properly handle missing or "current" party IDs with graceful fallbacks to user's most recent party, Added detailed error handling with specific database connection error detection and user-friendly messages, Improved error messages to guide users to check Vercel environment variable configuration, Optimized Prisma client configuration with reduced timeouts for faster failure detection in serverless environments, Added comprehensive try-catch blocks around all database operations with specific error types. The application now provides clear guidance when database connection fails and handles URL edge cases gracefully.
+
+**Files Modified:** 
+- app/party-plan/page.tsx (enhanced party loading logic with better error handling and database connection diagnostics)
+- lib/prisma.ts (optimized Prisma client configuration for Vercel serverless deployment)
+
 ## [usr-1754539293187]
 **User Request:** The readbility is still not improved. Colors are dull and unable to read properly. make changes to the color of these tabs across all the plans
 

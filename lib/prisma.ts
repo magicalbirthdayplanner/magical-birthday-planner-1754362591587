@@ -13,9 +13,9 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   },
   // Enhanced configuration for Vercel serverless deployment
   transactionOptions: {
-    timeout: 60000, // 60 seconds for better serverless handling
-    maxWait: 60000, // 60 seconds max wait
-  },
+    timeout: 30000, // Reduced to 30 seconds for serverless
+    maxWait: 20000, // Reduced max wait time for faster failure detection
+  }
 })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma

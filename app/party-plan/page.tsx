@@ -355,40 +355,89 @@ export default function PartyPlanPage() {
         
         console.log('Debug - Party loading:', { partyId, currentPath: window.location.pathname + window.location.search });
         
-        if (!partyId) {
-          // If no specific party ID, get the user's most recent party
-          console.log('No party ID provided, fetching user parties...');
-          const partiesResult = await fetch('/api/user/parties');
-          if (!partiesResult.ok) {
-            throw new Error(`Failed to load parties (Status: ${partiesResult.status})`);
-          }
+        if (!partyId || partyId === 'current') {
+          // If no specific party ID or using 'current', get the user's most recent party
+          console.log('No specific party ID provided, fetching user parties...');
           
-          const { parties } = await partiesResult.json();
-          console.log('User parties fetched:', { partiesCount: parties?.length });
-          if (!parties || parties.length === 0) {
-            setError('No party found. Please create a party first.');
+          try {
+            const partiesResult = await fetch('/api/user/parties');
+            
+            if (!partiesResult.ok) {
+              console.error('Failed to fetch parties:', partiesResult.status, partiesResult.statusText);
+              
+              // If database connection fails, show helpful message
+              if (partiesResult.status >= 500) {
+                setError('Database connection issue. Please check your Supabase configuration in Vercel environment variables.');
+                setLoading(false);
+                return;
+              }
+              
+              throw new Error(`Failed to load parties (Status: ${partiesResult.status})`);
+            }
+            
+            const response = await partiesResult.json();
+            console.log('Parties API response:', response);
+            
+            const { parties, error } = response;
+            
+            if (error) {
+              console.error('Database error from API:', error);
+              setError(`Database error: ${error}. Please verify your Supabase credentials are correctly set in Vercel.`);
+              setLoading(false);
+              return;
+            }
+            
+            console.log('User parties fetched:', { partiesCount: parties?.length });
+            
+            if (!parties || parties.length === 0) {
+              setError('No parties found. Please create a party first.');
+              setLoading(false);
+              return;
+            }
+            
+            // Use the most recent party
+            const latestParty = parties[parties.length - 1];
+            console.log('Using latest party:', { partyId: latestParty.id, childName: latestParty.childName });
+            loadPartyDetails(latestParty);
+            
+          } catch (fetchError) {
+            console.error('Error fetching parties:', fetchError);
+            setError('Unable to connect to database. Please check your Supabase configuration in Vercel environment variables.');
             setLoading(false);
             return;
           }
-          
-          // Use the most recent party
-          const latestParty = parties[parties.length - 1];
-          console.log('Using latest party:', { partyId: latestParty.id, childName: latestParty.childName });
-          loadPartyDetails(latestParty);
         } else {
           // Load specific party by ID
           console.log(`Loading specific party with ID: ${partyId}`);
-          const result = await getParty(partyId);
-          console.log('Party fetch result:', { success: result.success, hasParty: !!result.party, error: result.error });
           
-          if (!result.success || !result.party) {
-            const errorMessage = result.error || 'Party not found or access denied';
-            console.error('Failed to load party:', { partyId, error: result.error });
-            throw new Error(`${errorMessage} (Party ID: ${partyId})`);
+          try {
+            const result = await getParty(partyId);
+            console.log('Party fetch result:', { success: result.success, hasParty: !!result.party, error: result.error });
+            
+            if (!result.success || !result.party) {
+              const errorMessage = result.error || 'Party not found or access denied';
+              console.error('Failed to load party:', { partyId, error: result.error });
+              
+              // Check if it's a database connection error
+              if (result.error && result.error.includes("Can't reach database server")) {
+                setError('Database connection failed. Please verify your Supabase configuration is correct in Vercel environment variables.');
+              } else {
+                setError(`${errorMessage} (Party ID: ${partyId})`);
+              }
+              
+              setLoading(false);
+              return;
+            }
+            
+            console.log('Party loaded successfully:', { partyId: result.party.id, childName: result.party.childName });
+            loadPartyDetails(result.party);
+            
+          } catch (getPartyError) {
+            console.error('Error loading party:', getPartyError);
+            setError('Database connection error. Please check your Supabase configuration in Vercel.');
+            setLoading(false);
+            return;
           }
-          
-          console.log('Party loaded successfully:', { partyId: result.party.id, childName: result.party.childName });
-          loadPartyDetails(result.party);
         }
       } catch (error) {
         console.error('Error loading party data:', error);
