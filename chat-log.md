@@ -1,3 +1,14 @@
+## [usr-1754538585835]
+**User Request:** In Party Management tab, when clicking the tabs, due to the gradient colors, unable to read. Make changes to all types of plans. 
+
+The party overview section should reflect the details of the plan - for example, when choosing a starter plan, there is no budget tab and hence the party overview section should not have budget. 
+
+Please make the Party overview also dynamically change as per the details entered below and tabs that are available in each plan 
+
+**Response Summary:** Successfully fixed tab text visibility issues and implemented dynamic party overview sections based on subscription plans. Enhanced the gradient tabs with better contrast by adding bold font weight, stronger shadows, and improved styling for active states to ensure text is clearly readable across all plan types. Made the party overview section fully dynamic - the budget tracker now only appears for plans that have access to the budget tab (Plus and Pro plans), and the grid layout automatically adjusts from 3 columns to 2 columns when budget is not available. Added dynamic quick actions in the overview tab that show budget and shopping management buttons only when those features are available in the user's plan. All changes maintain the beautiful gradient design while ensuring optimal usability and plan-specific content display.
+
+**Files Modified:** app/party-plan/page.tsx (enhanced tab styling for better text visibility, made party overview section conditional based on plan access, added dynamic quick actions based on available tabs)
+
 ## [usr-1754537875956]
 **User Request:** The next button ay step 4 in the wizard  is disabled after entering all the details. 
 

@@ -905,7 +905,7 @@ export default function PartyPlanPage() {
             
             <Card className="border-2 border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-lg">
               <CardHeader className="px-6 py-5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className={`grid grid-cols-1 ${isTabAllowed('budget') ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6`}>
                   {/* Planning Progress */}
                   <div className="space-y-4">
                     <CardTitle className="flex items-center gap-3 text-lg font-bold text-purple-800 dark:text-purple-200">
@@ -935,43 +935,45 @@ export default function PartyPlanPage() {
                     </div>
                   </div>
 
-                  {/* Budget Overview */}
-                  <div className="space-y-4">
-                    <CardTitle className="flex items-center gap-3 text-lg font-bold text-green-800 dark:text-green-200">
-                      <div className="p-2 rounded-full bg-green-600 shadow-sm">
-                        <DollarSign className="h-5 w-5 text-white" />
-                      </div>
-                      Budget Tracker
-                    </CardTitle>
-                    
-                    {/* Budget Content */}
-                    <div 
-                      className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700 cursor-pointer hover:bg-gradient-to-r hover:from-green-100 hover:via-blue-100 hover:to-purple-100 dark:hover:from-green-800/20 dark:hover:via-blue-800/20 dark:hover:to-purple-800/20 transition-all duration-200 hover:shadow-md"
-                      onClick={() => {
-                        const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
-                        if (budgetTab) budgetTab.click();
-                      }}
-                    >
-                      <CardDescription className="mb-3 text-green-700 dark:text-green-300 font-medium">
-                        {(() => {
-                          const { totalBudget, totalSpent } = getBudgetData(); 
-                          return totalBudget > 0 ? `$${totalSpent.toFixed(0)} of $${totalBudget} spent` : 'Click to set budget';
-                        })()}
-                      </CardDescription>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-green-600 dark:text-green-400 font-medium">Budget Used</span>
-                        <span className="text-xl font-black text-green-700 dark:text-green-300">
-                          {Math.round(getBudgetData().percentage)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4 shadow-inner">
-                        <div 
-                          className="bg-gradient-to-r from-green-600 to-emerald-600 h-4 rounded-full transition-all duration-500 shadow-sm"
-                          style={{ width: `${getBudgetData().percentage}%` }}
-                        />
+                  {/* Budget Overview - Only show if budget tab is allowed */}
+                  {isTabAllowed('budget') && (
+                    <div className="space-y-4">
+                      <CardTitle className="flex items-center gap-3 text-lg font-bold text-green-800 dark:text-green-200">
+                        <div className="p-2 rounded-full bg-green-600 shadow-sm">
+                          <DollarSign className="h-5 w-5 text-white" />
+                        </div>
+                        Budget Tracker
+                      </CardTitle>
+                      
+                      {/* Budget Content */}
+                      <div 
+                        className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700 cursor-pointer hover:bg-gradient-to-r hover:from-green-100 hover:via-blue-100 hover:to-purple-100 dark:hover:from-green-800/20 dark:hover:via-blue-800/20 dark:hover:to-purple-800/20 transition-all duration-200 hover:shadow-md"
+                        onClick={() => {
+                          const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
+                          if (budgetTab) budgetTab.click();
+                        }}
+                      >
+                        <CardDescription className="mb-3 text-green-700 dark:text-green-300 font-medium">
+                          {(() => {
+                            const { totalBudget, totalSpent } = getBudgetData(); 
+                            return totalBudget > 0 ? `$${totalSpent.toFixed(0)} of $${totalBudget} spent` : 'Click to set budget';
+                          })()}
+                        </CardDescription>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-green-600 dark:text-green-400 font-medium">Budget Used</span>
+                          <span className="text-xl font-black text-green-700 dark:text-green-300">
+                            {Math.round(getBudgetData().percentage)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4 shadow-inner">
+                          <div 
+                            className="bg-gradient-to-r from-green-600 to-emerald-600 h-4 rounded-full transition-all duration-500 shadow-sm"
+                            style={{ width: `${getBudgetData().percentage}%` }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Party Countdown */}
                   <div className="space-y-4">
@@ -1047,7 +1049,7 @@ export default function PartyPlanPage() {
                     <TabsTrigger
                       key={tab.id}
                       value={tab.id}
-                      className={`flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:${tab.gradient} data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 hover:${tab.hoverColor} text-gray-700 dark:text-gray-300`}
+                      className={`flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:${tab.gradient} data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold transition-all duration-200 hover:${tab.hoverColor} text-gray-700 dark:text-gray-300 data-[state=active]:border-none`}
                     >
                       <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                       <span className="truncate font-semibold">{tab.label}</span>
@@ -1114,7 +1116,7 @@ export default function PartyPlanPage() {
                 </CardContent>
               </Card>
 
-              {/* Actions Card */}
+              {/* Actions Card - Dynamic content based on available tabs */}
               <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle>Quick Actions</CardTitle>
@@ -1138,6 +1140,32 @@ export default function PartyPlanPage() {
                     <Users className="h-4 w-4 mr-2" />
                     Manage Guests ({guests.length})
                   </Button>
+                  {/* Budget Quick Action - Only show if budget tab is available */}
+                  {isTabAllowed('budget') && (
+                    <Button 
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white"
+                      onClick={() => {
+                        const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
+                        if (budgetTab) budgetTab.click();
+                      }}
+                    >
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Manage Budget
+                    </Button>
+                  )}
+                  {/* Shopping Quick Action - Only show if shopping tab is available */}
+                  {isTabAllowed('shopping') && (
+                    <Button 
+                      className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white"
+                      onClick={() => {
+                        const shoppingTab = document.querySelector('[value="shopping"]') as HTMLButtonElement;
+                        if (shoppingTab) shoppingTab.click();
+                      }}
+                    >
+                      <ShoppingBag className="h-4 w-4 mr-2" />
+                      Party Shopping
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </div>
