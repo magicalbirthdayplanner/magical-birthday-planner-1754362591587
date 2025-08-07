@@ -293,10 +293,6 @@ export default function Home() {
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700 dark:text-gray-300 text-sm">Simple invitation creator</span>
                   </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Email support (72-hour response)</span>
-                  </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90" asChild>
                   <Link href="/create-party?package=starter">Choose Starter</Link>
@@ -345,10 +341,6 @@ export default function Home() {
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700 dark:text-gray-300 text-sm">Basic budget tracker (manual input)</span>
                   </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Email support (48-hour response)</span>
-                  </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600" asChild>
                   <Link href="/signup?plan=plus">Choose Plus</Link>
@@ -389,10 +381,6 @@ export default function Home() {
                   <li className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700 dark:text-gray-300 text-sm">Smart budget tracker with cost insights</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Priority email support (24-hour response)</span>
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" asChild>
@@ -435,7 +423,7 @@ export default function Home() {
                   </Button>
                 </Link>
                 <Link href="/create-party" className="w-full sm:w-auto">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-purple-600 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-purple-600 hover:bg-white hover:text-purple-600 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold bg-white">
                     <PartyPopper className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Start New Party
                   </Button>

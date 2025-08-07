@@ -21,7 +21,6 @@ const pricingTiers = [
       "Theme suggestions based on age",
       "Smart checklist & timeline",
       "Simple invitation creator",
-      "Email support (72-hour response)"
     ],
     limitations: [],
     cta: "Choose Plan",
@@ -44,7 +43,6 @@ const pricingTiers = [
       "RSVP tracking",
       "Task reminders",
       "Basic budget tracker (manual input)",
-      "Email support (48-hour response)"
     ],
     limitations: [],
     cta: "Choose Plan",
@@ -66,7 +64,6 @@ const pricingTiers = [
       "Vendor recommendations (cakes, decor, entertainment)",
       "Personalized food suggestions by age & theme",
       "Smart budget tracker with cost insights",
-      "Priority email support (24-hour response)"
     ],
     limitations: [],
     cta: "Choose Plan",
@@ -98,10 +95,6 @@ const faqs = [
     question: "What payment methods do you accept?",
     answer: "We accept all major credit cards, debit cards, and PayPal through our secure payment processor DoDo Payments."
   },
-  {
-    question: "How do the support response times work?",
-    answer: "Starter includes 72-hour email support, Plus gets 48-hour response times, and Pro receives priority 24-hour email support for faster assistance."
-  }
 ]
 
 export default function PricingPage() {
@@ -286,12 +279,6 @@ export default function PricingPage() {
                   <td className="p-4 text-center text-gray-400">—</td>
                   <td className="p-4 text-center text-gray-400">—</td>
                   <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900">Email Support Response</td>
-                  <td className="p-4 text-center text-sm">72-hour</td>
-                  <td className="p-4 text-center text-sm">48-hour</td>
-                  <td className="p-4 text-center text-sm">24-hour Priority</td>
                 </tr>
               </tbody>
             </table>

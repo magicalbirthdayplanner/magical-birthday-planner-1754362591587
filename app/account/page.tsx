@@ -60,7 +60,7 @@ const planDetails = {
     icon: Star,
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
-    features: ["Theme suggestions based on age", "Smart checklist & timeline", "Simple invitation creator", "Email support (72-hour response)"],
+    features: ["Theme suggestions based on age", "Smart checklist & timeline", "Simple invitation creator"],
     price: "$9.99 (One-Time)"
   },
   PLUS: {
@@ -68,7 +68,7 @@ const planDetails = {
     icon: Zap,
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    features: ["Everything in Starter", "Personalized activity ideas", "RSVP tracking", "Task reminders", "Basic budget tracker", "Email support (48-hour response)"],
+    features: ["Everything in Starter", "Personalized activity ideas", "RSVP tracking", "Task reminders", "Basic budget tracker"],
     price: "$14.99 (One-Time)"
   },
   PRO: {
@@ -76,7 +76,7 @@ const planDetails = {
     icon: Crown,
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
-    features: ["Everything in Plus", "Vendor recommendations", "Personalized food suggestions", "Smart budget tracker with insights", "Priority email support (24-hour response)"],
+    features: ["Everything in Plus", "Vendor recommendations", "Personalized food suggestions", "Smart budget tracker with insights"],
     price: "$29.99 (One-Time)"
   }
 };

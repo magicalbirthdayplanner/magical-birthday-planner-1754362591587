@@ -1,3 +1,12 @@
+## [usr-1754529745485]
+**User Request:** Remove Email support Email support (72-hour response) from all the plans. It is generally not required
+
+remove from landing page and account settings page - in the subscription tab
+
+The "Start New party" - in the footer - the text color is white making it unreadable as the container color is white. Make it the same color as view my dashboard
+**Response Summary:** Successfully removed all email support references from pricing plans across the application and fixed the footer button visibility issue. Removed email support features from Starter (72-hour), Plus (48-hour), and Pro (24-hour priority) plans in landing page, pricing page, and account settings. Updated the "Start New Party" footer button to use purple text on white background matching the "View My Dashboard" button styling for better readability.
+**Files Modified:** app/page.tsx, app/pricing/page.tsx, app/account/page.tsx
+
 ## [usr-1754527087920]
 **User Request:** I have revised the subscription plans  - Use this and implment changes in the home page, subscription under account settings etc
 
