@@ -9,7 +9,14 @@ import { prisma } from '@/lib/prisma'
 async function ensureDbConnection() {
   try {
     console.log('Testing database connection...')
-    await prisma.$queryRaw`SELECT 1 as health_check`
+    
+    // Set connection timeout to prevent hanging
+    const connectionPromise = prisma.$queryRaw`SELECT 1 as health_check`
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database connection timeout')), 8000)
+    })
+    
+    await Promise.race([connectionPromise, timeoutPromise])
     console.log('✓ Database connection verified successfully')
     return true
   } catch (error) {
@@ -21,25 +28,35 @@ async function ensureDbConnection() {
       await prisma.$disconnect()
       console.log('Disconnected from database, waiting for reconnection...')
       
-      // Wait longer for serverless cold start recovery
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Reduced wait time for better user experience
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Test connection again with a simple query
-      await prisma.$queryRaw`SELECT CURRENT_TIMESTAMP as reconnect_test`
+      // Test connection again with timeout protection
+      const reconnectPromise = prisma.$queryRaw`SELECT CURRENT_TIMESTAMP as reconnect_test`
+      const reconnectTimeout = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Reconnection timeout')), 5000)
+      })
+      
+      await Promise.race([reconnectPromise, reconnectTimeout])
       console.log('✓ Database reconnection successful')
       return true
     } catch (retryError) {
       console.error('❌ Database reconnection failed:', retryError)
       
-      // One final attempt with extended timeout
+      // Final attempt with minimal timeout to fail fast
       try {
-        await new Promise(resolve => setTimeout(resolve, 3000))
-        await prisma.$queryRaw`SELECT 'final_attempt' as test`
+        await new Promise(resolve => setTimeout(resolve, 500))
+        const finalPromise = prisma.$queryRaw`SELECT 'final_attempt' as test`
+        const finalTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Final connection attempt timeout')), 3000)
+        })
+        
+        await Promise.race([finalPromise, finalTimeout])
         console.log('✓ Database connection restored on final attempt')
         return true
       } catch (finalError) {
         console.error('❌ All database connection attempts failed:', finalError)
-        throw new Error(`Database connection failed after multiple attempts: ${finalError}`)
+        throw new Error(`Database connectivity issues detected. Please try again in a few moments.`)
       }
     }
   }
@@ -143,72 +160,103 @@ export async function createParty(partyData: {
   try {
     console.log('🎉 Starting party creation process with data:', partyData)
     
-    const user = await getCurrentUser()
-    if (!user) {
-      console.error('❌ No authenticated user found')
-      throw new Error('User not authenticated')
+    // Set overall timeout for the entire function to prevent hanging
+    const operationTimeout = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Operation timeout: Party creation took too long. This might be due to database connectivity issues.'))
+      }, 25000) // 25 second timeout
+    })
+    
+    const createPartyOperation = async () => {
+      const user = await getCurrentUser()
+      if (!user) {
+        console.error('❌ No authenticated user found')
+        throw new Error('Authentication required: Please sign in to create a party')
+      }
+      
+      console.log('✅ Authenticated user:', { id: user.id, email: user.email })
+
+      // Enhanced pre-operation database health check
+      console.log('🔍 Performing comprehensive database health check...')
+      await ensureDbConnection()
+      
+      // Create user in database if doesn't exist with enhanced retry mechanism
+      console.log('👤 Creating/updating user in database...')
+      const dbUser = await retryWithExponentialBackoff(async () => {
+        return await prisma.user.upsert({
+          where: { email: user.email! },
+          update: {},
+          create: {
+            id: user.id,
+            email: user.email!,
+            name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
+          },
+        })
+      })
+      
+      console.log('✅ Database user created/updated:', { id: dbUser.id, email: dbUser.email })
+
+      // Create party with enhanced retry mechanism
+      console.log('🎊 Creating party in database...')
+      const party = await retryWithExponentialBackoff(async () => {
+        return await prisma.party.create({
+          data: {
+            childName: partyData.childName,
+            childAge: partyData.childAge,
+            childGender: partyData.childGender || null,
+            partyDate: partyData.partyDate,
+            theme: partyData.theme,
+            interests: partyData.interests,
+            favoriteColors: partyData.favoriteColors,
+            guestCount: partyData.guestCount || null,
+            budget: partyData.budget || null,
+            location: partyData.location || null,
+            status: partyData.status || 'PLANNING',
+            userId: user.id,
+          },
+        })
+      })
+
+      console.log('🎉 Party created successfully:', { 
+        id: party.id, 
+        childName: party.childName, 
+        theme: party.theme,
+        date: party.partyDate 
+      })
+
+      return party
     }
-    
-    console.log('✅ Authenticated user:', { id: user.id, email: user.email })
 
-    // Enhanced pre-operation database health check
-    console.log('🔍 Performing comprehensive database health check...')
-    await ensureDbConnection()
-    
-    // Create user in database if doesn't exist with enhanced retry mechanism
-    console.log('👤 Creating/updating user in database...')
-    const dbUser = await retryWithExponentialBackoff(async () => {
-      return await prisma.user.upsert({
-        where: { email: user.email! },
-        update: {},
-        create: {
-          id: user.id,
-          email: user.email!,
-          name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
-        },
-      })
-    })
-    
-    console.log('✅ Database user created/updated:', { id: dbUser.id, email: dbUser.email })
-
-    // Create party with enhanced retry mechanism
-    console.log('🎊 Creating party in database...')
-    const party = await retryWithExponentialBackoff(async () => {
-      return await prisma.party.create({
-        data: {
-          childName: partyData.childName,
-          childAge: partyData.childAge,
-          childGender: partyData.childGender || null,
-          partyDate: partyData.partyDate,
-          theme: partyData.theme,
-          interests: partyData.interests,
-          favoriteColors: partyData.favoriteColors,
-          guestCount: partyData.guestCount || null,
-          budget: partyData.budget || null,
-          location: partyData.location || null,
-          status: partyData.status || 'PLANNING',
-          userId: user.id,
-        },
-      })
-    })
-
-    console.log('🎉 Party created successfully:', { 
-      id: party.id, 
-      childName: party.childName, 
-      theme: party.theme,
-      date: party.partyDate 
-    })
+    // Execute with timeout protection
+    const party = await Promise.race([createPartyOperation(), operationTimeout])
 
     revalidatePath('/dashboard')
     revalidatePath('/party-plan')
     return { success: true, party }
   } catch (error) {
     console.error('💥 Error creating party:', error)
+    
+    // Enhanced error categorization and user-friendly messages
+    let errorMessage: string
+    if (error instanceof Error) {
+      if (error.message.includes('timeout') || error.message.includes('took too long')) {
+        errorMessage = 'The server is taking longer than expected to respond. This might be due to high traffic or network issues. Please try again in a moment.'
+      } else if (error.message.includes('Authentication required') || error.message.includes('not authenticated')) {
+        errorMessage = 'Please sign in again to continue creating your party.'
+      } else if (error.message.includes('Database connectivity') || error.message.includes('connection')) {
+        errorMessage = 'We\'re experiencing temporary connectivity issues. Please wait a moment and try again.'
+      } else if (error.message.includes('UNIQUE constraint') || error.message.includes('duplicate')) {
+        errorMessage = 'It looks like this party already exists. Please check your party list or try with different details.'
+      } else {
+        errorMessage = `Unable to create party: ${error.message}`
+      }
+    } else {
+      errorMessage = 'An unexpected error occurred while creating your party. Please try again.'
+    }
+    
     return { 
       success: false, 
-      error: error instanceof Error 
-        ? `Party creation failed: ${error.message}`
-        : 'Unknown error occurred while creating party' 
+      error: errorMessage
     }
   }
 }
@@ -228,29 +276,67 @@ export async function updateParty(partyId: string, updates: Partial<{
   status: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELED'
 }>) {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
-      throw new Error('User not authenticated')
-    }
-
-    const party = await prisma.party.updateMany({
-      where: {
-        id: partyId,
-        userId: user.id,
-      },
-      data: updates,
+    // Set timeout for update operation
+    const operationTimeout = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Update timeout: Operation took too long. Please try again.'))
+      }, 20000) // 20 second timeout for updates
     })
 
-    if (party.count === 0) {
-      throw new Error('Party not found or access denied')
+    const updatePartyOperation = async () => {
+      const user = await getCurrentUser()
+      if (!user) {
+        throw new Error('Authentication required: Please sign in to update the party')
+      }
+
+      // Ensure database connection
+      await ensureDbConnection()
+
+      // Update with retry mechanism
+      const party = await retryWithExponentialBackoff(async () => {
+        return await prisma.party.updateMany({
+          where: {
+            id: partyId,
+            userId: user.id,
+          },
+          data: updates,
+        })
+      })
+
+      if (party.count === 0) {
+        throw new Error('Party not found or you don\'t have permission to update it')
+      }
+
+      return party
     }
+
+    // Execute with timeout protection
+    await Promise.race([updatePartyOperation(), operationTimeout])
 
     revalidatePath('/party-plan')
     revalidatePath('/dashboard')
     return { success: true }
   } catch (error) {
     console.error('Error updating party:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    
+    let errorMessage: string
+    if (error instanceof Error) {
+      if (error.message.includes('timeout') || error.message.includes('took too long')) {
+        errorMessage = 'The update is taking longer than expected. Please try again in a moment.'
+      } else if (error.message.includes('Authentication required') || error.message.includes('not authenticated')) {
+        errorMessage = 'Please sign in again to continue updating your party.'
+      } else if (error.message.includes('not found') || error.message.includes('permission')) {
+        errorMessage = 'Party not found or you don\'t have permission to update it.'
+      } else if (error.message.includes('Database connectivity') || error.message.includes('connection')) {
+        errorMessage = 'We\'re experiencing temporary connectivity issues. Please try again.'
+      } else {
+        errorMessage = error.message
+      }
+    } else {
+      errorMessage = 'An unexpected error occurred while updating the party.'
+    }
+    
+    return { success: false, error: errorMessage }
   }
 }
 
