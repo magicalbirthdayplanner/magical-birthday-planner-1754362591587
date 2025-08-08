@@ -2,15 +2,38 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { shouldBlockAISuggestions } from '@/lib/profanity-filter';
 
+// Environment validation
+function validateEnvironment() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('Database not configured');
+  }
+  
+  return {
+    hasAzureAI: !!(process.env.AZURE_OPENAI_API_KEY && 
+                   process.env.AZURE_OPENAI_ENDPOINT && 
+                   process.env.AZURE_OPENAI_DEPLOYMENT_NAME &&
+                   process.env.AZURE_OPENAI_API_VERSION)
+  };
+}
+
 // Initialize Azure OpenAI client only if credentials are available
-const openai = process.env.AZURE_OPENAI_API_KEY ? new OpenAI({
-  apiKey: process.env.AZURE_OPENAI_API_KEY,
-  baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_NAME}`,
-  defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION },
-  defaultHeaders: {
-    'api-key': process.env.AZURE_OPENAI_API_KEY,
-  },
-}) : null;
+const openai = (() => {
+  try {
+    const env = validateEnvironment();
+    if (!env.hasAzureAI) return null;
+    
+    return new OpenAI({
+      apiKey: process.env.AZURE_OPENAI_API_KEY!,
+      baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_NAME}`,
+      defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION },
+      defaultHeaders: {
+        'api-key': process.env.AZURE_OPENAI_API_KEY!,
+      },
+    });
+  } catch {
+    return null;
+  }
+})();
 
 interface ThemeRequest {
   childName: string;

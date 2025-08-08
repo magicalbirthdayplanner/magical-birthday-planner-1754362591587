@@ -13,7 +13,7 @@ async function ensureDbConnection() {
     // Set connection timeout to prevent hanging
     const connectionPromise = prisma.$queryRaw`SELECT 1 as health_check`
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Database connection timeout')), 8000)
+      setTimeout(() => reject(new Error('Database connection timeout')), 6000)
     })
     
     await Promise.race([connectionPromise, timeoutPromise])
@@ -34,7 +34,7 @@ async function ensureDbConnection() {
       // Test connection again with timeout protection
       const reconnectPromise = prisma.$queryRaw`SELECT CURRENT_TIMESTAMP as reconnect_test`
       const reconnectTimeout = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Reconnection timeout')), 5000)
+        setTimeout(() => reject(new Error('Reconnection timeout')), 3000)
       })
       
       await Promise.race([reconnectPromise, reconnectTimeout])
@@ -48,7 +48,7 @@ async function ensureDbConnection() {
         await new Promise(resolve => setTimeout(resolve, 500))
         const finalPromise = prisma.$queryRaw`SELECT 'final_attempt' as test`
         const finalTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Final connection attempt timeout')), 3000)
+          setTimeout(() => reject(new Error('Final connection attempt timeout')), 2000)
         })
         
         await Promise.race([finalPromise, finalTimeout])
@@ -164,7 +164,7 @@ export async function createParty(partyData: {
     const operationTimeout = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new Error('Operation timeout: Party creation took too long. This might be due to database connectivity issues.'))
-      }, 25000) // 25 second timeout
+      }, 8000) // 8 second timeout - Vercel compatible
     })
     
     const createPartyOperation = async () => {
@@ -280,7 +280,7 @@ export async function updateParty(partyId: string, updates: Partial<{
     const operationTimeout = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new Error('Update timeout: Operation took too long. Please try again.'))
-      }, 20000) // 20 second timeout for updates
+      }, 7000) // 7 second timeout for updates - Vercel compatible
     })
 
     const updatePartyOperation = async () => {

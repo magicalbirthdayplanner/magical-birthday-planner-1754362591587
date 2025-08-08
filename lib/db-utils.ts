@@ -5,8 +5,8 @@
 // Enhanced exponential backoff retry mechanism for database operations
 export async function retryWithExponentialBackoff<T>(
   operation: () => Promise<T>,
-  maxAttempts: number = 6,
-  baseDelay: number = 1500
+  maxAttempts: number = 2,
+  baseDelay: number = 500
 ): Promise<T> {
   let lastError: any;
   
@@ -48,7 +48,7 @@ export async function retryWithExponentialBackoff<T>(
       
       // Progressive delay with jitter for better distribution
       const jitter = Math.random() * 0.5; // 0-50% jitter
-      const delay = Math.min(baseDelay * Math.pow(1.8, attempt - 1) * (1 + jitter), 30000);
+      const delay = Math.min(baseDelay * Math.pow(1.8, attempt - 1) * (1 + jitter), 3000);
       
       console.log(`⏳ Retrying database operation in ${Math.round(delay)}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));

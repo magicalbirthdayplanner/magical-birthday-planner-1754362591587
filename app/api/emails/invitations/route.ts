@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
 import { generateInvitationEmail } from '@/lib/email-templates/invitation';
 import { generateEmailToken } from '@/lib/email';
 
-const prisma = new PrismaClient();
-
 export async function POST(request: NextRequest) {
   try {
+    // Environment validation
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+    
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json(
+        { error: 'Email service not configured' },
+        { status: 503 }
+      );
+    }
     const { 
       partyId, 
       guestIds, 

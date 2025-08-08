@@ -11,10 +11,10 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
       url: process.env.DATABASE_URL,
     },
   },
-  // Enhanced configuration for Vercel serverless deployment
+  // Optimized configuration for Vercel serverless deployment
   transactionOptions: {
-    timeout: 30000, // Reduced to 30 seconds for serverless
-    maxWait: 20000, // Reduced max wait time for faster failure detection
+    timeout: 5000, // 5 seconds - Vercel compatible
+    maxWait: 2000, // 2 seconds max wait for connection pool
   }
 })
 

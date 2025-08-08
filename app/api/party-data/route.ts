@@ -1,93 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null
+import { prisma } from '@/lib/prisma'
+import { createServerComponentClient } from '@/lib/supabase'
+import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { partyData, userId } = body
+    const { partyData } = body
 
-    // If Supabase is not configured or no userId, fall back to localStorage
-    if (!supabase || !userId) {
+    // Get authenticated user
+    const supabase = createServerComponentClient({ cookies })
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
       return NextResponse.json({ 
         success: true, 
-        message: 'Auto-save will use localStorage - database not configured or user not authenticated',
+        message: 'Auto-save will use localStorage - user not authenticated',
         fallbackToLocalStorage: true 
       })
     }
 
-    // Check if party already exists for this user
-    const { data: existingParties, error: fetchError } = await supabase
-      .from('parties')
-      .select('id')
-      .eq('userId', userId)
-      .limit(1)
+    // Set timeout for database operations
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database operation timeout')), 6000)
+    })
 
-    if (fetchError) {
-      console.error('Database fetch error:', fetchError)
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Database error - falling back to localStorage',
-        fallbackToLocalStorage: true 
+    const dbOperation = async () => {
+      // Check if party already exists for this user
+      const existingParty = await prisma.party.findFirst({
+        where: { userId: user.id },
+        select: { id: true }
       })
+
+      // Prepare party data for database
+      const partyRecord = {
+        userId: user.id,
+        childName: partyData.childName || 'Your Child',
+        childAge: partyData.childAge || 5,
+        childGender: partyData.childGender || '',
+        interests: partyData.childInterests || [],
+        favoriteColors: partyData.favoriteColors || [],
+        partyDate: new Date(partyData.partyDate || new Date()),
+        theme: partyData.selectedTheme || partyData.classicTheme || 'Superhero',
+        guestCount: partyData.guestCount || 0,
+        budget: partyData.budget || null,
+        location: partyData.zipCode || '',
+        checklistData: partyData.checklistData || []
+      }
+
+      let party;
+      if (existingParty) {
+        // Update existing party
+        party = await prisma.party.update({
+          where: { id: existingParty.id },
+          data: partyRecord
+        })
+      } else {
+        // Create new party
+        party = await prisma.party.create({
+          data: partyRecord
+        })
+      }
+
+      return party
     }
 
-    // Prepare party data for database
-    const partyRecord = {
-      userId,
-      childName: partyData.childName || 'Your Child',
-      childAge: partyData.childAge || 5,
-      childGender: partyData.childGender || '',
-      interests: partyData.childInterests || [],
-      favoriteColors: partyData.favoriteColors || [],
-      partyDate: partyData.partyDate || new Date().toISOString(),
-      theme: partyData.selectedTheme || partyData.classicTheme || 'Superhero',
-      guestCount: partyData.guestCount || 0,
-      budget: partyData.budget || null,
-      location: partyData.zipCode || '',
-      checklistData: []
-    }
-
-    let result;
-    if (existingParties && existingParties.length > 0) {
-      // Update existing party
-      const { data, error } = await supabase
-        .from('parties')
-        .update(partyRecord)
-        .eq('userId', userId)
-        .select()
-
-      result = { data, error }
-    } else {
-      // Create new party
-      const { data, error } = await supabase
-        .from('parties')
-        .insert([partyRecord])
-        .select()
-
-      result = { data, error }
-    }
-
-    if (result.error) {
-      console.error('Database save error:', result.error)
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Database save failed - falling back to localStorage',
-        fallbackToLocalStorage: true 
-      })
-    }
+    const party = await Promise.race([dbOperation(), timeoutPromise])
 
     return NextResponse.json({ 
       success: true, 
       message: 'Party data saved to database',
-      party: result.data?.[0] 
+      party
     })
 
   } catch (error) {
@@ -102,31 +85,31 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    // Get authenticated user
+    const supabase = createServerComponentClient({ cookies })
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    // If Supabase is not configured or no userId, return empty array for localStorage fallback
-    if (!supabase || !userId) {
+    if (authError || !user) {
       return NextResponse.json({ 
         parties: [], 
         message: 'Database not configured or user not authenticated - using localStorage' 
       })
     }
 
-    // Fetch parties for the user
-    const { data: parties, error } = await supabase
-      .from('parties')
-      .select('*')
-      .eq('userId', userId)
-      .order('createdAt', { ascending: false })
+    // Set timeout for database operations
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database fetch timeout')), 5000)
+    })
 
-    if (error) {
-      console.error('Database fetch error:', error)
-      return NextResponse.json({ 
-        parties: [], 
-        message: 'Database error - using localStorage fallback' 
+    const fetchOperation = async () => {
+      const parties = await prisma.party.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' }
       })
+      return parties
     }
+
+    const parties = await Promise.race([fetchOperation(), timeoutPromise])
 
     return NextResponse.json({ 
       parties: parties || [],
