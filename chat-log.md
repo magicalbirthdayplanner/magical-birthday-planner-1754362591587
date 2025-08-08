@@ -1,3 +1,16 @@
+## [usr-1754624516202]
+**User Request:** the error still exisit in vercel 
+**Response Summary:** Fixed critical Vercel deployment build error that was preventing successful deployment. The issue was caused by the `/api/user/parties` route trying to render statically during build time while using cookies for authentication.
+
+**Root Cause:** The API route was missing the `export const dynamic = 'force-dynamic'` directive, causing Next.js to attempt static generation of a route that requires server-side authentication (cookies access).
+
+**Solution Implemented:** Added the proper dynamic rendering configuration to the API route to ensure it runs server-side only, resolving the build failure.
+
+**Build Status:** ✅ Build now completes successfully without errors - ready for Vercel deployment
+
+**Files Modified:** 
+- app/api/user/parties/route.ts
+
 ## [usr-1754624135660]
 **User Request:** when creating party plan in https://magical-birthday-planner.vercel.app/create-party, the error appears
 
