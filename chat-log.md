@@ -1,3 +1,26 @@
+## [usr-1754626431559]
+**User Request:** Unable to send invitations in review and send button - refer screenshor
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-08 at 12.13.14 AM.png
+
+**Response Summary:** Fixed the invitation sending failure in the Review & Send button by identifying and resolving the missing userId parameter issue. The BulkInvitations component was failing to send invitations because it wasn't passing the required userId parameter to the /api/emails/invitations endpoint. Enhanced error handling to show specific server error messages instead of generic failure alerts.
+
+**Key Issues Resolved:**
+1. **Missing userId Parameter**: Added userId prop to BulkInvitations component interface and ensured it's passed from the party plan page using the authenticated user's ID
+2. **Improved Error Handling**: Enhanced the handleSendInvitations function to display specific error messages from the server instead of generic "Failed to send invitations" alerts
+3. **Proper partyId Usage**: Updated partyId to use currentPartyId (which comes from party.id) instead of partyData.childName for proper database operations
+4. **API Validation**: Verified that the /api/emails/invitations endpoint properly validates required parameters including partyId, guestIds, and userId
+
+**Technical Changes:**
+- Updated BulkInvitations component to accept and use userId parameter
+- Enhanced error handling to show server-specific error messages
+- Fixed partyId parameter to use proper database ID instead of child name
+- Verified Resend email configuration is properly set up
+
+**Files Modified:** 
+- components/BulkInvitations.tsx - Added userId parameter and improved error handling
+- app/party-plan/page.tsx - Updated BulkInvitations component usage to pass userId and proper partyId
+
 ## [usr-1754625349187]
 **User Request:** The mails are not going 
 

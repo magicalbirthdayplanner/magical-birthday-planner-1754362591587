@@ -130,6 +130,7 @@ interface BulkInvitationsProps {
   theme: string
   guests: Guest[]
   invitations: Invitation[]
+  userId?: string
   onSendBulkInvitations?: (guestIds: string[], templateId: string, customMessage: string) => void
 }
 
@@ -143,6 +144,7 @@ export default function BulkInvitations({
   theme,
   guests,
   invitations,
+  userId,
   onSendBulkInvitations
 }: BulkInvitationsProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<InvitationTemplate>(DEFAULT_TEMPLATES[0])
@@ -244,12 +246,13 @@ export default function BulkInvitations({
           partyId: partyId,
           guestIds: selectedGuests,
           personalMessage: customMessage.trim() || undefined,
+          userId: userId,
         }),
       });
 
       const data = await response.json();
 
-      if (data.success) {
+      if (response.ok && data.success) {
         // Show success message
         alert(`Successfully sent ${data.summary.successful} invitations! ${data.summary.failed > 0 ? `${data.summary.failed} failed.` : ''}`);
         setSelectedGuests([])
@@ -257,11 +260,14 @@ export default function BulkInvitations({
         // Call optional callback for parent component updates
         await onSendBulkInvitations?.(selectedGuests, selectedTemplate.id, customMessage)
       } else {
-        throw new Error(data.error || 'Failed to send invitations');
+        // Show specific error message from server
+        const errorMessage = data.error || `Failed to send invitations (Status: ${response.status})`;
+        alert(errorMessage);
+        console.error('Invitation send failed:', data);
       }
     } catch (error) {
       console.error('Failed to send invitations:', error)
-      alert('Failed to send invitations. Please try again.');
+      alert('Network error: Unable to send invitations. Please check your connection and try again.');
     } finally {
       setIsSending(false)
     }

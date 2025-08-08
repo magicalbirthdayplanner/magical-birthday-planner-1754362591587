@@ -1536,7 +1536,7 @@ export default function PartyPlanPage() {
               
               <TabsContent value="bulk" className="mt-6">
                 <BulkInvitations
-                  partyId={partyData?.childName || 'party'}
+                  partyId={currentPartyId || partyData?.childName || 'party'}
                   childName={partyData?.childName || ''}
                   childAge={partyData?.childAge ? parseInt(partyData.childAge.toString()) : 0}
                   partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
@@ -1545,6 +1545,7 @@ export default function PartyPlanPage() {
                   theme={partyData?.selectedTheme || ''}
                   guests={guests}
                   invitations={invitations}
+                  userId={user?.id}
                   onSendBulkInvitations={handleSendBulkInvitations}
                 />
               </TabsContent>
