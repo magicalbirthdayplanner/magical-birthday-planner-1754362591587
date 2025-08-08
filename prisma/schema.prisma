@@ -12,6 +12,11 @@ model User {
   email          String        @unique
   name           String?
   currentPlan    SubscriptionPlan @default(FREE)
+  emailVerified  Boolean       @default(false)
+  emailVerifiedAt DateTime?
+  onboardingSent Boolean       @default(false)
+  passwordResetRequested Boolean @default(false)
+  passwordResetAt DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   theme          String?       @default("light")
@@ -20,6 +25,7 @@ model User {
   paymentMethods PaymentMethod[]
   invoices       Invoice[]
   eventPurchases EventPurchase[]
+  emailLogs      EmailLog[]
 
   @@map("users")
 }
@@ -88,6 +94,8 @@ model Invitation {
   id            String           @id @default(cuid())
   status        InvitationStatus @default(PENDING)
   sentAt        DateTime?
+  deliveredAt   DateTime?        // Email delivery confirmation
+  openedAt      DateTime?        // Email open tracking
   respondedAt   DateTime?
   message       String?
   notes         String?
@@ -98,6 +106,8 @@ model Invitation {
   smsSent       Boolean          @default(false)
   reminderCount Int              @default(0)
   lastReminderAt DateTime?
+  resendId      String?          // Resend email ID for tracking
+  error         String?          // Last error message if any
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   partyId       String
@@ -210,6 +220,68 @@ model UsageLimit {
   updatedAt   DateTime @updatedAt
 
   @@map("usage_limits")
+}
+
+model EmailLog {
+  id          String      @id @default(cuid())
+  userId      String
+  partyId     String?
+  guestId     String?
+  type        EmailType
+  status      EmailStatus @default(PENDING)
+  to          String
+  subject     String
+  resendId    String?     // Resend email ID for tracking
+  error       String?     // Error message if failed
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  openedAt    DateTime?
+  clickedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_logs")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("email_verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}
+
+enum EmailType {
+  VERIFICATION
+  PASSWORD_RESET
+  INVITATION
+  RSVP_REMINDER
+  RSVP_CONFIRMATION
+  WELCOME
+  NOTIFICATION
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  FAILED
 }
 
 enum SubscriptionPlan {

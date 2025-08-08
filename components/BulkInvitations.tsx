@@ -235,9 +235,33 @@ export default function BulkInvitations({
     
     setIsSending(true)
     try {
-      await onSendBulkInvitations?.(selectedGuests, selectedTemplate.id, customMessage)
-      setSelectedGuests([])
-      setCustomMessage('')
+      const response = await fetch('/api/emails/invitations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          partyId: partyId,
+          guestIds: selectedGuests,
+          personalMessage: customMessage.trim() || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Show success message
+        alert(`Successfully sent ${data.summary.successful} invitations! ${data.summary.failed > 0 ? `${data.summary.failed} failed.` : ''}`);
+        setSelectedGuests([])
+        setCustomMessage('')
+        // Call optional callback for parent component updates
+        await onSendBulkInvitations?.(selectedGuests, selectedTemplate.id, customMessage)
+      } else {
+        throw new Error(data.error || 'Failed to send invitations');
+      }
+    } catch (error) {
+      console.error('Failed to send invitations:', error)
+      alert('Failed to send invitations. Please try again.');
     } finally {
       setIsSending(false)
     }

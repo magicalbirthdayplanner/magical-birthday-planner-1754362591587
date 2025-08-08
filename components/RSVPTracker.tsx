@@ -157,10 +157,35 @@ export default function RSVPTracker({
     setRsvpNotes('')
   }
 
-  const handleSendReminder = () => {
+  const handleSendReminder = async () => {
     if (!reminderGuest) return
     
-    onSendReminder?.(reminderGuest.id, reminderMessage)
+    try {
+      const response = await fetch('/api/emails/rsvp-reminder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          partyId,
+          guestIds: [reminderGuest.id],
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`Reminder sent successfully to ${reminderGuest.name}!`);
+        // Call optional callback for parent component updates
+        onSendReminder?.(reminderGuest.id, reminderMessage);
+      } else {
+        throw new Error(data.error || 'Failed to send reminder');
+      }
+    } catch (error) {
+      console.error('Failed to send reminder:', error);
+      alert('Failed to send reminder. Please try again.');
+    }
+    
     setReminderGuest(null)
     setReminderMessage('')
   }
