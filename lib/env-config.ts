@@ -54,6 +54,12 @@ export const ENV_VARIABLES: EnvVariable[] = [
     required: false,
     instructions: "Go to [DoDo Payments Dashboard](https://app.dodopayments.com) → Webhooks → Copy the webhook secret"
   },
+  {
+    name: "RESEND_API_KEY",
+    description: "Resend API key for transactional email sending (invitations, notifications, etc.)",
+    required: true,
+    instructions: "Go to [Resend Dashboard](https://resend.com/api-keys) → Create new API key → Copy the generated API key (starts with 're_')"
+  },
 ];
 
 export interface EnvVariable {
