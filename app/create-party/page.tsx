@@ -411,6 +411,7 @@ export default function CreatePartyPage() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStep, setSubmissionStep] = useState<string>('');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [customThemeMode, setCustomThemeMode] = useState(false);
@@ -727,6 +728,14 @@ export default function CreatePartyPage() {
 
     setIsSubmitting(true);
     setSubmitError(null);
+    setSubmissionStep('Validating party details...');
+    
+    // Client-side timeout to prevent infinite loading (30 seconds)
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timed out. This might be due to network issues. Please try again.'));
+      }, 30000);
+    });
     
     try {
       // Validate required fields
@@ -738,6 +747,8 @@ export default function CreatePartyPage() {
 
       // If we don't have a party ID from auto-save, create the party
       if (!partyId) {
+        setSubmissionStep('Preparing party data...');
+        
         const createPayload = {
           childName: partyData.childName,
           childAge: partyData.childAge,
@@ -753,9 +764,13 @@ export default function CreatePartyPage() {
         };
 
         console.log('Creating party with payload:', createPayload)
+        setSubmissionStep('Creating your magical party plan...');
 
-        // Create party in database using server action
-        const result = await createParty(createPayload);
+        // Create party in database using server action with timeout protection
+        const result = await Promise.race([
+          createParty(createPayload),
+          timeoutPromise
+        ]);
 
         console.log('Party creation result:', result)
 
@@ -769,6 +784,8 @@ export default function CreatePartyPage() {
 
         partyId = result.party.id;
       } else {
+        setSubmissionStep('Updating party details...');
+        
         // Update existing party with latest data
         const updatePayload = {
           childName: partyData.childName,
@@ -785,27 +802,57 @@ export default function CreatePartyPage() {
 
         console.log('Updating existing party:', partyId, updatePayload)
 
-        const result = await updateParty(partyId, updatePayload);
+        // Update party with timeout protection
+        const result = await Promise.race([
+          updateParty(partyId, updatePayload),
+          timeoutPromise
+        ]);
 
         if (!result.success) {
           throw new Error(result.error || 'Failed to update party');
         }
       }
 
+      setSubmissionStep('Finalizing your party plan...');
+      
       // Clear localStorage after successful save
       localStorage.removeItem('partyData');
 
+      setSubmissionStep('🎉 Success! Redirecting to your party plan...');
+      
       // Show success feedback
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
 
-      // Navigate to party plan with the party ID
+      // Navigate to party plan with the party ID - with fallback mechanism
       await new Promise(resolve => setTimeout(resolve, 1500));
-      router.push(`/party-plan?id=${partyId}`);
+      
+      try {
+        router.push(`/party-plan?id=${partyId}`);
+      } catch (navError) {
+        console.error('Navigation failed, attempting fallback:', navError);
+        // Fallback: Use window.location for more reliable navigation
+        window.location.href = `/party-plan?id=${partyId}`;
+      }
 
     } catch (error) {
       console.error('Error creating party:', error);
-      setSubmitError(error instanceof Error ? error.message : 'Failed to create party. Please try again.');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to create party. Please try again.';
+      if (error instanceof Error) {
+        if (error.message.includes('timed out')) {
+          errorMessage = 'The request is taking longer than expected. This might be due to network connectivity issues. Please check your internet connection and try again.';
+        } else if (error.message.includes('database') || error.message.includes('connection')) {
+          errorMessage = 'There seems to be a temporary server issue. Please wait a moment and try again.';
+        } else if (error.message.includes('authentication')) {
+          errorMessage = 'Please sign in again to continue.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setSubmitError(errorMessage);
       
       // Clear any potentially stale localStorage data on error
       if (typeof window !== 'undefined') {
@@ -820,6 +867,7 @@ export default function CreatePartyPage() {
       }
     } finally {
       setIsSubmitting(false);
+      setSubmissionStep('');
     }
   };
 
@@ -951,7 +999,9 @@ export default function CreatePartyPage() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                      <span className="animate-pulse text-sm sm:text-base">Creating Party Plan...</span>
+                      <span className="animate-pulse text-sm sm:text-base">
+                        {submissionStep || 'Creating Party Plan...'}
+                      </span>
                       <Sparkles className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4 animate-pulse" />
                     </>
                   ) : (

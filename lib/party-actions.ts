@@ -48,8 +48,8 @@ async function ensureDbConnection() {
 // Enhanced retry mechanism specifically optimized for Vercel serverless deployment
 async function retryWithExponentialBackoff<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 5, // Increased retries for serverless
-  baseDelay: number = 1500 // Longer base delay for serverless cold starts
+  maxRetries: number = 2, // Reduced retries to prevent long hanging
+  baseDelay: number = 1000 // Reduced base delay for faster feedback
 ): Promise<T> {
   let lastError: Error | null = null
   
@@ -95,8 +95,8 @@ async function retryWithExponentialBackoff<T>(
           await prisma.$disconnect()
           console.log('Disconnected from database for clean reconnection')
           
-          // Extended wait for serverless environment stabilization
-          const recoveryDelay = 1000 + (attempt * 500)
+          // Reduced wait time for faster user feedback
+          const recoveryDelay = 500 + (attempt * 250)
           await new Promise(resolve => setTimeout(resolve, recoveryDelay))
           
           // Test connection before next attempt
@@ -106,9 +106,9 @@ async function retryWithExponentialBackoff<T>(
         }
       }
       
-      // Progressive exponential backoff with jitter for serverless
-      const jitter = Math.random() * 500 // Add randomness to prevent thundering herd
-      const delay = (baseDelay * Math.pow(2, attempt)) + jitter
+      // Reduced exponential backoff with jitter for faster feedback
+      const jitter = Math.random() * 200 // Reduced jitter
+      const delay = Math.min((baseDelay * Math.pow(1.5, attempt)) + jitter, 3000) // Cap max delay at 3s
       console.log(`⏳ Retrying in ${Math.round(delay)}ms... (attempt ${attempt + 2}/${maxRetries + 1})`)
       await new Promise(resolve => setTimeout(resolve, delay))
     }
