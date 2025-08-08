@@ -441,7 +441,7 @@ export async function addGuest(partyId: string, guestData: {
   name: string
   email?: string
   phone?: string
-  type: 'ADULT' | 'CHILD'
+  type: 'ADULT' | 'CHILD' | 'FAMILY' | 'COUPLE'
   age?: number
   notes?: string
 }) {
@@ -491,7 +491,7 @@ export async function updateGuest(guestId: string, updates: Partial<{
   name: string
   email: string
   phone: string
-  type: 'ADULT' | 'CHILD'
+  type: 'ADULT' | 'CHILD' | 'FAMILY' | 'COUPLE'
   age: number
   notes: string
 }>) {

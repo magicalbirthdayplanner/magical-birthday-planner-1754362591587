@@ -17,7 +17,7 @@ export interface Guest {
   name: string
   email?: string
   phone?: string
-  type: 'ADULT' | 'CHILD'
+  type: 'ADULT' | 'CHILD' | 'FAMILY' | 'COUPLE'
   age?: number
   notes?: string
 }

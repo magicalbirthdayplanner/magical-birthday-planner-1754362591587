@@ -775,20 +775,98 @@ export default function PartyPlanPage() {
 
   // Database sync function for guests
   const syncGuestsToDatabase = async (guestData: Guest[]) => {
-    if (!currentPartyId || !user) return;
+    if (!currentPartyId || !user) {
+      console.log('Cannot sync: missing party ID or user authentication');
+      return;
+    }
     
     try {
-      // For now, we'll skip automatic database sync to avoid complex database operations
-      // The guests are safely stored in localStorage with timestamps for conflict resolution
-      // Future enhancement: Implement proper database guest sync using addGuest, updateGuest, deleteGuest functions
-      console.log('Guest data is stored in localStorage for data persistence');
+      console.log('Syncing guests to database...');
       
-      // TODO: Implement full database sync:
-      // 1. Get existing database guests
-      // 2. Compare with local guests (by ID or name)
-      // 3. Use addGuest() for new guests with temporary IDs
-      // 4. Use updateGuest() for modified existing guests
-      // 5. Use deleteGuest() for removed guests
+      // Get current database guests for this party
+      const partyResult = await getParty(currentPartyId);
+      if (!partyResult.success || !partyResult.party) {
+        throw new Error('Failed to fetch party data for sync');
+      }
+      
+      const dbGuests = partyResult.party.guests || [];
+      const localGuests = guestData;
+      
+      // Handle new guests (those with temporary IDs)
+      for (const localGuest of localGuests) {
+        if (localGuest.id.startsWith('guest_')) {
+          // This is a temporary ID, create in database
+          console.log(`Creating new guest in database: ${localGuest.name}`);
+          const result = await addGuest(currentPartyId, {
+            name: localGuest.name,
+            email: localGuest.email,
+            phone: localGuest.phone,
+            type: localGuest.type,
+            age: localGuest.age,
+            notes: localGuest.notes
+          });
+          
+          if (result.success && result.guest) {
+            // Update local guest with real database ID
+            localGuest.id = result.guest.id;
+            console.log(`Guest created with database ID: ${result.guest.id}`);
+          } else {
+            console.error(`Failed to create guest: ${result.error}`);
+          }
+        } else {
+          // This is a real database ID, check if it needs updating
+          const dbGuest = dbGuests.find(g => g.id === localGuest.id);
+          if (dbGuest) {
+            // Check if data differs
+            if (
+              dbGuest.name !== localGuest.name ||
+              dbGuest.email !== (localGuest.email || null) ||
+              dbGuest.phone !== (localGuest.phone || null) ||
+              dbGuest.type !== localGuest.type ||
+              dbGuest.age !== (localGuest.age || null) ||
+              dbGuest.notes !== (localGuest.notes || null)
+            ) {
+              // Update existing guest
+              console.log(`Updating existing guest: ${localGuest.name}`);
+              const result = await updateGuest(localGuest.id, {
+                name: localGuest.name,
+                email: localGuest.email || '',
+                phone: localGuest.phone || '',
+                type: localGuest.type,
+                age: localGuest.age,
+                notes: localGuest.notes || ''
+              });
+              
+              if (!result.success) {
+                console.error(`Failed to update guest: ${result.error}`);
+              }
+            }
+          }
+        }
+      }
+      
+      // Handle deleted guests (in database but not in local)
+      for (const dbGuest of dbGuests) {
+        const localGuest = localGuests.find(g => g.id === dbGuest.id);
+        if (!localGuest) {
+          // Guest was deleted locally, delete from database
+          console.log(`Deleting guest from database: ${dbGuest.name}`);
+          const result = await deleteGuest(dbGuest.id);
+          
+          if (!result.success) {
+            console.error(`Failed to delete guest: ${result.error}`);
+          }
+        }
+      }
+      
+      // Update localStorage with corrected IDs
+      if (typeof window !== 'undefined') {
+        const timestamp = Date.now().toString();
+        localStorage.setItem('partyGuests', JSON.stringify(localGuests));
+        localStorage.setItem('partyGuests_timestamp', timestamp);
+      }
+      
+      console.log('Guest sync completed successfully');
       
     } catch (error) {
       console.error('Failed to sync guests to database:', error);
@@ -797,82 +875,162 @@ export default function PartyPlanPage() {
   };
 
   // Guest management functions
-  const handleAddGuest = (guestData: Omit<Guest, 'id'>) => {
-    const newGuest: Guest = {
-      ...guestData,
-      id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    };
-    
-    const updatedGuests = [...guests, newGuest];
-    setGuests(updatedGuests);
-    
-    if (typeof window !== 'undefined') {
-      try {
-        const timestamp = Date.now().toString();
-        localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
-        localStorage.setItem('partyGuests_timestamp', timestamp);
-      } catch (error) {
-        console.error('Error saving guests to localStorage:', error);
-      }
+  const handleAddGuest = async (guestData: Omit<Guest, 'id'>) => {
+    if (!currentPartyId || !user) {
+      console.error('Cannot add guest: missing party ID or user authentication');
+      return;
     }
-    
-    // Auto-sync to database if we have a party ID
-    if (currentPartyId && user) {
-      syncGuestsToDatabase(updatedGuests).catch(error => {
-        console.error('Failed to sync guests to database:', error);
+
+    try {
+      // Create guest in database first
+      const result = await addGuest(currentPartyId, {
+        name: guestData.name,
+        email: guestData.email,
+        phone: guestData.phone,
+        type: guestData.type,
+        age: guestData.age,
+        notes: guestData.notes
       });
+
+      if (result.success && result.guest) {
+        // Add to local state with real database ID
+        const newGuest: Guest = {
+          id: result.guest.id,
+          name: result.guest.name,
+          email: result.guest.email || undefined,
+          phone: result.guest.phone || undefined,
+          type: result.guest.type,
+          age: result.guest.age || undefined,
+          notes: result.guest.notes || undefined,
+        };
+
+        const updatedGuests = [...guests, newGuest];
+        setGuests(updatedGuests);
+
+        // Update localStorage as backup
+        if (typeof window !== 'undefined') {
+          try {
+            const timestamp = Date.now().toString();
+            localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+            localStorage.setItem('partyGuests_timestamp', timestamp);
+          } catch (error) {
+            console.error('Error saving guests to localStorage:', error);
+          }
+        }
+
+        console.log('Guest added successfully to database and local state');
+      } else {
+        console.error('Failed to add guest to database:', result.error);
+        // Fallback to localStorage only
+        const newGuest: Guest = {
+          ...guestData,
+          id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        };
+        
+        const updatedGuests = [...guests, newGuest];
+        setGuests(updatedGuests);
+        
+        if (typeof window !== 'undefined') {
+          try {
+            const timestamp = Date.now().toString();
+            localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+            localStorage.setItem('partyGuests_timestamp', timestamp);
+          } catch (error) {
+            console.error('Error saving guests to localStorage:', error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error adding guest:', error);
     }
   };
 
-  const handleEditGuest = (id: string, guestData: Partial<Guest>) => {
-    const updatedGuests = guests.map(guest => 
-      guest.id === id ? { ...guest, ...guestData } : guest
-    );
-    setGuests(updatedGuests);
-    
-    if (typeof window !== 'undefined') {
-      try {
-        const timestamp = Date.now().toString();
-        localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
-        localStorage.setItem('partyGuests_timestamp', timestamp);
-      } catch (error) {
-        console.error('Error saving guests to localStorage:', error);
-      }
+  const handleEditGuest = async (id: string, guestData: Partial<Guest>) => {
+    if (!currentPartyId || !user) {
+      console.error('Cannot edit guest: missing party ID or user authentication');
+      return;
     }
-    
-    // Auto-sync to database
-    if (currentPartyId && user) {
-      syncGuestsToDatabase(updatedGuests).catch(error => {
-        console.error('Failed to sync guests to database:', error);
-      });
+
+    try {
+      // Update guest in database first (only if it's a real database ID)
+      if (!id.startsWith('guest_')) {
+        const result = await updateGuest(id, {
+          name: guestData.name || '',
+          email: guestData.email || '',
+          phone: guestData.phone || '',
+          type: guestData.type || 'ADULT',
+          age: guestData.age,
+          notes: guestData.notes || ''
+        });
+
+        if (result.success) {
+          console.log('Guest updated successfully in database');
+        } else {
+          console.error('Failed to update guest in database:', result.error);
+        }
+      }
+
+      // Update local state
+      const updatedGuests = guests.map(guest => 
+        guest.id === id ? { ...guest, ...guestData } : guest
+      );
+      setGuests(updatedGuests);
+
+      // Update localStorage as backup
+      if (typeof window !== 'undefined') {
+        try {
+          const timestamp = Date.now().toString();
+          localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+          localStorage.setItem('partyGuests_timestamp', timestamp);
+        } catch (error) {
+          console.error('Error saving guests to localStorage:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error editing guest:', error);
     }
   };
 
-  const handleDeleteGuest = (id: string) => {
-    const updatedGuests = guests.filter(guest => guest.id !== id);
-    setGuests(updatedGuests);
-    
-    // Also remove any invitations for this guest
-    const updatedInvitations = invitations.filter(inv => inv.guestId !== id);
-    setInvitations(updatedInvitations);
-    
-    if (typeof window !== 'undefined') {
-      try {
-        const timestamp = Date.now().toString();
-        localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
-        localStorage.setItem('partyGuests_timestamp', timestamp);
-        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
-        localStorage.setItem('partyInvitations_timestamp', timestamp);
-      } catch (error) {
-        console.error('Error saving data to localStorage:', error);
-      }
+  const handleDeleteGuest = async (id: string) => {
+    if (!currentPartyId || !user) {
+      console.error('Cannot delete guest: missing party ID or user authentication');
+      return;
     }
-    
-    // Auto-sync to database
-    if (currentPartyId && user) {
-      syncGuestsToDatabase(updatedGuests).catch(error => {
-        console.error('Failed to sync guests to database:', error);
-      });
+
+    try {
+      // Delete from database first (only if it's a real database ID)
+      if (!id.startsWith('guest_')) {
+        const result = await deleteGuest(id);
+        
+        if (result.success) {
+          console.log('Guest deleted successfully from database');
+        } else {
+          console.error('Failed to delete guest from database:', result.error);
+        }
+      }
+
+      // Update local state
+      const updatedGuests = guests.filter(guest => guest.id !== id);
+      setGuests(updatedGuests);
+      
+      // Also remove any invitations for this guest
+      const updatedInvitations = invitations.filter(inv => inv.guestId !== id);
+      setInvitations(updatedInvitations);
+
+      // Update localStorage as backup
+      if (typeof window !== 'undefined') {
+        try {
+          const timestamp = Date.now().toString();
+          localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+          localStorage.setItem('partyGuests_timestamp', timestamp);
+          localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+          localStorage.setItem('partyInvitations_timestamp', timestamp);
+        } catch (error) {
+          console.error('Error saving data to localStorage:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting guest:', error);
     }
   };
 
@@ -899,46 +1057,86 @@ export default function PartyPlanPage() {
     }
   };
 
-  const handleSendBulkInvitations = (guestIds: string[], templateId: string, customMessage: string) => {
-    const newInvitations = guestIds.map(guestId => ({
-      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${guestId}`,
-      guestId,
-      status: 'SENT' as const,
-      sentAt: new Date(),
-      message: customMessage
-    }));
+  const handleSendBulkInvitations = async (guestIds: string[], templateId: string, customMessage: string) => {
+    // Note: Bulk invitations are now handled by the BulkInvitations component directly via API
+    // This function is called after successful email sending to update local state
     
-    const filteredExistingInvitations = invitations.filter(inv => !guestIds.includes(inv.guestId));
-    const updatedInvitations = [...filteredExistingInvitations, ...newInvitations];
-    setInvitations(updatedInvitations);
+    console.log('Updating local invitation state after bulk send');
     
-    if (typeof window !== 'undefined') {
+    // Re-fetch party data to get updated invitations from database
+    if (currentPartyId) {
       try {
-        const timestamp = Date.now().toString();
-        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
-        localStorage.setItem('partyInvitations_timestamp', timestamp);
+        const result = await getParty(currentPartyId);
+        if (result.success && result.party) {
+          // Update local state with database invitations
+          const dbInvitations = result.party.invitations?.map((inv: any) => ({
+            id: inv.id,
+            guestId: inv.guestId,
+            guestName: inv.guest?.name || '',
+            status: inv.status,
+            sentAt: inv.sentAt ? new Date(inv.sentAt) : undefined,
+            respondedAt: inv.respondedAt ? new Date(inv.respondedAt) : undefined,
+            message: inv.customMessage || '',
+            notes: inv.notes || '',
+          })) || [];
+          
+          setInvitations(dbInvitations);
+          
+          // Update localStorage as backup
+          if (typeof window !== 'undefined') {
+            try {
+              const timestamp = Date.now().toString();
+              localStorage.setItem('partyInvitations', JSON.stringify(dbInvitations));
+              localStorage.setItem('partyInvitations_timestamp', timestamp);
+            } catch (error) {
+              console.error('Error saving invitations to localStorage:', error);
+            }
+          }
+        }
       } catch (error) {
-        console.error('Error saving invitations to localStorage:', error);
+        console.error('Error refreshing invitation data:', error);
       }
     }
   };
 
-  const handleUpdateRSVP = (invitationId: string, status: Invitation['status'], notes?: string) => {
-    const updatedInvitations = invitations.map(inv => 
-      inv.id === invitationId 
-        ? { ...inv, status, notes, respondedAt: new Date() }
-        : inv
-    );
-    setInvitations(updatedInvitations);
-    
-    if (typeof window !== 'undefined') {
-      try {
-        const timestamp = Date.now().toString();
-        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
-        localStorage.setItem('partyInvitations_timestamp', timestamp);
-      } catch (error) {
-        console.error('Error saving invitations to localStorage:', error);
+  const handleUpdateRSVP = async (invitationId: string, status: Invitation['status'], notes?: string) => {
+    if (!currentPartyId || !user) {
+      console.error('Cannot update RSVP: missing party ID or user authentication');
+      return;
+    }
+
+    try {
+      // Update RSVP in database first (only if it's a real database ID)
+      if (!invitationId.startsWith('inv_')) {
+        const result = await updateInvitationStatus(invitationId, status as any, notes);
+        
+        if (result.success) {
+          console.log('RSVP updated successfully in database');
+        } else {
+          console.error('Failed to update RSVP in database:', result.error);
+        }
       }
+
+      // Update local state
+      const updatedInvitations = invitations.map(inv => 
+        inv.id === invitationId 
+          ? { ...inv, status, notes, respondedAt: new Date() }
+          : inv
+      );
+      setInvitations(updatedInvitations);
+
+      // Update localStorage as backup
+      if (typeof window !== 'undefined') {
+        try {
+          const timestamp = Date.now().toString();
+          localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+          localStorage.setItem('partyInvitations_timestamp', timestamp);
+        } catch (error) {
+          console.error('Error saving invitations to localStorage:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating RSVP:', error);
     }
   };
 
