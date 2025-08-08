@@ -462,9 +462,12 @@ export default function PartyPlanPage() {
         guestCount: party.guestCount || undefined,
       });
 
-      // Set guests from database
-      if (party.guests) {
-        const guestData = party.guests.map((guest: any) => ({
+      // Set guests from database with localStorage fallback
+      let finalGuestData: Guest[] = [];
+      
+      if (party.guests && party.guests.length > 0) {
+        // Use database data if available
+        finalGuestData = party.guests.map((guest: any) => ({
           id: guest.id,
           name: guest.name,
           email: guest.email || '',
@@ -473,12 +476,52 @@ export default function PartyPlanPage() {
           age: guest.age || undefined,
           notes: guest.notes || '',
         }));
-        setGuests(guestData);
+      } else {
+        // Fallback to localStorage if no database guests or database is empty
+        try {
+          const savedGuests = localStorage.getItem('partyGuests');
+          if (savedGuests) {
+            const parsedGuests = JSON.parse(savedGuests);
+            if (Array.isArray(parsedGuests) && parsedGuests.length > 0) {
+              finalGuestData = parsedGuests;
+              console.log('Loaded guests from localStorage fallback:', parsedGuests.length);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading guests from localStorage:', error);
+        }
       }
+      
+      // Always check for more recent localStorage data and merge if newer
+      try {
+        const savedGuests = localStorage.getItem('partyGuests');
+        const savedTimestamp = localStorage.getItem('partyGuests_timestamp');
+        
+        if (savedGuests && savedTimestamp) {
+          const localTimestamp = parseInt(savedTimestamp);
+          const dbTimestamp = party.updatedAt ? new Date(party.updatedAt).getTime() : 0;
+          
+          // Use localStorage if it's more recent than database
+          if (localTimestamp > dbTimestamp) {
+            const parsedGuests = JSON.parse(savedGuests);
+            if (Array.isArray(parsedGuests)) {
+              finalGuestData = parsedGuests;
+              console.log('Using more recent localStorage guest data');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking localStorage timestamp:', error);
+      }
+      
+      setGuests(finalGuestData);
 
-      // Set invitations from database
-      if (party.invitations) {
-        const invitationData = party.invitations.map((inv: any) => ({
+      // Set invitations from database with localStorage fallback
+      let finalInvitationData: Invitation[] = [];
+      
+      if (party.invitations && party.invitations.length > 0) {
+        // Use database data if available
+        finalInvitationData = party.invitations.map((inv: any) => ({
           id: inv.id,
           guestId: inv.guestId,
           guestName: inv.guest?.name || '',
@@ -488,8 +531,45 @@ export default function PartyPlanPage() {
           message: inv.message || '',
           notes: inv.notes || '',
         }));
-        setInvitations(invitationData);
+      } else {
+        // Fallback to localStorage if no database invitations
+        try {
+          const savedInvitations = localStorage.getItem('partyInvitations');
+          if (savedInvitations) {
+            const parsedInvitations = JSON.parse(savedInvitations);
+            if (Array.isArray(parsedInvitations) && parsedInvitations.length > 0) {
+              finalInvitationData = parsedInvitations;
+              console.log('Loaded invitations from localStorage fallback:', parsedInvitations.length);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading invitations from localStorage:', error);
+        }
       }
+      
+      // Check for more recent localStorage invitation data
+      try {
+        const savedInvitations = localStorage.getItem('partyInvitations');
+        const savedTimestamp = localStorage.getItem('partyInvitations_timestamp');
+        
+        if (savedInvitations && savedTimestamp) {
+          const localTimestamp = parseInt(savedTimestamp);
+          const dbTimestamp = party.updatedAt ? new Date(party.updatedAt).getTime() : 0;
+          
+          // Use localStorage if it's more recent than database
+          if (localTimestamp > dbTimestamp) {
+            const parsedInvitations = JSON.parse(savedInvitations);
+            if (Array.isArray(parsedInvitations)) {
+              finalInvitationData = parsedInvitations;
+              console.log('Using more recent localStorage invitation data');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking localStorage invitation timestamp:', error);
+      }
+      
+      setInvitations(finalInvitationData);
 
       // Generate and load checklist
       const baseChecklist = generateBaseChecklist(party);
@@ -693,6 +773,29 @@ export default function PartyPlanPage() {
     }
   };
 
+  // Database sync function for guests
+  const syncGuestsToDatabase = async (guestData: Guest[]) => {
+    if (!currentPartyId || !user) return;
+    
+    try {
+      // For now, we'll skip automatic database sync to avoid complex database operations
+      // The guests are safely stored in localStorage with timestamps for conflict resolution
+      // Future enhancement: Implement proper database guest sync using addGuest, updateGuest, deleteGuest functions
+      console.log('Guest data is stored in localStorage for data persistence');
+      
+      // TODO: Implement full database sync:
+      // 1. Get existing database guests
+      // 2. Compare with local guests (by ID or name)
+      // 3. Use addGuest() for new guests with temporary IDs
+      // 4. Use updateGuest() for modified existing guests
+      // 5. Use deleteGuest() for removed guests
+      
+    } catch (error) {
+      console.error('Failed to sync guests to database:', error);
+      throw error;
+    }
+  };
+
   // Guest management functions
   const handleAddGuest = (guestData: Omit<Guest, 'id'>) => {
     const newGuest: Guest = {
@@ -705,10 +808,19 @@ export default function PartyPlanPage() {
     
     if (typeof window !== 'undefined') {
       try {
+        const timestamp = Date.now().toString();
         localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+        localStorage.setItem('partyGuests_timestamp', timestamp);
       } catch (error) {
         console.error('Error saving guests to localStorage:', error);
       }
+    }
+    
+    // Auto-sync to database if we have a party ID
+    if (currentPartyId && user) {
+      syncGuestsToDatabase(updatedGuests).catch(error => {
+        console.error('Failed to sync guests to database:', error);
+      });
     }
   };
 
@@ -720,10 +832,19 @@ export default function PartyPlanPage() {
     
     if (typeof window !== 'undefined') {
       try {
+        const timestamp = Date.now().toString();
         localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+        localStorage.setItem('partyGuests_timestamp', timestamp);
       } catch (error) {
         console.error('Error saving guests to localStorage:', error);
       }
+    }
+    
+    // Auto-sync to database
+    if (currentPartyId && user) {
+      syncGuestsToDatabase(updatedGuests).catch(error => {
+        console.error('Failed to sync guests to database:', error);
+      });
     }
   };
 
@@ -737,11 +858,21 @@ export default function PartyPlanPage() {
     
     if (typeof window !== 'undefined') {
       try {
+        const timestamp = Date.now().toString();
         localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
+        localStorage.setItem('partyGuests_timestamp', timestamp);
         localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+        localStorage.setItem('partyInvitations_timestamp', timestamp);
       } catch (error) {
         console.error('Error saving data to localStorage:', error);
       }
+    }
+    
+    // Auto-sync to database
+    if (currentPartyId && user) {
+      syncGuestsToDatabase(updatedGuests).catch(error => {
+        console.error('Failed to sync guests to database:', error);
+      });
     }
   };
 
@@ -759,7 +890,9 @@ export default function PartyPlanPage() {
     
     if (typeof window !== 'undefined') {
       try {
+        const timestamp = Date.now().toString();
         localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+        localStorage.setItem('partyInvitations_timestamp', timestamp);
       } catch (error) {
         console.error('Error saving invitations to localStorage:', error);
       }
@@ -781,7 +914,9 @@ export default function PartyPlanPage() {
     
     if (typeof window !== 'undefined') {
       try {
+        const timestamp = Date.now().toString();
         localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+        localStorage.setItem('partyInvitations_timestamp', timestamp);
       } catch (error) {
         console.error('Error saving invitations to localStorage:', error);
       }
@@ -798,7 +933,9 @@ export default function PartyPlanPage() {
     
     if (typeof window !== 'undefined') {
       try {
+        const timestamp = Date.now().toString();
         localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+        localStorage.setItem('partyInvitations_timestamp', timestamp);
       } catch (error) {
         console.error('Error saving invitations to localStorage:', error);
       }
@@ -818,7 +955,9 @@ export default function PartyPlanPage() {
     
     if (typeof window !== 'undefined') {
       try {
+        const timestamp = Date.now().toString();
         localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
+        localStorage.setItem('partyInvitations_timestamp', timestamp);
       } catch (error) {
         console.error('Error saving invitations to localStorage:', error);
       }

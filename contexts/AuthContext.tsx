@@ -174,10 +174,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Clear localStorage after successful signout
+      // Note: In a future update, we should sync unsaved data to database before clearing
       try {
+        // Check for unsaved guest data and warn user
+        const hasUnsavedGuests = localStorage.getItem('partyGuests');
+        const hasUnsavedInvitations = localStorage.getItem('partyInvitations');
+        
+        if (hasUnsavedGuests || hasUnsavedInvitations) {
+          console.warn('SignOut: Clearing localStorage with potential unsaved guest data');
+          // TODO: Implement pre-signout sync to database
+        }
+        
         localStorage.removeItem('partyData')
         localStorage.removeItem('partyChecklist')
-        localStorage.removeItem('partyGuests')    
+        localStorage.removeItem('partyGuests')
+        localStorage.removeItem('partyGuests_timestamp')
+        localStorage.removeItem('partyInvitations')
+        localStorage.removeItem('partyInvitations_timestamp')
         localStorage.removeItem('partyBudget')
         localStorage.removeItem('partyShoppingList')
         // Clear any auth-related localStorage

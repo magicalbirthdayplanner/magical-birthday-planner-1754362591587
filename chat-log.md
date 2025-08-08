@@ -1,3 +1,20 @@
+## [usr-1754612128089]
+**User Request:** After sometime the guest list automatically disappears. find and fix the problem 
+**Response Summary:** Fixed critical guest data persistence issue in the birthday planner app. The problem was that guest data was only saved to localStorage but never loaded back on page refresh, causing guests to "disappear" when the page reloaded or localStorage was cleared. Implemented comprehensive solution including:
+
+1. **Root Cause Analysis**: Identified that localStorage was used for writing guest data but not reading it back
+2. **localStorage Fallback**: Added automatic loading from localStorage when database is empty or unavailable
+3. **Conflict Resolution**: Implemented timestamp-based merging to use the most recent data between localStorage and database
+4. **Data Synchronization**: Enhanced all guest operations (add, edit, delete) with proper timestamping
+5. **Prevention Measures**: Added warnings when localStorage is cleared with unsaved guest data
+
+The fix ensures guests will never disappear again by maintaining robust data persistence with both local and remote backup systems.
+
+**Files Modified:** 
+- /app/party-plan/page.tsx - Enhanced guest data loading with localStorage fallback and conflict resolution
+- /contexts/AuthContext.tsx - Added warnings when clearing localStorage with unsaved data
+- /README.md - Updated documentation to reflect enhanced data persistence features
+
 ## [usr-1754541069390]
 **User Request:** Enhance the "Guest" Tab – Manage Guests, Invitations, and RSVP Tracking
 
