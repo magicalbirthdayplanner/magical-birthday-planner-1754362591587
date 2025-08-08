@@ -5,9 +5,9 @@ export const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email configuration
 export const EMAIL_CONFIG = {
-  fromDomain: 'notifications@magicalbirthdayplanner.com',
+  fromDomain: 'onboarding@resend.dev', // Use verified Resend domain
   fallbackFrom: 'onboarding@resend.dev',
-  replyTo: 'support@magicalbirthdayplanner.com',
+  replyTo: 'onboarding@resend.dev', // Use verified domain for reply-to as well
 };
 
 // Email template types
@@ -24,7 +24,7 @@ export interface EmailTemplate {
 export async function sendEmail(template: EmailTemplate) {
   try {
     const response = await resend.emails.send({
-      from: template.from || EMAIL_CONFIG.fallbackFrom,
+      from: template.from || EMAIL_CONFIG.fromDomain,
       to: Array.isArray(template.to) ? template.to : [template.to],
       subject: template.subject,
       html: template.html,

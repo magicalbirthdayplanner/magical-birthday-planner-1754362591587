@@ -1,3 +1,13 @@
+## [usr-1754625349187]
+**User Request:** The mails are not going 
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-07 at 11.55.32 PM.png
+
+**Response Summary:** Fixed email delivery issue by correcting Resend domain configuration. The problem was that the application was trying to send emails from an unverified custom domain (notifications@magicalbirthdayplanner.com), which was causing Resend to reject the emails. Changed the email configuration to use the verified Resend domain (onboarding@resend.dev) as the primary sender address.
+
+**Files Modified:** 
+- lib/email.ts - Updated EMAIL_CONFIG to use verified Resend domain instead of custom unverified domain
+
 ## [usr-1754624747377]
 **User Request:** after deploying to vercel the issue still exisits. We're experiencing temporary connectivity issues. Please wait a moment and try again.
 **Response Summary:** Identified and fixed critical connectivity issues causing "temporary connectivity issues" error in Vercel production deployment. The root cause was timeout mismatches between API functions and Vercel's serverless execution limits, combined with dual database connection patterns that were causing connection pool exhaustion.
