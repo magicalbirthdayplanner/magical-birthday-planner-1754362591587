@@ -1,3 +1,16 @@
+## [usr-1754708658498]
+**User Request:** Details like Theme, number of kids,  are already added. No need to repeat and ask information again 
+
+Simplify the input process and focus more on ai integration - the activity plan and host playbook is not loading. 
+
+remove all the text under the tab 
+AI Party Activity Genie
+Your super-fun, creative best friend for planning unforgettable kid's party activities! Tell me about your party vibe, and I'll create a dazzling activity plan perfectly matched to your theme, age group, and special requests. Let's make this party magical! ✨
+
+**Response Summary:** Successfully simplified the Activities section by removing verbose descriptive text, streamlining the input process, and fixing activity plan and host playbook loading issues. Removed the lengthy description under the AI Party Activity Genie header, eliminated optional fields (Available Materials and Special Requests) from Party Vibe Setup to focus on essential configuration only, and implemented proper loading states for both Activity Plan and Host Playbook tabs with empty state handling and loading indicators.
+
+**Files Modified:** components/Activities.tsx
+
 ## [usr-1754707981708]
 **User Request:** In the activities section of party management, enhance with the following feature
 

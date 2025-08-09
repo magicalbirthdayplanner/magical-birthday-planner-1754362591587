@@ -355,19 +355,14 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
   return (
     <div className="space-y-6">
       {/* AI Party Activity Genie Header */}
-      <div className="text-center space-y-2 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 rounded-xl border border-purple-100 dark:border-purple-800">
-        <div className="flex items-center justify-center gap-2 mb-3">
+      <div className="text-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-xl border border-purple-100 dark:border-purple-800">
+        <div className="flex items-center justify-center gap-2">
           <Wand2 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
           <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             AI Party Activity Genie
           </h1>
           <Sparkles className="h-6 w-6 text-pink-600 dark:text-pink-400" />
         </div>
-        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-          Your super-fun, creative best friend for planning unforgettable kid's party activities! 
-          Tell me about your party vibe, and I'll create a dazzling activity plan perfectly matched to your theme, 
-          age group, and special requests. Let's make this party magical! ✨
-        </p>
       </div>
 
       {/* Navigation Tabs */}
@@ -393,45 +388,11 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="h-5 w-5" />
-                Tell Me About Your Party's Vibe!
+                Party Configuration
               </CardTitle>
-              <CardDescription>
-                The more you tell me, the more magical and personalized your activity plan will be!
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="theme">Theme</Label>
-                  <Input
-                    id="theme"
-                    value={partyVibe.theme}
-                    onChange={(e) => setPartyVibe(prev => ({ ...prev, theme: e.target.value }))}
-                    placeholder="e.g., Safari, Space, Princess"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="ageGroup">Age Group</Label>
-                  <Input
-                    id="ageGroup"
-                    value={partyVibe.ageGroup}
-                    onChange={(e) => setPartyVibe(prev => ({ ...prev, ageGroup: e.target.value }))}
-                    placeholder="e.g., 5-7, 8-10"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="numberOfKids">Number of Kids</Label>
-                  <Input
-                    id="numberOfKids"
-                    type="number"
-                    min="1"
-                    max="30"
-                    value={partyVibe.numberOfKids}
-                    onChange={(e) => setPartyVibe(prev => ({ ...prev, numberOfKids: parseInt(e.target.value) || 1 }))}
-                  />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                 <div className="space-y-2">
                   <Label htmlFor="duration">Total Party Duration</Label>
@@ -477,57 +438,6 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
                 </div>
               </div>
 
-              {/* Available Materials */}
-              <div className="space-y-3">
-                <Label>Available Materials (Optional)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={customMaterial}
-                    onChange={(e) => setCustomMaterial(e.target.value)}
-                    placeholder="Add materials you have available..."
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddMaterial()}
-                  />
-                  <Button onClick={handleAddMaterial} variant="outline">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                {partyVibe.availableMaterials.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {partyVibe.availableMaterials.map((material, index) => (
-                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                        {material}
-                        <button onClick={() => handleRemoveMaterial(index)} className="text-xs">×</button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Special Requests */}
-              <div className="space-y-3">
-                <Label>Special Requests (Optional)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={customRequest}
-                    onChange={(e) => setCustomRequest(e.target.value)}
-                    placeholder="e.g., less mess, more active, educational..."
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddRequest()}
-                  />
-                  <Button onClick={handleAddRequest} variant="outline">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                {partyVibe.specialRequests.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {partyVibe.specialRequests.map((request, index) => (
-                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                        {request}
-                        <button onClick={() => handleRemoveRequest(index)} className="text-xs">×</button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               <div className="flex gap-3 pt-4">
                 <Button 
@@ -564,20 +474,38 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
 
         {/* Generated Activity Plan */}
         <TabsContent value="activities" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-bold">Your Magical Activity Plan</h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                {activityPlan.length} amazing activities for a {partyVibe.theme} themed party!
-              </p>
+          {isGenerating ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+              <Wand2 className="h-12 w-12 animate-spin text-purple-600" />
+              <div>
+                <h3 className="text-lg font-semibold">Creating Your Activity Plan</h3>
+                <p className="text-gray-600 dark:text-gray-300">Crafting magical activities just for you...</p>
+              </div>
             </div>
-            <Button onClick={surpriseMe} variant="outline" className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Surprise Me Again!
-            </Button>
-          </div>
+          ) : activityPlan.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+              <PartyPopper className="h-12 w-12 text-gray-400" />
+              <div>
+                <h3 className="text-lg font-semibold">Ready to Create Activities?</h3>
+                <p className="text-gray-600 dark:text-gray-300">Click "Create My Activity Plan" to get started!</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-bold">Your Activity Plan</h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {activityPlan.length} activities for a {partyVibe.theme} themed party
+                  </p>
+                </div>
+                <Button onClick={surpriseMe} variant="outline" className="flex items-center gap-2" disabled={isGenerating}>
+                  <RefreshCw className="h-4 w-4" />
+                  Surprise Me Again!
+                </Button>
+              </div>
 
-          <div className="grid gap-4">
+              <div className="grid gap-4">
             {activityPlan.map((activity, index) => (
               <Card key={activity.id} className="border-0 shadow-md hover:shadow-lg transition-shadow">
                 <CardHeader>
@@ -657,12 +585,22 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
                 </CardContent>
               </Card>
             ))}
-          </div>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         {/* Party Host Playbook */}
         <TabsContent value="playbook" className="space-y-4">
-          {activityPlan.length > 0 ? (
+          {isGenerating ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+              <BookOpen className="h-12 w-12 animate-pulse text-purple-600" />
+              <div>
+                <h3 className="text-lg font-semibold">Preparing Your Playbook</h3>
+                <p className="text-gray-600 dark:text-gray-300">Creating your host guide...</p>
+              </div>
+            </div>
+          ) : activityPlan.length > 0 ? (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold">Your Party Host Playbook</h2>
