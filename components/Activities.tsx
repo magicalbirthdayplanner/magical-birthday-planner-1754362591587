@@ -4,7 +4,15 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
+  Wand2,
   Music, 
   Users, 
   Trophy, 
@@ -16,20 +24,52 @@ import {
   Heart,
   Shuffle,
   Sparkles,
-  Play
+  Play,
+  MapPin,
+  DollarSign,
+  Calendar,
+  Settings,
+  Target,
+  Zap,
+  Download,
+  BookOpen,
+  Lightbulb,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+  TreePine,
+  Home,
+  Sun,
+  Package,
+  PartyPopper,
+  Smile,
+  Plus
 } from "lucide-react";
 
-interface Activity {
+interface PartyVibeConfig {
+  theme: string;
+  ageGroup: string;
+  numberOfKids: number;
+  totalDuration: string;
+  setting: 'indoor' | 'outdoor' | 'mixed';
+  availableMaterials: string[];
+  budgetLevel: 'low' | 'medium' | 'high';
+  specialRequests: string[];
+}
+
+interface ActivityPlan {
   id: string;
   name: string;
-  description: string;
-  category: 'games' | 'dance' | 'crafts' | 'entertainment' | 'sports' | 'creative';
-  duration: string;
-  participants: string;
-  materials: string[];
+  category: 'game' | 'craft' | 'dance' | 'quiet' | 'outdoor' | 'educational';
   difficulty: 'easy' | 'medium' | 'hard';
-  ageRange: string;
-  icon: React.ReactElement;
+  timeEstimate: string;
+  bestGroupSize: string;
+  instructions: string[];
+  materials: string[];
+  materialAlternatives: Record<string, string[]>;
+  energyLevel: 'high' | 'medium' | 'calm';
+  sequence: number;
 }
 
 interface ActivitiesProps {
@@ -39,500 +79,697 @@ interface ActivitiesProps {
 }
 
 const categoryIcons = {
-  games: <Gamepad2 className="h-5 w-5" />,
+  game: <Gamepad2 className="h-5 w-5" />,
+  craft: <Paintbrush className="h-5 w-5" />,
   dance: <Music className="h-5 w-5" />,
-  crafts: <Paintbrush className="h-5 w-5" />,
-  entertainment: <Star className="h-5 w-5" />,
-  sports: <Trophy className="h-5 w-5" />,
-  creative: <Sparkles className="h-5 w-5" />
+  quiet: <BookOpen className="h-5 w-5" />,
+  outdoor: <TreePine className="h-5 w-5" />,
+  educational: <Star className="h-5 w-5" />
 };
 
 const categoryColors = {
-  games: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200',
+  game: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200',
+  craft: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200',
   dance: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-200',
-  crafts: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200',
-  entertainment: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200',
-  sports: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200',
-  creative: 'bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800 text-pink-800 dark:text-pink-200'
+  quiet: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200',
+  outdoor: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200',
+  educational: 'bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800 text-pink-800 dark:text-pink-200'
 };
 
-// Theme-based activity templates
-const getThemeActivities = (theme: string, childAge: number): Activity[] => {
-  const baseActivities: { [key: string]: Activity[] } = {
-    superhero: [
-      {
-        id: 'superhero-training',
-        name: 'Superhero Training Academy',
-        description: 'Create an obstacle course where kids can test their superhero abilities',
-        category: 'sports',
-        duration: '20-30 minutes',
-        participants: '4-12 kids',
-        materials: ['Cones', 'Jump ropes', 'Hula hoops', 'Small weights (water bottles)'],
-        difficulty: 'medium',
-        ageRange: '4-12',
-        icon: <Trophy className="h-5 w-5" />
-      },
-      {
-        id: 'cape-decorating',
-        name: 'Design Your Superhero Cape',
-        description: 'Let kids create and decorate their own superhero capes',
-        category: 'crafts',
-        duration: '25-35 minutes',
-        participants: '1-10 kids',
-        materials: ['Plain capes/fabric', 'Fabric markers', 'Stickers', 'Glue', 'Superhero symbols'],
-        difficulty: 'easy',
-        ageRange: '3-10',
-        icon: <Paintbrush className="h-5 w-5" />
-      },
-      {
-        id: 'villain-freeze-dance',
-        name: 'Freeze the Villain Dance',
-        description: 'Dance party with superhero music - freeze when the villain appears!',
-        category: 'dance',
-        duration: '15-20 minutes',
-        participants: '5-20 kids',
-        materials: ['Superhero playlist', 'Speaker', 'Villain cutout'],
-        difficulty: 'easy',
-        ageRange: '3-12',
-        icon: <Music className="h-5 w-5" />
-      },
-      {
-        id: 'save-the-city',
-        name: 'Save the City Mission',
-        description: 'Treasure hunt where kids solve clues to save the city from villains',
-        category: 'games',
-        duration: '30-40 minutes',
-        participants: '4-15 kids',
-        materials: ['Clue cards', 'Hidden treasures', 'City map', 'Mission cards'],
-        difficulty: 'medium',
-        ageRange: '5-12',
-        icon: <Gamepad2 className="h-5 w-5" />
-      }
-    ],
-    princess: [
-      {
-        id: 'royal-makeover',
-        name: 'Royal Makeover Station',
-        description: 'Transform into royalty with makeup, nail art, and hair styling',
-        category: 'creative',
-        duration: '20-30 minutes',
-        participants: '1-8 kids',
-        materials: ['Child-safe makeup', 'Nail stickers', 'Hair accessories', 'Mirrors', 'Tiaras'],
-        difficulty: 'easy',
-        ageRange: '4-10',
-        icon: <Sparkles className="h-5 w-5" />
-      },
-      {
-        id: 'crown-decorating',
-        name: 'Design Your Royal Crown',
-        description: 'Create beautiful crowns with gems, stickers, and glitter',
-        category: 'crafts',
-        duration: '25-35 minutes',
-        participants: '1-12 kids',
-        materials: ['Paper crowns', 'Gems', 'Glitter', 'Stickers', 'Glue', 'Markers'],
-        difficulty: 'easy',
-        ageRange: '3-10',
-        icon: <Paintbrush className="h-5 w-5" />
-      },
-      {
-        id: 'royal-ball-dance',
-        name: 'Royal Ball Dance Party',
-        description: 'Learn princess dances and waltz around the ballroom',
-        category: 'dance',
-        duration: '20-25 minutes',
-        participants: '4-20 kids',
-        materials: ['Classical music playlist', 'Dance instruction cards', 'Speaker'],
-        difficulty: 'easy',
-        ageRange: '4-12',
-        icon: <Music className="h-5 w-5" />
-      },
-      {
-        id: 'treasure-hunt-jewels',
-        name: 'Hunt for Royal Jewels',
-        description: 'Search for hidden jewels throughout the kingdom',
-        category: 'games',
-        duration: '25-35 minutes',
-        participants: '4-15 kids',
-        materials: ['Plastic jewels', 'Treasure chests', 'Clue cards', 'Royal map'],
-        difficulty: 'easy',
-        ageRange: '3-10',
-        icon: <Gamepad2 className="h-5 w-5" />
-      }
-    ],
-    dinosaur: [
-      {
-        id: 'dino-excavation',
-        name: 'Dinosaur Fossil Excavation',
-        description: 'Dig for dinosaur fossils and bones in a sandy dig site',
-        category: 'games',
-        duration: '30-40 minutes',
-        participants: '4-12 kids',
-        materials: ['Sand table/sandbox', 'Plastic dinosaur bones', 'Brushes', 'Sifters', 'Magnifying glasses'],
-        difficulty: 'medium',
-        ageRange: '4-10',
-        icon: <Gamepad2 className="h-5 w-5" />
-      },
-      {
-        id: 'dino-stomp-dance',
-        name: 'Dinosaur Stomp Dance',
-        description: 'Dance like different dinosaurs to prehistoric music',
-        category: 'dance',
-        duration: '15-20 minutes',
-        participants: '5-20 kids',
-        materials: ['Dinosaur sound effects', 'Music playlist', 'Dinosaur movement cards'],
-        difficulty: 'easy',
-        ageRange: '3-8',
-        icon: <Music className="h-5 w-5" />
-      },
-      {
-        id: 'dino-craft-making',
-        name: 'Create Your Own Dinosaur',
-        description: 'Make dinosaurs using paper plates, construction paper, and creativity',
-        category: 'crafts',
-        duration: '25-35 minutes',
-        participants: '1-10 kids',
-        materials: ['Paper plates', 'Construction paper', 'Googly eyes', 'Glue', 'Scissors', 'Crayons'],
-        difficulty: 'easy',
-        ageRange: '4-10',
-        icon: <Paintbrush className="h-5 w-5" />
-      }
-    ],
-    space: [
-      {
-        id: 'rocket-building',
-        name: 'Build Your Own Rocket',
-        description: 'Construct rockets using cardboard tubes and blast off to space',
-        category: 'crafts',
-        duration: '30-40 minutes',
-        participants: '1-12 kids',
-        materials: ['Cardboard tubes', 'Aluminum foil', 'Stickers', 'Markers', 'Tape'],
-        difficulty: 'medium',
-        ageRange: '5-12',
-        icon: <Paintbrush className="h-5 w-5" />
-      },
-      {
-        id: 'space-mission',
-        name: 'Space Mission Adventure',
-        description: 'Complete space missions and explore different planets',
-        category: 'games',
-        duration: '25-35 minutes',
-        participants: '4-15 kids',
-        materials: ['Mission cards', 'Planet stations', 'Space stickers', 'Astronaut badges'],
-        difficulty: 'medium',
-        ageRange: '5-12',
-        icon: <Gamepad2 className="h-5 w-5" />
-      },
-      {
-        id: 'alien-dance',
-        name: 'Alien Dance Party',
-        description: 'Dance like aliens from different planets with space music',
-        category: 'dance',
-        duration: '15-20 minutes',
-        participants: '5-20 kids',
-        materials: ['Space-themed music', 'LED lights', 'Alien costume pieces'],
-        difficulty: 'easy',
-        ageRange: '3-10',
-        icon: <Music className="h-5 w-5" />
-      }
-    ],
-    // Add more themes...
-    default: [
-      {
-        id: 'musical-chairs',
-        name: 'Musical Chairs',
-        description: 'Classic party game with upbeat music and lots of fun',
-        category: 'games',
-        duration: '10-15 minutes',
-        participants: '5-20 kids',
-        materials: ['Chairs', 'Music player', 'Upbeat playlist'],
-        difficulty: 'easy',
-        ageRange: '3-12',
-        icon: <Music className="h-5 w-5" />
-      },
-      {
-        id: 'face-painting',
-        name: 'Face Painting Station',
-        description: 'Transform into favorite characters with face painting',
-        category: 'creative',
-        duration: '5-10 min per child',
-        participants: '1-15 kids',
-        materials: ['Face paints', 'Brushes', 'Sponges', 'Mirrors', 'Design cards'],
-        difficulty: 'medium',
-        ageRange: '3-12',
-        icon: <Paintbrush className="h-5 w-5" />
-      },
-      {
-        id: 'dance-freeze',
-        name: 'Freeze Dance',
-        description: 'Dance until the music stops, then freeze in place!',
-        category: 'dance',
-        duration: '10-15 minutes',
-        participants: '5-25 kids',
-        materials: ['Music player', 'Fun playlist'],
-        difficulty: 'easy',
-        ageRange: '2-12',
-        icon: <Music className="h-5 w-5" />
-      },
-      {
-        id: 'balloon-games',
-        name: 'Balloon Pop Games',
-        description: 'Various balloon games including keep it up and balloon stomp',
-        category: 'games',
-        duration: '15-20 minutes',
-        participants: '5-20 kids',
-        materials: ['Balloons', 'String', 'Small prizes inside balloons'],
-        difficulty: 'easy',
-        ageRange: '4-12',
-        icon: <Gamepad2 className="h-5 w-5" />
-      }
-    ]
-  };
+const energyColors = {
+  high: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+  medium: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
+  calm: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+};
 
-  const themeKey = theme.toLowerCase();
-  const activities = baseActivities[themeKey] || baseActivities.default;
+const difficultyColors = {
+  easy: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  medium: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
+  hard: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+};
 
-  // Filter activities based on age appropriateness
-  return activities.filter(activity => {
-    const [minAge, maxAge] = activity.ageRange.split('-').map(age => parseInt(age));
-    return childAge >= minAge && childAge <= maxAge;
-  });
+// Default party activity templates based on theme and age
+const generateDefaultActivities = (theme: string, ageGroup: string, numberOfKids: number): ActivityPlan[] => {
+  const ageNum = parseInt(ageGroup.split('-')[0]) || 5;
+  const isToddler = ageNum <= 3;
+  const isPreschool = ageNum >= 4 && ageNum <= 6;
+  const isSchoolAge = ageNum >= 7;
+
+  const baseActivities: ActivityPlan[] = [
+    {
+      id: '1',
+      name: `${theme.charAt(0).toUpperCase() + theme.slice(1)} Themed Treasure Hunt`,
+      category: 'game',
+      difficulty: isToddler ? 'easy' : 'medium',
+      timeEstimate: '20-30 minutes',
+      bestGroupSize: `4-${Math.min(numberOfKids, 15)} kids`,
+      instructions: [
+        'Hide themed treasures around the party area',
+        'Give each child a treasure map or clue list',
+        'Guide younger children, let older ones work independently',
+        'Celebrate each discovery with cheers and high-fives',
+        'End with everyone sharing their favorite find'
+      ],
+      materials: ['Themed treasures/toys', 'Maps or clue cards', 'Small bags for collecting', 'Stickers as rewards'],
+      materialAlternatives: {
+        'Themed treasures/toys': ['Wrapped candy', 'Small household items painted in theme colors', 'Homemade themed cutouts'],
+        'Maps or clue cards': ['Hand-drawn maps', 'Picture clues for non-readers', 'Riddles written on paper'],
+        'Small bags for collecting': ['Paper lunch bags', 'Plastic containers', 'Pillowcases']
+      },
+      energyLevel: 'high',
+      sequence: 1
+    },
+    {
+      id: '2',
+      name: `Create Your Own ${theme.charAt(0).toUpperCase() + theme.slice(1)} Masterpiece`,
+      category: 'craft',
+      difficulty: 'easy',
+      timeEstimate: '25-35 minutes',
+      bestGroupSize: `1-${numberOfKids} kids`,
+      instructions: [
+        'Set up craft stations with all materials organized',
+        'Show examples but encourage creativity',
+        'Help younger children with difficult steps',
+        'Let each child personalize their creation',
+        'Have a show-and-tell at the end'
+      ],
+      materials: ['Craft supplies', 'Glue sticks', 'Child-safe scissors', 'Crayons/markers', 'Decorative items'],
+      materialAlternatives: {
+        'Craft supplies': ['Cardboard from boxes', 'Toilet paper tubes', 'Construction paper', 'Paper plates'],
+        'Decorative items': ['Buttons', 'Cotton balls', 'Aluminum foil', 'Stickers from around the house']
+      },
+      energyLevel: 'calm',
+      sequence: 2
+    },
+    {
+      id: '3',
+      name: `${theme.charAt(0).toUpperCase() + theme.slice(1)} Dance Party Freeze`,
+      category: 'dance',
+      difficulty: 'easy',
+      timeEstimate: '15-20 minutes',
+      bestGroupSize: `3-${numberOfKids} kids`,
+      instructions: [
+        'Play upbeat themed music',
+        'Demonstrate fun theme-related dance moves',
+        'When music stops, everyone freezes like a statue',
+        'Add fun poses related to the theme',
+        'Give everyone a chance to show their best freeze pose'
+      ],
+      materials: ['Themed music playlist', 'Speaker or music player', 'Optional: themed props'],
+      materialAlternatives: {
+        'Themed music playlist': ['YouTube playlists on phone', 'Radio with theme-appropriate music', 'Kids singing together'],
+        'Speaker or music player': ['Phone speaker', 'Laptop speakers', 'Singing without music']
+      },
+      energyLevel: 'high',
+      sequence: 3
+    },
+    {
+      id: '4',
+      name: `${theme.charAt(0).toUpperCase() + theme.slice(1)} Story Circle`,
+      category: 'quiet',
+      difficulty: 'easy',
+      timeEstimate: '15-20 minutes',
+      bestGroupSize: `3-${numberOfKids} kids`,
+      instructions: [
+        'Gather everyone in a cozy circle',
+        'Start a themed story with 2-3 sentences',
+        'Each child adds one sentence to continue the story',
+        'Keep it lighthearted and fun',
+        'End with applause for the group story creation'
+      ],
+      materials: ['Comfortable seating', 'Optional: themed props for inspiration'],
+      materialAlternatives: {
+        'Comfortable seating': ['Pillows from couch', 'Blankets on floor', 'Sitting in grass outside'],
+        'themed props': ['Toys related to theme', 'Pictures from books', 'Drawings made earlier']
+      },
+      energyLevel: 'calm',
+      sequence: 4
+    }
+  ];
+
+  if (numberOfKids >= 8) {
+    baseActivities.push({
+      id: '5',
+      name: `${theme.charAt(0).toUpperCase() + theme.slice(1)} Team Challenge`,
+      category: 'game',
+      difficulty: 'medium',
+      timeEstimate: '25-30 minutes',
+      bestGroupSize: `8-${numberOfKids} kids`,
+      instructions: [
+        'Divide into 2-3 teams of equal size',
+        'Set up themed challenges at different stations',
+        'Teams rotate through each challenge',
+        'Focus on fun and teamwork over competition',
+        'Celebrate all teams with themed stickers or high-fives'
+      ],
+      materials: ['Station markers', 'Themed challenge props', 'Timer', 'Team name tags'],
+      materialAlternatives: {
+        'Station markers': ['Colored paper signs', 'Cones made from paper', 'Chairs as markers'],
+        'Team name tags': ['Colored stickers', 'Hand-drawn badges', 'Colored ribbons'],
+        'Timer': ['Phone timer', 'Kitchen timer', 'Counting aloud'],
+        'Themed challenge props': ['Household items', 'DIY obstacles', 'Simple games']
+      },
+      energyLevel: 'high',
+      sequence: 5
+    });
+  }
+
+  return baseActivities.slice(0, Math.min(6, baseActivities.length));
 };
 
 export default function Activities({ theme, childAge, guestCount = 8 }: ActivitiesProps) {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [currentView, setCurrentView] = useState<'genie' | 'activities' | 'playbook'>('genie');
+  const [partyVibe, setPartyVibe] = useState<PartyVibeConfig>({
+    theme: theme || 'superhero',
+    ageGroup: `${childAge}-${childAge + 2}`,
+    numberOfKids: guestCount,
+    totalDuration: '2-3 hours',
+    setting: 'mixed',
+    availableMaterials: [],
+    budgetLevel: 'medium',
+    specialRequests: []
+  });
+  const [activityPlan, setActivityPlan] = useState<ActivityPlan[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [customMaterial, setCustomMaterial] = useState('');
+  const [customRequest, setCustomRequest] = useState('');
 
   useEffect(() => {
-    // Load theme-based activities
-    const themeActivities = getThemeActivities(theme, childAge);
-    setActivities(themeActivities);
-  }, [theme, childAge]);
+    // Generate default activities based on props
+    const defaultActivities = generateDefaultActivities(theme, `${childAge}`, guestCount);
+    setActivityPlan(defaultActivities);
+  }, [theme, childAge, guestCount]);
 
-  const filteredActivities = selectedCategory === 'all' 
-    ? activities 
-    : activities.filter(activity => activity.category === selectedCategory);
-
-  const categories = Array.from(new Set(activities.map(activity => activity.category)));
-
-  const generateAIActivities = async () => {
-    setIsGeneratingAI(true);
-    
-    try {
-      const response = await fetch('/api/ai-activities', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          theme,
-          childAge,
-          guestCount,
-          interests: [], // Could be passed as prop if available
-          selectedActivities: activities.map(a => a.name),
-          partyDuration: '2-3 hours',
-          venue: 'home'
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.success && data.activities) {
-        // Add new AI-generated activities to existing ones
-        const newActivities = data.activities.map((aiActivity: any) => ({
-          id: aiActivity.id,
-          name: aiActivity.name,
-          description: aiActivity.description,
-          category: aiActivity.category,
-          duration: aiActivity.duration,
-          participants: aiActivity.participants,
-          materials: aiActivity.materials,
-          difficulty: aiActivity.difficulty,
-          ageRange: aiActivity.ageRange,
-          icon: categoryIcons[aiActivity.category as keyof typeof categoryIcons] || categoryIcons.games
-        }));
-        
-        // Merge with existing activities, avoiding duplicates
-        setActivities(prevActivities => {
-          const existingNames = prevActivities.map(a => a.name.toLowerCase());
-          const uniqueNewActivities = newActivities.filter((newActivity: Activity) => 
-            !existingNames.includes(newActivity.name.toLowerCase())
-          );
-          return [...prevActivities, ...uniqueNewActivities];
-        });
-      } else if (data.fallback && data.activities) {
-        // Handle fallback activities when AI is not available
-        const fallbackActivities = data.activities.map((activity: any) => ({
-          id: activity.id,
-          name: activity.name,
-          description: activity.description,
-          category: activity.category,
-          duration: activity.duration,
-          participants: activity.participants,
-          materials: activity.materials,
-          difficulty: activity.difficulty,
-          ageRange: activity.ageRange,
-          icon: categoryIcons[activity.category as keyof typeof categoryIcons] || categoryIcons.games
-        }));
-        
-        setActivities(prevActivities => [...prevActivities, ...fallbackActivities]);
-      }
-    } catch (error) {
-      console.error('Error generating AI activities:', error);
-      // Could show a user-friendly error message here
-    } finally {
-      setIsGeneratingAI(false);
+  const handleAddMaterial = () => {
+    if (customMaterial.trim()) {
+      setPartyVibe(prev => ({
+        ...prev,
+        availableMaterials: [...prev.availableMaterials, customMaterial.trim()]
+      }));
+      setCustomMaterial('');
     }
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
-      case 'hard': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-      default: return 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300';
+  const handleRemoveMaterial = (index: number) => {
+    setPartyVibe(prev => ({
+      ...prev,
+      availableMaterials: prev.availableMaterials.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddRequest = () => {
+    if (customRequest.trim()) {
+      setPartyVibe(prev => ({
+        ...prev,
+        specialRequests: [...prev.specialRequests, customRequest.trim()]
+      }));
+      setCustomRequest('');
     }
+  };
+
+  const handleRemoveRequest = (index: number) => {
+    setPartyVibe(prev => ({
+      ...prev,
+      specialRequests: prev.specialRequests.filter((_, i) => i !== index)
+    }));
+  };
+
+  const generateActivityPlan = () => {
+    setIsGenerating(true);
+    // Simulate generation process
+    setTimeout(() => {
+      const newActivities = generateDefaultActivities(partyVibe.theme, partyVibe.ageGroup, partyVibe.numberOfKids);
+      setActivityPlan(newActivities);
+      setIsGenerating(false);
+      setCurrentView('activities');
+    }, 2000);
+  };
+
+  const surpriseMe = () => {
+    setIsGenerating(true);
+    setTimeout(() => {
+      // Generate activities with silly twists
+      const baseActivities = generateDefaultActivities(partyVibe.theme, partyVibe.ageGroup, partyVibe.numberOfKids);
+      const sillyActivities = baseActivities.map(activity => ({
+        ...activity,
+        name: activity.name.replace('Masterpiece', 'Super Silly Creation').replace('Challenge', 'Giggle Challenge'),
+        instructions: activity.instructions.map(instruction => 
+          instruction.includes('show') ? instruction + ' with funny voices and silly faces!' : instruction
+        )
+      }));
+      setActivityPlan(sillyActivities);
+      setIsGenerating(false);
+    }, 1500);
+  };
+
+  const generatePlaybook = () => {
+    return {
+      schedule: [
+        { time: '0:00', activity: 'Welcome & Ice Breaker', duration: '10 min' },
+        ...activityPlan.map((activity, index) => ({
+          time: `${10 + (index * 25)}:00`,
+          activity: activity.name,
+          duration: activity.timeEstimate
+        }))
+      ],
+      setupGuide: [
+        'Set up activity stations 30 minutes before party starts',
+        'Test all music and equipment',
+        'Organize materials in labeled containers',
+        'Prepare backup indoor activities if weather is uncertain'
+      ],
+      hostTips: [
+        'Keep energy balanced: follow high-energy activities with calmer ones',
+        'Have a helper for every 4-5 children',
+        'Keep activities flexible - skip or extend based on group interest',
+        'Take photos but don\'t let it interrupt the fun'
+      ],
+      icebreakers: [
+        `Why don't ${partyVibe.theme}s ever get lost? Because they always find their way to fun!`,
+        `What do you call a ${partyVibe.theme} who loves to dance? A party animal!`,
+        `Knock knock! Who's there? Birthday! Birthday who? Birthday fun is about to begin!`
+      ]
+    };
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header with AI Generation - Compact Layout */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Party Activities
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-sm">
-            {theme.charAt(0).toUpperCase() + theme.slice(1)} theme activities for age {childAge}
-          </p>
+    <div className="space-y-6">
+      {/* AI Party Activity Genie Header */}
+      <div className="text-center space-y-2 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 rounded-xl border border-purple-100 dark:border-purple-800">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Wand2 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            AI Party Activity Genie
+          </h1>
+          <Sparkles className="h-6 w-6 text-pink-600 dark:text-pink-400" />
         </div>
-        <Button
-          onClick={generateAIActivities}
-          disabled={isGeneratingAI}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-          size="sm"
-        >
-          {isGeneratingAI ? (
-            <>
-              <Shuffle className="h-4 w-4 mr-2 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Generate More
-            </>
-          )}
-        </Button>
+        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          Your super-fun, creative best friend for planning unforgettable kid's party activities! 
+          Tell me about your party vibe, and I'll create a dazzling activity plan perfectly matched to your theme, 
+          age group, and special requests. Let's make this party magical! ✨
+        </p>
       </div>
 
-      {/* Category Filter - Reduced spacing */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={selectedCategory === 'all' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setSelectedCategory('all')}
-          className="h-8"
-        >
-          All ({activities.length})
-        </Button>
-        {categories.map(category => {
-          const count = activities.filter(a => a.category === category).length;
-          return (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory(category)}
-              className="h-8 capitalize"
-            >
-              {categoryIcons[category as keyof typeof categoryIcons]}
-              <span className="ml-1">{category} ({count})</span>
-            </Button>
-          );
-        })}
-      </div>
+      {/* Navigation Tabs */}
+      <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as any)} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="genie" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Party Vibe Setup
+          </TabsTrigger>
+          <TabsTrigger value="activities" className="flex items-center gap-2">
+            <PartyPopper className="h-4 w-4" />
+            Activity Plan
+          </TabsTrigger>
+          <TabsTrigger value="playbook" className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            Host Playbook
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Activities Grid - Tighter spacing and more compact cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredActivities.map((activity) => (
-          <Card key={activity.id} className="border-0 shadow-md hover:shadow-lg transition-shadow duration-300 dark:bg-slate-800/90 dark:backdrop-blur-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded-lg ${categoryColors[activity.category]}`}>
-                    {activity.icon}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <CardTitle className="text-base leading-tight">{activity.name}</CardTitle>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {activity.category}
-                      </Badge>
-                      <Badge className={`text-xs ${getDifficultyColor(activity.difficulty)}`}>
-                        {activity.difficulty}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3 pt-0">
-              <CardDescription className="text-sm leading-snug">
-                {activity.description}
+        {/* Party Vibe Configuration */}
+        <TabsContent value="genie" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Tell Me About Your Party's Vibe!
+              </CardTitle>
+              <CardDescription>
+                The more you tell me, the more magical and personalized your activity plan will be!
               </CardDescription>
-              
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-gray-400" />
-                  <span className="text-gray-600 dark:text-gray-300 text-xs">{activity.duration}</span>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="theme">Theme</Label>
+                  <Input
+                    id="theme"
+                    value={partyVibe.theme}
+                    onChange={(e) => setPartyVibe(prev => ({ ...prev, theme: e.target.value }))}
+                    placeholder="e.g., Safari, Space, Princess"
+                  />
                 </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-3 w-3 text-gray-400" />
-                  <span className="text-gray-600 dark:text-gray-300 text-xs">{activity.participants}</span>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="ageGroup">Age Group</Label>
+                  <Input
+                    id="ageGroup"
+                    value={partyVibe.ageGroup}
+                    onChange={(e) => setPartyVibe(prev => ({ ...prev, ageGroup: e.target.value }))}
+                    placeholder="e.g., 5-7, 8-10"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="numberOfKids">Number of Kids</Label>
+                  <Input
+                    id="numberOfKids"
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={partyVibe.numberOfKids}
+                    onChange={(e) => setPartyVibe(prev => ({ ...prev, numberOfKids: parseInt(e.target.value) || 1 }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Total Party Duration</Label>
+                  <Select value={partyVibe.totalDuration} onValueChange={(value) => setPartyVibe(prev => ({ ...prev, totalDuration: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1-2 hours">1-2 hours</SelectItem>
+                      <SelectItem value="2-3 hours">2-3 hours</SelectItem>
+                      <SelectItem value="3-4 hours">3-4 hours</SelectItem>
+                      <SelectItem value="4+ hours">4+ hours</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="setting">Setting</Label>
+                  <Select value={partyVibe.setting} onValueChange={(value) => setPartyVibe(prev => ({ ...prev, setting: value as any }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="indoor">Indoor</SelectItem>
+                      <SelectItem value="outdoor">Outdoor</SelectItem>
+                      <SelectItem value="mixed">Mixed (Indoor & Outdoor)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="budgetLevel">Budget Level</Label>
+                  <Select value={partyVibe.budgetLevel} onValueChange={(value) => setPartyVibe(prev => ({ ...prev, budgetLevel: value as any }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low (DIY & household items)</SelectItem>
+                      <SelectItem value="medium">Medium (some purchases)</SelectItem>
+                      <SelectItem value="high">High (premium materials)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <div>
-                <h4 className="font-semibold text-sm mb-1">Materials:</h4>
-                <div className="flex flex-wrap gap-1">
-                  {activity.materials.slice(0, 3).map((material, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs py-0">
-                      {material}
-                    </Badge>
-                  ))}
-                  {activity.materials.length > 3 && (
-                    <Badge variant="secondary" className="text-xs py-0">
-                      +{activity.materials.length - 3} more
-                    </Badge>
+              {/* Available Materials */}
+              <div className="space-y-3">
+                <Label>Available Materials (Optional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={customMaterial}
+                    onChange={(e) => setCustomMaterial(e.target.value)}
+                    placeholder="Add materials you have available..."
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddMaterial()}
+                  />
+                  <Button onClick={handleAddMaterial} variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {partyVibe.availableMaterials.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {partyVibe.availableMaterials.map((material, index) => (
+                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                        {material}
+                        <button onClick={() => handleRemoveMaterial(index)} className="text-xs">×</button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Special Requests */}
+              <div className="space-y-3">
+                <Label>Special Requests (Optional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={customRequest}
+                    onChange={(e) => setCustomRequest(e.target.value)}
+                    placeholder="e.g., less mess, more active, educational..."
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddRequest()}
+                  />
+                  <Button onClick={handleAddRequest} variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {partyVibe.specialRequests.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {partyVibe.specialRequests.map((request, index) => (
+                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                        {request}
+                        <button onClick={() => handleRemoveRequest(index)} className="text-xs">×</button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  onClick={generateActivityPlan} 
+                  disabled={isGenerating}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Wand2 className="h-4 w-4 mr-2 animate-spin" />
+                      Creating Your Perfect Party Plan...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Create My Activity Plan!
+                    </>
                   )}
-                </div>
+                </Button>
+                
+                <Button 
+                  onClick={surpriseMe}
+                  disabled={isGenerating}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Shuffle className="h-4 w-4" />
+                  Surprise Me!
+                </Button>
               </div>
-
-              <Button className="w-full" variant="outline" size="sm">
-                <Play className="h-3 w-3 mr-2" />
-                Add to Plan
-              </Button>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        </TabsContent>
 
-      {/* Empty state - More compact */}
-      {filteredActivities.length === 0 && (
-        <div className="text-center py-8">
-          <Music className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            No activities found
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-3 text-sm">
-            No activities match your current filter. Try selecting a different category.
-          </p>
-          <Button onClick={() => setSelectedCategory('all')} variant="outline" size="sm">
-            Show All Activities
-          </Button>
-        </div>
-      )}
+        {/* Generated Activity Plan */}
+        <TabsContent value="activities" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-bold">Your Magical Activity Plan</h2>
+              <p className="text-gray-600 dark:text-gray-300">
+                {activityPlan.length} amazing activities for a {partyVibe.theme} themed party!
+              </p>
+            </div>
+            <Button onClick={surpriseMe} variant="outline" className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Surprise Me Again!
+            </Button>
+          </div>
+
+          <div className="grid gap-4">
+            {activityPlan.map((activity, index) => (
+              <Card key={activity.id} className="border-0 shadow-md hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${categoryColors[activity.category]}`}>
+                        {categoryIcons[activity.category]}
+                      </div>
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                            {index + 1}
+                          </span>
+                          {activity.name}
+                        </CardTitle>
+                        <div className="flex gap-2 mt-1">
+                          <Badge variant="outline" className="capitalize">
+                            {activity.category}
+                          </Badge>
+                          <Badge className={difficultyColors[activity.difficulty]}>
+                            {activity.difficulty}
+                          </Badge>
+                          <Badge className={energyColors[activity.energyLevel]}>
+                            {activity.energyLevel} energy
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {activity.timeEstimate}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {activity.bestGroupSize}
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Step-by-Step Instructions:</h4>
+                    <ol className="list-decimal list-inside space-y-1 text-sm">
+                      {activity.instructions.map((instruction, idx) => (
+                        <li key={idx} className="text-gray-700 dark:text-gray-300">{instruction}</li>
+                      ))}
+                    </ol>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold mb-2">Materials Needed:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {activity.materials.map((material, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {material}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {Object.keys(activity.materialAlternatives).length > 0 && (
+                    <Alert>
+                      <Lightbulb className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>Don't have some materials?</strong> Try these household alternatives:
+                        <div className="mt-2 space-y-1 text-xs">
+                          {Object.entries(activity.materialAlternatives).map(([item, alternatives]) => (
+                            <div key={item}>
+                              <span className="font-medium">{item}:</span> {alternatives.join(', ')}
+                            </div>
+                          ))}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Party Host Playbook */}
+        <TabsContent value="playbook" className="space-y-4">
+          {activityPlan.length > 0 ? (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold">Your Party Host Playbook</h2>
+                <Button className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Download Printable Guide
+                </Button>
+              </div>
+
+              <div className="grid gap-6">
+                {/* Schedule */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Party Schedule
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {generatePlaybook().schedule.map((item, index) => (
+                        <div key={index} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                          <span className="font-medium">{item.time}</span>
+                          <span>{item.activity}</span>
+                          <span className="text-sm text-gray-500">{item.duration}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Setup Guide */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Quick Setup Guide
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {generatePlaybook().setupGuide.map((tip, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                {/* Host Tips */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Star className="h-5 w-5" />
+                      Host Tips for Smooth Transitions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {generatePlaybook().hostTips.map((tip, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <Zap className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                {/* Icebreaker Jokes */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Smile className="h-5 w-5" />
+                      Age-Appropriate Icebreaker Jokes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {generatePlaybook().icebreakers.map((joke, index) => (
+                        <div key={index} className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
+                          <p className="text-sm italic">"{joke}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-8">
+                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Generate Your Activity Plan First!</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  Create your magical activity plan to unlock your personalized Party Host Playbook.
+                </p>
+                <Button onClick={() => setCurrentView('genie')}>
+                  Go to Party Vibe Setup
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
