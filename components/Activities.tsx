@@ -304,9 +304,9 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
           if (data.vibeConfig.activityPlans && data.vibeConfig.activityPlans.length > 0) {
             setActivityPlan(data.vibeConfig.activityPlans.map((plan: any) => ({
               ...plan,
-              category: (plan.category || 'game').toLowerCase(),
-              difficulty: (plan.difficulty || 'easy').toLowerCase(),
-              energyLevel: (plan.energyLevel || 'medium').toLowerCase()
+              category: (plan.category || 'GAME').toLowerCase(),
+              difficulty: (plan.difficulty || 'EASY').toLowerCase(),
+              energyLevel: (plan.energyLevel || 'MEDIUM').toLowerCase()
             })));
           }
         }
@@ -315,8 +315,14 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
         console.log('No existing activity data found for party:', partyId);
       } else {
         // Handle other errors
-        const errorText = await response.text();
-        setError(`Failed to load activity data: ${response.status} ${errorText}`);
+        let errorText = '';
+        try {
+          errorText = await response.text();
+        } catch (e) {
+          errorText = 'Unable to read error response';
+        }
+        console.error('API Error:', response.status, errorText);
+        setError(`Failed to load activity data (${response.status}). Please try refreshing the page.`);
       }
     } catch (error) {
       console.error('Error loading existing data:', error);
@@ -409,9 +415,9 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
       
       setActivityPlan(activities.map((activity: any) => ({
         ...activity,
-        category: activity.category.toLowerCase(),
-        difficulty: activity.difficulty.toLowerCase(),
-        energyLevel: activity.energyLevel.toLowerCase()
+        category: (activity.category || 'GAME').toLowerCase(),
+        difficulty: (activity.difficulty || 'EASY').toLowerCase(),
+        energyLevel: (activity.energyLevel || 'MEDIUM').toLowerCase()
       })));
       
       setCurrentView('activities');
@@ -460,9 +466,9 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
         
         setActivityPlan(activities.map((activity: any) => ({
           ...activity,
-          category: activity.category.toLowerCase(),
-          difficulty: activity.difficulty.toLowerCase(),
-          energyLevel: activity.energyLevel.toLowerCase()
+          category: (activity.category || 'GAME').toLowerCase(),
+          difficulty: (activity.difficulty || 'EASY').toLowerCase(),
+          energyLevel: (activity.energyLevel || 'MEDIUM').toLowerCase()
         })));
       } else {
         // Fallback to silly variations of default activities
@@ -712,8 +718,8 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${categoryColors[activity.category]}`}>
-                        {categoryIcons[activity.category]}
+                      <div className={`p-2 rounded-lg ${categoryColors[activity.category as keyof typeof categoryColors] || categoryColors.game}`}>
+                        {categoryIcons[activity.category as keyof typeof categoryIcons] || categoryIcons.game}
                       </div>
                       <div>
                         <CardTitle className="flex items-center gap-2">
@@ -726,10 +732,10 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
                           <Badge variant="outline" className="capitalize">
                             {activity.category}
                           </Badge>
-                          <Badge className={difficultyColors[activity.difficulty]}>
+                          <Badge className={difficultyColors[activity.difficulty as keyof typeof difficultyColors] || difficultyColors.easy}>
                             {activity.difficulty}
                           </Badge>
-                          <Badge className={energyColors[activity.energyLevel]}>
+                          <Badge className={energyColors[activity.energyLevel as keyof typeof energyColors] || energyColors.medium}>
                             {activity.energyLevel} energy
                           </Badge>
                         </div>
