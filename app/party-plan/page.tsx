@@ -37,6 +37,7 @@ import {
   Calendar,
   Timer,
   AlertTriangle,
+  AlertCircle,
   CheckCircle,
   CalendarDays,
   Flag,
@@ -1768,12 +1769,22 @@ export default function PartyPlanPage() {
 
           {/* Activities Tab */}
           <ProtectedTabContent tabName="activities" className="space-y-6">
-            <Activities
-              theme={partyData?.selectedTheme || 'default'}
-              childAge={parseInt(partyData?.childAge || '0')}
-              guestCount={guests.length}
-              partyId={currentPartyId || ''}
-            />
+            {currentPartyId ? (
+              <Activities
+                theme={partyData?.selectedTheme || 'default'}
+                childAge={parseInt(partyData?.childAge || '0')}
+                guestCount={guests.length}
+                partyId={currentPartyId}
+              />
+            ) : (
+              <div className="text-center py-12">
+                <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Loading Party Data</h3>
+                <p className="text-muted-foreground">
+                  Please wait while we load your party information...
+                </p>
+              </div>
+            )}
           </ProtectedTabContent>
 
 

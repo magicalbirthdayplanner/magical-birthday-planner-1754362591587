@@ -257,6 +257,25 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
   const [isLoading, setIsLoading] = useState(true);
   const [customMaterial, setCustomMaterial] = useState('');
   const [customRequest, setCustomRequest] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  // Guard against missing partyId
+  if (!partyId || partyId.trim() === '') {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Party ID Required</h3>
+          <p className="text-muted-foreground mb-6">
+            Unable to load activities. Please ensure you have a valid party selected.
+          </p>
+          <Button onClick={() => window.location.href = '/dashboard'}>
+            Go to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Load existing data on component mount
   useEffect(() => {
@@ -266,33 +285,42 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
   const loadExistingData = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await fetch(`/api/parties/${partyId}/activities`);
       if (response.ok) {
         const data = await response.json();
         if (data.vibeConfig) {
           setPartyVibe({
-            theme: data.vibeConfig.theme,
-            ageGroup: data.vibeConfig.ageGroup,
-            numberOfKids: data.vibeConfig.numberOfKids,
-            totalDuration: data.vibeConfig.totalDuration,
-            setting: data.vibeConfig.setting.toLowerCase(),
+            theme: data.vibeConfig.theme || theme || 'superhero',
+            ageGroup: data.vibeConfig.ageGroup || `${childAge}-${childAge + 2}`,
+            numberOfKids: data.vibeConfig.numberOfKids || guestCount,
+            totalDuration: data.vibeConfig.totalDuration || '2-3 hours',
+            setting: (data.vibeConfig.setting || 'mixed').toLowerCase(),
             availableMaterials: data.vibeConfig.availableMaterials || [],
-            budgetLevel: data.vibeConfig.budgetLevel.toLowerCase(),
+            budgetLevel: (data.vibeConfig.budgetLevel || 'medium').toLowerCase(),
             specialRequests: data.vibeConfig.specialRequests || [],
             customText: data.vibeConfig.customText || ''
           });
           if (data.vibeConfig.activityPlans && data.vibeConfig.activityPlans.length > 0) {
             setActivityPlan(data.vibeConfig.activityPlans.map((plan: any) => ({
               ...plan,
-              category: plan.category.toLowerCase(),
-              difficulty: plan.difficulty.toLowerCase(),
-              energyLevel: plan.energyLevel.toLowerCase()
+              category: (plan.category || 'game').toLowerCase(),
+              difficulty: (plan.difficulty || 'easy').toLowerCase(),
+              energyLevel: (plan.energyLevel || 'medium').toLowerCase()
             })));
           }
         }
+      } else if (response.status === 404) {
+        // Party not found - this is normal for new parties
+        console.log('No existing activity data found for party:', partyId);
+      } else {
+        // Handle other errors
+        const errorText = await response.text();
+        setError(`Failed to load activity data: ${response.status} ${errorText}`);
       }
     } catch (error) {
       console.error('Error loading existing data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load activity data');
     } finally {
       setIsLoading(false);
     }
@@ -504,6 +532,16 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
           <Sparkles className="h-6 w-6 text-pink-600 dark:text-pink-400" />
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Navigation Tabs */}
       <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as any)} className="w-full">
