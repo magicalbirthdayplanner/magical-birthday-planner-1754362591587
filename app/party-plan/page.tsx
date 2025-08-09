@@ -478,40 +478,44 @@ export default function PartyPlanPage() {
         }));
       } else {
         // Fallback to localStorage if no database guests or database is empty
-        try {
-          const savedGuests = localStorage.getItem('partyGuests');
-          if (savedGuests) {
-            const parsedGuests = JSON.parse(savedGuests);
-            if (Array.isArray(parsedGuests) && parsedGuests.length > 0) {
-              finalGuestData = parsedGuests;
-              console.log('Loaded guests from localStorage fallback:', parsedGuests.length);
+        if (typeof window !== 'undefined') {
+          try {
+            const savedGuests = localStorage.getItem('partyGuests');
+            if (savedGuests) {
+              const parsedGuests = JSON.parse(savedGuests);
+              if (Array.isArray(parsedGuests) && parsedGuests.length > 0) {
+                finalGuestData = parsedGuests;
+                console.log('Loaded guests from localStorage fallback:', parsedGuests.length);
+              }
             }
+          } catch (error) {
+            console.error('Error loading guests from localStorage:', error);
           }
-        } catch (error) {
-          console.error('Error loading guests from localStorage:', error);
         }
       }
       
       // Always check for more recent localStorage data and merge if newer
-      try {
-        const savedGuests = localStorage.getItem('partyGuests');
-        const savedTimestamp = localStorage.getItem('partyGuests_timestamp');
-        
-        if (savedGuests && savedTimestamp) {
-          const localTimestamp = parseInt(savedTimestamp);
-          const dbTimestamp = party.updatedAt ? new Date(party.updatedAt).getTime() : 0;
+      if (typeof window !== 'undefined') {
+        try {
+          const savedGuests = localStorage.getItem('partyGuests');
+          const savedTimestamp = localStorage.getItem('partyGuests_timestamp');
           
-          // Use localStorage if it's more recent than database
-          if (localTimestamp > dbTimestamp) {
-            const parsedGuests = JSON.parse(savedGuests);
-            if (Array.isArray(parsedGuests)) {
-              finalGuestData = parsedGuests;
-              console.log('Using more recent localStorage guest data');
+          if (savedGuests && savedTimestamp) {
+            const localTimestamp = parseInt(savedTimestamp);
+            const dbTimestamp = party.updatedAt ? new Date(party.updatedAt).getTime() : 0;
+            
+            // Use localStorage if it's more recent than database
+            if (localTimestamp > dbTimestamp) {
+              const parsedGuests = JSON.parse(savedGuests);
+              if (Array.isArray(parsedGuests)) {
+                finalGuestData = parsedGuests;
+                console.log('Using more recent localStorage guest data');
+              }
             }
           }
+        } catch (error) {
+          console.error('Error checking localStorage timestamp:', error);
         }
-      } catch (error) {
-        console.error('Error checking localStorage timestamp:', error);
       }
       
       setGuests(finalGuestData);

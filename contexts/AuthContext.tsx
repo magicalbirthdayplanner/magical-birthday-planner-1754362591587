@@ -173,34 +173,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error }
       }
       
-      // Clear localStorage after successful signout
+      // Clear localStorage after successful signout (only on client side)
       // Note: In a future update, we should sync unsaved data to database before clearing
-      try {
-        // Check for unsaved guest data and warn user
-        const hasUnsavedGuests = localStorage.getItem('partyGuests');
-        const hasUnsavedInvitations = localStorage.getItem('partyInvitations');
-        
-        if (hasUnsavedGuests || hasUnsavedInvitations) {
-          console.warn('SignOut: Clearing localStorage with potential unsaved guest data');
-          // TODO: Implement pre-signout sync to database
-        }
-        
-        localStorage.removeItem('partyData')
-        localStorage.removeItem('partyChecklist')
-        localStorage.removeItem('partyGuests')
-        localStorage.removeItem('partyGuests_timestamp')
-        localStorage.removeItem('partyInvitations')
-        localStorage.removeItem('partyInvitations_timestamp')
-        localStorage.removeItem('partyBudget')
-        localStorage.removeItem('partyShoppingList')
-        // Clear any auth-related localStorage
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('supabase.auth.')) {
-            localStorage.removeItem(key)
+      if (typeof window !== 'undefined') {
+        try {
+          // Check for unsaved guest data and warn user
+          const hasUnsavedGuests = localStorage.getItem('partyGuests');
+          const hasUnsavedInvitations = localStorage.getItem('partyInvitations');
+          
+          if (hasUnsavedGuests || hasUnsavedInvitations) {
+            console.warn('SignOut: Clearing localStorage with potential unsaved guest data');
+            // TODO: Implement pre-signout sync to database
           }
-        })
-      } catch (localStorageError) {
-        console.warn('Failed to clear localStorage:', localStorageError)
+          
+          localStorage.removeItem('partyData')
+          localStorage.removeItem('partyChecklist')
+          localStorage.removeItem('partyGuests')
+          localStorage.removeItem('partyGuests_timestamp')
+          localStorage.removeItem('partyInvitations')
+          localStorage.removeItem('partyInvitations_timestamp')
+          localStorage.removeItem('partyBudget')
+          localStorage.removeItem('partyShoppingList')
+          // Clear any auth-related localStorage
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('supabase.auth.')) {
+              localStorage.removeItem(key)
+            }
+          })
+        } catch (localStorageError) {
+          console.warn('Failed to clear localStorage:', localStorageError)
+        }
       }
       
       // Clear local state after successful signout

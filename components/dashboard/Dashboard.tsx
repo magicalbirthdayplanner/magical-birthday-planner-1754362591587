@@ -63,14 +63,20 @@ export default function Dashboard() {
 
   // Listen for plan changes from localStorage or account page
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     if (user) {
       // Check if user is superadmin for plan switching functionality
       const isSupeadmin = user.email === "arunexprasad@gmail.com";
       if (isSupeadmin) {
         // Listen for plan changes stored in localStorage for superadmin
-        const storedPlan = localStorage.getItem('superadmin_plan') as PlanType;
-        if (storedPlan && planDetails[storedPlan]) {
-          setUserPlan(storedPlan);
+        try {
+          const storedPlan = localStorage.getItem('superadmin_plan') as PlanType;
+          if (storedPlan && planDetails[storedPlan]) {
+            setUserPlan(storedPlan);
+          }
+        } catch (error) {
+          console.warn('Error accessing localStorage:', error);
         }
         
         // Set up event listener for plan changes
@@ -78,11 +84,15 @@ export default function Dashboard() {
           setUserPlan(event.detail.plan);
         };
         
-        window.addEventListener('planChanged', handlePlanChange as EventListener);
-        
-        return () => {
-          window.removeEventListener('planChanged', handlePlanChange as EventListener);
-        };
+        if (window && window.addEventListener) {
+          window.addEventListener('planChanged', handlePlanChange as EventListener);
+          
+          return () => {
+            if (window && window.removeEventListener) {
+              window.removeEventListener('planChanged', handlePlanChange as EventListener);
+            }
+          };
+        }
       }
     }
   }, [user]);

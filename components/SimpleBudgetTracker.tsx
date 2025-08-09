@@ -59,19 +59,32 @@ export default function SimpleBudgetTracker({
 
   // Load saved data from localStorage
   useEffect(() => {
-    const savedData = localStorage.getItem(`simple_budget_${partyId}`);
-    if (savedData) {
-      try {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      const savedData = localStorage.getItem(`simple_budget_${partyId}`);
+      if (savedData) {
         const data = JSON.parse(savedData);
-        setExpenses(data.expenses || []);
-        setAiCategories(data.aiCategories || []);
-        // Only use saved budget if no initialBudget provided
-        if (!initialBudget && data.totalBudget) {
-          setTotalBudget(data.totalBudget);
-          setBudgetInput(data.totalBudget.toString());
+        
+        // Validate data structure before using
+        if (typeof data === 'object' && data !== null) {
+          setExpenses(Array.isArray(data.expenses) ? data.expenses : []);
+          setAiCategories(Array.isArray(data.aiCategories) ? data.aiCategories : []);
+          
+          // Only use saved budget if no initialBudget provided
+          if (!initialBudget && typeof data.totalBudget === 'number' && data.totalBudget > 0) {
+            setTotalBudget(data.totalBudget);
+            setBudgetInput(data.totalBudget.toString());
+          }
         }
-      } catch (error) {
-        console.error('Error loading budget data:', error);
+      }
+    } catch (error) {
+      console.error('Error loading budget data:', error);
+      // Clear corrupted data
+      try {
+        localStorage.removeItem(`simple_budget_${partyId}`);
+      } catch (clearError) {
+        console.error('Error clearing corrupted budget data:', clearError);
       }
     }
   }, [partyId, initialBudget]);
