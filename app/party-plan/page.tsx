@@ -1768,6 +1768,7 @@ export default function PartyPlanPage() {
               theme={partyData?.selectedTheme || 'default'}
               childAge={parseInt(partyData?.childAge || '0')}
               guestCount={guests.length}
+              partyId={typeof window !== 'undefined' ? localStorage.getItem('partyId') || '' : ''}
             />
           </ProtectedTabContent>
 

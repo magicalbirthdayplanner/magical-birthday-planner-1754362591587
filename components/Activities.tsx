@@ -56,6 +56,7 @@ interface PartyVibeConfig {
   availableMaterials: string[];
   budgetLevel: 'low' | 'medium' | 'high';
   specialRequests: string[];
+  customText?: string;
 }
 
 interface ActivityPlan {
@@ -76,6 +77,7 @@ interface ActivitiesProps {
   theme: string;
   childAge: number;
   guestCount?: number;
+  partyId: string;
 }
 
 const categoryIcons = {
@@ -237,7 +239,7 @@ const generateDefaultActivities = (theme: string, ageGroup: string, numberOfKids
   return baseActivities.slice(0, Math.min(6, baseActivities.length));
 };
 
-export default function Activities({ theme, childAge, guestCount = 8 }: ActivitiesProps) {
+export default function Activities({ theme, childAge, guestCount = 8, partyId }: ActivitiesProps) {
   const [currentView, setCurrentView] = useState<'genie' | 'activities' | 'playbook'>('genie');
   const [partyVibe, setPartyVibe] = useState<PartyVibeConfig>({
     theme: theme || 'superhero',
@@ -247,18 +249,54 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
     setting: 'mixed',
     availableMaterials: [],
     budgetLevel: 'medium',
-    specialRequests: []
+    specialRequests: [],
+    customText: ''
   });
   const [activityPlan, setActivityPlan] = useState<ActivityPlan[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [customMaterial, setCustomMaterial] = useState('');
   const [customRequest, setCustomRequest] = useState('');
 
+  // Load existing data on component mount
   useEffect(() => {
-    // Generate default activities based on props
-    const defaultActivities = generateDefaultActivities(theme, `${childAge}`, guestCount);
-    setActivityPlan(defaultActivities);
-  }, [theme, childAge, guestCount]);
+    loadExistingData();
+  }, [partyId]);
+
+  const loadExistingData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/parties/${partyId}/activities`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.vibeConfig) {
+          setPartyVibe({
+            theme: data.vibeConfig.theme,
+            ageGroup: data.vibeConfig.ageGroup,
+            numberOfKids: data.vibeConfig.numberOfKids,
+            totalDuration: data.vibeConfig.totalDuration,
+            setting: data.vibeConfig.setting.toLowerCase(),
+            availableMaterials: data.vibeConfig.availableMaterials || [],
+            budgetLevel: data.vibeConfig.budgetLevel.toLowerCase(),
+            specialRequests: data.vibeConfig.specialRequests || [],
+            customText: data.vibeConfig.customText || ''
+          });
+          if (data.vibeConfig.activityPlans && data.vibeConfig.activityPlans.length > 0) {
+            setActivityPlan(data.vibeConfig.activityPlans.map((plan: any) => ({
+              ...plan,
+              category: plan.category.toLowerCase(),
+              difficulty: plan.difficulty.toLowerCase(),
+              energyLevel: plan.energyLevel.toLowerCase()
+            })));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading existing data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAddMaterial = () => {
     if (customMaterial.trim()) {
@@ -294,32 +332,134 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
     }));
   };
 
-  const generateActivityPlan = () => {
-    setIsGenerating(true);
-    // Simulate generation process
-    setTimeout(() => {
-      const newActivities = generateDefaultActivities(partyVibe.theme, partyVibe.ageGroup, partyVibe.numberOfKids);
-      setActivityPlan(newActivities);
-      setIsGenerating(false);
+  const generateActivityPlan = async () => {
+    try {
+      setIsGenerating(true);
+      
+      // First save the party vibe config
+      const vibeResponse = await fetch(`/api/parties/${partyId}/activities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...partyVibe,
+          setting: partyVibe.setting.toUpperCase(),
+          budgetLevel: partyVibe.budgetLevel.toUpperCase()
+        })
+      });
+      
+      if (!vibeResponse.ok) {
+        throw new Error('Failed to save party vibe config');
+      }
+      
+      // Generate activities using AI or defaults
+      const generateResponse = await fetch(`/api/parties/${partyId}/activities/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...partyVibe,
+          setting: partyVibe.setting.toUpperCase(),
+          budgetLevel: partyVibe.budgetLevel.toUpperCase()
+        })
+      });
+      
+      if (!generateResponse.ok) {
+        throw new Error('Failed to generate activities');
+      }
+      
+      const { activities } = await generateResponse.json();
+      
+      // Save generated activities to database
+      const saveResponse = await fetch(`/api/parties/${partyId}/activities`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activityPlans: activities })
+      });
+      
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save activities');
+      }
+      
+      setActivityPlan(activities.map((activity: any) => ({
+        ...activity,
+        category: activity.category.toLowerCase(),
+        difficulty: activity.difficulty.toLowerCase(),
+        energyLevel: activity.energyLevel.toLowerCase()
+      })));
+      
       setCurrentView('activities');
-    }, 2000);
+    } catch (error) {
+      console.error('Error generating activity plan:', error);
+      // Fallback to local generation
+      const defaultActivities = generateDefaultActivities(partyVibe.theme, partyVibe.ageGroup, partyVibe.numberOfKids);
+      setActivityPlan(defaultActivities);
+      setCurrentView('activities');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const surpriseMe = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      // Generate activities with silly twists
+  const surpriseMe = async () => {
+    try {
+      setIsGenerating(true);
+      
+      // Add "surprise me" to special requests
+      const surpriseVibe = {
+        ...partyVibe,
+        specialRequests: [...partyVibe.specialRequests, 'Make it extra fun and silly!'],
+        customText: (partyVibe.customText || '') + ' Please add silly twists and creative variations to make the activities more entertaining!'
+      };
+      
+      // Generate surprise activities
+      const generateResponse = await fetch(`/api/parties/${partyId}/activities/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...surpriseVibe,
+          setting: surpriseVibe.setting.toUpperCase(),
+          budgetLevel: surpriseVibe.budgetLevel.toUpperCase()
+        })
+      });
+      
+      if (generateResponse.ok) {
+        const { activities } = await generateResponse.json();
+        
+        // Save surprise activities
+        await fetch(`/api/parties/${partyId}/activities`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ activityPlans: activities })
+        });
+        
+        setActivityPlan(activities.map((activity: any) => ({
+          ...activity,
+          category: activity.category.toLowerCase(),
+          difficulty: activity.difficulty.toLowerCase(),
+          energyLevel: activity.energyLevel.toLowerCase()
+        })));
+      } else {
+        // Fallback to silly variations of default activities
+        const baseActivities = generateDefaultActivities(partyVibe.theme, partyVibe.ageGroup, partyVibe.numberOfKids);
+        const sillyActivities = baseActivities.map(activity => ({
+          ...activity,
+          name: activity.name.replace('Masterpiece', 'Super Silly Creation').replace('Challenge', 'Giggle Challenge'),
+          instructions: activity.instructions.map(instruction => 
+            instruction.includes('show') ? instruction + ' with funny voices and silly faces!' : instruction
+          )
+        }));
+        setActivityPlan(sillyActivities);
+      }
+    } catch (error) {
+      console.error('Error with surprise generation:', error);
+      // Fallback to default silly activities
       const baseActivities = generateDefaultActivities(partyVibe.theme, partyVibe.ageGroup, partyVibe.numberOfKids);
       const sillyActivities = baseActivities.map(activity => ({
         ...activity,
-        name: activity.name.replace('Masterpiece', 'Super Silly Creation').replace('Challenge', 'Giggle Challenge'),
-        instructions: activity.instructions.map(instruction => 
-          instruction.includes('show') ? instruction + ' with funny voices and silly faces!' : instruction
-        )
+        name: activity.name.replace('Masterpiece', 'Super Silly Creation').replace('Challenge', 'Giggle Challenge')
       }));
       setActivityPlan(sillyActivities);
+    } finally {
       setIsGenerating(false);
-    }, 1500);
+    }
   };
 
   const generatePlaybook = () => {
@@ -438,6 +578,21 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
                 </div>
               </div>
 
+              {/* Custom Text Input */}
+              <div className="space-y-2">
+                <Label htmlFor="customText">Additional Party Details (Optional)</Label>
+                <Textarea
+                  id="customText"
+                  placeholder="Tell us more about what you want for this party... special requirements, favorite activities, things to avoid, or any other details that will help us create the perfect activity plan!"
+                  value={partyVibe.customText || ''}
+                  onChange={(e) => setPartyVibe(prev => ({ ...prev, customText: e.target.value }))}
+                  rows={3}
+                  className="resize-none"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  This text input works alongside the dropdown selections to give our AI more context about your party preferences.
+                </p>
+              </div>
 
               <div className="flex gap-3 pt-4">
                 <Button 
@@ -474,7 +629,15 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
 
         {/* Generated Activity Plan */}
         <TabsContent value="activities" className="space-y-4">
-          {isGenerating ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+              <RefreshCw className="h-12 w-12 animate-spin text-purple-600" />
+              <div>
+                <h3 className="text-lg font-semibold">Loading Your Activities</h3>
+                <p className="text-gray-600 dark:text-gray-300">Retrieving your saved party plan...</p>
+              </div>
+            </div>
+          ) : isGenerating ? (
             <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
               <Wand2 className="h-12 w-12 animate-spin text-purple-600" />
               <div>
@@ -592,7 +755,15 @@ export default function Activities({ theme, childAge, guestCount = 8 }: Activiti
 
         {/* Party Host Playbook */}
         <TabsContent value="playbook" className="space-y-4">
-          {isGenerating ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+              <BookOpen className="h-12 w-12 animate-pulse text-purple-600" />
+              <div>
+                <h3 className="text-lg font-semibold">Loading Your Playbook</h3>
+                <p className="text-gray-600 dark:text-gray-300">Preparing your host guide...</p>
+              </div>
+            </div>
+          ) : isGenerating ? (
             <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
               <BookOpen className="h-12 w-12 animate-pulse text-purple-600" />
               <div>

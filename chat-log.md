@@ -1,3 +1,14 @@
+## [usr-1754709364996]
+**User Request:** All the elements in the AI Party Activity Genie page is disappearing on click. Ensure that all the details in this section is proporely saved to supabase with no local storage causing those types of issues. 
+
+Use GPT 4.1 keys to provide recommendations based on selections (wizard data + inputs from activity page + budget etc) - add a provision to add text as a optional input along with drop downs. 
+
+activity plan and host playbook should be refelctive of all the suggetions
+
+**Response Summary:** Successfully resolved AI Party Activity Genie disappearing elements issue by completely migrating from localStorage to Supabase database storage. Created comprehensive database schema with PartyVibeConfig and ActivityPlan models, implemented full CRUD API endpoints for data persistence, and integrated Azure OpenAI GPT-4.1 for intelligent activity generation. Enhanced the activity configuration interface with an optional text input field alongside dropdown selections to provide richer context for AI recommendations. The activity plan and host playbook now dynamically reflect all user selections, wizard data, budget considerations, and AI-generated suggestions with proper data persistence and real-time updates.
+
+**Files Modified:** prisma/schema.prisma, app/api/parties/[partyId]/activities/route.ts, app/api/parties/[partyId]/activities/generate/route.ts, components/Activities.tsx, app/party-plan/page.tsx
+
 ## [usr-1754708658498]
 **User Request:** Details like Theme, number of kids,  are already added. No need to repeat and ask information again 
 
