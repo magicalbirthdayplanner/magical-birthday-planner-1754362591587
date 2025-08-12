@@ -16,7 +16,7 @@ import ShoppingSuite from "@/components/ShoppingSuite";
 import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
-import NewActivities from "@/components/NewActivities";
+import StableActivities from "@/components/StableActivities";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getParty, updateParty, addGuest, updateGuest, deleteGuest, updateInvitationStatus } from "@/lib/party-actions";
@@ -1550,7 +1550,7 @@ export default function PartyPlanPage() {
           {/* Activities Tab */}
           <ProtectedTabContent tabName="activities" className="space-y-6">
             {currentPartyId && partyData ? (
-              <NewActivities
+              <StableActivities
                 theme={partyData.selectedTheme || 'superhero'}
                 childAge={parseInt(partyData.childAge || '5')}
                 guestCount={guests.length || 8}
