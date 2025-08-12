@@ -25,7 +25,10 @@ import {
   Sparkles,
   GripVertical,
   AlertCircle,
-  Lightbulb
+  Lightbulb,
+  Filter,
+  X,
+  Tag
 } from "lucide-react";
 
 interface Activity {
@@ -48,21 +51,46 @@ interface Activity {
 interface ActivitiesTabProps {
   partyId: string;
   themeActivities?: string; // AI recommendation text from wizard
+  partyData?: {
+    childName: string;
+    childAge: number;
+    theme: string;
+    interests: string[];
+    favoriteColors: string[];
+    venue?: string;
+    guestCount?: number;
+  };
   onActivitiesChange?: (activities: Activity[]) => void;
 }
 
-export default function ActivitiesTab({ partyId, themeActivities, onActivitiesChange }: ActivitiesTabProps) {
+export default function ActivitiesTab({ partyId, themeActivities, partyData, onActivitiesChange }: ActivitiesTabProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [newActivityName, setNewActivityName] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  
+  // New state for keyword input and filters
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [currentKeyword, setCurrentKeyword] = useState("");
+  const [filterTime, setFilterTime] = useState<string>("all");
+  const [filterVenue, setFilterVenue] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [hasGeneratedFromTheme, setHasGeneratedFromTheme] = useState(false);
 
-  // Load activities on component mount
+  // Load activities on component mount and auto-generate if no activities exist
   useEffect(() => {
     loadActivities();
   }, [partyId]);
+
+  // Auto-generate activities if theme data available and no activities exist
+  useEffect(() => {
+    if (partyData && themeActivities && activities.length === 0 && !loading && !hasGeneratedFromTheme) {
+      generateActivitiesFromAI();
+      setHasGeneratedFromTheme(true);
+    }
+  }, [partyData, themeActivities, activities.length, loading, hasGeneratedFromTheme]);
 
   const loadActivities = async () => {
     setLoading(true);
@@ -88,6 +116,9 @@ export default function ActivitiesTab({ partyId, themeActivities, onActivitiesCh
     setError(null);
     
     try {
+      // Enhanced prompt with party context and keywords
+      const enhancedPrompt = createEnhancedActivityPrompt();
+      
       const response = await fetch('/api/activity-expansion', {
         method: 'POST',
         headers: {
@@ -96,6 +127,9 @@ export default function ActivitiesTab({ partyId, themeActivities, onActivitiesCh
         body: JSON.stringify({
           partyId,
           activityText: themeActivities,
+          partyData,
+          keywords,
+          enhancedPrompt
         }),
       });
 
@@ -112,6 +146,30 @@ export default function ActivitiesTab({ partyId, themeActivities, onActivitiesCh
     } finally {
       setLoading(false);
     }
+  };
+
+  const createEnhancedActivityPrompt = () => {
+    if (!partyData) return "";
+    
+    const { childName, childAge, theme, interests, favoriteColors, venue, guestCount } = partyData;
+    
+    return `Generate activities for ${childName}'s ${childAge}-year-old birthday party with the ${theme} theme. 
+    
+    Party Context:
+    - Child's interests: ${interests.join(', ')}
+    - Favorite colors: ${favoriteColors.join(', ')}
+    - Venue: ${venue || 'Not specified'}
+    - Expected guests: ${guestCount || 'Not specified'}
+    - Additional keywords from parent: ${keywords.join(', ') || 'None'}
+    
+    Please ensure activities are:
+    1. Age-appropriate for ${childAge}-year-olds
+    2. Theme-specific for ${theme} parties
+    3. Suitable for the venue type: ${venue || 'any location'}
+    4. Engaging for the expected group size
+    5. Incorporate the child's interests: ${interests.join(', ')}
+    
+    Focus on ${theme}-themed activities like safari animal games, jungle exploration, wildlife crafts, etc.`;
   };
 
   const saveActivity = async (activity: Activity) => {
@@ -237,6 +295,58 @@ export default function ActivitiesTab({ partyId, themeActivities, onActivitiesCh
     }
   };
 
+  // Keyword management functions
+  const addKeyword = () => {
+    if (currentKeyword.trim() && keywords.length < 3 && !keywords.includes(currentKeyword.trim())) {
+      setKeywords([...keywords, currentKeyword.trim()]);
+      setCurrentKeyword("");
+    }
+  };
+
+  const removeKeyword = (index: number) => {
+    setKeywords(keywords.filter((_, i) => i !== index));
+  };
+
+  // Activity filtering logic
+  const filteredActivities = activities.filter(activity => {
+    let timeMatch = true;
+    let venueMatch = true;
+
+    // Time filtering
+    if (filterTime !== "all" && activity.estimatedTime) {
+      const time = activity.estimatedTime;
+      switch (filterTime) {
+        case "short":
+          timeMatch = time <= 15;
+          break;
+        case "medium":
+          timeMatch = time > 15 && time <= 30;
+          break;
+        case "long":
+          timeMatch = time > 30;
+          break;
+      }
+    }
+
+    // Venue filtering (based on activity characteristics)
+    if (filterVenue !== "all") {
+      const activityName = activity.name.toLowerCase();
+      const description = (activity.description || "").toLowerCase();
+      const supplies = activity.supplies.join(" ").toLowerCase();
+      
+      switch (filterVenue) {
+        case "indoor":
+          venueMatch = !/(outdoor|park|garden|field|playground|nature|water|pool)/.test(activityName + description + supplies);
+          break;
+        case "outdoor":
+          venueMatch = /(outdoor|park|garden|field|playground|nature|water|pool|treasure hunt|scavenger|sports)/.test(activityName + description + supplies);
+          break;
+      }
+    }
+
+    return timeMatch && venueMatch;
+  });
+
   return (
     <div className="space-y-6">
       {/* Header with Actions */}
@@ -244,10 +354,18 @@ export default function ActivitiesTab({ partyId, themeActivities, onActivitiesCh
         <div>
           <h2 className="text-2xl font-bold">Party Activities</h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Detailed activity plans with supplies, timing, and parent instructions
+            {partyData ? `${partyData.theme}-themed activities for ${partyData.childName}'s party` : 'Detailed activity plans with supplies, timing, and parent instructions'}
           </p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowFilters(!showFilters)}
+            variant="outline"
+            size="sm"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filters
+          </Button>
           {themeActivities && (
             <Button 
               onClick={generateActivitiesFromAI}
@@ -255,7 +373,7 @@ export default function ActivitiesTab({ partyId, themeActivities, onActivitiesCh
               className="bg-purple-600 hover:bg-purple-700"
             >
               <Sparkles className="h-4 w-4 mr-2" />
-              {loading ? 'Generating...' : 'Generate from AI'}
+              {loading ? 'Generating...' : 'Regenerate with AI'}
             </Button>
           )}
           <Button 
@@ -267,6 +385,94 @@ export default function ActivitiesTab({ partyId, themeActivities, onActivitiesCh
           </Button>
         </div>
       </div>
+
+      {/* Enhanced Controls Section */}
+      {showFilters && (
+        <Card className="bg-gray-50 dark:bg-gray-800/50">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Tag className="h-5 w-5" />
+              Customize & Filter Activities
+            </CardTitle>
+            <CardDescription>
+              Add keywords to personalize activities and use filters to find the perfect activities for your party
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Keywords Section */}
+            <div>
+              <Label className="text-sm font-medium">Additional Keywords (max 3)</Label>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                Add specific activities, themes, or interests your child loves
+              </p>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {keywords.map((keyword, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    {keyword}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => removeKeyword(index)}
+                      className="h-4 w-4 p-0 hover:bg-transparent"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+              {keywords.length < 3 && (
+                <div className="flex gap-2">
+                  <Input
+                    value={currentKeyword}
+                    onChange={(e) => setCurrentKeyword(e.target.value)}
+                    placeholder="e.g., dinosaurs, painting, water games..."
+                    onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
+                    className="max-w-xs"
+                  />
+                  <Button 
+                    onClick={addKeyword} 
+                    disabled={!currentKeyword.trim()}
+                    size="sm"
+                  >
+                    Add
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Filters Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Duration Filter</Label>
+                <Select value={filterTime} onValueChange={setFilterTime}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Durations</SelectItem>
+                    <SelectItem value="short">Short (≤15 min)</SelectItem>
+                    <SelectItem value="medium">Medium (15-30 min)</SelectItem>
+                    <SelectItem value="long">Long (30+ min)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Venue Filter</Label>
+                <Select value={filterVenue} onValueChange={setFilterVenue}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Venues</SelectItem>
+                    <SelectItem value="indoor">Indoor Activities</SelectItem>
+                    <SelectItem value="outdoor">Outdoor Activities</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Success/Error Messages */}
       {success && (
@@ -329,9 +535,11 @@ export default function ActivitiesTab({ partyId, themeActivities, onActivitiesCh
               </div>
               <h3 className="text-lg font-semibold">No Activities Yet</h3>
               <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                {themeActivities 
-                  ? "Generate detailed activities from your theme recommendations or add your own custom activities."
-                  : "Start by adding your own custom activities for the party."
+                {partyData && themeActivities 
+                  ? `We'll automatically generate ${partyData.theme}-themed activities based on ${partyData.childName}'s interests and party details.`
+                  : themeActivities 
+                    ? "Generate detailed activities from your theme recommendations or add your own custom activities."
+                    : "Start by adding your own custom activities for the party."
                 }
               </p>
               {themeActivities && (
@@ -349,20 +557,55 @@ export default function ActivitiesTab({ partyId, themeActivities, onActivitiesCh
         </Card>
       ) : (
         <div className="space-y-4">
-          {activities.map((activity, index) => (
-            <ActivityCard
-              key={activity.id}
-              activity={activity}
-              onUpdate={updateActivity}
-              onSave={saveActivity}
-              onDelete={deleteActivity}
-              onToggleExpanded={toggleExpanded}
-              onAddSupply={addSupplyItem}
-              onRemoveSupply={removeSupplyItem}
-              onAddTip={addTip}
-              onRemoveTip={removeTip}
-            />
-          ))}
+          {/* Filter Results Summary */}
+          {(filterTime !== "all" || filterVenue !== "all") && (
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <Filter className="h-4 w-4" />
+              Showing {filteredActivities.length} of {activities.length} activities
+              {filterTime !== "all" && ` • Duration: ${filterTime}`}
+              {filterVenue !== "all" && ` • Venue: ${filterVenue}`}
+            </div>
+          )}
+          
+          {/* Activities */}
+          {filteredActivities.length === 0 ? (
+            <Card className="text-center py-8">
+              <CardContent>
+                <div className="space-y-3">
+                  <Filter className="h-8 w-8 text-gray-400 mx-auto" />
+                  <h3 className="text-lg font-semibold">No activities match your filters</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Try adjusting your filters or generate new activities with different keywords.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setFilterTime("all");
+                      setFilterVenue("all");
+                    }}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredActivities.map((activity, index) => (
+              <ActivityCard
+                key={activity.id}
+                activity={activity}
+                onUpdate={updateActivity}
+                onSave={saveActivity}
+                onDelete={deleteActivity}
+                onToggleExpanded={toggleExpanded}
+                onAddSupply={addSupplyItem}
+                onRemoveSupply={removeSupplyItem}
+                onAddTip={addTip}
+                onRemoveTip={removeTip}
+              />
+            ))
+          )}
         </div>
       )}
     </div>

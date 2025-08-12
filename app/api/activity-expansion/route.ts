@@ -47,6 +47,17 @@ const openai = (() => {
 interface ActivityExpansionRequest {
   partyId: string;
   activityText: string;
+  partyData?: {
+    childName: string;
+    childAge: number;
+    theme: string;
+    interests: string[];
+    favoriteColors: string[];
+    venue?: string;
+    guestCount?: number;
+  };
+  keywords?: string[];
+  enhancedPrompt?: string;
 }
 
 interface ProcessedActivity {
@@ -62,6 +73,86 @@ interface ProcessedActivity {
   sortOrder: number;
   isCustom: boolean;
   source: 'AI_GENERATED' | 'USER_CREATED' | 'THEME_DEFAULT';
+}
+
+// Create enhanced system message based on party context
+function createEnhancedSystemMessage(
+  partyData?: ActivityExpansionRequest['partyData'], 
+  keywords?: string[], 
+  enhancedPrompt?: string
+): string {
+  let baseMessage = `Break these activities into actionable instructions for parents planning a kids' party. Include supplies, time, people, group instructions, host dialogue, and tips.
+
+For each activity, return a JSON object with these exact fields:
+- name: string (activity name, editable by user)
+- description: string (brief description)
+- supplies: array of strings (list with checkboxes)
+- estimatedTime: number (numeric value)
+- timeUnit: string ("minutes" or "hours")
+- peopleRequired: number (number of people required or participants)
+- groupInstructions: string (how to split kids by age/number)
+- hostScript: string (short, engaging dialogue parents can use to run the activity)
+- tips: array of strings (safety notes, fun twists, age-specific adaptations)
+
+Make the output parent-friendly, step-by-step, and ready to execute. Make it fun and engaging with age-appropriate language.`;
+
+  // Add party-specific context if available
+  if (partyData) {
+    baseMessage += `
+
+PARTY CONTEXT:
+- Child: ${partyData.childName}, age ${partyData.childAge}
+- Theme: ${partyData.theme}
+- Child's interests: ${partyData.interests.join(', ')}
+- Favorite colors: ${partyData.favoriteColors.join(', ')}
+- Venue: ${partyData.venue || 'Not specified'}
+- Expected guests: ${partyData.guestCount || 'Not specified'}`;
+
+    if (keywords && keywords.length > 0) {
+      baseMessage += `
+- Parent's additional keywords: ${keywords.join(', ')}`;
+    }
+
+    baseMessage += `
+
+IMPORTANT: Generate activities that are:
+1. Age-appropriate for ${partyData.childAge}-year-olds
+2. Specifically themed around ${partyData.theme}
+3. Incorporate the child's interests: ${partyData.interests.join(', ')}
+4. Use ${partyData.favoriteColors.join(' and ')} colors when possible
+5. Suitable for ${partyData.venue || 'any venue'}`;
+
+    if (keywords && keywords.length > 0) {
+      baseMessage += `
+6. Include elements related to: ${keywords.join(', ')}`;
+    }
+
+    // Add theme-specific guidance
+    if (partyData.theme.toLowerCase().includes('safari')) {
+      baseMessage += `
+
+For Safari theme specifically:
+- Include animal sounds, movements, and behaviors
+- Create jungle exploration activities
+- Add wildlife-themed crafts and games
+- Include animal rescue or conservation themes
+- Use binoculars, maps, and adventure gear as props`;
+    }
+  }
+
+  // Add enhanced prompt if provided
+  if (enhancedPrompt) {
+    baseMessage += `
+
+ADDITIONAL CONTEXT:
+${enhancedPrompt}`;
+  }
+
+  baseMessage += `
+
+Return only a valid JSON array of activity objects, no other text.`;
+
+  return baseMessage;
 }
 
 // Default fallback activities if AI is not available
@@ -128,7 +219,7 @@ const getDefaultActivities = (): ProcessedActivity[] => [
 export async function POST(request: NextRequest) {
   try {
     const body: ActivityExpansionRequest = await request.json();
-    const { partyId, activityText } = body;
+    const { partyId, activityText, partyData, keywords = [], enhancedPrompt } = body;
 
     if (!partyId || !activityText) {
       return NextResponse.json({ error: 'Party ID and activity text are required' }, { status: 400 });
@@ -163,27 +254,15 @@ export async function POST(request: NextRequest) {
     // Try to use AI to expand activities
     if (openai) {
       try {
+        // Create enhanced system message based on party context
+        const systemMessage = createEnhancedSystemMessage(partyData, keywords, enhancedPrompt);
+        
         const completion = await openai.chat.completions.create({
           model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
           messages: [
             {
               role: "system",
-              content: `Break these activities into actionable instructions for parents planning a kids' party. Include supplies, time, people, group instructions, host dialogue, and tips.
-
-For each activity, return a JSON object with these exact fields:
-- name: string (activity name, editable by user)
-- description: string (brief description)
-- supplies: array of strings (list with checkboxes)
-- estimatedTime: number (numeric value)
-- timeUnit: string ("minutes" or "hours")
-- peopleRequired: number (number of people required or participants)
-- groupInstructions: string (how to split kids by age/number)
-- hostScript: string (short, engaging dialogue parents can use to run the activity)
-- tips: array of strings (safety notes, fun twists, age-specific adaptations)
-
-Make the output parent-friendly, step-by-step, and ready to execute. Make it fun and engaging with age-appropriate language.
-
-Return only a valid JSON array of activity objects, no other text.`
+              content: systemMessage
             },
             {
               role: "user",
@@ -191,7 +270,7 @@ Return only a valid JSON array of activity objects, no other text.`
             }
           ],
           temperature: 0.7,
-          max_tokens: 2000
+          max_tokens: 3000
         });
 
         const aiResponse = completion.choices[0]?.message?.content;

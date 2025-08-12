@@ -1424,6 +1424,15 @@ export default function PartyPlanPage() {
             <ActivitiesTab
               partyId={currentPartyId || partyData?.childName || 'party'}
               themeActivities="Musical Chairs, Treasure Hunt, Craft Activity, Dance Party, Story Time"
+              partyData={partyData ? {
+                childName: partyData.childName,
+                childAge: parseInt(partyData.childAge || '0'),
+                theme: partyData.selectedTheme || 'Birthday',
+                interests: [],  // TODO: Add interests to PartyData interface
+                favoriteColors: [], // TODO: Add favoriteColors to PartyData interface
+                venue: partyData.venue,
+                guestCount: partyData.guestCount
+              } : undefined}
             />
           </ProtectedTabContent>
 

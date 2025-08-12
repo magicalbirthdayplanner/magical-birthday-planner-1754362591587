@@ -1,3 +1,8 @@
+## [usr-1754973832088]
+**User Request:** The activites should be pre-populated based on the data collected in the wizard. Eg, the theme choosen is Safari. And hence, the activiries should be safari theme related and should be AI generated . Can add a small text box to accept text input from user to add some additional information - max 3 keywords and then do a AI recommedation. Can also add some filters like time, venue
+**Response Summary:** Successfully enhanced the Activities tab with theme-based pre-population and intelligent filtering. Implemented automatic activity generation based on wizard data (theme, child age, interests, venue), added keyword input system (max 3 keywords), and comprehensive filtering by time duration and venue type. The AI now generates contextually relevant activities (e.g., Safari-themed activities include animal games, jungle exploration, wildlife crafts) with enhanced prompts that consider all party details for personalized recommendations.
+**Files Modified:** components/ActivitiesTab.tsx, app/api/activity-expansion/route.ts, app/party-plan/page.tsx, README.md, chat-log.md
+
 ## [usr-1754972677234]
 **User Request:** Create a new Activities tab inside the Party Management section of the Magical Birthday Planner app.
 
