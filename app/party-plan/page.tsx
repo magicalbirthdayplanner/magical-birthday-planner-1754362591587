@@ -305,27 +305,11 @@ export default function PartyPlanPage() {
     }
   };
 
-  // Helper function to get budget data (updated for SimpleBudgetTracker)
+  // Helper function to get budget data (now from database only)
   const getBudgetData = () => {
-    if (typeof window === 'undefined') return { totalBudget: 0, totalSpent: 0, percentage: 0 };
-    
-    try {
-      // Check for simple budget tracker data
-      const savedBudget = localStorage.getItem(`simple_budget_${partyData?.childName || 'party'}`);
-      if (savedBudget) {
-        const data = JSON.parse(savedBudget);
-        const totalBudget = data.totalBudget || (partyData?.budget || 0);
-        const totalSpent = data.expenses ? data.expenses.reduce((sum: number, expense: any) => sum + (expense.amount || 0), 0) : 0;
-        const percentage = totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
-        return { totalBudget, totalSpent, percentage };
-      }
-      
-      // Fallback to Step 4 budget if no saved data
-      if (partyData?.budget && partyData.budget > 0) {
-        return { totalBudget: partyData.budget, totalSpent: 0, percentage: 0 };
-      }
-    } catch (error) {
-      console.error('Error getting budget data:', error);
+    // Use budget from party data (Step 4 budget)
+    if (partyData?.budget && partyData.budget > 0) {
+      return { totalBudget: partyData.budget, totalSpent: 0, percentage: 0 };
     }
     
     return { totalBudget: 0, totalSpent: 0, percentage: 0 };
@@ -465,11 +449,11 @@ export default function PartyPlanPage() {
         guestCount: party.guestCount || undefined,
       });
 
-      // Set guests from database with localStorage fallback
+      // Set guests from database only
       let finalGuestData: Guest[] = [];
       
       if (party.guests && party.guests.length > 0) {
-        // Use database data if available
+        // Use database data
         finalGuestData = party.guests.map((guest: any) => ({
           id: guest.id,
           name: guest.name,
@@ -479,55 +463,16 @@ export default function PartyPlanPage() {
           age: guest.age || undefined,
           notes: guest.notes || '',
         }));
-      } else {
-        // Fallback to localStorage if no database guests or database is empty
-        if (typeof window !== 'undefined') {
-          try {
-            const savedGuests = localStorage.getItem('partyGuests');
-            if (savedGuests) {
-              const parsedGuests = JSON.parse(savedGuests);
-              if (Array.isArray(parsedGuests) && parsedGuests.length > 0) {
-                finalGuestData = parsedGuests;
-                console.log('Loaded guests from localStorage fallback:', parsedGuests.length);
-              }
-            }
-          } catch (error) {
-            console.error('Error loading guests from localStorage:', error);
-          }
-        }
-      }
-      
-      // Always check for more recent localStorage data and merge if newer
-      if (typeof window !== 'undefined') {
-        try {
-          const savedGuests = localStorage.getItem('partyGuests');
-          const savedTimestamp = localStorage.getItem('partyGuests_timestamp');
-          
-          if (savedGuests && savedTimestamp) {
-            const localTimestamp = parseInt(savedTimestamp);
-            const dbTimestamp = party.updatedAt ? new Date(party.updatedAt).getTime() : 0;
-            
-            // Use localStorage if it's more recent than database
-            if (localTimestamp > dbTimestamp) {
-              const parsedGuests = JSON.parse(savedGuests);
-              if (Array.isArray(parsedGuests)) {
-                finalGuestData = parsedGuests;
-                console.log('Using more recent localStorage guest data');
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error checking localStorage timestamp:', error);
-        }
+        console.log('Loaded guests from database:', finalGuestData.length);
       }
       
       setGuests(finalGuestData);
 
-      // Set invitations from database with localStorage fallback
+      // Set invitations from database only
       let finalInvitationData: Invitation[] = [];
       
       if (party.invitations && party.invitations.length > 0) {
-        // Use database data if available
+        // Use database data
         finalInvitationData = party.invitations.map((inv: any) => ({
           id: inv.id,
           guestId: inv.guestId,
@@ -538,42 +483,7 @@ export default function PartyPlanPage() {
           message: inv.message || '',
           notes: inv.notes || '',
         }));
-      } else {
-        // Fallback to localStorage if no database invitations
-        try {
-          const savedInvitations = localStorage.getItem('partyInvitations');
-          if (savedInvitations) {
-            const parsedInvitations = JSON.parse(savedInvitations);
-            if (Array.isArray(parsedInvitations) && parsedInvitations.length > 0) {
-              finalInvitationData = parsedInvitations;
-              console.log('Loaded invitations from localStorage fallback:', parsedInvitations.length);
-            }
-          }
-        } catch (error) {
-          console.error('Error loading invitations from localStorage:', error);
-        }
-      }
-      
-      // Check for more recent localStorage invitation data
-      try {
-        const savedInvitations = localStorage.getItem('partyInvitations');
-        const savedTimestamp = localStorage.getItem('partyInvitations_timestamp');
-        
-        if (savedInvitations && savedTimestamp) {
-          const localTimestamp = parseInt(savedTimestamp);
-          const dbTimestamp = party.updatedAt ? new Date(party.updatedAt).getTime() : 0;
-          
-          // Use localStorage if it's more recent than database
-          if (localTimestamp > dbTimestamp) {
-            const parsedInvitations = JSON.parse(savedInvitations);
-            if (Array.isArray(parsedInvitations)) {
-              finalInvitationData = parsedInvitations;
-              console.log('Using more recent localStorage invitation data');
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error checking localStorage invitation timestamp:', error);
+        console.log('Loaded invitations from database:', finalInvitationData.length);
       }
       
       setInvitations(finalInvitationData);
@@ -641,23 +551,7 @@ export default function PartyPlanPage() {
 
     let checklistWithProgress = baseChecklist;
     
-    // Check for saved checklist progress only on client side
-    if (typeof window !== 'undefined') {
-      try {
-        const savedChecklist = localStorage.getItem('partyChecklist');
-        if (savedChecklist) {
-          const parsedChecklist = JSON.parse(savedChecklist);
-          checklistWithProgress = baseChecklist.map(baseItem => {
-            const savedItem = parsedChecklist.find((saved: ChecklistItem) => saved.id === baseItem.id);
-            return savedItem ? { ...baseItem, completed: savedItem.completed } : baseItem;
-          });
-        }
-      } catch (error) {
-        console.error('Error loading checklist from localStorage:', error);
-        // Use base checklist if there's an error
-        checklistWithProgress = baseChecklist;
-      }
-    }
+    // Checklist progress is now loaded from database in loadPartyDetails function
 
     // Calculate due dates and status for each task
     const checklistWithDates = checklistWithProgress.map(item => {
@@ -739,43 +633,12 @@ export default function PartyPlanPage() {
       })
     );
     
-    // Persist to localStorage only on client side
-    if (typeof window !== 'undefined') {
-      try {
-        const updatedChecklist = checklist.map(item => {
-          if (item.id === id) {
-            const updatedItem = { ...item, completed: !item.completed };
-            if (updatedItem.completed) {
-              updatedItem.status = 'completed';
-            } else {
-              let daysDifference = 0;
-              try {
-                const today = new Date();
-                if (item.dueDate && !isNaN(item.dueDate.getTime()) && !isNaN(today.getTime())) {
-                  daysDifference = Math.ceil((item.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                }
-              } catch (error) {
-                console.error('Error calculating days difference:', error);
-                daysDifference = 0;
-              }
-              if (daysDifference < 0) {
-                updatedItem.status = 'overdue';
-              } else if (daysDifference <= 3) {
-                updatedItem.status = 'due-soon';
-              } else {
-                updatedItem.status = 'upcoming';
-              }
-            }
-            return updatedItem;
-          }
-          return item;
-        });
-        
-        localStorage.setItem('partyChecklist', JSON.stringify(updatedChecklist));
-      } catch (error) {
-        console.error('Error saving checklist to localStorage:', error);
-      }
-    }
+    // Save checklist updates directly to database
+    setTimeout(() => {
+      saveChecklistData(checklist.map(item => 
+        item.id === id ? { ...item, completed: !item.completed } : item
+      ));
+    }, 100);
   };
 
   // Database sync function for guests
@@ -864,12 +727,7 @@ export default function PartyPlanPage() {
         }
       }
       
-      // Update localStorage with corrected IDs
-      if (typeof window !== 'undefined') {
-        const timestamp = Date.now().toString();
-        localStorage.setItem('partyGuests', JSON.stringify(localGuests));
-        localStorage.setItem('partyGuests_timestamp', timestamp);
-      }
+      // Guest data is now synchronized with database directly
       
       console.log('Guest sync completed successfully');
       
@@ -912,38 +770,10 @@ export default function PartyPlanPage() {
         const updatedGuests = [...guests, newGuest];
         setGuests(updatedGuests);
 
-        // Update localStorage as backup
-        if (typeof window !== 'undefined') {
-          try {
-            const timestamp = Date.now().toString();
-            localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
-            localStorage.setItem('partyGuests_timestamp', timestamp);
-          } catch (error) {
-            console.error('Error saving guests to localStorage:', error);
-          }
-        }
-
         console.log('Guest added successfully to database and local state');
       } else {
         console.error('Failed to add guest to database:', result.error);
-        // Fallback to localStorage only
-        const newGuest: Guest = {
-          ...guestData,
-          id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        };
-        
-        const updatedGuests = [...guests, newGuest];
-        setGuests(updatedGuests);
-        
-        if (typeof window !== 'undefined') {
-          try {
-            const timestamp = Date.now().toString();
-            localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
-            localStorage.setItem('partyGuests_timestamp', timestamp);
-          } catch (error) {
-            console.error('Error saving guests to localStorage:', error);
-          }
-        }
+        throw new Error(result.error || 'Failed to add guest');
       }
     } catch (error) {
       console.error('Error adding guest:', error);
@@ -981,16 +811,7 @@ export default function PartyPlanPage() {
       );
       setGuests(updatedGuests);
 
-      // Update localStorage as backup
-      if (typeof window !== 'undefined') {
-        try {
-          const timestamp = Date.now().toString();
-          localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
-          localStorage.setItem('partyGuests_timestamp', timestamp);
-        } catch (error) {
-          console.error('Error saving guests to localStorage:', error);
-        }
-      }
+      // Guest data is now managed directly through database
     } catch (error) {
       console.error('Error editing guest:', error);
     }
@@ -1022,18 +843,7 @@ export default function PartyPlanPage() {
       const updatedInvitations = invitations.filter(inv => inv.guestId !== id);
       setInvitations(updatedInvitations);
 
-      // Update localStorage as backup
-      if (typeof window !== 'undefined') {
-        try {
-          const timestamp = Date.now().toString();
-          localStorage.setItem('partyGuests', JSON.stringify(updatedGuests));
-          localStorage.setItem('partyGuests_timestamp', timestamp);
-          localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
-          localStorage.setItem('partyInvitations_timestamp', timestamp);
-        } catch (error) {
-          console.error('Error saving data to localStorage:', error);
-        }
-      }
+      // Guest data is now managed directly through database
     } catch (error) {
       console.error('Error deleting guest:', error);
     }
@@ -1052,13 +862,7 @@ export default function PartyPlanPage() {
     setInvitations(updatedInvitations);
     
     if (typeof window !== 'undefined') {
-      try {
-        const timestamp = Date.now().toString();
-        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
-        localStorage.setItem('partyInvitations_timestamp', timestamp);
-      } catch (error) {
-        console.error('Error saving invitations to localStorage:', error);
-      }
+      // Invitation data is now managed directly through database
     }
   };
 
@@ -1087,16 +891,7 @@ export default function PartyPlanPage() {
           
           setInvitations(dbInvitations);
           
-          // Update localStorage as backup
-          if (typeof window !== 'undefined') {
-            try {
-              const timestamp = Date.now().toString();
-              localStorage.setItem('partyInvitations', JSON.stringify(dbInvitations));
-              localStorage.setItem('partyInvitations_timestamp', timestamp);
-            } catch (error) {
-              console.error('Error saving invitations to localStorage:', error);
-            }
-          }
+          // Invitation data is now managed directly through database
         }
       } catch (error) {
         console.error('Error refreshing invitation data:', error);
@@ -1130,16 +925,7 @@ export default function PartyPlanPage() {
       );
       setInvitations(updatedInvitations);
 
-      // Update localStorage as backup
-      if (typeof window !== 'undefined') {
-        try {
-          const timestamp = Date.now().toString();
-          localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
-          localStorage.setItem('partyInvitations_timestamp', timestamp);
-        } catch (error) {
-          console.error('Error saving invitations to localStorage:', error);
-        }
-      }
+      // Invitation data is now managed directly through database
     } catch (error) {
       console.error('Error updating RSVP:', error);
     }
@@ -1157,13 +943,7 @@ export default function PartyPlanPage() {
     setInvitations(updatedInvitations);
     
     if (typeof window !== 'undefined') {
-      try {
-        const timestamp = Date.now().toString();
-        localStorage.setItem('partyInvitations', JSON.stringify(updatedInvitations));
-        localStorage.setItem('partyInvitations_timestamp', timestamp);
-      } catch (error) {
-        console.error('Error saving invitations to localStorage:', error);
-      }
+      // Invitation data is now managed directly through database
     }
   };
 
