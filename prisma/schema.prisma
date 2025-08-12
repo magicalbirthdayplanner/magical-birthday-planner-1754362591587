@@ -54,6 +54,9 @@ model Party {
   hostEmail        String?      // Host email for replies
   hostPhone        String?      // Host contact number
   customInstructions String?    // Special instructions for guests
+  shareToken       String?      @unique // Token for sharing party publicly
+  isShared         Boolean      @default(false) // Whether party is shared
+  sharedAt         DateTime?    // When party was shared
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   userId           String

@@ -16,6 +16,7 @@ import ShoppingSuite from "@/components/ShoppingSuite";
 import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
+import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getParty, updateParty, addGuest, updateGuest, deleteGuest, updateInvitationStatus } from "@/lib/party-actions";
@@ -145,6 +146,7 @@ export default function PartyPlanPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPartyId, setCurrentPartyId] = useState<string | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Tab configuration based on subscription plans
   const tabConfigs = [
@@ -1273,7 +1275,11 @@ export default function PartyPlanPage() {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full" variant="outline">
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={() => setShareModalOpen(true)}
+                  >
                     <Share2 className="h-4 w-4 mr-2" />
                     Share Plan
                   </Button>
@@ -2072,6 +2078,21 @@ export default function PartyPlanPage() {
           </Tabs>
         </div>
       </div>
+
+      {/* Share Plan Modal */}
+      {partyData && currentPartyId && (
+        <SharePlanModal
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          party={{
+            id: currentPartyId,
+            childName: partyData.childName,
+            theme: partyData.selectedTheme,
+            date: partyData.partyDate.toISOString(),
+            age: parseInt(partyData.childAge),
+          }}
+        />
+      )}
     </div>
   );
 }
