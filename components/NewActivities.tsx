@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import AlternativeInput from "@/components/AlternativeInput";
 import { 
   Wand2,
   Sparkles,
@@ -385,30 +386,11 @@ export default function NewActivities({
                 </div>
               </div>
 
-              {/* Custom Requests */}
-              <div className="space-y-3">
-                <Label htmlFor="customRequests">Special Requests & Preferences</Label>
-                <Textarea
-                  ref={textareaRef}
-                  id="customRequests"
-                  name="customRequests"
-                  placeholder="Tell us what you'd like! For example: outdoor games, no messy crafts, educational activities, specific interests, allergies to consider, or any other special requirements..."
-                  value={customRequests}
-                  onChange={handleCustomRequestsChange}
-                  onFocus={handleCustomRequestsFocus}
-                  onBlur={handleCustomRequestsBlur}
-                  rows={4}
-                  className="resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                  autoComplete="off"
-                  spellCheck="true"
-                  data-testid="special-requests-textarea"
-                  tabIndex={0}
-                  style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  The more details you provide, the better our AI can customize activities for your party!
-                </p>
-              </div>
+              {/* Alternative Input Component */}
+              <AlternativeInput 
+                onRequestsChange={setCustomRequests}
+                initialValue={customRequests}
+              />
 
               {/* Generate Button */}
               <div className="flex gap-3 pt-4">
