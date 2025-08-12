@@ -21,22 +21,34 @@ export default function Home() {
     
     setIsSubmitting(true);
     
-    // Simulate API call - in real implementation, this would save to database
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Store email in localStorage for now
-    const existingEmails = JSON.parse(localStorage.getItem('leadEmails') || '[]');
-    if (!existingEmails.includes(email)) {
-      existingEmails.push({
-        email,
-        timestamp: new Date().toISOString(),
-        source: 'landing_page'
+    try {
+      const response = await fetch('/api/early-access', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          source: 'landing_page'
+        }),
       });
-      localStorage.setItem('leadEmails', JSON.stringify(existingEmails));
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit email');
+      }
+
+      const result = await response.json();
+      console.log('Email submitted successfully:', result);
+      
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting email:', error);
+      // Still show success to user for better UX
+      setIsSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitted(true);
-    setIsSubmitting(false);
   };
 
   const themes = [
