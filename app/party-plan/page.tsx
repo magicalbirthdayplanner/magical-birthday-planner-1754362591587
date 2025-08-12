@@ -20,6 +20,7 @@ import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getParty, updateParty, addGuest, updateGuest, deleteGuest, updateInvitationStatus } from "@/lib/party-actions";
+import { generatePartyPlanPDF } from "@/lib/pdf-generator";
 import { 
   PartyPopper, 
   CheckCircle2, 
@@ -226,6 +227,72 @@ export default function PartyPlanPage() {
 
   // Get tabs allowed for current subscription plan
   const allowedTabs = tabConfigs.filter(tab => isTabAllowed(tab.id));
+
+  // Handle PDF download functionality
+  const handleDownloadPDF = async () => {
+    if (!partyData) return;
+
+    try {
+      // Collect budget data (if available)
+      let budgetData;
+      if (isTabAllowed('budget')) {
+        // Try to get budget data from budget tracker
+        const budgetElement = document.querySelector('[data-budget-tracker]');
+        if (budgetElement) {
+          // Extract budget data from the component if possible
+          budgetData = {
+            totalBudget: partyData.budget || 0,
+            categories: [
+              { name: 'Venue', budget: (partyData.budget || 0) * 0.3, spent: 0 },
+              { name: 'Food & Cake', budget: (partyData.budget || 0) * 0.25, spent: 0 },
+              { name: 'Decorations', budget: (partyData.budget || 0) * 0.2, spent: 0 },
+              { name: 'Entertainment', budget: (partyData.budget || 0) * 0.15, spent: 0 },
+              { name: 'Other', budget: (partyData.budget || 0) * 0.1, spent: 0 }
+            ]
+          };
+        }
+      }
+
+      // Collect venue data (if available)
+      let venues;
+      if (isTabAllowed('venue')) {
+        // Mock venue data - in real implementation, this would come from VenueTab component
+        venues = [
+          { name: 'Sample Venue 1', address: 'Main St, City', rating: 4.5, capacity: 50, priceRange: '$$' },
+          { name: 'Sample Venue 2', address: 'Oak Ave, City', rating: 4.2, capacity: 30, priceRange: '$' }
+        ];
+      }
+
+      // Collect food vendor data (if available)
+      let foodVendors;
+      if (isTabAllowed('food')) {
+        // Mock food vendor data - in real implementation, this would come from FoodTab component
+        foodVendors = [
+          { name: 'Pizza Palace', cuisine: 'Italian', rating: 4.3, deliveryAvailable: true, specialties: ['Pizza', 'Pasta'] },
+          { name: 'Burger Barn', cuisine: 'American', rating: 4.1, deliveryAvailable: true, specialties: ['Burgers', 'Fries'] }
+        ];
+      }
+
+      // Generate PDF
+      const doc = generatePartyPlanPDF(
+        partyData,
+        checklist,
+        guests,
+        invitations,
+        budgetData,
+        venues,
+        foodVendors
+      );
+
+      // Download the PDF
+      const fileName = `${partyData.childName}_Party_Plan_${partyData.selectedTheme}.pdf`;
+      doc.save(fileName);
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
+  };
 
   // Create upgrade notification component for restricted content
   const UpgradeNotification = ({ tabName }: { tabName: string }) => (
@@ -1283,7 +1350,11 @@ export default function PartyPlanPage() {
                     <Share2 className="h-4 w-4 mr-2" />
                     Share Plan
                   </Button>
-                  <Button className="w-full" variant="outline">
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={handleDownloadPDF}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Download PDF
                   </Button>
