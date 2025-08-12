@@ -13,10 +13,10 @@ import BulkInvitations from "@/components/BulkInvitations";
 import RSVPTracker from "@/components/RSVPTracker";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
 import ShoppingSuite from "@/components/ShoppingSuite";
-import Activities from "@/components/Activities";
 import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
+import NewActivities from "@/components/NewActivities";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getParty, updateParty, addGuest, updateGuest, deleteGuest, updateInvitationStatus } from "@/lib/party-actions";
@@ -154,7 +154,7 @@ export default function PartyPlanPage() {
   const [timelineView, setTimelineView] = useState<'horizontal' | 'vertical'>('horizontal');
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(false);
   const [timelineDensity, setTimelineDensity] = useState<'compact' | 'expanded'>('expanded');
-  const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Activities', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
+  const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
   const [budgetRefresh, setBudgetRefresh] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -609,7 +609,6 @@ export default function PartyPlanPage() {
       // 1 week before
       { id: "7", task: "Confirm RSVPs", category: "Planning", completed: false, timeline: "1 week before", weeksOrDaysBefore: 7 },
       { id: "8", task: "Grocery shopping", category: "Food", completed: false, timeline: "1 week before", weeksOrDaysBefore: 7 },
-      { id: "9", task: "Prepare activity materials", category: "Activities", completed: false, timeline: "1 week before", weeksOrDaysBefore: 7 },
       
       // Day before
       { id: "10", task: "Set up decorations", category: "Decorations", completed: false, timeline: "Day before", weeksOrDaysBefore: 1 },
@@ -619,7 +618,6 @@ export default function PartyPlanPage() {
       // Day of party
       { id: "13", task: "Final setup and decorations", category: "Setup", completed: false, timeline: "Day of party", weeksOrDaysBefore: 0 },
       { id: "14", task: "Prepare fresh food", category: "Food", completed: false, timeline: "Day of party", weeksOrDaysBefore: 0 },
-      { id: "15", task: "Set up activity stations", category: "Activities", completed: false, timeline: "Day of party", weeksOrDaysBefore: 0 },
     ];
   };
 
@@ -1769,12 +1767,15 @@ export default function PartyPlanPage() {
 
           {/* Activities Tab */}
           <ProtectedTabContent tabName="activities" className="space-y-6">
-            {currentPartyId ? (
-              <Activities
-                theme={partyData?.selectedTheme || 'default'}
-                childAge={parseInt(partyData?.childAge || '0')}
-                guestCount={guests.length}
+            {currentPartyId && partyData ? (
+              <NewActivities
+                theme={partyData.selectedTheme || 'superhero'}
+                childAge={parseInt(partyData.childAge || '5')}
+                guestCount={guests.length || 8}
                 partyId={currentPartyId}
+                budget={partyData.budget ? (partyData.budget > 100 ? 'high' : partyData.budget > 50 ? 'medium' : 'low') : 'medium'}
+                venue="mixed"
+                duration="2-3 hours"
               />
             ) : (
               <div className="text-center py-12">
@@ -1786,7 +1787,6 @@ export default function PartyPlanPage() {
               </div>
             )}
           </ProtectedTabContent>
-
 
           {/* Timeline Tab */}
           <TabsContent value="timeline" className="space-y-6">
@@ -1835,7 +1835,6 @@ export default function PartyPlanPage() {
                   const swimlanes: { [key: string]: { icon: React.ReactElement, tasks: ChecklistItem[], color: string } } = {
                     'Venue and RSVP': { icon: <MapPin className="h-4 w-4" />, tasks: [], color: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' },
                     'Decorations': { icon: <Palette className="h-4 w-4" />, tasks: [], color: 'bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800' },
-                    'Activities': { icon: <Users className="h-4 w-4" />, tasks: [], color: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' },
                     'Food': { icon: <Utensils className="h-4 w-4" />, tasks: [], color: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' },
                     'Planning': { icon: <Calendar className="h-4 w-4" />, tasks: [], color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' },
                     'Setup': { icon: <CheckCircle2 className="h-4 w-4" />, tasks: [], color: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' },
