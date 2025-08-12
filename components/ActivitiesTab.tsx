@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -159,15 +160,20 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
     - Child's interests: ${interests.join(', ')}
     - Favorite colors: ${favoriteColors.join(', ')}
     - Venue: ${venue || 'Not specified'}
-    - Expected guests: ${guestCount || 'Not specified'}
+    - Expected kids: ${guestCount || 'Not specified'}
     - Additional keywords from parent: ${keywords.join(', ') || 'None'}
     
+    IMPORTANT: Focus exclusively on activities designed for CHILDREN/KIDS ONLY. Do not include activities that require adult participation as players or participants.
+    
     Please ensure activities are:
-    1. Age-appropriate for ${childAge}-year-olds
+    1. Age-appropriate for ${childAge}-year-olds specifically
     2. Theme-specific for ${theme} parties
     3. Suitable for the venue type: ${venue || 'any location'}
-    4. Engaging for the expected group size
+    4. Designed for kids to participate independently or with minimal adult supervision
     5. Incorporate the child's interests: ${interests.join(', ')}
+    6. Engaging for groups of children, not mixed adult-child activities
+    
+    Generate activities where kids are the main participants (e.g., treasure hunts, craft activities, games, challenges) rather than activities requiring significant adult involvement as participants. Adults should only be facilitators, supervisors, or organizers.
     
     Focus on ${theme}-themed activities like safari animal games, jungle exploration, wildlife crafts, etc.`;
   };
@@ -357,32 +363,87 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
             {partyData ? `${partyData.theme}-themed activities for ${partyData.childName}'s party` : 'Detailed activity plans with supplies, timing, and parent instructions'}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => setShowFilters(!showFilters)}
-            variant="outline"
-            size="sm"
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
+          {/* Quick keyword input for regeneration */}
           {themeActivities && (
-            <Button 
-              onClick={generateActivitiesFromAI}
-              disabled={loading}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              {loading ? 'Generating...' : 'Regenerate with AI'}
-            </Button>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={currentKeyword}
+                  onChange={(e) => setCurrentKeyword(e.target.value)}
+                  placeholder="Add keyword (e.g., dinosaurs, music...)"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      if (currentKeyword.trim() && keywords.length < 3 && !keywords.includes(currentKeyword.trim())) {
+                        setKeywords([...keywords, currentKeyword.trim()]);
+                        setCurrentKeyword("");
+                      }
+                    }
+                  }}
+                  className="w-64 h-9"
+                />
+                {currentKeyword.trim() && keywords.length < 3 && !keywords.includes(currentKeyword.trim()) && (
+                  <Button 
+                    onClick={() => {
+                      setKeywords([...keywords, currentKeyword.trim()]);
+                      setCurrentKeyword("");
+                    }}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+              
+              {/* Show current keywords */}
+              {keywords.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {keywords.map((keyword, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
+                      {keyword}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeKeyword(index)}
+                        className="h-3 w-3 p-0 hover:bg-transparent"
+                      >
+                        <X className="h-2 w-2" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
-          <Button 
-            onClick={() => setShowAddForm(true)}
-            variant="outline"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Activity
-          </Button>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setShowFilters(!showFilters)}
+              variant="outline"
+              size="sm"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+            {themeActivities && (
+              <Button 
+                onClick={generateActivitiesFromAI}
+                disabled={loading}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {loading ? 'Generating...' : 'Regenerate with AI'}
+              </Button>
+            )}
+            <Button 
+              onClick={() => setShowAddForm(true)}
+              variant="outline"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Activity
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -440,35 +501,105 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
               )}
             </div>
 
-            {/* Filters Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Visual Filter Cards */}
+            <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium">Duration Filter</Label>
-                <Select value={filterTime} onValueChange={setFilterTime}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Durations</SelectItem>
-                    <SelectItem value="short">Short (≤15 min)</SelectItem>
-                    <SelectItem value="medium">Medium (15-30 min)</SelectItem>
-                    <SelectItem value="long">Long (30+ min)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium flex items-center gap-2 mb-3">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  Duration Filter
+                </Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {[
+                    { value: 'all', label: 'All', icon: '🎯', color: 'bg-gray-100 hover:bg-gray-200' },
+                    { value: 'short', label: 'Quick (≤15min)', icon: '⚡', color: 'bg-green-100 hover:bg-green-200 text-green-800' },
+                    { value: 'medium', label: 'Standard (15-30min)', icon: '⏱️', color: 'bg-blue-100 hover:bg-blue-200 text-blue-800' },
+                    { value: 'long', label: 'Extended (30+ min)', icon: '🕰️', color: 'bg-purple-100 hover:bg-purple-200 text-purple-800' }
+                  ].map((option) => (
+                    <Button
+                      key={option.value}
+                      variant={filterTime === option.value ? 'default' : 'outline'}
+                      onClick={() => setFilterTime(option.value)}
+                      className={cn(
+                        "h-auto p-3 flex flex-col items-center gap-1 text-xs transition-all",
+                        filterTime === option.value 
+                          ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg" 
+                          : option.color
+                      )}
+                    >
+                      <span className="text-lg">{option.icon}</span>
+                      <span className="font-medium">{option.label}</span>
+                    </Button>
+                  ))}
+                </div>
               </div>
+              
               <div>
-                <Label className="text-sm font-medium">Venue Filter</Label>
-                <Select value={filterVenue} onValueChange={setFilterVenue}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Venues</SelectItem>
-                    <SelectItem value="indoor">Indoor Activities</SelectItem>
-                    <SelectItem value="outdoor">Outdoor Activities</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium flex items-center gap-2 mb-3">
+                  <Users className="h-4 w-4 text-purple-600" />
+                  Venue Filter
+                </Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[
+                    { value: 'all', label: 'All Venues', icon: '🏠', desc: 'Indoor & outdoor activities', color: 'bg-gray-100 hover:bg-gray-200' },
+                    { value: 'indoor', label: 'Indoor Only', icon: '🏢', desc: 'Perfect for home or hall', color: 'bg-orange-100 hover:bg-orange-200 text-orange-800' },
+                    { value: 'outdoor', label: 'Outdoor Only', icon: '🌳', desc: 'Garden, park, or backyard', color: 'bg-green-100 hover:bg-green-200 text-green-800' }
+                  ].map((option) => (
+                    <Button
+                      key={option.value}
+                      variant={filterVenue === option.value ? 'default' : 'outline'}
+                      onClick={() => setFilterVenue(option.value)}
+                      className={cn(
+                        "h-auto p-4 flex flex-col items-center gap-2 text-sm transition-all",
+                        filterVenue === option.value 
+                          ? "bg-purple-600 hover:bg-purple-700 text-white shadow-lg" 
+                          : option.color
+                      )}
+                    >
+                      <span className="text-2xl">{option.icon}</span>
+                      <div className="text-center">
+                        <div className="font-medium">{option.label}</div>
+                        <div className={cn(
+                          "text-xs mt-1",
+                          filterVenue === option.value ? "text-purple-100" : "text-gray-600"
+                        )}>
+                          {option.desc}
+                        </div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
               </div>
+              
+              {/* Active Filters Summary */}
+              {(filterTime !== "all" || filterVenue !== "all") && (
+                <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <Filter className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Active filters:</span>
+                  <div className="flex gap-2">
+                    {filterTime !== "all" && (
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        {filterTime} duration
+                      </Badge>
+                    )}
+                    {filterVenue !== "all" && (
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                        {filterVenue} venue
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setFilterTime("all");
+                      setFilterVenue("all");
+                    }}
+                    className="ml-auto text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+                  >
+                    Clear all
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -1,3 +1,12 @@
+## [usr-1754975155987]
+**User Request:** When I selected car theme in the wizard, I get safari related activities in the AI suggestions. 
+
+Add the additional keyword next to the regenerate with AI. The filter tab can be more visual 
+
+Also, not all the guest will participate in the activitiy - it will be only kids
+**Response Summary:** Fixed theme-based activity pre-population issue by implementing proper theme data flow from wizard to Activities tab. Updated PartyData interfaces to include themeActivities field and modified all theme selection handlers to save corresponding activities. Added quick keyword input field next to the regenerate button for enhanced personalization. Completely redesigned filter section with visual cards using emojis and color coding for better UX. Updated AI prompting to focus exclusively on kids-only activities, ensuring generated activities are designed for children as main participants with minimal adult supervision.
+**Files Modified:** app/party-plan/page.tsx, app/create-party/page.tsx, components/ActivitiesTab.tsx, app/api/activity-expansion/route.ts, chat-log.md
+
 ## [usr-1754973832088]
 **User Request:** The activites should be pre-populated based on the data collected in the wizard. Eg, the theme choosen is Safari. And hence, the activiries should be safari theme related and should be AI generated . Can add a small text box to accept text input from user to add some additional information - max 3 keywords and then do a AI recommedation. Can also add some filters like time, venue
 **Response Summary:** Successfully enhanced the Activities tab with theme-based pre-population and intelligent filtering. Implemented automatic activity generation based on wizard data (theme, child age, interests, venue), added keyword input system (max 3 keywords), and comprehensive filtering by time duration and venue type. The AI now generates contextually relevant activities (e.g., Safari-themed activities include animal games, jungle exploration, wildlife crafts) with enhanced prompts that consider all party details for personalized recommendations.

@@ -116,15 +116,17 @@ PARTY CONTEXT:
     baseMessage += `
 
 IMPORTANT: Generate activities that are:
-1. Age-appropriate for ${partyData.childAge}-year-olds
+1. Age-appropriate for ${partyData.childAge}-year-olds specifically
 2. Specifically themed around ${partyData.theme}
 3. Incorporate the child's interests: ${partyData.interests.join(', ')}
 4. Use ${partyData.favoriteColors.join(' and ')} colors when possible
-5. Suitable for ${partyData.venue || 'any venue'}`;
+5. Suitable for ${partyData.venue || 'any venue'}
+6. DESIGNED FOR KIDS ONLY - activities should focus on children as the main participants, not adults
+7. Require minimal adult supervision, with adults acting as facilitators or organizers only`;
 
     if (keywords && keywords.length > 0) {
       baseMessage += `
-6. Include elements related to: ${keywords.join(', ')}`;
+8. Include elements related to: ${keywords.join(', ')}`;
     }
 
     // Add theme-specific guidance

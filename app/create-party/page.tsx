@@ -242,6 +242,7 @@ interface PartyData {
   partyId?: string; // Track party ID for updates and continuity
   venue?: 'indoor' | 'outdoor' | 'mixed'; // New field for venue type
   duration?: string; // New field for party duration
+  themeActivities?: string; // Activities from selected theme
 }
 
 // Profanity detection state interface
@@ -1808,7 +1809,11 @@ export default function CreatePartyPage() {
                               ? "border-purple-500 bg-purple-50 ring-2 ring-purple-200 shadow-lg"
                               : "border-gray-200 hover:border-purple-300 hover:bg-gray-50"
                           )}
-                          onClick={() => setPartyData({ ...partyData, selectedTheme: recommendation.id })}
+                          onClick={() => setPartyData({ 
+                            ...partyData, 
+                            selectedTheme: recommendation.id, 
+                            themeActivities: recommendation.activities.join(", ")
+                          })}
                         >
                           {/* AI Badge */}
                           <div className="absolute top-3 right-3 z-10">
@@ -1911,7 +1916,11 @@ export default function CreatePartyPage() {
                               ? "ring-2 ring-purple-500 shadow-lg bg-purple-50"
                               : "hover:shadow-lg border-2 border-purple-200"
                           )}
-                          onClick={() => setPartyData({ ...partyData, selectedTheme: theme.id })}
+                          onClick={() => setPartyData({ 
+                            ...partyData, 
+                            selectedTheme: theme.id, 
+                            themeActivities: theme.activities.join(", ")
+                          })}
                         >
                           <div className="absolute top-3 right-3 z-10 flex space-x-2">
                             <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs">
@@ -2013,7 +2022,14 @@ export default function CreatePartyPage() {
                             ? "ring-2 ring-purple-500 shadow-lg bg-purple-50"
                             : "hover:shadow-lg border-2 border-purple-200"
                         )}
-                        onClick={() => setPartyData({ ...partyData, selectedTheme: partyData.classicTheme || "" })}
+                        onClick={() => {
+                          const selectedClassicTheme = themes.find(t => t.id === partyData.classicTheme);
+                          setPartyData({ 
+                            ...partyData, 
+                            selectedTheme: partyData.classicTheme || "", 
+                            themeActivities: selectedClassicTheme?.preview.activities.join(", ") || ""
+                          });
+                        }}
                       >
                         <CardContent className="p-0">
                           <div className={`${classicThemes.find(t => t.id === partyData.classicTheme)?.color} h-24 rounded-t-lg flex items-center justify-center text-4xl`}>
@@ -2059,7 +2075,11 @@ export default function CreatePartyPage() {
                               ? "ring-2 ring-purple-500 shadow-lg"
                               : "hover:shadow-lg"
                           )}
-                          onClick={() => setPartyData({ ...partyData, selectedTheme: theme.id })}
+                          onClick={() => setPartyData({ 
+                            ...partyData, 
+                            selectedTheme: theme.id, 
+                            themeActivities: theme.preview.activities.join(", ")
+                          })}
                         >
                           <CardContent className="p-0">
                             <div className={`${theme.color} h-20 rounded-t-lg flex items-center justify-center text-3xl`}>

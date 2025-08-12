@@ -75,6 +75,9 @@ interface PartyData {
   guestCount?: number;
   venue?: 'indoor' | 'outdoor' | 'mixed';
   duration?: string;
+  themeActivities?: string;
+  childInterests?: string[];
+  favoriteColors?: string[];
 }
 
 interface ChecklistItem {
@@ -1423,13 +1426,13 @@ export default function PartyPlanPage() {
           <ProtectedTabContent tabName="activities" className="space-y-6">
             <ActivitiesTab
               partyId={currentPartyId || partyData?.childName || 'party'}
-              themeActivities="Musical Chairs, Treasure Hunt, Craft Activity, Dance Party, Story Time"
+              themeActivities={partyData?.themeActivities || "Musical Chairs, Treasure Hunt, Craft Activity, Dance Party, Story Time"}
               partyData={partyData ? {
                 childName: partyData.childName,
                 childAge: parseInt(partyData.childAge || '0'),
                 theme: partyData.selectedTheme || 'Birthday',
-                interests: [],  // TODO: Add interests to PartyData interface
-                favoriteColors: [], // TODO: Add favoriteColors to PartyData interface
+                interests: partyData.childInterests || [],
+                favoriteColors: partyData.favoriteColors || [],
                 venue: partyData.venue,
                 guestCount: partyData.guestCount
               } : undefined}
