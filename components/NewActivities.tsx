@@ -348,7 +348,6 @@ export default function NewActivities({
                   }}
                   rows={4}
                   className="resize-none"
-                  disabled={isGenerating}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   The more details you provide, the better our AI can customize activities for your party!

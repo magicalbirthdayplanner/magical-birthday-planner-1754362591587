@@ -1,3 +1,9 @@
+## [usr-1754962010511]
+**User Request:** The text box - Special Requests & Preferences - unable to put any input to the text box. It disappears 
+
+**Response Summary:** Successfully fixed the Special Requests & Preferences text input disappearing issue in the NewActivities component. The problem was caused by the `disabled={isGenerating}` property on the textarea which was preventing user input and making the text appear to disappear when the AI generation process started. Removed the disabled property to allow continuous text input even during generation. Users can now freely type in their special requests and preferences without the text box becoming unresponsive or appearing to lose focus. The fix preserves all other functionality including error message clearing and state management while ensuring the text input remains accessible at all times.
+**Files Modified:** components/NewActivities.tsx
+
 ## [usr-1754961679814]
 **User Request:** There is no action when i click generate AI activity suggestions
 **Response Summary:** Successfully resolved the AI activity suggestions generation issue. The problem was that the API endpoint was configured for regular OpenAI API (`OPENAI_API_KEY`) but the environment was set up with Azure OpenAI configuration. Updated the `/api/parties/[partyId]/activities/generate-new` endpoint to support both regular OpenAI and Azure OpenAI configurations. The API now checks for Azure OpenAI credentials (`AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_DEPLOYMENT_NAME`) and uses the appropriate endpoint format and authentication headers. When Azure OpenAI is configured, it uses the Azure-specific URL format and `api-key` header instead of `Authorization: Bearer`. Falls back to default activities if neither API configuration is available. Build compiles successfully and AI activity generation should now work correctly with the existing Azure OpenAI setup.
