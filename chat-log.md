@@ -1,3 +1,8 @@
+## [usr-1754961679814]
+**User Request:** There is no action when i click generate AI activity suggestions
+**Response Summary:** Successfully resolved the AI activity suggestions generation issue. The problem was that the API endpoint was configured for regular OpenAI API (`OPENAI_API_KEY`) but the environment was set up with Azure OpenAI configuration. Updated the `/api/parties/[partyId]/activities/generate-new` endpoint to support both regular OpenAI and Azure OpenAI configurations. The API now checks for Azure OpenAI credentials (`AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_DEPLOYMENT_NAME`) and uses the appropriate endpoint format and authentication headers. When Azure OpenAI is configured, it uses the Azure-specific URL format and `api-key` header instead of `Authorization: Bearer`. Falls back to default activities if neither API configuration is available. Build compiles successfully and AI activity generation should now work correctly with the existing Azure OpenAI setup.
+**Files Modified:** app/api/parties/[partyId]/activities/generate-new/route.ts
+
 ## [usr-1755080300000]
 **User Request:** 1. Unable to edit and enter text in the text box
 2. Things like Theme, Age, Guests - are already entered in the wizard (step1 to step 4) - So, ask something different, like venue(indoor/outdoor), duration, etc

@@ -203,10 +203,15 @@ function generateDefaultActivities(theme: string, childAge: number, guestCount: 
 
 async function generateAIActivities(requestData: ActivityRequest): Promise<ActivitySuggestion[]> {
   try {
+    // Check for both OpenAI and Azure OpenAI configurations
     const openaiApiKey = process.env.OPENAI_API_KEY;
+    const azureApiKey = process.env.AZURE_OPENAI_API_KEY;
+    const azureEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
+    const azureDeploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
+    const azureApiVersion = process.env.AZURE_OPENAI_API_VERSION;
     
-    if (!openaiApiKey) {
-      console.log('OpenAI API key not found, using default activities');
+    if (!openaiApiKey && (!azureApiKey || !azureEndpoint || !azureDeploymentName)) {
+      console.log('No OpenAI/Azure OpenAI API key found, using default activities');
       return generateDefaultActivities(requestData.theme, requestData.childAge, requestData.guestCount, requestData.budget, requestData.venue);
     }
 
@@ -246,28 +251,58 @@ For each activity, provide:
 
 Return only a valid JSON array of activity objects. Make activities fun, engaging, and memorable!`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert children\'s party planner who creates fun, safe, and creative activities. Always return valid JSON arrays of activity objects.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        max_tokens: 3000,
-        temperature: 0.8
-      })
-    });
+    let response: Response;
+
+    if (azureApiKey && azureEndpoint && azureDeploymentName) {
+      // Use Azure OpenAI
+      const azureUrl = `${azureEndpoint}/openai/deployments/${azureDeploymentName}/chat/completions?api-version=${azureApiVersion || '2024-02-01'}`;
+      
+      response = await fetch(azureUrl, {
+        method: 'POST',
+        headers: {
+          'api-key': azureApiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert children\'s party planner who creates fun, safe, and creative activities. Always return valid JSON arrays of activity objects.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 3000,
+          temperature: 0.8
+        })
+      });
+    } else {
+      // Use regular OpenAI
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-4',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert children\'s party planner who creates fun, safe, and creative activities. Always return valid JSON arrays of activity objects.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 3000,
+          temperature: 0.8
+        })
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`OpenAI API error: ${response.status}`);
@@ -362,7 +397,7 @@ export async function POST(
       success: true,
       activities,
       generatedAt: new Date().toISOString(),
-      source: process.env.OPENAI_API_KEY ? 'ai' : 'default'
+      source: (process.env.OPENAI_API_KEY || (process.env.AZURE_OPENAI_API_KEY && process.env.AZURE_OPENAI_ENDPOINT)) ? 'ai' : 'default'
     });
 
   } catch (error) {
