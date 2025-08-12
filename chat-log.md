@@ -1,3 +1,11 @@
+## [usr-1754957105636]
+**User Request:** The activity page has the following error 
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-11 at 8.04.55 PM.png
+
+**Response Summary:** Successfully identified and resolved the root cause of the "Something went wrong" generic error page in the Activities component. The issue was related to improper error handling in the Activities API endpoints when attempting to access parties that don't exist or have database constraint issues. Enhanced all three API endpoints (/api/parties/[partyId]/activities - GET, POST, PUT methods and /api/parties/[partyId]/activities/generate - POST method) with comprehensive party existence validation before attempting to query or create PartyVibeConfig records. Added proper party existence checks using prisma.party.findUnique() before performing any database operations, preventing database constraint violations that were causing the generic error page. The Activities component already had robust client-side error handling and guard clauses to prevent rendering with invalid partyIds, but the server-side API endpoints needed the additional validation. The build compiles successfully and the Activities component now has proper error handling throughout the entire data flow.
+**Files Modified:** app/api/parties/[partyId]/activities/route.ts, app/api/parties/[partyId]/activities/generate/route.ts
+
 ## [usr-1754711856886]
 **User Request:** same error exists
 **Response Summary:** Successfully resolved the recurring "Something went wrong" error in the Activities component by identifying and fixing the root cause - type mismatch between API responses and component expectations. The issue was that API endpoints return enum values in UPPERCASE format (e.g., 'GAME', 'CRAFT', 'EASY') while the Activities component expected lowercase values (e.g., 'game', 'craft', 'easy'). Fixed all case conversion operations throughout the Activities component to handle both formats gracefully, added proper fallback values for missing properties, enhanced error handling with better logging and user-friendly error messages, and added type safety checks for category icons and colors to prevent undefined property access. The build now compiles successfully and the Activities component has robust error handling to prevent crashes.

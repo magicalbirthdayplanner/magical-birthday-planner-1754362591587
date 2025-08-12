@@ -10,6 +10,18 @@ export async function GET(
   try {
     const { partyId } = params;
 
+    // First check if the party exists
+    const party = await prisma.party.findUnique({
+      where: { id: partyId }
+    });
+
+    if (!party) {
+      return NextResponse.json(
+        { error: 'Party not found' },
+        { status: 404 }
+      );
+    }
+
     const vibeConfig = await prisma.partyVibeConfig.findUnique({
       where: { partyId },
       include: {
@@ -36,6 +48,18 @@ export async function POST(
   try {
     const { partyId } = params;
     const data = await request.json();
+
+    // First check if the party exists
+    const party = await prisma.party.findUnique({
+      where: { id: partyId }
+    });
+
+    if (!party) {
+      return NextResponse.json(
+        { error: 'Party not found' },
+        { status: 404 }
+      );
+    }
 
     // Upsert party vibe config
     const vibeConfig = await prisma.partyVibeConfig.upsert({
@@ -82,6 +106,18 @@ export async function PUT(
   try {
     const { partyId } = params;
     const { activityPlans } = await request.json();
+
+    // First check if the party exists
+    const party = await prisma.party.findUnique({
+      where: { id: partyId }
+    });
+
+    if (!party) {
+      return NextResponse.json(
+        { error: 'Party not found' },
+        { status: 404 }
+      );
+    }
 
     const vibeConfig = await prisma.partyVibeConfig.findUnique({
       where: { partyId }

@@ -22,6 +22,18 @@ export async function POST(
     const { partyId } = params;
     const data: ActivityGenerationRequest = await request.json();
 
+    // First check if the party exists
+    const party = await prisma.party.findUnique({
+      where: { id: partyId }
+    });
+
+    if (!party) {
+      return NextResponse.json(
+        { error: 'Party not found' },
+        { status: 404 }
+      );
+    }
+
     // Check if Azure OpenAI is configured
     const hasAzureOpenAI = process.env.AZURE_OPENAI_API_KEY && 
                           process.env.AZURE_OPENAI_ENDPOINT && 
