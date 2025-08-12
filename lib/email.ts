@@ -3,11 +3,11 @@ import { Resend } from 'resend';
 // Initialize Resend client with API key from environment
 export const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Email configuration
+// Email configuration - Updated to use custom verified domain
 export const EMAIL_CONFIG = {
-  fromDomain: 'onboarding@resend.dev', // Use verified Resend domain
-  fallbackFrom: 'onboarding@resend.dev',
-  replyTo: 'onboarding@resend.dev', // Use verified domain for reply-to as well
+  fromDomain: 'noreply@magicalbirthdays.com', // Use your verified custom domain
+  fallbackFrom: 'noreply@magicalbirthdays.com',
+  replyTo: 'hello@magicalbirthdays.com', // Use verified custom domain for reply-to
 };
 
 // Email template types

@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
           <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
           <p style="font-size: 12px; color: #666;">
             Test sent at: ${new Date().toISOString()}<br>
-            From: onboarding@resend.dev<br>
+            From: noreply@magicalbirthdays.com<br>
             API Key configured: ✅
           </p>
         </div>
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         The Magical Birthday Planner Team
 
         Test sent at: ${new Date().toISOString()}
-        From: onboarding@resend.dev
+        From: noreply@magicalbirthdays.com
         API Key configured: ✅
       `,
     });
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       error: result.error,
       config: {
         apiKeyConfigured: !!process.env.RESEND_API_KEY,
-        fromDomain: 'onboarding@resend.dev',
+        fromDomain: 'noreply@magicalbirthdays.com',
         testTimestamp: new Date().toISOString(),
       }
     });
