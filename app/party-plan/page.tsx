@@ -142,7 +142,6 @@ export default function PartyPlanPage() {
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(false);
   const [timelineDensity, setTimelineDensity] = useState<'compact' | 'expanded'>('expanded');
   const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
-  const [budgetRefresh, setBudgetRefresh] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPartyId, setCurrentPartyId] = useState<string | null>(null);
@@ -292,14 +291,6 @@ export default function PartyPlanPage() {
     return { totalBudget: 0, totalSpent: 0, percentage: 0 };
   };
 
-  // Refresh budget data periodically to sync with changes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBudgetRefresh(prev => prev + 1);
-    }, 2000); // Refresh every 2 seconds
-    
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const loadPartyData = async () => {

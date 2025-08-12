@@ -1,3 +1,8 @@
+## [usr-1754968117397]
+**User Request:** The tabs shopping, venue, food, cake - keep jittering every 1 sec
+**Response Summary:** Successfully fixed the tab jittering issue in the party-plan page. The root cause was a setInterval that was running every 2 seconds to refresh budget data (setBudgetRefresh), causing unnecessary re-renders of the entire page including the tabs. Removed the problematic useEffect with setInterval and the unused budgetRefresh state variable. The tabs (Shopping, Venue, Food, Cake) should now remain stable without any jittering or visual jumping. Build compiles successfully with all functionality preserved.
+**Files Modified:** app/party-plan/page.tsx
+
 ## [usr-1754967202012]
 **User Request:** the email is not being sent - nothing on the resend dashboard
 **Response Summary:** Fixed email delivery issue by correcting domain mismatch. The user's verified domain is magicalbirthdayplanner.com but the email configuration was using magicalbirthdays.com. Updated all email configuration files: 1) Changed fromDomain from magicalbirthdays.com to magicalbirthdayplanner.com in lib/email.ts, 2) Updated test email endpoint to use correct domain, 3) Verified API key re_Poqqd9md_86Pv91bTjXmrpLNthUwmbXdY is properly configured. Build compiles successfully. The email system should now send RSVP invitations successfully using the correct verified domain.
