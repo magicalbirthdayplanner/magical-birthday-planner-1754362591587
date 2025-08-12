@@ -61,8 +61,6 @@ model Party {
   guests           Guest[]
   invitations      Invitation[]
   templates        InvitationTemplate[]
-  vibeConfig       PartyVibeConfig?
-  activityPlans    PartyActivityPlan[]
   user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventPurchase    EventPurchase? @relation(fields: [eventPurchaseId], references: [id])
 
@@ -346,80 +344,7 @@ enum GuestType {
   COUPLE
 }
 
-model PartyVibeConfig {
-  id                String     @id @default(cuid())
-  partyId           String     @unique
-  theme             String
-  ageGroup          String
-  numberOfKids      Int
-  totalDuration     String
-  setting           ActivitySetting @default(MIXED)
-  availableMaterials String[]  @default([])
-  budgetLevel       BudgetLevel @default(MEDIUM)
-  specialRequests   String[]   @default([])
-  customText        String?    // Optional text input alongside dropdowns
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  party             Party      @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  activityPlans     ActivityPlan[]
 
-  @@map("party_vibe_configs")
-}
-
-model ActivityPlan {
-  id                    String       @id @default(cuid())
-  vibeConfigId          String
-  name                  String
-  category              ActivityCategory
-  difficulty            ActivityDifficulty
-  timeEstimate          String
-  bestGroupSize         String
-  instructions          String[]
-  materials             String[]
-  materialAlternatives  Json         // Store as JSON for flexibility
-  energyLevel           EnergyLevel
-  sequence              Int
-  isAiGenerated         Boolean      @default(false)
-  aiPrompt              String?      // Store the AI prompt used
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-  vibeConfig            PartyVibeConfig @relation(fields: [vibeConfigId], references: [id], onDelete: Cascade)
-
-  @@map("activity_plans")
-}
-
-enum ActivitySetting {
-  INDOOR
-  OUTDOOR
-  MIXED
-}
-
-enum BudgetLevel {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum ActivityCategory {
-  GAME
-  CRAFT
-  DANCE
-  QUIET
-  OUTDOOR
-  EDUCATIONAL
-}
-
-enum ActivityDifficulty {
-  EASY
-  MEDIUM
-  HARD
-}
-
-enum EnergyLevel {
-  HIGH
-  MEDIUM
-  CALM
-}
 
 enum InvitationStatus {
   PENDING
@@ -433,91 +358,4 @@ enum InvitationStatus {
   FAILED
 }
 
-// New enhanced activity system models
-model PartyActivityPlan {
-  id              String             @id @default(cuid())
-  partyId         String
-  theme           String
-  childAge        Int
-  guestCount      Int
-  budget          NewBudgetLevel     @default(MEDIUM)
-  venue           VenueType          @default(MIXED)
-  duration        String
-  customRequests  String?
-  generatedAt     DateTime           @default(now())
-  isAiGenerated   Boolean            @default(false)
-  aiModel         String?            // Track which AI model was used
-  generationSource String?           // 'ai' or 'default'
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  party           Party              @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  activities      ActivitySuggestion[]
 
-  @@map("party_activity_plans")
-}
-
-model ActivitySuggestion {
-  id                String              @id @default(cuid())
-  partyActivityPlanId String
-  name              String
-  category          NewActivityCategory
-  difficulty        NewActivityDifficulty
-  duration          String
-  ageAppropriate    String
-  participants      String
-  description       String
-  materials         String[]            @default([])
-  instructions      String[]            @default([])
-  tips              String[]            @default([])
-  safetyNotes       String[]            @default([])
-  energyLevel       NewEnergyLevel
-  setupTime         String
-  cost              ActivityCost
-  isSelected        Boolean             @default(false)
-  sequenceOrder     Int?                // Order in selected activities
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  partyActivityPlan PartyActivityPlan   @relation(fields: [partyActivityPlanId], references: [id], onDelete: Cascade)
-
-  @@map("activity_suggestions")
-}
-
-enum NewActivityCategory {
-  GAME
-  CRAFT
-  CREATIVE
-  ACTIVE
-  QUIET
-  EDUCATIONAL
-}
-
-enum NewActivityDifficulty {
-  EASY
-  MEDIUM
-  ADVANCED
-}
-
-enum NewEnergyLevel {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum NewBudgetLevel {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum VenueType {
-  INDOOR
-  OUTDOOR
-  MIXED
-}
-
-enum ActivityCost {
-  FREE
-  LOW
-  MEDIUM
-  HIGH
-}

@@ -16,7 +16,6 @@ import ShoppingSuite from "@/components/ShoppingSuite";
 import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
-import StableActivities from "@/components/StableActivities";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getParty, updateParty, addGuest, updateGuest, deleteGuest, updateInvitationStatus } from "@/lib/party-actions";
@@ -98,13 +97,6 @@ const themeData = {
       "Hero mask crafting table",
       "POW! BOOM! wall decals"
     ],
-    activities: [
-      "Design your own superhero cape",
-      "Hero training obstacle course",
-      "Save the day rescue missions",
-      "Comic book creation station",
-      "Superhero photo booth"
-    ],
     food: [
       "Hero sandwiches (cut in lightning bolt shapes)",
       "Power-up fruit kabobs",
@@ -123,13 +115,6 @@ const themeData = {
       "Crown centerpieces",
       "Fairy lights everywhere",
       "Royal throne chair"
-    ],
-    activities: [
-      "Crown decorating station",
-      "Royal makeover spa",
-      "Princess dress-up corner",
-      "Treasure hunt for jewels",
-      "Royal dance party"
     ],
     food: [
       "Royal tea sandwiches",
@@ -219,14 +204,6 @@ export default function PartyPlanPage() {
       gradient: 'from-teal-500 to-cyan-500',
       hoverColor: 'bg-teal-50 dark:bg-teal-900/20',
       allowedPlans: ['guests'] // Always allowed (included in all plans)
-    },
-    {
-      id: 'activities',
-      label: 'Activities',
-      icon: Music,
-      gradient: 'from-violet-500 to-purple-500',
-      hoverColor: 'bg-violet-50 dark:bg-violet-900/20',
-      allowedPlans: ['activities'] // Plus and Pro plans
     },
     {
       id: 'timeline',
@@ -1229,7 +1206,6 @@ export default function PartyPlanPage() {
                                         tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
                                         tab.id === 'cake' ? 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f472b6 100%)' :
                                         tab.id === 'guests' ? 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #2dd4bf 100%)' :
-                                        tab.id === 'activities' ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%)' :
                                         tab.id === 'timeline' ? 'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)' :
                                         tab.id === 'checklist' ? 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%)' : 
                                         'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)'
@@ -1547,28 +1523,6 @@ export default function PartyPlanPage() {
             </Tabs>
           </TabsContent>
 
-          {/* Activities Tab */}
-          <ProtectedTabContent tabName="activities" className="space-y-6">
-            {currentPartyId && partyData ? (
-              <StableActivities
-                theme={partyData.selectedTheme || 'superhero'}
-                childAge={parseInt(partyData.childAge || '5')}
-                guestCount={guests.length || 8}
-                partyId={currentPartyId}
-                budget={partyData.budget ? (partyData.budget > 100 ? 'high' : partyData.budget > 50 ? 'medium' : 'low') : 'medium'}
-                venue={partyData.venue || 'mixed'}
-                duration={partyData.duration || '2-3 hours'}
-              />
-            ) : (
-              <div className="text-center py-12">
-                <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Loading Party Data</h3>
-                <p className="text-muted-foreground">
-                  Please wait while we load your party information...
-                </p>
-              </div>
-            )}
-          </ProtectedTabContent>
 
           {/* Timeline Tab */}
           <TabsContent value="timeline" className="space-y-6">

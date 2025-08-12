@@ -34,12 +34,11 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
     price: '$14.99',
     features: [
       'Everything in Starter',
-      'Personalized activity ideas',
       'RSVP tracking',
       'Task reminders',
       'Basic budget tracker (manual input)',
     ],
-    allowedTabs: ['overview', 'budget', 'guests', 'activities', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'budget', 'guests', 'timeline', 'checklist']
   },
   PROFESSIONAL: {
     name: 'PROFESSIONAL',
@@ -53,7 +52,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
       'Advanced budget tracking',
       'Premium support',
     ],
-    allowedTabs: ['overview', 'budget', 'shopping', 'venue', 'food', 'cake', 'guests', 'activities', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'budget', 'shopping', 'venue', 'food', 'cake', 'guests', 'timeline', 'checklist']
   }
 };
 
