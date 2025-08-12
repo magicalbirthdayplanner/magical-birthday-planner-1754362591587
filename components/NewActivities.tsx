@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -123,6 +123,23 @@ export default function NewActivities({
   const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
   const [currentView, setCurrentView] = useState<'generator' | 'suggestions' | 'selected'>('generator');
 
+  // Stable event handlers to prevent unnecessary re-renders
+  const handleCustomRequestsChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setCustomRequests(newValue);
+    // Only clear success messages, not error messages
+    if (error?.includes('✅ Success')) {
+      setError(null);
+    }
+  }, [error]);
+
+  const handleCustomRequestsFocus = useCallback(() => {
+    // Only clear success messages when focusing, don't interfere with typing
+    if (error?.includes('✅ Success')) {
+      setError(null);
+    }
+  }, [error]);
+
   // Persist text input and prevent auto-tab switching
   useEffect(() => {
     // Keep current tab active when activities are generated
@@ -132,7 +149,7 @@ export default function NewActivities({
   }, [activities.length]);
 
   // Generate AI-powered activity suggestions
-  const generateActivities = async () => {
+  const generateActivities = useCallback(async () => {
     if (!partyId) {
       setError('Party ID is required to generate activities');
       return;
@@ -181,7 +198,7 @@ export default function NewActivities({
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [partyId, theme, childAge, guestCount, budget, venue, duration, customRequests]);
 
   // Toggle activity selection
   const toggleActivitySelection = (activityId: string) => {
@@ -333,21 +350,10 @@ export default function NewActivities({
                   name="customRequests"
                   placeholder="Tell us what you'd like! For example: outdoor games, no messy crafts, educational activities, specific interests, allergies to consider, or any other special requirements..."
                   value={customRequests}
-                  onChange={(e) => {
-                    setCustomRequests(e.target.value);
-                    // Clear any success messages when user types
-                    if (error && error.includes('✅ Success')) {
-                      setError(null);
-                    }
-                  }}
-                  onFocus={() => {
-                    // Clear any success messages when user focuses
-                    if (error && error.includes('✅ Success')) {
-                      setError(null);
-                    }
-                  }}
+                  onChange={handleCustomRequestsChange}
+                  onFocus={handleCustomRequestsFocus}
                   rows={4}
-                  className="resize-none"
+                  className="resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   The more details you provide, the better our AI can customize activities for your party!
