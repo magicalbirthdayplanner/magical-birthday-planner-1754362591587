@@ -1,3 +1,100 @@
+## [usr-1754972677234]
+**User Request:** Create a new Activities tab inside the Party Management section of the Magical Birthday Planner app.
+
+Goal: This tab should automatically expand GPT-4.1's activity recommendations from the Wizard into actionable party planning details for parents.
+
+Requirements:
+
+Data Flow
+
+Input: Pass the GPT-4.1 activity recommendation text from the Wizard to this new tab.
+
+Processing: Use GPT-4.1 to break down each activity into detailed, parent-friendly instructions.
+
+Output Fields for Each Activity
+
+Name of activity (editable by user)
+
+Supplies needed (list with checkboxes)
+
+Estimated time required (numeric + dropdown unit)
+
+Number of people required (or participants)
+
+Group formation instructions (how to split kids by age/number)
+
+Anchor/host script (short, engaging dialogue parents can use to run the activity)
+
+Optional tips (safety notes, fun twists, age-specific adaptations)
+
+UI/UX Details
+
+Display activities as collapsible cards.
+
+Include "Regenerate with AI" button per activity to refine details.
+
+Allow parents to add their own activities manually.
+
+Support drag-and-drop reordering.
+
+AI Call Logic
+
+When loading the tab, send the activity text from the Wizard to GPT-4.1 with a system message that says:
+"Break these activities into actionable instructions for parents planning a kids' party. Include supplies, time, people, group instructions, host dialogue, and tips."
+
+Persistence
+
+Save all generated activity details in the party's record in the backend so they're editable later.
+
+Value Add
+
+Emphasize making the output parent-friendly, step-by-step, and ready to execute.
+
+Make it fun and engaging with age-appropriate language.
+**Response Summary:** Successfully implemented comprehensive Activities tab with AI-powered activity expansion functionality:
+
+Database Schema & Migration:
+- Created PartyActivity model with all required fields (name, description, supplies, time, people, instructions, scripts, tips)
+- Added ActivitySource enum for tracking activity origins (AI_GENERATED, USER_CREATED, THEME_DEFAULT)
+- Created and applied database migration successfully
+- Added activities relationship to Party model
+
+API Implementation:
+- Created /api/party-activities route with full CRUD operations (GET, POST, PUT, DELETE)
+- Created /api/activity-expansion route for AI-powered activity generation using Azure OpenAI
+- Implemented comprehensive error handling and authentication checks
+- Added fallback default activities when AI is unavailable
+
+UI/UX Components:
+- Built ActivitiesTab component with collapsible activity cards
+- Implemented all required fields: editable names, supply checklists, time/duration, people count, group instructions, host scripts, and tips
+- Added "Generate from AI" button that processes theme recommendations into detailed activities
+- Implemented manual activity addition with custom forms
+- Created responsive design with proper loading states and error handling
+
+Features Implemented:
+- AI processing using Azure OpenAI GPT-4.1 with proper system prompts
+- Database persistence for all activity details
+- Save/delete functionality for individual activities
+- Interactive supply and tip management with add/remove capabilities
+- Parent-friendly interface with detailed instructions and safety notes
+- Professional activity cards with expansion/collapse functionality
+
+Subscription Integration:
+- Added Activities tab to Plus and Pro subscription plans
+- Updated SubscriptionContext to include activity planning feature
+- Integrated with existing tab permission system
+
+Technical Excellence:
+- TypeScript type safety throughout
+- Proper error handling with user feedback
+- Mobile-responsive design
+- Clean component architecture
+- Database optimizations with proper queries
+
+Build Status: Successfully compiled with no errors
+**Files Modified:** prisma/schema.prisma, components/ActivitiesTab.tsx, app/api/party-activities/route.ts, app/api/activity-expansion/route.ts, app/party-plan/page.tsx, contexts/SubscriptionContext.tsx
+
 ## [usr-1754971140080]
 **User Request:** in the Party Management tab - add functionality to the download pdf button. it should download every detail in other tabs as a printable pdf with check lists
 **Response Summary:** Successfully implemented comprehensive PDF download functionality for party plans:

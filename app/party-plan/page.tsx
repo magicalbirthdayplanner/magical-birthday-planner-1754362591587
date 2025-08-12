@@ -16,6 +16,7 @@ import ShoppingSuite from "@/components/ShoppingSuite";
 import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
+import ActivitiesTab from "@/components/ActivitiesTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -32,6 +33,7 @@ import {
   Clock,
   MapPin,
   Palette,
+  Sparkles,
   Download,
   Share2,
   Mail,
@@ -166,6 +168,14 @@ export default function PartyPlanPage() {
       gradient: 'from-green-500 to-emerald-500',
       hoverColor: 'bg-green-50 dark:bg-green-900/20',
       allowedPlans: ['budget'] // Plus and Pro plans
+    },
+    {
+      id: 'activities',
+      label: 'Activities',
+      icon: Sparkles,
+      gradient: 'from-violet-500 to-purple-500',
+      hoverColor: 'bg-violet-50 dark:bg-violet-900/20',
+      allowedPlans: ['activities'] // Plus and Pro plans
     },
     {
       id: 'venue',
@@ -1261,6 +1271,7 @@ export default function PartyPlanPage() {
                       style={{
                         backgroundImage: tab.id === 'overview' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' : 
                                         tab.id === 'budget' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
+                                        tab.id === 'activities' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)' :
                                         tab.id === 'shopping' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
                                         tab.id === 'venue' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' :
                                         tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
@@ -1405,6 +1416,14 @@ export default function PartyPlanPage() {
               partyId={partyData?.childName || 'party'}
               initialBudget={partyData?.budget}
               childAge={parseInt(partyData?.childAge || '0')}
+            />
+          </ProtectedTabContent>
+
+          {/* Activities Tab */}
+          <ProtectedTabContent tabName="activities" className="space-y-6">
+            <ActivitiesTab
+              partyId={currentPartyId || partyData?.childName || 'party'}
+              themeActivities="Musical Chairs, Treasure Hunt, Craft Activity, Dance Party, Story Time"
             />
           </ProtectedTabContent>
 
