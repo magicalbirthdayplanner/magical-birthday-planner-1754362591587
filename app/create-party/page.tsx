@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby, AlertTriangle, DollarSign, MapPin, Globe, CreditCard, CheckCircle } from "lucide-react";
+import { CalendarIcon, ArrowRight, ArrowLeft, PartyPopper, X, Sparkles, Loader2, Heart, User, UserCheck, Users, Baby, AlertTriangle, DollarSign, MapPin, Globe, CreditCard, CheckCircle, Home, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
@@ -240,6 +240,8 @@ interface PartyData {
   guestCount?: number; // New field for number of guests
   zipCodeError?: string; // New field for zip code validation error
   partyId?: string; // Track party ID for updates and continuity
+  venue?: 'indoor' | 'outdoor' | 'mixed'; // New field for venue type
+  duration?: string; // New field for party duration
 }
 
 // Profanity detection state interface
@@ -406,6 +408,8 @@ export default function CreatePartyPage() {
     zipCode: "",
     country: "",
     zipCodeError: undefined,
+    venue: 'mixed', // Default venue type
+    duration: '2-3 hours', // Default party duration
     guestCount: undefined
   });
   const [isNavigating, setIsNavigating] = useState(false);
@@ -760,6 +764,8 @@ export default function CreatePartyPage() {
           guestCount: partyData.guestCount,
           budget: partyData.budget || undefined,
           location: partyData.zipCode,
+          venue: partyData.venue,
+          duration: partyData.duration,
           status: 'PLANNING' as const,
         };
 
@@ -798,6 +804,8 @@ export default function CreatePartyPage() {
           guestCount: partyData.guestCount,
           budget: partyData.budget || undefined,
           location: partyData.zipCode,
+          venue: partyData.venue,
+          duration: partyData.duration,
         };
 
         console.log('Updating existing party:', partyId, updatePayload)
@@ -2189,6 +2197,83 @@ export default function CreatePartyPage() {
                       />
                     </div>
                     <p className="text-xs text-gray-500">Including adults and children</p>
+                  </div>
+                </div>
+
+                {/* Second row of inputs - Venue and Duration */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Venue Type Selection */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <Home className="h-4 w-4 text-indigo-600" />
+                      Venue Type
+                    </Label>
+                    <Select value={partyData.venue || 'mixed'} onValueChange={(value: 'indoor' | 'outdoor' | 'mixed') => setPartyData({ ...partyData, venue: value })}>
+                      <SelectTrigger className="text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
+                        <SelectValue placeholder="Select venue type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="indoor">
+                          <div className="flex items-center gap-2">
+                            <Home className="h-4 w-4 text-indigo-600" />
+                            <span>Indoor (House, Hall, etc.)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="outdoor">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-green-600" />
+                            <span>Outdoor (Park, Garden, etc.)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="mixed">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4 text-purple-600" />
+                            <span>Mixed (Indoor + Outdoor)</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">Helps us suggest appropriate activities</p>
+                  </div>
+
+                  {/* Duration Selection */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <Clock className="h-4 w-4 text-orange-600" />
+                      Party Duration
+                    </Label>
+                    <Select value={partyData.duration || '2-3 hours'} onValueChange={(value: string) => setPartyData({ ...partyData, duration: value })}>
+                      <SelectTrigger className="text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
+                        <SelectValue placeholder="Select party duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1-2 hours">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-orange-600" />
+                            <span>1-2 hours (Short & Sweet)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="2-3 hours">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-orange-600" />
+                            <span>2-3 hours (Standard)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="3-4 hours">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-orange-600" />
+                            <span>3-4 hours (Extended Fun)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="4+ hours">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-orange-600" />
+                            <span>4+ hours (All Day Event)</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">Determines activity planning and timing</p>
                   </div>
                 </div>
 

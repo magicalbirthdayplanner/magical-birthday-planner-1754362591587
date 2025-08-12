@@ -185,14 +185,20 @@ npm start
 - Quick access to continue planning or create new parties
 
 ### 4. Enhanced Party Creation Wizard (`/create-party`)
-- **Step 1**: Child information input (name, age selection, interests collection)
-- **Step 2**: Party date picker with calendar
+- **Step 1**: Child information input (name, age selection, gender, party date with calendar)
+- **Step 2**: Theme selection (Classic themes for quick setup or Custom themes with interests/colors)
 - **Step 3**: AI-powered theme selection with personalized recommendations
-- Interactive interests selection with 14 categories
+- **Step 4**: Enhanced party details with new fields:
+  - Budget with multi-currency support (USD, EUR, GBP, etc.)
+  - Location with auto-country detection from zip code
+  - Guest count with validation
+  - **NEW: Venue type selection** (Indoor, Outdoor, or Mixed)
+  - **NEW: Party duration selection** (1-2 hours to 4+ hours)
+- Interactive interests selection with 20+ categories
 - Smart AI recommendations based on age and interests
 - Inspiration board previews for each theme
 - Progress indicators and navigation
-- Form validation and local storage persistence
+- Form validation and comprehensive data persistence
 
 ### 5. Pricing Page (`/pricing`)
 - **Comprehensive pricing tiers**: Free, Starter ($9.99), Professional ($19.99), Premium ($39.99)
@@ -212,6 +218,12 @@ npm start
 ### 7. Party Plan Results (`/party-plan`)
 - **Overview Tab**: Theme details, party information, guest statistics, quick actions
 - **Budget Tab**: Complete budget tracking and AI-powered allocation system
+- **Activities Tab**: New AI-powered activity planner with GPT-4 integration
+  - Personalized activity suggestions based on party theme, child age, guest count, budget, venue, and duration
+  - Custom text input for special requests and preferences
+  - Three-tab interface: Configuration, AI Suggestions, and Selected Activities
+  - Professional activity cards with detailed instructions, materials, and safety notes
+  - Manual tab navigation (no auto-switching) for better user control
 - **Shopping Tab**: Comprehensive party shopping platform
   - 6 shopping categories with visually distinct cards
   - Affiliate product deals from Amazon, Walmart, and Temu

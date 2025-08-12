@@ -70,6 +70,8 @@ interface PartyData {
   budget?: number;
   zipCode?: string;
   guestCount?: number;
+  venue?: 'indoor' | 'outdoor' | 'mixed';
+  duration?: string;
 }
 
 interface ChecklistItem {
@@ -1774,8 +1776,8 @@ export default function PartyPlanPage() {
                 guestCount={guests.length || 8}
                 partyId={currentPartyId}
                 budget={partyData.budget ? (partyData.budget > 100 ? 'high' : partyData.budget > 50 ? 'medium' : 'low') : 'medium'}
-                venue="mixed"
-                duration="2-3 hours"
+                venue={partyData.venue || 'mixed'}
+                duration={partyData.duration || '2-3 hours'}
               />
             ) : (
               <div className="text-center py-12">

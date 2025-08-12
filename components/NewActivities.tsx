@@ -123,6 +123,14 @@ export default function NewActivities({
   const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
   const [currentView, setCurrentView] = useState<'generator' | 'suggestions' | 'selected'>('generator');
 
+  // Persist text input and prevent auto-tab switching
+  useEffect(() => {
+    // Keep current tab active when activities are generated
+    if (activities.length > 0 && currentView === 'generator') {
+      // Don't auto-switch - let user manually switch to suggestions tab
+    }
+  }, [activities.length]);
+
   // Generate AI-powered activity suggestions
   const generateActivities = async () => {
     if (!partyId) {
@@ -164,7 +172,8 @@ export default function NewActivities({
       }
 
       setActivities(data.activities);
-      setCurrentView('suggestions');
+      // Don't auto-switch tabs - let user stay in current view
+      setError(`✅ Success! ${data.activities.length} activities generated. Click the "AI Suggestions" tab to view them!`);
 
     } catch (error) {
       console.error('Error generating activities:', error);
@@ -252,9 +261,12 @@ export default function NewActivities({
         </p>
       </div>
 
-      {/* Error Display */}
+      {/* Error/Success Display */}
       {error && (
-        <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+        <Alert className={error.includes('✅ Success') 
+          ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20" 
+          : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20"
+        }>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -318,11 +330,25 @@ export default function NewActivities({
                 <Label htmlFor="customRequests">Special Requests & Preferences</Label>
                 <Textarea
                   id="customRequests"
+                  name="customRequests"
                   placeholder="Tell us what you'd like! For example: outdoor games, no messy crafts, educational activities, specific interests, allergies to consider, or any other special requirements..."
                   value={customRequests}
-                  onChange={(e) => setCustomRequests(e.target.value)}
+                  onChange={(e) => {
+                    setCustomRequests(e.target.value);
+                    // Clear any success messages when user types
+                    if (error && error.includes('✅ Success')) {
+                      setError(null);
+                    }
+                  }}
+                  onFocus={() => {
+                    // Clear any success messages when user focuses
+                    if (error && error.includes('✅ Success')) {
+                      setError(null);
+                    }
+                  }}
                   rows={4}
                   className="resize-none"
+                  disabled={isGenerating}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   The more details you provide, the better our AI can customize activities for your party!
