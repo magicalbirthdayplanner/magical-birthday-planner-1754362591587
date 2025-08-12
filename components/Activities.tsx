@@ -286,9 +286,15 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
     try {
       setIsLoading(true);
       setError(null);
+      
+      console.log('Loading activity data for party:', partyId);
+      
       const response = await fetch(`/api/parties/${partyId}/activities`);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Activity data loaded successfully:', data);
+        
         if (data.vibeConfig) {
           setPartyVibe({
             theme: data.vibeConfig.theme || theme || 'superhero',
@@ -301,6 +307,7 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
             specialRequests: data.vibeConfig.specialRequests || [],
             customText: data.vibeConfig.customText || ''
           });
+          
           if (data.vibeConfig.activityPlans && data.vibeConfig.activityPlans.length > 0) {
             setActivityPlan(data.vibeConfig.activityPlans.map((plan: any) => ({
               ...plan,
@@ -310,23 +317,52 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
             })));
           }
         }
-      } else if (response.status === 404) {
-        // Party not found - this is normal for new parties
-        console.log('No existing activity data found for party:', partyId);
       } else {
-        // Handle other errors
-        let errorText = '';
+        // Parse error response for better error handling
+        let errorData;
         try {
-          errorText = await response.text();
-        } catch (e) {
-          errorText = 'Unable to read error response';
+          errorData = await response.json();
+        } catch (parseError) {
+          errorData = { error: 'Unknown error', message: 'Unable to parse error response' };
         }
-        console.error('API Error:', response.status, errorText);
-        setError(`Failed to load activity data (${response.status}). Please try refreshing the page.`);
+        
+        console.warn('API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+
+        if (response.status === 404) {
+          // Party not found or no existing data - this could be normal for new parties
+          console.log('No existing activity data found for party:', partyId);
+          
+          // Check if it's truly a party not found error vs just no activity data
+          if (errorData.error === 'Party not found') {
+            setError(`Party not found. Please make sure you have a valid party selected. Error: ${errorData.message || 'The party does not exist.'}`);
+          } else {
+            // No activity data yet, which is normal
+            console.log('Party exists but no activity configuration found - this is normal for new parties');
+          }
+        } else if (response.status === 400) {
+          // Bad request - invalid party ID
+          setError(`Invalid request: ${errorData.message || 'Please check your party ID and try again.'}`);
+        } else if (response.status === 503) {
+          // Database connection issues
+          setError(`Database connection error: ${errorData.message || 'Unable to connect to database. Please try again later.'}`);
+        } else {
+          // Other server errors
+          setError(`Server error (${response.status}): ${errorData.message || 'An unexpected error occurred. Please try refreshing the page.'}`);
+        }
       }
-    } catch (error) {
-      console.error('Error loading existing data:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load activity data');
+    } catch (networkError) {
+      console.error('Network error loading activity data:', networkError);
+      
+      // Check if it's a network connectivity issue
+      if (networkError instanceof TypeError && networkError.message.includes('fetch')) {
+        setError('Network connection error. Please check your internet connection and try again.');
+      } else {
+        setError(networkError instanceof Error ? `Connection error: ${networkError.message}` : 'Failed to load activity data. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -369,8 +405,12 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
   const generateActivityPlan = async () => {
     try {
       setIsGenerating(true);
+      setError(null);
+      
+      console.log('Starting activity plan generation for party:', partyId);
       
       // First save the party vibe config
+      console.log('Saving party vibe configuration...');
       const vibeResponse = await fetch(`/api/parties/${partyId}/activities`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -382,10 +422,21 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
       });
       
       if (!vibeResponse.ok) {
-        throw new Error('Failed to save party vibe config');
+        let vibeErrorData;
+        try {
+          vibeErrorData = await vibeResponse.json();
+        } catch (parseError) {
+          vibeErrorData = { message: 'Unable to parse error response' };
+        }
+        
+        console.error('Failed to save party vibe config:', vibeResponse.status, vibeErrorData);
+        throw new Error(`Failed to save party configuration: ${vibeErrorData.message || 'Please try again.'}`);
       }
       
+      console.log('Party vibe configuration saved successfully');
+      
       // Generate activities using AI or defaults
+      console.log('Generating activities...');
       const generateResponse = await fetch(`/api/parties/${partyId}/activities/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -397,12 +448,40 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
       });
       
       if (!generateResponse.ok) {
-        throw new Error('Failed to generate activities');
+        let generateErrorData;
+        try {
+          generateErrorData = await generateResponse.json();
+        } catch (parseError) {
+          generateErrorData = { message: 'Unable to parse error response' };
+        }
+        
+        console.error('Failed to generate activities:', generateResponse.status, generateErrorData);
+        
+        // If generation fails, fall back to default activities immediately
+        console.log('Falling back to default activities due to generation error');
+        const defaultActivities = generateDefaultActivities(partyVibe.theme, partyVibe.ageGroup, partyVibe.numberOfKids);
+        setActivityPlan(defaultActivities);
+        setCurrentView('activities');
+        setError(`Activity generation encountered an issue, but we've created default activities for you. Error: ${generateErrorData.message || 'Please try the AI generation again later.'}`);
+        return;
       }
       
-      const { activities } = await generateResponse.json();
+      const generateData = await generateResponse.json();
+      console.log('Activities generated successfully:', generateData);
+      
+      const { activities } = generateData;
+      
+      if (!Array.isArray(activities) || activities.length === 0) {
+        console.warn('Empty or invalid activities received from generation');
+        const defaultActivities = generateDefaultActivities(partyVibe.theme, partyVibe.ageGroup, partyVibe.numberOfKids);
+        setActivityPlan(defaultActivities);
+        setCurrentView('activities');
+        setError('No activities were generated. We\'ve provided default activities instead. Please try again.');
+        return;
+      }
       
       // Save generated activities to database
+      console.log('Saving generated activities to database...');
       const saveResponse = await fetch(`/api/parties/${partyId}/activities`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -410,9 +489,31 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
       });
       
       if (!saveResponse.ok) {
-        throw new Error('Failed to save activities');
+        let saveErrorData;
+        try {
+          saveErrorData = await saveResponse.json();
+        } catch (parseError) {
+          saveErrorData = { message: 'Unable to parse error response' };
+        }
+        
+        console.error('Failed to save activities to database:', saveResponse.status, saveErrorData);
+        
+        // Still show the activities even if saving failed
+        setActivityPlan(activities.map((activity: any) => ({
+          ...activity,
+          category: (activity.category || 'GAME').toLowerCase(),
+          difficulty: (activity.difficulty || 'EASY').toLowerCase(),
+          energyLevel: (activity.energyLevel || 'MEDIUM').toLowerCase()
+        })));
+        
+        setCurrentView('activities');
+        setError(`Activities were generated but couldn't be saved. Your activities are still shown below. Error: ${saveErrorData.message || 'Please try saving again later.'}`);
+        return;
       }
       
+      console.log('Activities saved successfully to database');
+      
+      // Process and set the activities with proper case conversion
       setActivityPlan(activities.map((activity: any) => ({
         ...activity,
         category: (activity.category || 'GAME').toLowerCase(),
@@ -421,12 +522,18 @@ export default function Activities({ theme, childAge, guestCount = 8, partyId }:
       })));
       
       setCurrentView('activities');
+      console.log('Activity plan generation completed successfully');
+      
     } catch (error) {
-      console.error('Error generating activity plan:', error);
-      // Fallback to local generation
+      console.error('Unexpected error during activity plan generation:', error);
+      
+      // Always provide fallback activities to prevent broken UI
       const defaultActivities = generateDefaultActivities(partyVibe.theme, partyVibe.ageGroup, partyVibe.numberOfKids);
       setActivityPlan(defaultActivities);
       setCurrentView('activities');
+      
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred during activity generation.';
+      setError(`${errorMessage} We've provided default activities as a fallback. Please try again or refresh the page.`);
     } finally {
       setIsGenerating(false);
     }

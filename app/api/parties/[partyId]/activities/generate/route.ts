@@ -20,16 +20,72 @@ export async function POST(
 ) {
   try {
     const { partyId } = params;
-    const data: ActivityGenerationRequest = await request.json();
 
-    // First check if the party exists
-    const party = await prisma.party.findUnique({
-      where: { id: partyId }
-    });
+    // Validate partyId parameter
+    if (!partyId || typeof partyId !== 'string' || partyId.trim() === '') {
+      console.warn('Invalid partyId provided in generate:', partyId);
+      return NextResponse.json(
+        { 
+          error: 'Invalid party ID',
+          message: 'Party ID is required and must be a valid string'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Parse and validate request body
+    let data: ActivityGenerationRequest;
+    try {
+      data = await request.json();
+    } catch (parseError) {
+      console.error('Invalid JSON in generate request body:', parseError);
+      return NextResponse.json(
+        { 
+          error: 'Invalid request body',
+          message: 'Request body must be valid JSON'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate required fields for activity generation
+    const requiredFields = ['theme', 'ageGroup', 'numberOfKids', 'totalDuration', 'setting', 'budgetLevel'];
+    const missingFields = requiredFields.filter(field => !data[field]);
+    
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        { 
+          error: 'Missing required fields',
+          message: `The following fields are required for activity generation: ${missingFields.join(', ')}`
+        },
+        { status: 400 }
+      );
+    }
+
+    // First check if the party exists with enhanced error handling
+    let party;
+    try {
+      party = await prisma.party.findUnique({
+        where: { id: partyId.trim() }
+      });
+    } catch (dbError) {
+      console.error('Database error while finding party in generate:', dbError);
+      return NextResponse.json(
+        { 
+          error: 'Database connection error',
+          message: 'Unable to connect to database. Please try again later.'
+        },
+        { status: 503 }
+      );
+    }
 
     if (!party) {
+      console.warn('Party not found in generate for ID:', partyId);
       return NextResponse.json(
-        { error: 'Party not found' },
+        { 
+          error: 'Party not found',
+          message: 'The specified party does not exist or you do not have access to it'
+        },
         { status: 404 }
       );
     }
@@ -40,26 +96,53 @@ export async function POST(
                           process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
 
     let generatedActivities: any[] = [];
+    let aiGenerated = false;
 
     if (hasAzureOpenAI) {
       try {
+        console.log('Attempting AI generation for party:', partyId);
         generatedActivities = await generateActivitiesWithAI(data, partyId);
+        aiGenerated = true;
+        console.log('AI generation successful, generated', generatedActivities.length, 'activities');
       } catch (error) {
-        console.error('AI generation failed, falling back to default:', error);
+        console.error('AI generation failed, falling back to default activities:', error);
         generatedActivities = generateDefaultActivities(data);
+        aiGenerated = false;
       }
     } else {
+      console.log('Azure OpenAI not configured, using default activities for party:', partyId);
       generatedActivities = generateDefaultActivities(data);
+      aiGenerated = false;
+    }
+
+    // Validate generated activities
+    if (!Array.isArray(generatedActivities) || generatedActivities.length === 0) {
+      console.error('Invalid or empty activities generated for party:', partyId);
+      return NextResponse.json(
+        { 
+          error: 'Activity generation failed',
+          message: 'Unable to generate activities. Please try again or contact support.'
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ 
       activities: generatedActivities,
-      aiGenerated: hasAzureOpenAI 
+      aiGenerated: aiGenerated,
+      count: generatedActivities.length
     });
   } catch (error) {
-    console.error('Error generating activities:', error);
+    console.error('Unexpected error in POST /api/parties/[partyId]/activities/generate:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
     return NextResponse.json(
-      { error: 'Failed to generate activities' },
+      { 
+        error: 'Internal server error',
+        message: 'An unexpected error occurred while generating activities',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }
