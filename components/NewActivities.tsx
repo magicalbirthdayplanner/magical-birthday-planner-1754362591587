@@ -123,22 +123,28 @@ export default function NewActivities({
   const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
   const [currentView, setCurrentView] = useState<'generator' | 'suggestions' | 'selected'>('generator');
 
-  // Stable event handlers to prevent unnecessary re-renders
+  // Ultra-stable event handlers to prevent any re-renders that could interrupt typing
   const handleCustomRequestsChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     setCustomRequests(newValue);
-    // Only clear success messages, not error messages
-    if (error?.includes('✅ Success')) {
-      setError(null);
-    }
-  }, [error]);
+    // Clear success messages without creating new handler references
+    setError(prevError => {
+      if (prevError && prevError.includes('✅ Success')) {
+        return null;
+      }
+      return prevError;
+    });
+  }, []); // No dependencies to prevent handler recreation
 
   const handleCustomRequestsFocus = useCallback(() => {
-    // Only clear success messages when focusing, don't interfere with typing
-    if (error?.includes('✅ Success')) {
-      setError(null);
-    }
-  }, [error]);
+    // Clear success messages without creating new handler references
+    setError(prevError => {
+      if (prevError && prevError.includes('✅ Success')) {
+        return null;
+      }
+      return prevError;
+    });
+  }, []); // No dependencies to prevent handler recreation
 
   // Persist text input and prevent auto-tab switching
   useEffect(() => {
@@ -354,6 +360,9 @@ export default function NewActivities({
                   onFocus={handleCustomRequestsFocus}
                   rows={4}
                   className="resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                  autoComplete="off"
+                  spellCheck="true"
+                  data-testid="special-requests-textarea"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   The more details you provide, the better our AI can customize activities for your party!
