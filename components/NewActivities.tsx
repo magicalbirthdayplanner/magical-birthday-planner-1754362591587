@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -122,29 +122,60 @@ export default function NewActivities({
   const [customRequests, setCustomRequests] = useState('');
   const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
   const [currentView, setCurrentView] = useState<'generator' | 'suggestions' | 'selected'>('generator');
+  
+  // Ref to track if user is currently typing - prevents interruptions
+  const isTypingRef = useRef(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Memoize props to prevent unnecessary re-renders
+  const stableProps = useMemo(() => ({
+    theme,
+    childAge,
+    guestCount,
+    partyId,
+    budget,
+    venue,
+    duration
+  }), [theme, childAge, guestCount, partyId, budget, venue, duration]);
 
-  // Ultra-stable event handlers to prevent any re-renders that could interrupt typing
+  // Ultra-stable event handlers with typing protection
   const handleCustomRequestsChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
+    isTypingRef.current = true;
     setCustomRequests(newValue);
-    // Clear success messages without creating new handler references
+    
+    // Clear success messages without creating dependencies
     setError(prevError => {
       if (prevError && prevError.includes('✅ Success')) {
         return null;
       }
       return prevError;
     });
-  }, []); // No dependencies to prevent handler recreation
+    
+    // Clear typing flag after a short delay
+    setTimeout(() => {
+      isTypingRef.current = false;
+    }, 150);
+  }, []); // No dependencies - completely stable
 
   const handleCustomRequestsFocus = useCallback(() => {
-    // Clear success messages without creating new handler references
+    isTypingRef.current = true;
+    
+    // Clear success messages
     setError(prevError => {
       if (prevError && prevError.includes('✅ Success')) {
         return null;
       }
       return prevError;
     });
-  }, []); // No dependencies to prevent handler recreation
+  }, []);
+  
+  const handleCustomRequestsBlur = useCallback(() => {
+    // Delay clearing the typing flag to handle rapid focus changes
+    setTimeout(() => {
+      isTypingRef.current = false;
+    }, 100);
+  }, []);
 
   // Persist text input and prevent auto-tab switching
   useEffect(() => {
@@ -166,12 +197,12 @@ export default function NewActivities({
       setError(null);
 
       const requestData = {
-        theme,
-        childAge,
-        guestCount,
-        budget,
-        venue,
-        duration,
+        theme: stableProps.theme,
+        childAge: stableProps.childAge,
+        guestCount: stableProps.guestCount,
+        budget: stableProps.budget,
+        venue: stableProps.venue,
+        duration: stableProps.duration,
         customRequests: customRequests.trim() || undefined
       };
 
@@ -196,15 +227,21 @@ export default function NewActivities({
 
       setActivities(data.activities);
       // Don't auto-switch tabs - let user stay in current view
-      setError(`✅ Success! ${data.activities.length} activities generated. Click the "AI Suggestions" tab to view them!`);
+      // Only show success message if user is not actively typing
+      if (!isTypingRef.current) {
+        setError(`✅ Success! ${data.activities.length} activities generated. Click the "AI Suggestions" tab to view them!`);
+      }
 
     } catch (error) {
       console.error('Error generating activities:', error);
-      setError(error instanceof Error ? error.message : 'Failed to generate activities');
+      // Only show error if user is not actively typing
+      if (!isTypingRef.current) {
+        setError(error instanceof Error ? error.message : 'Failed to generate activities');
+      }
     } finally {
       setIsGenerating(false);
     }
-  }, [partyId, theme, childAge, guestCount, budget, venue, duration, customRequests]);
+  }, [stableProps.partyId, stableProps.theme, stableProps.childAge, stableProps.guestCount, stableProps.budget, stableProps.venue, stableProps.duration, customRequests]);
 
   // Toggle activity selection
   const toggleActivitySelection = (activityId: string) => {
@@ -238,12 +275,12 @@ export default function NewActivities({
         body: JSON.stringify({ 
           activities: selectedActivityData,
           partyConfiguration: {
-            theme,
-            childAge,
-            guestCount,
-            budget,
-            venue,
-            duration,
+            theme: stableProps.theme,
+            childAge: stableProps.childAge,
+            guestCount: stableProps.guestCount,
+            budget: stableProps.budget,
+            venue: stableProps.venue,
+            duration: stableProps.duration,
             customRequests
           }
         })
@@ -280,7 +317,7 @@ export default function NewActivities({
           <Sparkles className="h-8 w-8 text-pink-600 dark:text-pink-400" />
         </div>
         <p className="text-lg text-purple-700 dark:text-purple-300 font-medium">
-          Get personalized activity suggestions powered by GPT for your {theme} party
+          Get personalized activity suggestions powered by GPT for your {stableProps.theme} party
         </p>
       </div>
 
@@ -329,22 +366,22 @@ export default function NewActivities({
                 <div className="text-center">
                   <PartyPopper className="h-6 w-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
                   <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Theme</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100 capitalize">{theme}</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100 capitalize">{stableProps.theme}</div>
                 </div>
                 <div className="text-center">
                   <Users className="h-6 w-6 text-green-600 dark:text-green-400 mx-auto mb-2" />
                   <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Age</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{childAge} years old</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{stableProps.childAge} years old</div>
                 </div>
                 <div className="text-center">
                   <Users className="h-6 w-6 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
                   <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Guests</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{guestCount} kids</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{stableProps.guestCount} kids</div>
                 </div>
                 <div className="text-center">
                   <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400 mx-auto mb-2" />
                   <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Duration</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{duration}</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{stableProps.duration}</div>
                 </div>
               </div>
 
@@ -352,17 +389,21 @@ export default function NewActivities({
               <div className="space-y-3">
                 <Label htmlFor="customRequests">Special Requests & Preferences</Label>
                 <Textarea
+                  ref={textareaRef}
                   id="customRequests"
                   name="customRequests"
                   placeholder="Tell us what you'd like! For example: outdoor games, no messy crafts, educational activities, specific interests, allergies to consider, or any other special requirements..."
                   value={customRequests}
                   onChange={handleCustomRequestsChange}
                   onFocus={handleCustomRequestsFocus}
+                  onBlur={handleCustomRequestsBlur}
                   rows={4}
                   className="resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                   autoComplete="off"
                   spellCheck="true"
                   data-testid="special-requests-textarea"
+                  tabIndex={0}
+                  style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   The more details you provide, the better our AI can customize activities for your party!
@@ -424,7 +465,7 @@ export default function NewActivities({
                 <div>
                   <h2 className="text-2xl font-bold">AI Activity Suggestions</h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {activities.length} personalized activities for your {theme} party
+                    {activities.length} personalized activities for your {stableProps.theme} party
                   </p>
                 </div>
                 {selectedActivities.size > 0 && (
@@ -656,7 +697,7 @@ export default function NewActivities({
                 <div>
                   <h2 className="text-2xl font-bold">Your Selected Activities</h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {selectedActivityList.length} activities ready for your {theme} party
+                    {selectedActivityList.length} activities ready for your {stableProps.theme} party
                   </p>
                 </div>
                 <div className="flex gap-2">
