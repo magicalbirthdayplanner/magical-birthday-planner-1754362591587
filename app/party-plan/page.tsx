@@ -165,20 +165,20 @@ export default function PartyPlanPage() {
       allowedPlans: ['budget'] // Plus and Pro plans
     },
     {
-      id: 'shopping',
-      label: 'Shopping',
-      icon: ShoppingBag,
-      gradient: 'from-orange-500 to-red-500',
-      hoverColor: 'bg-orange-50 dark:bg-orange-900/20',
-      allowedPlans: ['shopping'] // Pro plan only
-    },
-    {
       id: 'venue',
       label: 'Venue',
       icon: Home,
       gradient: 'from-amber-500 to-orange-500',
       hoverColor: 'bg-amber-50 dark:bg-amber-900/20',
       allowedPlans: ['venue'] // Pro plan only
+    },
+    {
+      id: 'shopping',
+      label: 'Shopping',
+      icon: ShoppingBag,
+      gradient: 'from-orange-500 to-red-500',
+      hoverColor: 'bg-orange-50 dark:bg-orange-900/20',
+      allowedPlans: ['shopping'] // Pro plan only
     },
     {
       id: 'food',

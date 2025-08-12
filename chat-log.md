@@ -1,3 +1,10 @@
+## [usr-1754968426280]
+**User Request:** Move the venue after the budget tab 
+
+
+**Response Summary:** Successfully moved the venue tab to appear immediately after the budget tab in the party-plan page. Updated the tabConfigs array order to position venue tab between budget and shopping tabs. The new tab order is now: Overview, Budget, Venue, Shopping, Food, Cake, Guests, Timeline, Checklist. Build compiles successfully with the new tab arrangement functional.
+**Files Modified:** app/party-plan/page.tsx
+
 ## [usr-1754968117397]
 **User Request:** The tabs shopping, venue, food, cake - keep jittering every 1 sec
 **Response Summary:** Successfully fixed the tab jittering issue in the party-plan page. The root cause was a setInterval that was running every 2 seconds to refresh budget data (setBudgetRefresh), causing unnecessary re-renders of the entire page including the tabs. Removed the problematic useEffect with setInterval and the unused budgetRefresh state variable. The tabs (Shopping, Venue, Food, Cake) should now remain stable without any jittering or visual jumping. Build compiles successfully with all functionality preserved.
