@@ -182,11 +182,37 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const zipCode = searchParams.get('zipCode') || '12345';
     const guestCount = parseInt(searchParams.get('guestCount') || '20');
-
-    // Generate venues for the zip code
-    const baseVenues = generateVenuesForZip(zipCode);
+    const useGooglePlaces = searchParams.get('useGooglePlaces') === 'true';
     
-    // Apply AI recommendations
+    // Check if Google Places API key is available and user wants to use Google Places
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    
+    if (useGooglePlaces && apiKey) {
+      // Redirect to Google Places API endpoint
+      const googlePlacesUrl = new URL(`${request.url}/google-places`);
+      searchParams.forEach((value, key) => {
+        if (key !== 'useGooglePlaces') {
+          googlePlacesUrl.searchParams.set(key, value);
+        }
+      });
+      
+      try {
+        const googlePlacesResponse = await fetch(googlePlacesUrl.toString());
+        const googlePlacesData = await googlePlacesResponse.json();
+        
+        if (googlePlacesData.success && googlePlacesData.venues.length > 0) {
+          return NextResponse.json({
+            ...googlePlacesData,
+            source: 'google-places-api'
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching from Google Places API, falling back to mock data:', error);
+      }
+    }
+
+    // Fallback to mock data (original implementation)
+    const baseVenues = generateVenuesForZip(zipCode);
     const aiRecommendedVenues = await getAIRecommendedVenues(baseVenues, zipCode, guestCount);
 
     return NextResponse.json({
@@ -195,7 +221,8 @@ export async function GET(request: NextRequest) {
       zipCode,
       guestCount,
       totalFound: aiRecommendedVenues.length,
-      aiRecommendedCount: aiRecommendedVenues.filter(v => v.isAIRecommended).length
+      aiRecommendedCount: aiRecommendedVenues.filter(v => v.isAIRecommended).length,
+      source: 'mock-data'
     });
   } catch (error) {
     console.error('Error in venues API:', error);

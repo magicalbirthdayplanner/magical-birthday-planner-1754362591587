@@ -60,6 +60,12 @@ export const ENV_VARIABLES: EnvVariable[] = [
     required: true,
     instructions: "Go to [Resend Dashboard](https://resend.com/api-keys) → Create new API key → Copy the generated API key (starts with 're_')"
   },
+  {
+    name: "GOOGLE_PLACES_API_KEY",
+    description: "Google Places API key for real venue recommendations and search functionality",
+    required: false,
+    instructions: "Go to [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → Create API key → Enable Places API (New) → Copy the API key"
+  },
 ];
 
 export interface EnvVariable {

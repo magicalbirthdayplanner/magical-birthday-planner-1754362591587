@@ -24,7 +24,10 @@ import {
   Users,
   Loader2,
   Bookmark,
-  Mail
+  Mail,
+  Globe,
+  RefreshCw,
+  Zap
 } from "lucide-react";
 
 interface Venue {
@@ -35,7 +38,7 @@ interface Venue {
   reviews: number;
   priceRange: '$' | '$$' | '$$$' | '$$$$';
   address: string;
-  phone: string;
+  phone?: string;
   website?: string;
   email?: string;
   description: string;
@@ -46,6 +49,11 @@ interface Venue {
   images: string[];
   isAIRecommended?: boolean;
   isBookmarked?: boolean;
+  googlePlaceId?: string;
+  location?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 interface VenueTabProps {
@@ -63,29 +71,81 @@ export default function VenueTab({ zipCode, partyId, guestCount = 0 }: VenueTabP
   const [minRating, setMinRating] = useState([3]);
   const [sortBy, setSortBy] = useState<'distance' | 'popularity' | 'reviews'>('popularity');
   const [bookmarkedVenues, setBookmarkedVenues] = useState<Set<string>>(new Set());
+  const [useGooglePlaces, setUseGooglePlaces] = useState(true);
+  const [dataSource, setDataSource] = useState<'mock-data' | 'google-places-api'>('mock-data');
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch venues data
   useEffect(() => {
     fetchVenues();
   }, [zipCode]);
 
+  // Real-time filtering effect
+  useEffect(() => {
+    if (venues.length > 0 && dataSource === 'google-places-api') {
+      // Apply real-time filtering for Google Places data
+      fetchVenues();
+    }
+  }, [selectedCategories, priceRange, minRating, sortBy]);
+
   const fetchVenues = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/venues?zipCode=${zipCode || ''}&guestCount=${guestCount}`);
+      
+      // Build query parameters
+      const params = new URLSearchParams({
+        zipCode: zipCode || '',
+        guestCount: guestCount.toString(),
+        useGooglePlaces: useGooglePlaces.toString(),
+        sortBy: sortBy
+      });
+
+      // Add filtering parameters for Google Places
+      if (useGooglePlaces) {
+        if (selectedCategories.length === 1) {
+          const venueTypeMap = {
+            'Outdoor': 'outdoor',
+            'Indoor': 'indoor',
+            'Sports Arena': 'sports'
+          };
+          params.set('venueType', venueTypeMap[selectedCategories[0] as keyof typeof venueTypeMap]);
+        }
+        
+        if (priceRange.length === 1) {
+          params.set('priceRange', priceRange[0]);
+        }
+        
+        if (minRating[0] > 3) {
+          params.set('minRating', minRating[0].toString());
+        }
+      }
+
+      const response = await fetch(`/api/venues?${params.toString()}`);
+      
       if (response.ok) {
         const data = await response.json();
         setVenues(data.venues || []);
+        setDataSource(data.source || 'mock-data');
       } else {
         // Fallback to mock data if API not available
         setVenues(getMockVenues());
+        setDataSource('mock-data');
+        setUseGooglePlaces(false);
       }
     } catch (error) {
       console.error('Error fetching venues:', error);
       setVenues(getMockVenues());
+      setDataSource('mock-data');
+      setUseGooglePlaces(false);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchVenues();
   };
 
   // Mock data for demonstration
@@ -247,13 +307,65 @@ export default function VenueTab({ zipCode, partyId, guestCount = 0 }: VenueTabP
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Venue Recommendations
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300">
-          Find the perfect venue for your party based on location, preferences, and guest count
-        </p>
+      <div className="text-center space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Venue Recommendations
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            Find the perfect venue for your party based on location, preferences, and guest count
+          </p>
+        </div>
+        
+        {/* Data Source Controls */}
+        <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="google-places-toggle"
+              checked={useGooglePlaces}
+              onCheckedChange={(checked) => {
+                setUseGooglePlaces(checked as boolean);
+                // Refresh venues when toggling
+                if (checked) {
+                  fetchVenues();
+                }
+              }}
+            />
+            <label htmlFor="google-places-toggle" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Use Google Places API
+            </label>
+          </div>
+          
+          <Badge variant={dataSource === 'google-places-api' ? 'default' : 'secondary'} className="flex items-center gap-1">
+            {dataSource === 'google-places-api' ? (
+              <>
+                <Zap className="h-3 w-3" />
+                Real Venues
+              </>
+            ) : (
+              'Sample Data'
+            )}
+          </Badge>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
+        
+        {dataSource === 'google-places-api' && (
+          <div className="text-sm text-green-600 dark:text-green-400 flex items-center justify-center gap-2">
+            <Zap className="h-4 w-4" />
+            Showing real venues powered by Google Places API
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -465,10 +577,18 @@ export default function VenueTab({ zipCode, partyId, guestCount = 0 }: VenueTabP
                             <MapPin className="h-4 w-4" />
                             {venue.address}
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Phone className="h-4 w-4" />
-                            {venue.phone}
-                          </div>
+                          {venue.phone && (
+                            <div className="flex items-center gap-1">
+                              <Phone className="h-4 w-4" />
+                              {venue.phone}
+                            </div>
+                          )}
+                          {venue.googlePlaceId && (
+                            <div className="flex items-center gap-1">
+                              <Globe className="h-4 w-4 text-green-600" />
+                              Google Verified
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           <Button
