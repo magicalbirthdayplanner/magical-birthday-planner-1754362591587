@@ -5,9 +5,9 @@ export const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email configuration - Updated to use custom verified domain
 export const EMAIL_CONFIG = {
-  fromDomain: 'noreply@magicalbirthdays.com', // Use your verified custom domain
-  fallbackFrom: 'noreply@magicalbirthdays.com',
-  replyTo: 'hello@magicalbirthdays.com', // Use verified custom domain for reply-to
+  fromDomain: 'noreply@magicalbirthdayplanner.com', // Use your verified custom domain
+  fallbackFrom: 'noreply@magicalbirthdayplanner.com',
+  replyTo: 'hello@magicalbirthdayplanner.com', // Use verified custom domain for reply-to
 };
 
 // Email template types
