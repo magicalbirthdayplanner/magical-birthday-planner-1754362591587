@@ -1,3 +1,8 @@
+## [usr-1755059123932]
+**User Request:** Cant see the host mode tab 
+**Response Summary:** Identified and fixed the Host Mode tab visibility issue. The problem was that the "host-mode" tab was missing from the subscription plan's allowedTabs arrays. Updated the SubscriptionContext to include "host-mode" in both STARTER and PROFESSIONAL plan allowedTabs. The Host Mode tab implementation was already complete with proper component, API routes, and tab configuration - it just needed proper permission inclusion. Host Mode tab should now be visible to Plus and Pro plan users.
+**Files Modified:** contexts/SubscriptionContext.tsx
+
 ## [usr-1755058373242]
 **User Request:** Title: AI-Powered "Host Mode" for Birthday Party Activities
 
