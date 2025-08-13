@@ -1,3 +1,34 @@
+## [usr-1755122550957]
+**User Request:** In the party management, if there are no activities selected in the activities tab, there is nothing in the host mode. currently the host mode seems to be filled with pre-filled data. 
+
+Once the activity is selected , the button - "Ready for Host Mode" takes it to the host mode 
+
+Eg, the activity selected could be build a car craft, when selected and navigating to the host mode tab, the activity appears and then we can expand - powered by AI as in the current implementation
+**Response Summary:** Fixed Host Mode tab to properly depend on selected activities from Activities tab instead of showing pre-filled data. Modified the HostModeTab component to only display activities that are both `isHostModeReady` and `isSelected`, ensuring that Host Mode shows an empty state when no activities are selected in the Activities tab. Updated the empty state message to guide users to select activities from the Activities tab first.
+
+**Key Changes Made:**
+1. **Fixed Activity Filtering Logic**: Modified `loadActivities()` to only set current activity if it's both host-mode-ready AND selected
+2. **Updated Interface**: Added `isSelected` property to `HostModeActivity` interface
+3. **Enhanced Activity Lists**: Updated `hostModeActivities` and `needsExpansion` filters to only include selected activities
+4. **Improved Switch Activity Function**: Modified `switchActivity()` to only consider selected activities for randomization
+5. **Better Empty State**: Updated empty state message to clearly instruct users to visit Activities tab and select activities
+
+**Technical Implementation:**
+- Modified `/components/HostModeTab.tsx` to filter activities by `isSelected` property
+- Enhanced user experience with clear guidance on how to use the feature
+- Maintained existing Host Mode functionality while fixing the dependency issue
+- Build verification completed successfully with no errors
+
+**User Flow Now Working Properly:**
+1. User visits Activities tab
+2. User selects desired activities using checkboxes
+3. "Ready for Host Mode" indicator appears when activities are selected
+4. User navigates to Host Mode tab
+5. Only selected activities appear in Host Mode interface
+6. If no activities selected, helpful empty state guides user back to Activities tab
+
+**Files Modified:** components/HostModeTab.tsx
+
 ## [usr-1755119998061]
 **User Request:** Do a detailed self diagnosis / self testing of the features developed so far.
 **Response Summary:** Conducted comprehensive self-diagnosis and testing of all major features in the Magical Birthday Planner application. Successfully verified the following systems:

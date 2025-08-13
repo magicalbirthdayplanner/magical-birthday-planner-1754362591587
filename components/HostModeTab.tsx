@@ -50,6 +50,7 @@ interface HostModeActivity {
   soundCues: string[];
   energyLevel: 'CALM' | 'ACTIVE' | 'HIGH_ENERGY' | 'MEDIUM';
   isHostModeReady: boolean;
+  isSelected?: boolean;
   source: 'AI_GENERATED' | 'USER_CREATED' | 'THEME_DEFAULT';
 }
 
@@ -117,10 +118,13 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
         const data = await response.json();
         setActivities(data.activities || []);
         
-        // Set first Host Mode ready activity as current
-        const hostModeActivity = data.activities?.find((a: HostModeActivity) => a.isHostModeReady);
-        if (hostModeActivity) {
-          setCurrentActivity(hostModeActivity);
+        // Set first selected Host Mode ready activity as current
+        const selectedHostModeActivity = data.activities?.find((a: HostModeActivity) => a.isHostModeReady && a.isSelected);
+        if (selectedHostModeActivity) {
+          setCurrentActivity(selectedHostModeActivity);
+        } else {
+          // Clear current activity if no selected activities are found
+          setCurrentActivity(null);
         }
       } else {
         setError('Failed to load activities');
@@ -198,8 +202,8 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
 
   const switchActivity = (energyLevel?: string) => {
     const filteredActivities = energyLevel 
-      ? activities.filter(a => a.energyLevel === energyLevel && a.isHostModeReady)
-      : activities.filter(a => a.isHostModeReady);
+      ? activities.filter(a => a.energyLevel === energyLevel && a.isHostModeReady && a.isSelected)
+      : activities.filter(a => a.isHostModeReady && a.isSelected);
     
     if (filteredActivities.length > 0) {
       const randomActivity = filteredActivities[Math.floor(Math.random() * filteredActivities.length)];
@@ -288,8 +292,8 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
     }
   };
 
-  const hostModeActivities = activities.filter(a => a.isHostModeReady);
-  const needsExpansion = activities.filter(a => !a.isHostModeReady);
+  const hostModeActivities = activities.filter(a => a.isHostModeReady && a.isSelected);
+  const needsExpansion = activities.filter(a => !a.isHostModeReady && a.isSelected);
 
   if (loading) {
     return (
@@ -659,10 +663,13 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
           <CardContent>
             <div className="space-y-4">
               <Crown className="h-16 w-16 text-gray-400 mx-auto" />
-              <h3 className="text-xl font-semibold">No Host Mode Activities</h3>
+              <h3 className="text-xl font-semibold">No Activities Selected for Host Mode</h3>
               <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                You need to expand your activities for Host Mode first. Visit the Activities tab and generate some activities!
+                Visit the Activities tab, select the activities you want to include, and click "Ready for Host Mode" to begin your hosting experience!
               </p>
+              <div className="text-sm text-gray-500 mt-2">
+                💡 Tip: Use the checkboxes in the Activities tab to select activities for Host Mode
+              </div>
             </div>
           </CardContent>
         </Card>
