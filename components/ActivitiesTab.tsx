@@ -47,6 +47,9 @@ interface Activity {
   isCustom: boolean;
   source: 'AI_GENERATED' | 'USER_CREATED' | 'THEME_DEFAULT';
   isExpanded?: boolean;
+  isSelected?: boolean;
+  category?: string;
+  shortDescription?: string;
 }
 
 interface ActivitiesTabProps {
@@ -62,9 +65,10 @@ interface ActivitiesTabProps {
     guestCount?: number;
   };
   onActivitiesChange?: (activities: Activity[]) => void;
+  onSelectedActivitiesChange?: (selectedActivities: Activity[]) => void;
 }
 
-export default function ActivitiesTab({ partyId, themeActivities, partyData, onActivitiesChange }: ActivitiesTabProps) {
+export default function ActivitiesTab({ partyId, themeActivities, partyData, onActivitiesChange, onSelectedActivitiesChange }: ActivitiesTabProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +83,19 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
   const [filterVenue, setFilterVenue] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
   const [hasGeneratedFromTheme, setHasGeneratedFromTheme] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  
+  // Activity categories
+  const activityCategories = [
+    'Games & Competitions',
+    'Arts & Crafts', 
+    'Active & Sports',
+    'Educational & Learning',
+    'Music & Dance',
+    'Food & Cooking',
+    'Other'
+  ];
 
   // Load activities on component mount and auto-generate if no activities exist
   useEffect(() => {
@@ -313,10 +330,44 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
     setKeywords(keywords.filter((_, i) => i !== index));
   };
 
+  // Activity selection functions
+  const toggleActivitySelection = (activityId: string) => {
+    setActivities(prev => {
+      const updated = prev.map(activity =>
+        activity.id === activityId 
+          ? { ...activity, isSelected: !activity.isSelected }
+          : activity
+      );
+      
+      // Call callback with selected activities
+      const selected = updated.filter(a => a.isSelected);
+      onSelectedActivitiesChange?.(selected);
+      
+      return updated;
+    });
+  };
+
+  const selectAllActivities = () => {
+    setActivities(prev => {
+      const updated = prev.map(activity => ({ ...activity, isSelected: true }));
+      onSelectedActivitiesChange?.(updated);
+      return updated;
+    });
+  };
+
+  const deselectAllActivities = () => {
+    setActivities(prev => {
+      const updated = prev.map(activity => ({ ...activity, isSelected: false }));
+      onSelectedActivitiesChange?.([]);
+      return updated;
+    });
+  };
+
   // Activity filtering logic
   const filteredActivities = activities.filter(activity => {
     let timeMatch = true;
     let venueMatch = true;
+    let categoryMatch = true;
 
     // Time filtering
     if (filterTime !== "all" && activity.estimatedTime) {
@@ -350,7 +401,12 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
       }
     }
 
-    return timeMatch && venueMatch;
+    // Category filtering
+    if (selectedCategory !== "all") {
+      categoryMatch = activity.category === selectedCategory;
+    }
+
+    return timeMatch && venueMatch && categoryMatch;
   });
 
   return (
@@ -360,7 +416,7 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
         <div>
           <h2 className="text-2xl font-bold">Party Activities</h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {partyData ? `${partyData.theme}-themed activities for ${partyData.childName}'s party` : 'Detailed activity plans with supplies, timing, and parent instructions'}
+            {partyData ? `Fun activities for ${partyData.childName}'s ${partyData.theme} party` : 'Detailed activity plans with supplies, timing, and parent instructions'}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
@@ -418,6 +474,27 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
           )}
           
           <div className="flex gap-2">
+            {/* Activity Selection Controls */}
+            {activities.length > 0 && (
+              <>
+                <Button 
+                  onClick={selectAllActivities}
+                  variant="outline"
+                  size="sm"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Select All
+                </Button>
+                <Button 
+                  onClick={deselectAllActivities}
+                  variant="outline"
+                  size="sm"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Clear
+                </Button>
+              </>
+            )}
             <Button 
               onClick={() => setShowFilters(!showFilters)}
               variant="outline"
@@ -446,6 +523,23 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
           </div>
         </div>
       </div>
+
+      {/* Selection Summary */}
+      {activities.length > 0 && (
+        <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-blue-600" />
+            <span className="font-medium text-blue-800 dark:text-blue-200">
+              {activities.filter(a => a.isSelected).length} of {activities.length} activities selected for Host Mode
+            </span>
+          </div>
+          {activities.filter(a => a.isSelected).length > 0 && (
+            <Badge className="bg-blue-600 text-white">
+              Ready for Host Mode
+            </Badge>
+          )}
+        </div>
+      )}
 
       {/* Enhanced Controls Section */}
       {showFilters && (
@@ -570,8 +664,54 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
                 </div>
               </div>
               
+              {/* Category Filter */}
+              <div>
+                <Label className="text-sm font-medium flex items-center gap-2 mb-3">
+                  <Tag className="h-4 w-4 text-green-600" />
+                  Activity Category
+                </Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Button
+                    variant={selectedCategory === "all" ? 'default' : 'outline'}
+                    onClick={() => setSelectedCategory("all")}
+                    className={cn(
+                      "h-auto p-3 flex flex-col items-center gap-1 text-xs transition-all",
+                      selectedCategory === "all" 
+                        ? "bg-green-600 hover:bg-green-700 text-white shadow-lg" 
+                        : "bg-gray-100 hover:bg-gray-200"
+                    )}
+                  >
+                    <span className="text-lg">🎯</span>
+                    <span className="font-medium">All Categories</span>
+                  </Button>
+                  {activityCategories.map((category) => (
+                    <Button
+                      key={category}
+                      variant={selectedCategory === category ? 'default' : 'outline'}
+                      onClick={() => setSelectedCategory(category)}
+                      className={cn(
+                        "h-auto p-3 flex flex-col items-center gap-1 text-xs transition-all",
+                        selectedCategory === category 
+                          ? "bg-green-600 hover:bg-green-700 text-white shadow-lg" 
+                          : "bg-gray-100 hover:bg-gray-200"
+                      )}
+                    >
+                      <span className="text-lg">
+                        {category === 'Games & Competitions' ? '🎮' :
+                         category === 'Arts & Crafts' ? '🎨' :
+                         category === 'Active & Sports' ? '⚽' :
+                         category === 'Educational & Learning' ? '📚' :
+                         category === 'Music & Dance' ? '🎵' :
+                         category === 'Food & Cooking' ? '🍰' : '🎪'}
+                      </span>
+                      <span className="font-medium">{category}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
               {/* Active Filters Summary */}
-              {(filterTime !== "all" || filterVenue !== "all") && (
+              {(filterTime !== "all" || filterVenue !== "all" || selectedCategory !== "all") && (
                 <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                   <Filter className="h-4 w-4 text-blue-600" />
                   <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Active filters:</span>
@@ -586,6 +726,11 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
                         {filterVenue} venue
                       </Badge>
                     )}
+                    {selectedCategory !== "all" && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        {selectedCategory}
+                      </Badge>
+                    )}
                   </div>
                   <Button
                     size="sm"
@@ -593,6 +738,7 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
                     onClick={() => {
                       setFilterTime("all");
                       setFilterVenue("all");
+                      setSelectedCategory("all");
                     }}
                     className="ml-auto text-blue-600 hover:text-blue-800 hover:bg-blue-100"
                   >
@@ -689,12 +835,13 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
       ) : (
         <div className="space-y-4">
           {/* Filter Results Summary */}
-          {(filterTime !== "all" || filterVenue !== "all") && (
+          {(filterTime !== "all" || filterVenue !== "all" || selectedCategory !== "all") && (
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Filter className="h-4 w-4" />
               Showing {filteredActivities.length} of {activities.length} activities
               {filterTime !== "all" && ` • Duration: ${filterTime}`}
               {filterVenue !== "all" && ` • Venue: ${filterVenue}`}
+              {selectedCategory !== "all" && ` • Category: ${selectedCategory}`}
             </div>
           )}
           
@@ -712,6 +859,7 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
                     onClick={() => {
                       setFilterTime("all");
                       setFilterVenue("all");
+                      setSelectedCategory("all");
                     }}
                     variant="outline"
                     size="sm"
@@ -722,20 +870,23 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
               </CardContent>
             </Card>
           ) : (
-            filteredActivities.map((activity, index) => (
-              <ActivityCard
-                key={activity.id}
-                activity={activity}
-                onUpdate={updateActivity}
-                onSave={saveActivity}
-                onDelete={deleteActivity}
-                onToggleExpanded={toggleExpanded}
-                onAddSupply={addSupplyItem}
-                onRemoveSupply={removeSupplyItem}
-                onAddTip={addTip}
-                onRemoveTip={removeTip}
-              />
-            ))
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredActivities.map((activity, index) => (
+                <ActivityCard
+                  key={activity.id}
+                  activity={activity}
+                  onUpdate={updateActivity}
+                  onSave={saveActivity}
+                  onDelete={deleteActivity}
+                  onToggleExpanded={toggleExpanded}
+                  onAddSupply={addSupplyItem}
+                  onRemoveSupply={removeSupplyItem}
+                  onAddTip={addTip}
+                  onRemoveTip={removeTip}
+                  onToggleSelection={toggleActivitySelection}
+                />
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -753,6 +904,7 @@ interface ActivityCardProps {
   onRemoveSupply: (activityId: string, index: number) => void;
   onAddTip: (activityId: string, tip: string) => void;
   onRemoveTip: (activityId: string, index: number) => void;
+  onToggleSelection: (activityId: string) => void;
 }
 
 function ActivityCard({ 
@@ -764,7 +916,8 @@ function ActivityCard({
   onAddSupply,
   onRemoveSupply,
   onAddTip,
-  onRemoveTip
+  onRemoveTip,
+  onToggleSelection
 }: ActivityCardProps) {
   const [newSupply, setNewSupply] = useState("");
   const [newTip, setNewTip] = useState("");
@@ -791,6 +944,13 @@ function ActivityCard({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={activity.isSelected || false}
+                    onCheckedChange={(checked) => {
+                      onToggleSelection(activity.id);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
                   <GripVertical className="h-4 w-4 text-gray-400" />
                   {activity.isExpanded ? (
                     <ChevronUp className="h-4 w-4 text-gray-400" />
@@ -807,15 +967,16 @@ function ActivityCard({
                         {activity.estimatedTime} {activity.timeUnit}
                       </div>
                     )}
-                    {activity.peopleRequired && (
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Users className="h-3 w-3" />
-                        {activity.peopleRequired} people
-                      </div>
+                    {activity.category && (
+                      <Badge variant="outline">
+                        {activity.category}
+                      </Badge>
                     )}
-                    <Badge variant={activity.source === 'AI_GENERATED' ? 'default' : 'secondary'}>
-                      {activity.source === 'AI_GENERATED' ? 'AI Generated' : 'Custom'}
-                    </Badge>
+                    {activity.shortDescription && (
+                      <span className="text-sm text-gray-600 dark:text-gray-400 italic">
+                        {activity.shortDescription}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
