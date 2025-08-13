@@ -67,6 +67,7 @@ model Party {
   user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventPurchase    EventPurchase? @relation(fields: [eventPurchaseId], references: [id])
   activities       PartyActivity[]
+  inspirations     PartyInspiration[]
 
   @@map("parties")
 }
@@ -398,6 +399,35 @@ enum ActivitySource {
   AI_GENERATED
   USER_CREATED
   THEME_DEFAULT
+}
+
+model PartyInspiration {
+  id              String   @id @default(cuid())
+  title           String
+  imageUrl        String
+  pinterestUrl    String   // Original Pinterest pin URL
+  pinterestId     String?  // Pinterest pin ID if available
+  description     String?
+  category        InspirationCategory @default(GENERAL)
+  keywords        String[] @default([]) // Keywords used to find this inspiration
+  isSaved         Boolean  @default(false) // Saved to "My Inspiration"
+  aiExpanded      String?  // AI-generated recreation instructions
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  partyId         String
+  party           Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+
+  @@map("party_inspirations")
+}
+
+enum InspirationCategory {
+  GENERAL
+  DECORATIONS
+  CAKE
+  GAMES
+  INVITATIONS
+  COSTUMES
+  PARTY_IDEAS
 }
 
 

@@ -24,8 +24,9 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
       'Theme suggestions based on age',
       'Smart checklist & timeline',
       'Simple invitation creator',
+      'Pinterest inspiration gallery',
     ],
-    allowedTabs: ['overview', 'guests', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'guests', 'timeline', 'checklist', 'inspiration']
   },
   STARTER: {
     name: 'STARTER',
@@ -39,7 +40,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
       'Basic budget tracker (manual input)',
       'AI-powered activity planner',
     ],
-    allowedTabs: ['overview', 'budget', 'activities', 'guests', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'budget', 'activities', 'guests', 'timeline', 'checklist', 'inspiration']
   },
   PROFESSIONAL: {
     name: 'PROFESSIONAL',
@@ -53,7 +54,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
       'Advanced budget tracking',
       'Premium support',
     ],
-    allowedTabs: ['overview', 'budget', 'activities', 'shopping', 'venue', 'food', 'cake', 'guests', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'budget', 'activities', 'shopping', 'venue', 'food', 'cake', 'guests', 'timeline', 'checklist', 'inspiration']
   }
 };
 

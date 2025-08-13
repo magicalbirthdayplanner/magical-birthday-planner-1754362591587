@@ -66,6 +66,12 @@ export const ENV_VARIABLES: EnvVariable[] = [
     required: false,
     instructions: "Go to [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → Create API key → Enable Places API (New) → Copy the API key"
   },
+  {
+    name: "SERPAPI_API_KEY",
+    description: "SerpAPI key for Pinterest inspiration image search functionality",
+    required: false,
+    instructions: "Go to [SerpAPI](https://serpapi.com) → Sign up → Account → API Key → Copy your API key. Free tier includes 250 searches/month."
+  },
 ];
 
 export interface EnvVariable {
