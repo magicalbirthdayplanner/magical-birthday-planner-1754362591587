@@ -387,6 +387,15 @@ model PartyActivity {
   sortOrder       Int      @default(0)
   isCustom        Boolean  @default(false) // True if manually added by user
   source          ActivitySource @default(AI_GENERATED)
+  
+  // Host Mode enhancements
+  themeEmoji      String?  // Theme emoji for the activity
+  themeContext    String?  // Theme setting description
+  stepByStepScript String? // Detailed teleprompter script with stage directions
+  soundCues       String[] @default([]) // Sound effects and music cues
+  energyLevel     EnergyLevel @default(MEDIUM) // Energy level for activity switching
+  isHostModeReady Boolean  @default(false) // Whether expanded for Host Mode
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   partyId         String
@@ -399,6 +408,13 @@ enum ActivitySource {
   AI_GENERATED
   USER_CREATED
   THEME_DEFAULT
+}
+
+enum EnergyLevel {
+  CALM
+  ACTIVE
+  HIGH_ENERGY
+  MEDIUM
 }
 
 model PartyInspiration {

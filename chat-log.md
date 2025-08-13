@@ -1,3 +1,95 @@
+## [usr-1755058373242]
+**User Request:** Title: AI-Powered "Host Mode" for Birthday Party Activities
+
+Description:
+Build a new "Host Mode" tab under Party Management that transforms AI-generated activities into live, guided experiences for parents. This mode should act like a teleprompter + event conductor, helping parents confidently host engaging parties.
+
+Requirements:
+
+Input Sources:
+
+Activity recommendations are already generated from our Azure OpenAI GPT-4.1 model in the Wizard step.
+
+Pass those activities into Host Mode for detailed expansion.
+
+Output Structure for Each Activity (from GPT-4.1):
+
+Activity Name + Theme Emoji
+
+Theme Context (short description to set the mood)
+
+Supplies List (simple checklist)
+
+Time Required (in minutes)
+
+People Needed (adults/helpers)
+
+Group Formation Instructions (e.g., team size, random mix, age grouping)
+
+Step-by-Step Script for Parent Host (written in 2nd person with stage directions, e.g., "[say in excited voice] Welcome, heroes!")
+
+Sound/Music Cues (include trigger suggestions, e.g., "Play upbeat music now")
+
+Energy Level Tag (calm, active, high-energy) for dynamic switching during the party.
+
+Host Mode UI Features:
+
+Teleprompter View: Large font, color-coded cues (dialogue vs. stage directions).
+
+Countdown Timer: Visual timer for each activity, starts when "Begin" is tapped.
+
+Quick Switch: If activity isn't working, parent can tap "Switch Activity" to instantly pull a new one matching energy level.
+
+Sound Integration: Play sound effects/music from a small in-app library.
+
+Integration Flow:
+
+Parent chooses activities in Wizard → stored in Party Management → Host Mode pulls them in and expands them with GPT-4.1 using the structure above.
+
+Add button "Run in Host Mode" to start live script.
+
+Value Add from GPT-4.1:
+
+Converts generic activity into a fully-scripted showpiece.
+
+Adds pacing, humor, and immersive storytelling elements.
+
+Suggests props/music to elevate the experience.
+
+Adjusts activity complexity for the child's age group.
+
+Example GPT-4.1 Output Format for Host Mode:
+
+yaml
+Copy
+Edit
+Activity Name: "The Dragon Egg Quest" 🐉  
+Theme Context: You are the guardian of a magical kingdom under threat. The kids are adventurers on a quest to find the Golden Egg before the evil wizard does.  
+Supplies List: Plastic eggs, gold spray paint, candy, treasure chest box, printed clue cards.  
+Time Required: 25 minutes  
+People Needed: 1 parent host + 1 helper  
+Group Formation: Teams of 4–5 mixed ages.  
+Script:  
+  [say in dramatic voice] "Brave adventurers! The kingdom is in peril!"  
+  [gesture toward door] "The first clue lies where the sun sleeps…"  
+Sound/Music Cues: Play "mystery" background track softly while giving clues.  
+Energy Level Tag: High-energy.  
+Tech Notes:
+
+Keep UI mobile-first since parents will be moving during hosting.
+
+Store GPT-4.1 expanded content so offline hosting is possible if internet drops.
+
+Allow quick edit of scripts for parent customization.
+
+All data generated.fetched should be stored in database and not local 
+**Response Summary:** Successfully implemented a comprehensive AI-powered Host Mode feature that transforms party activities into fully-guided hosting experiences. Created database schema enhancements for Host Mode functionality including theme emojis, context descriptions, detailed teleprompter scripts, sound cues, and energy levels. Built a complete API endpoint using Azure OpenAI GPT-4.1 for intelligent activity expansion with party-specific context awareness. Developed a sophisticated mobile-first UI with teleprompter view, countdown timer, activity switching by energy level, and Web Audio API integration for sound cues. Integrated Host Mode as a premium tab (Plus/Pro plans) in the party planning interface with proper subscription gating and visual styling. The system automatically identifies activities needing expansion, uses AI to generate immersive scripts with stage directions, and provides parents with professional hosting guidance including supply lists, group formation, and energy-based activity switching for confident party execution.
+**Files Modified:** 
+- prisma/schema.prisma (added Host Mode fields to PartyActivity model and EnergyLevel enum)
+- app/api/host-mode-expand/route.ts (new API endpoint for AI activity expansion)
+- components/HostModeTab.tsx (new comprehensive Host Mode interface)
+- app/party-plan/page.tsx (integrated Host Mode tab with styling and navigation)
+
 ## [usr-1755057224172]
 **User Request:** Title: Pinterest-Powered "Inspiration" Tab for Birthday Planning
 

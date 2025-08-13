@@ -17,6 +17,7 @@ import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
+import HostModeTab from "@/components/HostModeTab";
 import InspirationTab from "@/components/InspirationTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -181,6 +182,14 @@ export default function PartyPlanPage() {
       gradient: 'from-violet-500 to-purple-500',
       hoverColor: 'bg-violet-50 dark:bg-violet-900/20',
       allowedPlans: ['activities'] // Plus and Pro plans
+    },
+    {
+      id: 'host-mode',
+      label: 'Host Mode',
+      icon: Crown,
+      gradient: 'from-purple-600 to-pink-600',
+      hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
+      allowedPlans: ['activities'] // Plus and Pro plans (same as Activities)
     },
     {
       id: 'venue',
@@ -1285,13 +1294,15 @@ export default function PartyPlanPage() {
                         backgroundImage: tab.id === 'overview' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' : 
                                         tab.id === 'budget' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
                                         tab.id === 'activities' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)' :
+                                        tab.id === 'host-mode' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
                                         tab.id === 'shopping' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
                                         tab.id === 'venue' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' :
                                         tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
                                         tab.id === 'cake' ? 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f472b6 100%)' :
                                         tab.id === 'guests' ? 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #2dd4bf 100%)' :
                                         tab.id === 'timeline' ? 'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)' :
-                                        tab.id === 'checklist' ? 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%)' : 
+                                        tab.id === 'checklist' ? 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%)' :
+                                        tab.id === 'inspiration' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' : 
                                         'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)'
                       } as any}
                     >
@@ -1437,6 +1448,22 @@ export default function PartyPlanPage() {
             <ActivitiesTab
               partyId={currentPartyId || partyData?.childName || 'party'}
               themeActivities={partyData?.themeActivities || "Musical Chairs, Treasure Hunt, Craft Activity, Dance Party, Story Time"}
+              partyData={partyData ? {
+                childName: partyData.childName,
+                childAge: parseInt(partyData.childAge || '0'),
+                theme: partyData.selectedTheme || 'Birthday',
+                interests: partyData.childInterests || [],
+                favoriteColors: partyData.favoriteColors || [],
+                venue: partyData.venue,
+                guestCount: partyData.guestCount
+              } : undefined}
+            />
+          </ProtectedTabContent>
+
+          {/* Host Mode Tab */}
+          <ProtectedTabContent tabName="host-mode" className="space-y-6">
+            <HostModeTab
+              partyId={currentPartyId || partyData?.childName || 'party'}
               partyData={partyData ? {
                 childName: partyData.childName,
                 childAge: parseInt(partyData.childAge || '0'),
