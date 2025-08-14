@@ -381,132 +381,153 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
         </div>
       </div>
 
-      {/* Selection Summary with Add to Host Mode */}
+      {/* Selection Summary with Filters and Add to Host Mode */}
       {activities.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-blue-600" />
-            <span className="font-medium text-blue-800 dark:text-blue-200">
-              {activities.filter(a => a.isSelected).length} activities selected for your party
-            </span>
-            {recommendedActivities.length > 0 && (
-              <Badge className="bg-purple-600 text-white">
-                <Sparkles className="h-3 w-3 mr-1" />
-                {recommendedActivities.length} AI Recommendations
-              </Badge>
+        <div className="space-y-4">
+          {/* Selection Status and Add to Host Mode */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-blue-600" />
+              <span className="font-medium text-blue-800 dark:text-blue-200">
+                {activities.filter(a => a.isSelected).length} activities selected for your party
+              </span>
+              {recommendedActivities.length > 0 && (
+                <Badge className="bg-purple-600 text-white">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  {recommendedActivities.length} AI Recommendations
+                </Badge>
+              )}
+            </div>
+            {activities.filter(a => a.isSelected).length > 0 && (
+              <Button 
+                onClick={handleAddToHostMode}
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold px-6 py-2 shadow-lg"
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add to Host Mode
+              </Button>
             )}
           </div>
-          {activities.filter(a => a.isSelected).length > 0 && (
-            <Button 
-              onClick={handleAddToHostMode}
-              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold px-6 py-2 shadow-lg"
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add to Host Mode
-            </Button>
-          )}
+
+          {/* Filters moved here */}
+          <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800/50 dark:to-blue-900/20 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 font-medium">
+                <Filter className="h-3 w-3" />
+                Filters:
+              </div>
+              
+              {/* Duration Filters - Compact */}
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3 text-blue-600" />
+                {[
+                  { value: 'all', label: 'All' },
+                  { value: 'short', label: '≤15m' },
+                  { value: 'medium', label: '15-30m' },
+                  { value: 'long', label: '30m+' }
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    variant="ghost"
+                    onClick={() => setFilterTime(option.value)}
+                    className={cn(
+                      "text-xs px-2 py-1 h-6 rounded-md border min-w-0",
+                      filterTime === option.value 
+                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700" 
+                        : "bg-white border-blue-200 text-blue-700 hover:bg-blue-50"
+                    )}
+                    size="sm"
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+              
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-600" />
+              
+              {/* Venue Filters - Compact */}
+              <div className="flex items-center gap-1">
+                <MapPin className="h-3 w-3 text-purple-600" />
+                {[
+                  { value: 'all', label: 'All' },
+                  { value: 'indoor', label: 'Indoor' },
+                  { value: 'outdoor', label: 'Outdoor' }
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    variant="ghost"
+                    onClick={() => setFilterVenue(option.value)}
+                    className={cn(
+                      "text-xs px-2 py-1 h-6 rounded-md border min-w-0",
+                      filterVenue === option.value 
+                        ? "bg-purple-600 text-white border-purple-600 hover:bg-purple-700" 
+                        : "bg-white border-purple-200 text-purple-700 hover:bg-purple-50"
+                    )}
+                    size="sm"
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+              
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-600" />
+              
+              {/* Category Filters - Compact */}
+              <div className="flex items-center gap-1">
+                <Tag className="h-3 w-3 text-green-600" />
+                <Button
+                  variant="ghost"
+                  onClick={() => setSelectedCategory("all")}
+                  className={cn(
+                    "text-xs px-2 py-1 h-6 rounded-md border min-w-0",
+                    selectedCategory === "all" 
+                      ? "bg-green-600 text-white border-green-600 hover:bg-green-700" 
+                      : "bg-white border-green-200 text-green-700 hover:bg-green-50"
+                  )}
+                  size="sm"
+                >
+                  All
+                </Button>
+                {activityCategories.map((category) => (
+                  <Button
+                    key={category}
+                    variant="ghost"
+                    onClick={() => setSelectedCategory(category)}
+                    className={cn(
+                      "text-xs px-2 py-1 h-6 rounded-md border min-w-0",
+                      selectedCategory === category 
+                        ? "bg-green-600 text-white border-green-600 hover:bg-green-700" 
+                        : "bg-white border-green-200 text-green-700 hover:bg-green-50"
+                    )}
+                    size="sm"
+                  >
+                    {category.split(' ')[0]}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-600" />
+
+              {/* Clear Filters Button */}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setFilterTime("all");
+                  setFilterVenue("all");
+                  setSelectedCategory("all");
+                }}
+                className="text-xs px-2 py-1 h-6 rounded-md border bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400"
+                size="sm"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Clear Filters
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Optimized Single-Line Filters */}
-      <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800/50 dark:to-blue-900/20 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 font-medium">
-            <Filter className="h-3 w-3" />
-            Filters:
-          </div>
-          
-          {/* Duration Filters - Compact */}
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3 text-blue-600" />
-            {[
-              { value: 'all', label: 'All' },
-              { value: 'short', label: '≤15m' },
-              { value: 'medium', label: '15-30m' },
-              { value: 'long', label: '30m+' }
-            ].map((option) => (
-              <Button
-                key={option.value}
-                variant="ghost"
-                onClick={() => setFilterTime(option.value)}
-                className={cn(
-                  "text-xs px-2 py-1 h-6 rounded-md border min-w-0",
-                  filterTime === option.value 
-                    ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700" 
-                    : "bg-white border-blue-200 text-blue-700 hover:bg-blue-50"
-                )}
-                size="sm"
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
-          
-          <div className="w-px h-4 bg-gray-300 dark:bg-gray-600" />
-          
-          {/* Venue Filters - Compact */}
-          <div className="flex items-center gap-1">
-            <MapPin className="h-3 w-3 text-purple-600" />
-            {[
-              { value: 'all', label: 'All' },
-              { value: 'indoor', label: 'Indoor' },
-              { value: 'outdoor', label: 'Outdoor' }
-            ].map((option) => (
-              <Button
-                key={option.value}
-                variant="ghost"
-                onClick={() => setFilterVenue(option.value)}
-                className={cn(
-                  "text-xs px-2 py-1 h-6 rounded-md border min-w-0",
-                  filterVenue === option.value 
-                    ? "bg-purple-600 text-white border-purple-600 hover:bg-purple-700" 
-                    : "bg-white border-purple-200 text-purple-700 hover:bg-purple-50"
-                )}
-                size="sm"
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
-          
-          <div className="w-px h-4 bg-gray-300 dark:bg-gray-600" />
-          
-          {/* Category Filters - Compact */}
-          <div className="flex items-center gap-1">
-            <Tag className="h-3 w-3 text-green-600" />
-            <Button
-              variant="ghost"
-              onClick={() => setSelectedCategory("all")}
-              className={cn(
-                "text-xs px-2 py-1 h-6 rounded-md border min-w-0",
-                selectedCategory === "all" 
-                  ? "bg-green-600 text-white border-green-600 hover:bg-green-700" 
-                  : "bg-white border-green-200 text-green-700 hover:bg-green-50"
-              )}
-              size="sm"
-            >
-              All
-            </Button>
-            {activityCategories.map((category) => (
-              <Button
-                key={category}
-                variant="ghost"
-                onClick={() => setSelectedCategory(category)}
-                className={cn(
-                  "text-xs px-2 py-1 h-6 rounded-md border min-w-0",
-                  selectedCategory === category 
-                    ? "bg-green-600 text-white border-green-600 hover:bg-green-700" 
-                    : "bg-white border-green-200 text-green-700 hover:bg-green-50"
-                )}
-                size="sm"
-              >
-                {category.split(' ')[0]}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Success/Error Messages */}
       {success && (
