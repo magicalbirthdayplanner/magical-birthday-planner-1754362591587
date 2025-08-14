@@ -396,6 +396,13 @@ model PartyActivity {
   energyLevel     EnergyLevel @default(MEDIUM) // Energy level for activity switching
   isHostModeReady Boolean  @default(false) // Whether expanded for Host Mode
   
+  // AI-Generated Comprehensive Content Sections
+  fullHostScript  String?  // Complete host read-aloud script with energetic tone
+  rulesAndVariations Json? // Rules, age variations, group size adjustments, space adjustments
+  materialsList   Json?    // Detailed materials for specific guest count with prep reminders
+  optionalExtras  Json?    // Prep time, play time, mess factor, adult involvement for parents
+  isFullyExpanded Boolean  @default(false) // Whether all AI content sections are generated
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   partyId         String
