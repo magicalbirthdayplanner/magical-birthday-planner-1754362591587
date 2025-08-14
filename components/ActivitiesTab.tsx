@@ -67,13 +67,13 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
   // AI recommendations state
   const [recommendedActivities, setRecommendedActivities] = useState<string[]>([]);
   
-  // Activity categories
+  // Activity categories - updated to match database categories
   const activityCategories = [
     'Games & Competitions',
-    'Creative & Crafty',
-    'Performance & Storytelling',
+    'Creative & Crafty', 
+    'Performance & Entertainment',
     'Interactive Play',
-    'Calm & Relax Zones'
+    'Calm & Relax'
   ];
 
   // Predefined activities organized by category
@@ -115,75 +115,117 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
     ]
   };
 
-  // Initialize with predefined activities
+  // Initialize with activities from database
   useEffect(() => {
-    const allPredefined = Object.values(predefinedActivities).flat();
-    setActivities(allPredefined);
-    generateAIRecommendations(allPredefined);
+    fetchActivitiesFromDatabase();
   }, []);
+
+  // Fetch activities from database
+  const fetchActivitiesFromDatabase = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/activities');
+      if (response.ok) {
+        const data = await response.json();
+        setActivities(data.activities);
+        generateAIRecommendations(data.activities);
+      } else {
+        // Fallback to predefined activities if API fails
+        const allPredefined = Object.values(predefinedActivities).flat();
+        setActivities(allPredefined);
+        generateAIRecommendations(allPredefined);
+      }
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+      // Fallback to predefined activities
+      const allPredefined = Object.values(predefinedActivities).flat();
+      setActivities(allPredefined);
+      generateAIRecommendations(allPredefined);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Generate AI recommendations based on party data
   const generateAIRecommendations = async (activityList: Activity[]) => {
     if (!partyData) return;
     
-    setLoading(true);
     try {
       // Simple AI recommendation logic based on party data
       const recommendations: string[] = [];
       const { childAge, theme, interests, venue } = partyData;
       
-      // Age-based recommendations
+      // Age-based recommendations - find activities by name since IDs are dynamic
       if (childAge <= 5) {
-        recommendations.push('cc1', 'cr1', 'ps2', 'cc4'); // Quieter, simpler activities
+        // Quieter, simpler activities for younger kids
+        const youngerActivities = activityList.filter(a => 
+          a.name.toLowerCase().includes('coloring') ||
+          a.name.toLowerCase().includes('reading') ||
+          a.name.toLowerCase().includes('story') ||
+          a.name.toLowerCase().includes('cookie') ||
+          a.category === 'Calm & Relax'
+        );
+        recommendations.push(...youngerActivities.slice(0, 4).map(a => a.id));
       } else if (childAge <= 8) {
-        recommendations.push('gc1', 'gc4', 'cc2', 'ip1', 'ps1'); // More interactive
+        // More interactive activities for middle ages
+        const middleActivities = activityList.filter(a => 
+          a.name.toLowerCase().includes('musical chairs') ||
+          a.name.toLowerCase().includes('pin the tail') ||
+          a.name.toLowerCase().includes('craft') ||
+          a.name.toLowerCase().includes('dance') ||
+          a.name.toLowerCase().includes('talent')
+        );
+        recommendations.push(...middleActivities.slice(0, 5).map(a => a.id));
       } else {
-        recommendations.push('gc2', 'gc6', 'ps1', 'ip3', 'gc5'); // More complex activities
+        // More complex activities for older kids
+        const olderActivities = activityList.filter(a => 
+          a.name.toLowerCase().includes('treasure hunt') ||
+          a.name.toLowerCase().includes('obstacle') ||
+          a.name.toLowerCase().includes('talent') ||
+          a.name.toLowerCase().includes('board games') ||
+          a.name.toLowerCase().includes('balloon')
+        );
+        recommendations.push(...olderActivities.slice(0, 5).map(a => a.id));
       }
       
       // Theme-based recommendations
       if (theme.toLowerCase().includes('princess')) {
-        recommendations.push('cc3', 'ps1', 'cc4');
+        const princessActivities = activityList.filter(a => 
+          a.name.toLowerCase().includes('party hats') ||
+          a.name.toLowerCase().includes('talent') ||
+          a.name.toLowerCase().includes('cookie')
+        );
+        recommendations.push(...princessActivities.slice(0, 3).map(a => a.id));
       } else if (theme.toLowerCase().includes('superhero')) {
-        recommendations.push('gc6', 'gc5', 'ps5');
+        const superheroActivities = activityList.filter(a => 
+          a.name.toLowerCase().includes('obstacle') ||
+          a.name.toLowerCase().includes('balloon') ||
+          a.name.toLowerCase().includes('magic')
+        );
+        recommendations.push(...superheroActivities.slice(0, 3).map(a => a.id));
       } else if (theme.toLowerCase().includes('pirate')) {
-        recommendations.push('gc2', 'ps3', 'gc1');
+        const pirateActivities = activityList.filter(a => 
+          a.name.toLowerCase().includes('treasure hunt') ||
+          a.name.toLowerCase().includes('puppet') ||
+          a.name.toLowerCase().includes('musical chairs')
+        );
+        recommendations.push(...pirateActivities.slice(0, 3).map(a => a.id));
       }
       
       // Venue-based recommendations
       if (venue === 'outdoor') {
-        recommendations.push('gc3', 'ip2', 'ip5', 'gc6');
-      } else if (venue === 'indoor') {
-        recommendations.push('cc1', 'ps4', 'cr2', 'ip3');
+        const outdoorActivities = activityList.filter(a => 
+          a.venue === 'outdoor' || a.venue === 'both'
+        );
+        recommendations.push(...outdoorActivities.slice(0, 3).map(a => a.id));
       }
       
-      // Interest-based recommendations
-      interests.forEach(interest => {
-        if (interest.toLowerCase().includes('art') || interest.toLowerCase().includes('craft')) {
-          recommendations.push('cc1', 'cc2', 'cc3');
-        }
-        if (interest.toLowerCase().includes('music') || interest.toLowerCase().includes('dance')) {
-          recommendations.push('ip1', 'ps4', 'ps1');
-        }
-        if (interest.toLowerCase().includes('sport') || interest.toLowerCase().includes('active')) {
-          recommendations.push('gc3', 'gc6', 'ip4');
-        }
-      });
-      
-      // Remove duplicates and limit to 6-8 recommendations
-      const uniqueRecommendations = Array.from(new Set(recommendations)).slice(0, 8);
+      // Remove duplicates and limit to 6 recommendations
+      const uniqueRecommendations = Array.from(new Set(recommendations)).slice(0, 6);
       setRecommendedActivities(uniqueRecommendations);
       
-      // Mark recommended activities
-      setActivities(prev => prev.map(activity => ({
-        ...activity,
-        isRecommended: uniqueRecommendations.includes(activity.id)
-      })));
-      
     } catch (error) {
-      console.error('Error generating recommendations:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error generating AI recommendations:', error);
     }
   };
 
