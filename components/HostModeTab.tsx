@@ -6,32 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  SkipForward,
-  Volume2,
-  VolumeX,
-  Timer,
   Sparkles,
   Mic,
   Users,
   CheckCircle2,
   AlertCircle,
-  Shuffle,
-  ChevronRight,
-  ChevronLeft,
   RefreshCw,
   Crown,
   Zap,
   Star,
   Heart,
   Lightbulb,
-  Music,
-  Speaker
+  Trash2
 } from "lucide-react";
 
 interface HostModeActivity {
@@ -75,40 +62,12 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Timer and control states
-  const [isRunning, setIsRunning] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(0);
-  const [totalTime, setTotalTime] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-
-  // Audio states
-  const [isMuted, setIsMuted] = useState(false);
-  const [currentSoundCue, setCurrentSoundCue] = useState<string | null>(null);
 
   // Load activities on mount
   useEffect(() => {
     loadActivities();
   }, [partyId]);
 
-  // Timer logic
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (isRunning && !isPaused && timeRemaining > 0) {
-      interval = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            setTimeRemaining(0);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [isRunning, isPaused, timeRemaining]);
 
   const loadActivities = async () => {
     setLoading(true);
@@ -176,28 +135,39 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
     }
   };
 
-  const startActivity = (activity: HostModeActivity) => {
-    if (!activity.estimatedTime) return;
-    
-    const timeInSeconds = activity.timeUnit === 'hours' 
-      ? activity.estimatedTime * 3600 
-      : activity.estimatedTime * 60;
-    
-    setCurrentActivity(activity);
-    setTotalTime(timeInSeconds);
-    setTimeRemaining(timeInSeconds);
-    setIsRunning(true);
-    setIsPaused(false);
-  };
 
-  const pauseResume = () => {
-    setIsPaused(!isPaused);
-  };
+  const deleteActivity = async (activityId: string) => {
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/party-activities', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          partyId,
+          activityId,
+        }),
+      });
 
-  const resetTimer = () => {
-    setIsRunning(false);
-    setIsPaused(false);
-    setTimeRemaining(totalTime);
+      if (response.ok) {
+        // Remove activity from local state
+        setActivities(prev => prev.filter(a => a.id !== activityId));
+        
+        // If this was the current activity, clear it
+        if (currentActivity?.id === activityId) {
+          setCurrentActivity(null);
+        }
+        
+        setSuccess('Activity deleted successfully!');
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        setError('Failed to delete activity');
+      }
+    } catch (error) {
+      setError('Error deleting activity');
+    }
   };
 
   const switchActivity = (energyLevel?: string) => {
@@ -208,16 +178,9 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
     if (filteredActivities.length > 0) {
       const randomActivity = filteredActivities[Math.floor(Math.random() * filteredActivities.length)];
       setCurrentActivity(randomActivity);
-      setIsRunning(false);
-      setTimeRemaining(0);
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const getEnergyLevelColor = (level: string) => {
     switch (level) {
@@ -237,60 +200,6 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
     }
   };
 
-  const playSound = (cue: string) => {
-    if (!isMuted) {
-      setCurrentSoundCue(cue);
-      
-      // Basic sound feedback - could be enhanced with actual audio files
-      try {
-        // Create a simple audio context for sound feedback
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        
-        // Map sound cues to frequencies for demonstration
-        const soundMap: { [key: string]: number } = {
-          'music': 523, // C5
-          'fanfare': 659, // E5
-          'victory': 784, // G5
-          'cheer': 880, // A5
-          'whoosh': 440, // A4
-          'applause': 330, // E4
-          'drum': 220, // A3
-          'bell': 1047, // C6
-        };
-        
-        // Find matching frequency
-        let frequency = 523; // Default C5
-        for (const [key, freq] of Object.entries(soundMap)) {
-          if (cue.toLowerCase().includes(key)) {
-            frequency = freq;
-            break;
-          }
-        }
-        
-        // Create and play tone
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-        
-      } catch (error) {
-        // Fallback for browsers without Web Audio API
-        console.log('🎵 Sound cue:', cue);
-      }
-      
-      setTimeout(() => setCurrentSoundCue(null), 2000);
-    }
-  };
 
   const hostModeActivities = activities.filter(a => a.isHostModeReady && a.isSelected);
   const needsExpansion = activities.filter(a => !a.isHostModeReady && a.isSelected);
@@ -373,105 +282,76 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
 
       {/* Main Host Mode Interface */}
       {hostModeActivities.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Activity Selection Sidebar */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Activity Selection
-                </CardTitle>
-                <CardDescription>
-                  Choose your next activity or let AI decide
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    onClick={() => switchActivity('CALM')}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
+        <div className="space-y-6">
+          {/* Activities List */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Your Host Mode Activities
+              </CardTitle>
+              <CardDescription>
+                Select an activity to host or delete activities you no longer need
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {hostModeActivities.map((activity) => (
+                  <Card 
+                    key={activity.id} 
+                    className={cn(
+                      "cursor-pointer transition-all duration-200 hover:shadow-md",
+                      currentActivity?.id === activity.id ? "ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/20" : ""
+                    )}
+                    onClick={() => setCurrentActivity(activity)}
                   >
-                    😌 Calm
-                  </Button>
-                  <Button
-                    onClick={() => switchActivity('ACTIVE')}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                  >
-                    ⚡ Active
-                  </Button>
-                  <Button
-                    onClick={() => switchActivity('HIGH_ENERGY')}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                  >
-                    🔥 High Energy
-                  </Button>
-                  <Button
-                    onClick={() => switchActivity()}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                  >
-                    <Shuffle className="h-3 w-3 mr-1" />
-                    Random
-                  </Button>
-                </div>
-                
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {hostModeActivities.map((activity) => (
-                    <Button
-                      key={activity.id}
-                      onClick={() => setCurrentActivity(activity)}
-                      variant={currentActivity?.id === activity.id ? "default" : "outline"}
-                      className="w-full justify-start text-left p-3 h-auto"
-                    >
-                      <div className="flex items-center gap-2 w-full">
-                        <span className="text-lg">{activity.themeEmoji}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{activity.name}</div>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Badge 
-                              className={cn("text-xs", getEnergyLevelColor(activity.energyLevel))}
-                            >
-                              {getEnergyLevelIcon(activity.energyLevel)}
-                              {activity.energyLevel.toLowerCase()}
-                            </Badge>
-                            <span className="text-xs text-gray-500">
-                              {activity.estimatedTime}m
-                            </span>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-2xl">{activity.themeEmoji}</span>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-medium truncate">{activity.name}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge 
+                                className={cn("text-xs", getEnergyLevelColor(activity.energyLevel))}
+                              >
+                                {getEnergyLevelIcon(activity.energyLevel)}
+                                {activity.energyLevel.toLowerCase()}
+                              </Badge>
+                              <span className="text-xs text-gray-500">
+                                {activity.estimatedTime}m
+                              </span>
+                            </div>
                           </div>
                         </div>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteActivity(activity.id);
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Main Host Display */}
-          <div className="lg:col-span-2">
+          <div>
             {currentActivity ? (
               <Card className="min-h-[600px]">
                 <CardHeader className="text-center bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-center mb-4">
                     <Badge className="bg-white/20 text-white">
                       Host Mode Active
                     </Badge>
-                    <Button
-                      onClick={() => setIsMuted(!isMuted)}
-                      variant="ghost"
-                      size="sm"
-                      className="text-white hover:bg-white/20"
-                    >
-                      {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                    </Button>
                   </div>
                   <CardTitle className="text-2xl flex items-center justify-center gap-3">
                     <span className="text-3xl">{currentActivity.themeEmoji}</span>
@@ -483,55 +363,6 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
                 </CardHeader>
 
                 <CardContent className="p-6 space-y-6">
-                  {/* Timer Controls */}
-                  <div className="text-center space-y-4">
-                    <div className="text-6xl font-mono font-bold text-purple-600">
-                      {formatTime(timeRemaining)}
-                    </div>
-                    
-                    {totalTime > 0 && (
-                      <Progress 
-                        value={totalTime > 0 ? ((totalTime - timeRemaining) / totalTime) * 100 : 0} 
-                        className="h-3"
-                      />
-                    )}
-                    
-                    <div className="flex justify-center gap-3">
-                      {!isRunning ? (
-                        <Button
-                          onClick={() => startActivity(currentActivity)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <Play className="h-4 w-4 mr-2" />
-                          Start Activity
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={pauseResume}
-                          variant="outline"
-                        >
-                          {isPaused ? <Play className="h-4 w-4 mr-2" /> : <Pause className="h-4 w-4 mr-2" />}
-                          {isPaused ? 'Resume' : 'Pause'}
-                        </Button>
-                      )}
-                      
-                      <Button
-                        onClick={resetTimer}
-                        variant="outline"
-                      >
-                        <RotateCcw className="h-4 w-4 mr-2" />
-                        Reset
-                      </Button>
-                      
-                      <Button
-                        onClick={() => switchActivity(currentActivity.energyLevel)}
-                        variant="outline"
-                      >
-                        <SkipForward className="h-4 w-4 mr-2" />
-                        Switch Activity
-                      </Button>
-                    </div>
-                  </div>
 
                   {/* Teleprompter Script */}
                   <Card className="bg-gray-50 dark:bg-gray-800">
@@ -574,41 +405,6 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
                     </CardContent>
                   </Card>
 
-                  {/* Sound Cues */}
-                  {currentActivity.soundCues && currentActivity.soundCues.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Music className="h-5 w-5" />
-                          Sound Cues
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {currentActivity.soundCues.map((cue, index) => (
-                            <Button
-                              key={index}
-                              onClick={() => playSound(cue)}
-                              variant="outline"
-                              className="text-left justify-start h-auto p-3"
-                            >
-                              <Speaker className="h-4 w-4 mr-2 flex-shrink-0" />
-                              <span className="text-sm">{cue}</span>
-                            </Button>
-                          ))}
-                        </div>
-                        
-                        {currentSoundCue && (
-                          <Alert className="mt-3 border-blue-200 bg-blue-50 text-blue-800">
-                            <Music className="h-4 w-4" />
-                            <AlertDescription>
-                              🎵 Now playing: {currentSoundCue}
-                            </AlertDescription>
-                          </Alert>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
 
                   {/* Activity Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
