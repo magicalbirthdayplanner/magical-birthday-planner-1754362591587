@@ -94,6 +94,7 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
   const expandActivityForHostMode = async (activityId: string) => {
     setExpanding(activityId);
     setError(null);
+    console.log('Expanding activity:', activityId, 'for party:', partyId);
     
     try {
       const response = await fetch('/api/host-mode-expand', {
@@ -107,8 +108,12 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
         }),
       });
 
+      console.log('Expand response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Expand response data:', data);
+        
         // Update the activity in the local state
         setActivities(prev => 
           prev.map(a => a.id === activityId ? { ...a, ...data.activity } : a)
@@ -122,10 +127,13 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
         setSuccess('Activity expanded for Host Mode!');
         setTimeout(() => setSuccess(null), 3000);
       } else {
-        setError('Failed to expand activity');
+        const errorData = await response.text();
+        console.error('Expand error response:', errorData);
+        setError(`Failed to expand activity: ${response.status} - ${errorData}`);
       }
     } catch (error) {
-      setError('Error expanding activity');
+      console.error('Expand error:', error);
+      setError(`Error expanding activity: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setExpanding(null);
     }
@@ -245,7 +253,7 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
               Expand Activities for Host Mode
             </CardTitle>
             <CardDescription>
-              These activities need AI expansion to be ready for Host Mode
+              These activities need AI expansion to be ready for Host Mode. Check your browser console for detailed debugging information.
             </CardDescription>
           </CardHeader>
           <CardContent>

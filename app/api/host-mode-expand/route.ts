@@ -6,10 +6,12 @@ const prisma = new PrismaClient();
 export async function POST(request: NextRequest) {
   try {
     const { partyId, activityId } = await request.json();
+    console.log('Host mode expand request:', { partyId, activityId });
 
     if (!partyId || !activityId) {
+      console.log('Missing required fields:', { partyId, activityId });
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: partyId and activityId are required' },
         { status: 400 }
       );
     }
@@ -21,11 +23,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (!activity) {
+      console.log('Activity not found:', { activityId, partyId });
       return NextResponse.json(
-        { error: 'Activity not found' },
+        { error: 'Activity not found for the specified party' },
         { status: 404 }
       );
     }
+
+    console.log('Found activity:', activity.name);
 
     // Get Azure OpenAI configuration
     const apiKey = process.env.AZURE_OPENAI_API_KEY;
@@ -34,16 +39,23 @@ export async function POST(request: NextRequest) {
     const apiVersion = process.env.AZURE_OPENAI_API_VERSION;
 
     if (!apiKey || !endpoint || !deploymentName) {
+      console.log('AI service not configured:', { 
+        hasApiKey: !!apiKey, 
+        hasEndpoint: !!endpoint, 
+        hasDeployment: !!deploymentName 
+      });
       return NextResponse.json(
-        { error: 'AI service not configured' },
+        { error: 'AI service not configured. Please check environment variables.' },
         { status: 500 }
       );
     }
 
     // Create the Host Mode expansion prompt
     const prompt = createHostModePrompt(activity, activity.party);
+    console.log('Generated prompt for AI:', prompt.substring(0, 200) + '...');
 
     // Call Azure OpenAI
+    console.log('Calling Azure OpenAI...');
     const response = await fetch(
       `${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`,
       {
@@ -70,21 +82,36 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    console.log('Azure OpenAI response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`Azure OpenAI API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Azure OpenAI error response:', errorText);
+      throw new Error(`Azure OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
     const content = data.choices[0]?.message?.content;
+    console.log('AI response content preview:', content?.substring(0, 200) + '...');
 
     if (!content) {
+      console.error('No content in AI response:', data);
       throw new Error('No content received from AI');
     }
 
     // Parse the AI response
+    console.log('Parsing AI response...');
     const expandedActivity = parseHostModeResponse(content, activity);
+    console.log('Parsed activity data:', {
+      themeEmoji: expandedActivity.themeEmoji,
+      themeContext: expandedActivity.themeContext?.substring(0, 50) + '...',
+      energyLevel: expandedActivity.energyLevel,
+      scriptLength: expandedActivity.stepByStepScript?.length || 0,
+      soundCuesCount: expandedActivity.soundCues?.length || 0
+    });
 
     // Update the activity in the database
+    console.log('Updating activity in database...');
     const updatedActivity = await prisma.partyActivity.update({
       where: { id: activityId },
       data: {
@@ -98,6 +125,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log('Activity updated successfully:', updatedActivity.id);
+
     return NextResponse.json({
       success: true,
       activity: updatedActivity,
@@ -106,7 +135,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Host Mode expansion error:', error);
     return NextResponse.json(
-      { error: 'Failed to expand activity for Host Mode' },
+      { error: `Failed to expand activity for Host Mode: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     );
   }
