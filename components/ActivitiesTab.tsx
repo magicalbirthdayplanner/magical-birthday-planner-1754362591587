@@ -33,7 +33,7 @@ interface Activity {
   venue: 'indoor' | 'outdoor' | 'both';
   isSelected?: boolean;
   isRecommended?: boolean;
-  source: 'AI_GENERATED' | 'USER_CREATED' | 'PREDEFINED';
+  source: 'AI_GENERATED' | 'USER_CREATED' | 'THEME_DEFAULT';
 }
 
 interface ActivitiesTabProps {
@@ -79,39 +79,39 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
   // Predefined activities organized by category
   const predefinedActivities: Record<string, Activity[]> = {
     'Games & Competitions': [
-      { id: 'gc1', name: 'Musical Chairs', description: 'Classic chair game with themed music or props', estimatedTime: 15, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'both', source: 'PREDEFINED' },
-      { id: 'gc2', name: 'Treasure Hunt', description: 'Themed clues, indoor/outdoor adventure', estimatedTime: 30, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'both', source: 'PREDEFINED' },
-      { id: 'gc3', name: 'Sack Race or Relay Race', description: 'Active competitive fun for groups', estimatedTime: 20, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'outdoor', source: 'PREDEFINED' },
-      { id: 'gc4', name: 'Pin the Tail', description: 'Customized to theme (e.g., Pin the Wheel on the Car)', estimatedTime: 10, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'gc5', name: 'Balloon Pop Challenge', description: 'Fun balloon popping games and challenges', estimatedTime: 15, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'both', source: 'PREDEFINED' },
-      { id: 'gc6', name: 'Obstacle Course', description: 'Custom obstacle course for active play', estimatedTime: 25, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'outdoor', source: 'PREDEFINED' }
+      { id: 'gc1', name: 'Musical Chairs', description: 'Classic chair game with themed music or props', estimatedTime: 15, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'both', source: 'THEME_DEFAULT' },
+      { id: 'gc2', name: 'Treasure Hunt', description: 'Themed clues, indoor/outdoor adventure', estimatedTime: 30, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'both', source: 'THEME_DEFAULT' },
+      { id: 'gc3', name: 'Sack Race or Relay Race', description: 'Active competitive fun for groups', estimatedTime: 20, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'outdoor', source: 'THEME_DEFAULT' },
+      { id: 'gc4', name: 'Pin the Tail', description: 'Customized to theme (e.g., Pin the Wheel on the Car)', estimatedTime: 10, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'gc5', name: 'Balloon Pop Challenge', description: 'Fun balloon popping games and challenges', estimatedTime: 15, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'both', source: 'THEME_DEFAULT' },
+      { id: 'gc6', name: 'Obstacle Course', description: 'Custom obstacle course for active play', estimatedTime: 25, timeUnit: 'minutes', category: 'Games & Competitions', venue: 'outdoor', source: 'THEME_DEFAULT' }
     ],
     'Creative & Crafty': [
-      { id: 'cc1', name: 'Themed Coloring Station', description: 'Theme-based coloring pages and activities', estimatedTime: 20, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'cc2', name: 'Build Your Own Craft', description: 'Cars, castles, rockets, animals crafting', estimatedTime: 30, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'cc3', name: 'DIY Party Hats or Masks', description: 'Create personalized party accessories', estimatedTime: 25, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'cc4', name: 'Decorate Your Own Cupcake/Cookie', description: 'Fun food decoration activity', estimatedTime: 20, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'cc5', name: 'Make-Your-Own Slime or Playdough', description: 'Hands-on sensory crafting fun', estimatedTime: 25, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'PREDEFINED' }
+      { id: 'cc1', name: 'Themed Coloring Station', description: 'Theme-based coloring pages and activities', estimatedTime: 20, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'cc2', name: 'Build Your Own Craft', description: 'Cars, castles, rockets, animals crafting', estimatedTime: 30, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'cc3', name: 'DIY Party Hats or Masks', description: 'Create personalized party accessories', estimatedTime: 25, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'cc4', name: 'Decorate Your Own Cupcake/Cookie', description: 'Fun food decoration activity', estimatedTime: 20, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'cc5', name: 'Make-Your-Own Slime or Playdough', description: 'Hands-on sensory crafting fun', estimatedTime: 25, timeUnit: 'minutes', category: 'Creative & Crafty', venue: 'indoor', source: 'THEME_DEFAULT' }
     ],
     'Performance & Storytelling': [
-      { id: 'ps1', name: 'Talent Show', description: 'Dance, singing, jokes performance time', estimatedTime: 30, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'both', source: 'PREDEFINED' },
-      { id: 'ps2', name: 'Story Time', description: 'Theme-based adventure storytelling', estimatedTime: 15, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'ps3', name: 'Puppet Show', description: 'Interactive puppet theater performance', estimatedTime: 20, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'ps4', name: 'Karaoke Corner', description: 'Singing and music performance fun', estimatedTime: 25, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'ps5', name: 'Magic Show', description: 'Simple magic tricks and illusions', estimatedTime: 20, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'both', source: 'PREDEFINED' }
+      { id: 'ps1', name: 'Talent Show', description: 'Dance, singing, jokes performance time', estimatedTime: 30, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'both', source: 'THEME_DEFAULT' },
+      { id: 'ps2', name: 'Story Time', description: 'Theme-based adventure storytelling', estimatedTime: 15, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'ps3', name: 'Puppet Show', description: 'Interactive puppet theater performance', estimatedTime: 20, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'ps4', name: 'Karaoke Corner', description: 'Singing and music performance fun', estimatedTime: 25, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'ps5', name: 'Magic Show', description: 'Simple magic tricks and illusions', estimatedTime: 20, timeUnit: 'minutes', category: 'Performance & Storytelling', venue: 'both', source: 'THEME_DEFAULT' }
     ],
     'Interactive Play': [
-      { id: 'ip1', name: 'Dance Party with DJ', description: 'Music and dancing with playlist or DJ', estimatedTime: 30, timeUnit: 'minutes', category: 'Interactive Play', venue: 'both', source: 'PREDEFINED' },
-      { id: 'ip2', name: 'Bubble Play Zone', description: 'Bubble machines and bubble activities', estimatedTime: 20, timeUnit: 'minutes', category: 'Interactive Play', venue: 'outdoor', source: 'PREDEFINED' },
-      { id: 'ip3', name: 'Giant Board Games', description: 'Connect 4, Jenga, and oversized games', estimatedTime: 25, timeUnit: 'minutes', category: 'Interactive Play', venue: 'both', source: 'PREDEFINED' },
-      { id: 'ip4', name: 'Parachute Games', description: 'Group parachute play activities', estimatedTime: 15, timeUnit: 'minutes', category: 'Interactive Play', venue: 'outdoor', source: 'PREDEFINED' },
-      { id: 'ip5', name: 'Water Balloon Fight', description: 'Outdoor water play and games', estimatedTime: 20, timeUnit: 'minutes', category: 'Interactive Play', venue: 'outdoor', source: 'PREDEFINED' }
+      { id: 'ip1', name: 'Dance Party with DJ', description: 'Music and dancing with playlist or DJ', estimatedTime: 30, timeUnit: 'minutes', category: 'Interactive Play', venue: 'both', source: 'THEME_DEFAULT' },
+      { id: 'ip2', name: 'Bubble Play Zone', description: 'Bubble machines and bubble activities', estimatedTime: 20, timeUnit: 'minutes', category: 'Interactive Play', venue: 'outdoor', source: 'THEME_DEFAULT' },
+      { id: 'ip3', name: 'Giant Board Games', description: 'Connect 4, Jenga, and oversized games', estimatedTime: 25, timeUnit: 'minutes', category: 'Interactive Play', venue: 'both', source: 'THEME_DEFAULT' },
+      { id: 'ip4', name: 'Parachute Games', description: 'Group parachute play activities', estimatedTime: 15, timeUnit: 'minutes', category: 'Interactive Play', venue: 'outdoor', source: 'THEME_DEFAULT' },
+      { id: 'ip5', name: 'Water Balloon Fight', description: 'Outdoor water play and games', estimatedTime: 20, timeUnit: 'minutes', category: 'Interactive Play', venue: 'outdoor', source: 'THEME_DEFAULT' }
     ],
     'Calm & Relax Zones': [
-      { id: 'cr1', name: 'Reading Nook', description: 'Quiet space for books and stories', estimatedTime: 20, timeUnit: 'minutes', category: 'Calm & Relax Zones', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'cr2', name: 'Movie Screening', description: 'Short themed clips or full movie', estimatedTime: 45, timeUnit: 'minutes', category: 'Calm & Relax Zones', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'cr3', name: 'Lego Build Zone', description: 'Free-building with Lego blocks', estimatedTime: 30, timeUnit: 'minutes', category: 'Calm & Relax Zones', venue: 'indoor', source: 'PREDEFINED' },
-      { id: 'cr4', name: 'Puzzle Station', description: 'Age-appropriate puzzles and games', estimatedTime: 25, timeUnit: 'minutes', category: 'Calm & Relax Zones', venue: 'indoor', source: 'PREDEFINED' }
+      { id: 'cr1', name: 'Reading Nook', description: 'Quiet space for books and stories', estimatedTime: 20, timeUnit: 'minutes', category: 'Calm & Relax Zones', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'cr2', name: 'Movie Screening', description: 'Short themed clips or full movie', estimatedTime: 45, timeUnit: 'minutes', category: 'Calm & Relax Zones', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'cr3', name: 'Lego Build Zone', description: 'Free-building with Lego blocks', estimatedTime: 30, timeUnit: 'minutes', category: 'Calm & Relax Zones', venue: 'indoor', source: 'THEME_DEFAULT' },
+      { id: 'cr4', name: 'Puzzle Station', description: 'Age-appropriate puzzles and games', estimatedTime: 25, timeUnit: 'minutes', category: 'Calm & Relax Zones', venue: 'indoor', source: 'THEME_DEFAULT' }
     ]
   };
 
@@ -263,10 +263,7 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
               timeUnit: activity.timeUnit,
               supplies: [], // Will be filled by AI expansion
               source: activity.source,
-              isSelected: true,
               isHostModeReady: false, // Will need AI expansion
-              category: activity.category,
-              venue: activity.venue,
               energyLevel: 'MEDIUM', // Default energy level
               sortOrder: 0
             }

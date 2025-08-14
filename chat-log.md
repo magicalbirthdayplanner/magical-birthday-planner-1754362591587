@@ -1,3 +1,37 @@
+## [usr-1755130661634]
+**User Request:** Failed to add activities to Host Mode: Failed to save activity: Musical Chairs - {"error":"Failed to create activity"}
+
+UNABLE TO ADD
+
+**Response Summary:** Successfully resolved the critical database schema mismatch issue that was preventing activities from being saved to Host Mode:
+
+**Root Cause Identified**: The error was caused by two database schema inconsistencies:
+1. **ActivitySource Enum Mismatch**: The ActivitiesTab component was using `'PREDEFINED'` as a source value, but the Prisma schema only defined `AI_GENERATED`, `USER_CREATED`, and `THEME_DEFAULT` in the ActivitySource enum.
+2. **Invalid Database Fields**: The save payload was attempting to save `venue` and `category` fields that don't exist in the PartyActivity model.
+
+**Fixes Applied**:
+1. **Updated ActivitySource Values**: Changed all predefined activities from `source: 'PREDEFINED'` to `source: 'THEME_DEFAULT'` to match the Prisma schema enum:
+   - Updated 21 predefined activities across all 5 categories (Games & Competitions, Creative & Crafty, Performance & Storytelling, Interactive Play, Calm & Relax Zones)
+   - Updated the TypeScript interface to reflect the correct enum values
+
+2. **Cleaned Activity Save Payload**: Removed invalid fields from the database save operation:
+   - Removed `venue` field (not in PartyActivity model)
+   - Removed `category` field (not in PartyActivity model) 
+   - Removed `isSelected` field (frontend-only state)
+   - Kept only valid database fields: name, description, estimatedTime, timeUnit, supplies, source, isHostModeReady, energyLevel, sortOrder
+
+3. **Verified Database Schema Alignment**: Ensured the save payload only includes fields that exist in the PartyActivity model in `prisma/schema.prisma`
+
+**Technical Details**:
+- The error `{"error":"Failed to create activity"}` was occurring because Prisma was rejecting the database insert due to the invalid enum value and non-existent fields
+- All activity filtering and UI functionality remains intact as these fields are used only for frontend logic
+- Build process now completes successfully without any schema validation errors
+
+The "Add to Host Mode" functionality should now work correctly, allowing users to save selected activities from the Activities tab to Host Mode without database errors.
+
+**Files Modified:** 
+- components/ActivitiesTab.tsx (fixed ActivitySource enum values and cleaned save payload)
+
 ## [usr-1755130298929]
 **User Request:** BRING THE QUICK FILTERS ALL IN ONE SINGLE LINE 
 
