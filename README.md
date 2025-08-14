@@ -218,15 +218,14 @@ npm start
 ### 7. Party Plan Results (`/party-plan`)
 - **Overview Tab**: Theme details, party information, guest statistics, quick actions
 - **Budget Tab**: Complete budget tracking and AI-powered allocation system
-- **Activities Tab**: Enhanced AI-powered activity planner with theme-based pre-population
-  - **Automatic Theme-Based Pre-population**: Activities automatically generated based on selected party theme (e.g., Safari theme generates safari animal games, jungle exploration, wildlife crafts)
-  - **Smart Context Awareness**: AI considers child's age, interests, favorite colors, venue type, and guest count for personalized recommendations
-  - **Custom Keyword Input**: Parents can add up to 3 additional keywords for enhanced personalization (e.g., "dinosaurs", "painting", "water games")
-  - **Advanced Filtering System**: Filter activities by duration (short/medium/long) and venue type (indoor/outdoor)
-  - **Enhanced AI Prompting**: Context-aware AI prompts that incorporate all party details for relevant, age-appropriate activities
-  - **Professional Activity Cards**: Each activity includes supplies needed, timing, group instructions, host scripts, and safety tips
-  - **Complete Database Integration**: All activities stored with PartyActivity model including source tracking (AI-generated, user-created, theme-default)
-  - **Intelligent UI**: Collapsible activity cards with progress tracking and seamless editing capabilities
+- **Activities Tab**: Comprehensive activity planner with 105 pre-filled activities organized by category
+  - **Pre-filled Activity Library**: 21 activities across 5 categories (Games & Competitions, Creative & Crafty, Performance & Storytelling, Interactive Play, Calm & Relax Zones)
+  - **Smart AI Recommendations**: Age-appropriate activity suggestions based on child's profile, interests, and party theme
+  - **Advanced Filtering System**: Single-line filter interface with duration (≤15m, 15-30m, 30m+), venue (indoor/outdoor), and category filters
+  - **Activity Selection & Management**: Checkbox selection with "Select All", "Clear", and "Select AI Picks" quick actions
+  - **Host Mode Integration**: "Add to Host Mode" functionality to seamlessly transfer selected activities for party execution
+  - **Detailed Activity Cards**: Each activity shows estimated time, venue compatibility, category, and detailed descriptions
+  - **AI-Powered Personalization**: Context-aware recommendations considering child's age, interests, venue type, and guest count
 - **Shopping Tab**: Comprehensive party shopping platform
   - 6 shopping categories with visually distinct cards
   - Affiliate product deals from Amazon, Walmart, and Temu

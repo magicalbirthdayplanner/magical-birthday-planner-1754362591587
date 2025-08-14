@@ -16,7 +16,7 @@ import ShoppingSuite from "@/components/ShoppingSuite";
 import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
-import EnhancedActivitiesTab from "@/components/EnhancedActivitiesTab";
+import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
 import InspirationTab from "@/components/InspirationTab";
 import SharePlanModal from "@/components/SharePlanModal";
@@ -1445,7 +1445,7 @@ export default function PartyPlanPage() {
 
           {/* Activities Tab */}
           <ProtectedTabContent tabName="activities" className="space-y-6">
-            <EnhancedActivitiesTab
+            <ActivitiesTab
               partyId={currentPartyId || partyData?.childName || 'party'}
               partyData={partyData ? {
                 childName: partyData.childName,
