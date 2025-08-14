@@ -63,9 +63,11 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
   const [success, setSuccess] = useState<string | null>(null);
 
 
-  // Load activities on mount
+  // Load activities only when partyId is provided and not during initial mount
   useEffect(() => {
-    loadActivities();
+    if (partyId) {
+      loadActivities();
+    }
   }, [partyId]);
 
 
@@ -77,14 +79,8 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
         const data = await response.json();
         setActivities(data.activities || []);
         
-        // Set first selected Host Mode ready activity as current
-        const selectedHostModeActivity = data.activities?.find((a: HostModeActivity) => a.isHostModeReady && a.isSelected);
-        if (selectedHostModeActivity) {
-          setCurrentActivity(selectedHostModeActivity);
-        } else {
-          // Clear current activity if no selected activities are found
-          setCurrentActivity(null);
-        }
+        // Only set current activity if user explicitly selects one - don't auto-load
+        setCurrentActivity(null);
       } else {
         setError('Failed to load activities');
       }
@@ -283,8 +279,8 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
       {/* Main Host Mode Interface */}
       {hostModeActivities.length > 0 ? (
         <div className="space-y-6">
-          {/* Activities List - Hidden Section */}
-          <div className="hidden">
+          {/* Activities List - Available for Selection */}
+          <div>
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">

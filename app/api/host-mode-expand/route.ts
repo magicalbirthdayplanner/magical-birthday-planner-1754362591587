@@ -122,12 +122,18 @@ Supplies: ${activity.supplies.join(', ') || 'None specified'}
 Estimated Time: ${activity.estimatedTime || 'Not specified'} ${activity.timeUnit}
 Host Script: ${activity.hostScript || 'No script provided'}
 
-PARTY CONTEXT:
-- Child: ${party.childName}, age ${party.childAge}
+COMPREHENSIVE PARTY CONTEXT FROM WIZARD STEPS 1-5:
+- Child Details: ${party.childName}, age ${party.childAge}, ${party.gender || 'child'}
+- Party Date: ${party.partyDate || 'Not specified'}
 - Theme: ${party.theme}
-- Interests: ${party.interests?.join(', ') || 'Not specified'}
+- Child's Interests: ${party.interests?.join(', ') || 'Not specified'}
 - Favorite Colors: ${party.favoriteColors?.join(', ') || 'Not specified'}
+- Budget: ${party.budget ? `${party.currency || '$'}${party.budget}` : 'Not specified'}
+- Location: ${party.location || 'Not specified'}
+- Venue Type: ${party.venueType || 'Not specified'}
+- Party Duration: ${party.duration || 'Not specified'}
 - Guest Count: ${party.guestCount || 'Not specified'}
+- Special Requirements: ${party.specialRequirements || 'None specified'}
 
 Please provide a JSON response with the following structure:
 {
@@ -139,12 +145,16 @@ Please provide a JSON response with the following structure:
 }
 
 CRITICAL REQUIREMENTS:
-1. Theme Integration: Make everything fit the ${party.theme} theme perfectly
-2. Age Appropriate: Content must be perfect for ${party.childAge}-year-olds
-3. Teleprompter Ready: Script should be written in 2nd person with clear stage directions
-4. Immersive Experience: Create a narrative that makes kids feel part of the theme world
-5. Sound Enhancement: Suggest specific music/sound effects that enhance the experience
-6. Energy Classification: Choose energy level based on activity type and engagement
+1. Personalization: Use ${party.childName}'s specific interests (${party.interests?.join(', ') || 'general fun'}) and favorite colors (${party.favoriteColors?.join(', ') || 'colorful'}) throughout the script
+2. Theme Integration: Make everything fit the ${party.theme} theme perfectly with immersive storytelling
+3. Age Appropriate: Content must be perfect for ${party.childAge}-year-olds with appropriate complexity and language
+4. Venue Optimization: Adapt the activity for ${party.venueType || 'any'} venue type with specific space considerations
+5. Duration Awareness: Design the activity to fit within ${party.duration || 'flexible timing'} and engage ${party.guestCount || 'a group of'} children
+6. Teleprompter Ready: Script should be written in 2nd person with clear stage directions in brackets
+7. Immersive Experience: Create a narrative that makes kids feel part of the theme world
+8. Sound Enhancement: Suggest specific music/sound effects that enhance the ${party.theme} theme experience
+9. Energy Classification: Choose energy level based on activity type, venue, and group size
+10. Budget Conscious: Keep supplies realistic within the party's context and budget considerations
 
 SCRIPT FORMAT EXAMPLE:
 "[gather all the little heroes in a circle] Welcome, brave superheroes! Today we need your help to save the city! [point dramatically toward the 'mission area'] Can you see that? The villain has hidden the power crystals, and only the strongest heroes can find them! [pause for excitement] Are you ready for this epic quest? Let me hear your best superhero battle cry!"

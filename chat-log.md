@@ -1,3 +1,10 @@
+## [usr-1755139184622]
+**User Request:** there is something loading in host mode by default. That should not be the case. Based on the selection in the activities tab, we should have the option to expand it using AI to generate script based on inputs taken in step 1 to step 5 of the wizard 
+**Response Summary:** Fixed the host mode default loading issue and enhanced AI-powered script generation to fully utilize wizard inputs from steps 1-5. The host mode tab now properly requires user selection before showing activities, and the AI script generation has been enhanced to use comprehensive party context including child details, theme, interests, colors, venue type, duration, guest count, and budget considerations for more personalized activity scripts.
+**Files Modified:** 
+- components/HostModeTab.tsx (fixed auto-loading behavior and made activities list visible for selection)
+- app/api/host-mode-expand/route.ts (enhanced AI prompt to use all wizard step inputs for better personalization)
+
 ## [usr-1755137124959]
 **User Request:** use the below json file and add these to the activities tab  -all this shouls be in database also 
 
