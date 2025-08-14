@@ -115,16 +115,15 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
         console.log('Expand response data:', data);
         
         // Update the activity in the local state
+        const updatedActivity = { ...data.activity };
         setActivities(prev => 
-          prev.map(a => a.id === activityId ? { ...a, ...data.activity } : a)
+          prev.map(a => a.id === activityId ? { ...a, ...updatedActivity } : a)
         );
         
-        // If this was the current activity, update it
-        if (currentActivity?.id === activityId) {
-          setCurrentActivity({ ...currentActivity, ...data.activity });
-        }
+        // IMMEDIATELY show the expanded activity in the main display
+        setCurrentActivity(updatedActivity);
         
-        setSuccess('Activity expanded for Host Mode!');
+        setSuccess('Activity expanded for Host Mode! Now showing below.');
         setTimeout(() => setSuccess(null), 3000);
       } else {
         const errorData = await response.text();
@@ -286,77 +285,96 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
 
       {/* Main Host Mode Interface */}
       {hostModeActivities.length > 0 ? (
-        <div className="space-y-6">
-          {/* Activities List - Available for Selection */}
-          <div>
-            <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Activity Switcher Sidebar */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Your Host Mode Activities
+                  Switch Activities
                 </CardTitle>
                 <CardDescription>
-                  Select an activity to host or delete activities you no longer need
+                  Click to switch between your Host Mode activities
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {hostModeActivities.map((activity) => (
-                    <Card 
-                      key={activity.id} 
-                      className={cn(
-                        "cursor-pointer transition-all duration-200 hover:shadow-md",
-                        currentActivity?.id === activity.id ? "ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/20" : ""
-                      )}
-                      onClick={() => setCurrentActivity(activity)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-2xl">{activity.themeEmoji}</span>
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-medium truncate">{activity.name}</h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge 
-                                  className={cn("text-xs", getEnergyLevelColor(activity.energyLevel))}
-                                >
-                                  {getEnergyLevelIcon(activity.energyLevel)}
-                                  {activity.energyLevel.toLowerCase()}
-                                </Badge>
-                                <span className="text-xs text-gray-500">
-                                  {activity.estimatedTime}m
-                                </span>
-                              </div>
-                            </div>
+              <CardContent className="space-y-2">
+                {hostModeActivities.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className={cn(
+                      "p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-sm",
+                      currentActivity?.id === activity.id 
+                        ? "ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/20 border-purple-200" 
+                        : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                    )}
+                    onClick={() => setCurrentActivity(activity)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-xl">{activity.themeEmoji}</span>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-sm truncate">{activity.name}</h4>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Badge 
+                              className={cn("text-xs px-1 py-0", getEnergyLevelColor(activity.energyLevel))}
+                            >
+                              {getEnergyLevelIcon(activity.energyLevel)}
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              {activity.estimatedTime}m
+                            </span>
                           </div>
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteActivity(activity.id);
-                            }}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                      </div>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteActivity(activity.id);
+                        }}
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0 h-6 w-6 p-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Quick Energy Level Switches */}
+                <div className="pt-4 border-t">
+                  <h5 className="text-sm font-medium mb-2">Quick Switch by Energy</h5>
+                  <div className="space-y-1">
+                    {['CALM', 'MEDIUM', 'ACTIVE', 'HIGH_ENERGY'].map((energyLevel) => {
+                      const count = hostModeActivities.filter(a => a.energyLevel === energyLevel).length;
+                      return count > 0 ? (
+                        <Button
+                          key={energyLevel}
+                          onClick={() => switchActivity(energyLevel)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start text-xs"
+                        >
+                          {getEnergyLevelIcon(energyLevel)}
+                          {energyLevel.toLowerCase().replace('_', ' ')} ({count})
+                        </Button>
+                      ) : null;
+                    })}
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Main Host Display */}
-          <div>
+          <div className="lg:col-span-3">
             {currentActivity ? (
               <Card className="min-h-[600px]">
                 <CardHeader className="text-center bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
                   <div className="flex items-center justify-center mb-4">
                     <Badge className="bg-white/20 text-white">
-                      Host Mode Active
+                      🎭 Host Mode Active
                     </Badge>
                   </div>
                   <CardTitle className="text-2xl flex items-center justify-center gap-3">
@@ -455,6 +473,9 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
                     Select an activity from the sidebar to begin your hosting experience
                   </p>
+                  <div className="text-sm text-purple-600 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                    👈 Click any activity in the sidebar to get started with AI-powered hosting guidance
+                  </div>
                 </CardContent>
               </Card>
             )}
