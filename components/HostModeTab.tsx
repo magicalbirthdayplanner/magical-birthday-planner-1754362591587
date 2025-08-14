@@ -342,27 +342,6 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
                   </div>
                 ))}
                 
-                {/* Quick Energy Level Switches */}
-                <div className="pt-4 border-t">
-                  <h5 className="text-sm font-medium mb-2">Quick Switch by Energy</h5>
-                  <div className="space-y-1">
-                    {['CALM', 'MEDIUM', 'ACTIVE', 'HIGH_ENERGY'].map((energyLevel) => {
-                      const count = hostModeActivities.filter(a => a.energyLevel === energyLevel).length;
-                      return count > 0 ? (
-                        <Button
-                          key={energyLevel}
-                          onClick={() => switchActivity(energyLevel)}
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-start text-xs"
-                        >
-                          {getEnergyLevelIcon(energyLevel)}
-                          {energyLevel.toLowerCase().replace('_', ' ')} ({count})
-                        </Button>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
