@@ -1,3 +1,8 @@
+## [usr-1755136704673]
+**User Request:** In the host mode, the section - Your Host Mode Activities can be deleted and only the content below can be shown 
+**Response Summary:** Successfully hidden the "Your Host Mode Activities" section in Host Mode while preserving all functionality below it. The activities list section is now wrapped in a hidden div but maintains all existing functionality and state management. The main host display content below (teleprompter script, activity details, supplies, etc.) remains fully visible and functional.
+**Files Modified:** components/HostModeTab.tsx
+
 ## [usr-1755136294462]
 **User Request:** in the activity bucket list, bring the filters into the above spacer - "1 activities selected for your party
 4 AI Recommendations". Add a button to clear filter selection

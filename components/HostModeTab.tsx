@@ -283,65 +283,67 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
       {/* Main Host Mode Interface */}
       {hostModeActivities.length > 0 ? (
         <div className="space-y-6">
-          {/* Activities List */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Your Host Mode Activities
-              </CardTitle>
-              <CardDescription>
-                Select an activity to host or delete activities you no longer need
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {hostModeActivities.map((activity) => (
-                  <Card 
-                    key={activity.id} 
-                    className={cn(
-                      "cursor-pointer transition-all duration-200 hover:shadow-md",
-                      currentActivity?.id === activity.id ? "ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/20" : ""
-                    )}
-                    onClick={() => setCurrentActivity(activity)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className="text-2xl">{activity.themeEmoji}</span>
-                          <div className="min-w-0 flex-1">
-                            <h4 className="font-medium truncate">{activity.name}</h4>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge 
-                                className={cn("text-xs", getEnergyLevelColor(activity.energyLevel))}
-                              >
-                                {getEnergyLevelIcon(activity.energyLevel)}
-                                {activity.energyLevel.toLowerCase()}
-                              </Badge>
-                              <span className="text-xs text-gray-500">
-                                {activity.estimatedTime}m
-                              </span>
+          {/* Activities List - Hidden Section */}
+          <div className="hidden">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Your Host Mode Activities
+                </CardTitle>
+                <CardDescription>
+                  Select an activity to host or delete activities you no longer need
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {hostModeActivities.map((activity) => (
+                    <Card 
+                      key={activity.id} 
+                      className={cn(
+                        "cursor-pointer transition-all duration-200 hover:shadow-md",
+                        currentActivity?.id === activity.id ? "ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/20" : ""
+                      )}
+                      onClick={() => setCurrentActivity(activity)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="text-2xl">{activity.themeEmoji}</span>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-medium truncate">{activity.name}</h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge 
+                                  className={cn("text-xs", getEnergyLevelColor(activity.energyLevel))}
+                                >
+                                  {getEnergyLevelIcon(activity.energyLevel)}
+                                  {activity.energyLevel.toLowerCase()}
+                                </Badge>
+                                <span className="text-xs text-gray-500">
+                                  {activity.estimatedTime}m
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteActivity(activity.id);
+                            }}
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteActivity(activity.id);
-                          }}
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Main Host Display */}
           <div>
