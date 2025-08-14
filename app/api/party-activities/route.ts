@@ -311,3 +311,55 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
+// PATCH - Clear all activities for a party (used when adding new activities from Activities tab)
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { partyId } = body;
+
+    if (!partyId) {
+      return NextResponse.json({ error: 'Party ID is required' }, { status: 400 });
+    }
+
+    // Get the authorization header
+    const authHeader = request.headers.get('authorization');
+    let userId: string | null = null;
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const { data: { user } } = await supabase.auth.getUser(token);
+      userId = user?.id || null;
+    }
+
+    // Verify party ownership if userId is available
+    if (userId) {
+      const party = await prisma.party.findFirst({
+        where: {
+          id: partyId,
+          userId: userId
+        }
+      });
+
+      if (!party) {
+        return NextResponse.json({ error: 'Party not found or access denied' }, { status: 404 });
+      }
+    }
+
+    // Clear all activities for the party
+    await prisma.partyActivity.deleteMany({
+      where: {
+        partyId: partyId
+      }
+    });
+
+    return NextResponse.json({ success: true, message: 'All activities cleared' });
+
+  } catch (error) {
+    console.error('Error clearing activities:', error);
+    return NextResponse.json(
+      { error: 'Failed to clear activities' },
+      { status: 500 }
+    );
+  }
+}

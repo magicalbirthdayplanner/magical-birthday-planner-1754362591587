@@ -238,6 +238,15 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
 
     setLoading(true);
     try {
+      // First clear any existing activities to prevent duplicates
+      await fetch(`/api/party-activities`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ partyId }),
+      });
+
       // Save each selected activity to the database
       const savePromises = selectedActivities.map(async (activity) => {
         const response = await fetch('/api/party-activities', {
@@ -265,7 +274,8 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to save activity: ${activity.name}`);
+          const errorText = await response.text();
+          throw new Error(`Failed to save activity: ${activity.name} - ${errorText}`);
         }
 
         return response.json();
@@ -279,7 +289,7 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
       setTimeout(() => setSuccess(null), 5000);
     } catch (error) {
       console.error('Error saving activities:', error);
-      setError('Failed to add activities to Host Mode. Please try again.');
+      setError(`Failed to add activities to Host Mode: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setTimeout(() => setError(null), 5000);
     } finally {
       setLoading(false);
@@ -414,105 +424,99 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3 items-center">
-            {/* Duration Filters */}
+          <div className="flex flex-wrap gap-4 items-center justify-start">
+            {/* Duration Filters - Inline */}
             <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium flex items-center gap-1 text-blue-600">
-                <Clock className="h-4 w-4" />
+              <Label className="text-xs font-medium text-blue-600 whitespace-nowrap">
+                <Clock className="h-3 w-3 inline mr-1" />
                 Duration:
               </Label>
-              <div className="flex gap-1">
-                {[
-                  { value: 'all', label: 'All', color: 'bg-gray-200 hover:bg-gray-300' },
-                  { value: 'short', label: '≤15m', color: 'bg-blue-100 hover:bg-blue-200 text-blue-800' },
-                  { value: 'medium', label: '15-30m', color: 'bg-blue-200 hover:bg-blue-300 text-blue-800' },
-                  { value: 'long', label: '30m+', color: 'bg-blue-300 hover:bg-blue-400 text-blue-900' }
-                ].map((option) => (
-                  <Button
-                    key={option.value}
-                    variant="ghost"
-                    onClick={() => setFilterTime(option.value)}
-                    className={cn(
-                      "text-xs px-3 py-1 h-7 rounded-full",
-                      filterTime === option.value 
-                        ? "bg-blue-600 text-white hover:bg-blue-700" 
-                        : option.color
-                    )}
-                    size="sm"
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            {/* Venue Filters */}
-            <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium flex items-center gap-1 text-purple-600">
-                <MapPin className="h-4 w-4" />
-                Venue:
-              </Label>
-              <div className="flex gap-1">
-                {[
-                  { value: 'all', label: 'All', color: 'bg-gray-200 hover:bg-gray-300' },
-                  { value: 'indoor', label: 'Indoor', color: 'bg-purple-100 hover:bg-purple-200 text-purple-800' },
-                  { value: 'outdoor', label: 'Outdoor', color: 'bg-purple-100 hover:bg-purple-200 text-purple-800' }
-                ].map((option) => (
-                  <Button
-                    key={option.value}
-                    variant="ghost"
-                    onClick={() => setFilterVenue(option.value)}
-                    className={cn(
-                      "text-xs px-3 py-1 h-7 rounded-full",
-                      filterVenue === option.value 
-                        ? "bg-purple-600 text-white hover:bg-purple-700" 
-                        : option.color
-                    )}
-                    size="sm"
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            {/* Category Filters */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Label className="text-sm font-medium flex items-center gap-1 text-green-600">
-                <Tag className="h-4 w-4" />
-                Category:
-              </Label>
-              <div className="flex gap-1 flex-wrap">
+              {[
+                { value: 'all', label: 'All' },
+                { value: 'short', label: '≤15m' },
+                { value: 'medium', label: '15-30m' },
+                { value: 'long', label: '30m+' }
+              ].map((option) => (
                 <Button
+                  key={option.value}
                   variant="ghost"
-                  onClick={() => setSelectedCategory("all")}
+                  onClick={() => setFilterTime(option.value)}
                   className={cn(
-                    "text-xs px-3 py-1 h-7 rounded-full",
-                    selectedCategory === "all" 
-                      ? "bg-green-600 text-white hover:bg-green-700" 
-                      : "bg-gray-200 hover:bg-gray-300"
+                    "text-xs px-2 py-1 h-6 rounded-full border",
+                    filterTime === option.value 
+                      ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700" 
+                      : "bg-white border-blue-200 text-blue-700 hover:bg-blue-50"
                   )}
                   size="sm"
                 >
-                  All
+                  {option.label}
                 </Button>
-                {activityCategories.map((category) => (
-                  <Button
-                    key={category}
-                    variant="ghost"
-                    onClick={() => setSelectedCategory(category)}
-                    className={cn(
-                      "text-xs px-3 py-1 h-7 rounded-full whitespace-nowrap",
-                      selectedCategory === category 
-                        ? "bg-green-600 text-white hover:bg-green-700" 
-                        : "bg-green-100 hover:bg-green-200 text-green-800"
-                    )}
-                    size="sm"
-                  >
-                    {category.split(' ')[0]}
-                  </Button>
-                ))}
-              </div>
+              ))}
+            </div>
+            
+            {/* Venue Filters - Inline */}
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-medium text-purple-600 whitespace-nowrap">
+                <MapPin className="h-3 w-3 inline mr-1" />
+                Venue:
+              </Label>
+              {[
+                { value: 'all', label: 'All' },
+                { value: 'indoor', label: 'Indoor' },
+                { value: 'outdoor', label: 'Outdoor' }
+              ].map((option) => (
+                <Button
+                  key={option.value}
+                  variant="ghost"
+                  onClick={() => setFilterVenue(option.value)}
+                  className={cn(
+                    "text-xs px-2 py-1 h-6 rounded-full border",
+                    filterVenue === option.value 
+                      ? "bg-purple-600 text-white border-purple-600 hover:bg-purple-700" 
+                      : "bg-white border-purple-200 text-purple-700 hover:bg-purple-50"
+                  )}
+                  size="sm"
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+            
+            {/* Category Filters - Inline */}
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-medium text-green-600 whitespace-nowrap">
+                <Tag className="h-3 w-3 inline mr-1" />
+                Category:
+              </Label>
+              <Button
+                variant="ghost"
+                onClick={() => setSelectedCategory("all")}
+                className={cn(
+                  "text-xs px-2 py-1 h-6 rounded-full border",
+                  selectedCategory === "all" 
+                    ? "bg-green-600 text-white border-green-600 hover:bg-green-700" 
+                    : "bg-white border-green-200 text-green-700 hover:bg-green-50"
+                )}
+                size="sm"
+              >
+                All
+              </Button>
+              {activityCategories.map((category) => (
+                <Button
+                  key={category}
+                  variant="ghost"
+                  onClick={() => setSelectedCategory(category)}
+                  className={cn(
+                    "text-xs px-2 py-1 h-6 rounded-full border whitespace-nowrap",
+                    selectedCategory === category 
+                      ? "bg-green-600 text-white border-green-600 hover:bg-green-700" 
+                      : "bg-white border-green-200 text-green-700 hover:bg-green-50"
+                  )}
+                  size="sm"
+                >
+                  {category.split(' ')[0]}
+                </Button>
+              ))}
             </div>
           </div>
         </CardContent>
