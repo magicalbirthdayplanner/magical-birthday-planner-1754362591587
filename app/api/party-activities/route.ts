@@ -63,6 +63,13 @@ export async function GET(request: NextRequest) {
         sortOrder: activity.sortOrder,
         isCustom: activity.isCustom,
         source: activity.source,
+        energyLevel: activity.energyLevel,
+        isHostModeReady: activity.isHostModeReady,
+        themeEmoji: activity.themeEmoji,
+        themeContext: activity.themeContext,
+        stepByStepScript: activity.stepByStepScript,
+        soundCues: activity.soundCues,
+        isSelected: true, // Activities from DB are considered selected
         isExpanded: false // Default to collapsed
       }))
     });
@@ -125,7 +132,13 @@ export async function POST(request: NextRequest) {
         tips: activity.tips || [],
         sortOrder: activity.sortOrder || 0,
         isCustom: activity.isCustom || false,
-        source: activity.source || 'USER_CREATED'
+        source: activity.source || 'USER_CREATED',
+        energyLevel: activity.energyLevel || 'MEDIUM',
+        isHostModeReady: activity.isHostModeReady || false,
+        themeEmoji: activity.themeEmoji || null,
+        themeContext: activity.themeContext || null,
+        stepByStepScript: activity.stepByStepScript || null,
+        soundCues: activity.soundCues || []
       }
     });
 
@@ -143,7 +156,14 @@ export async function POST(request: NextRequest) {
         tips: newActivity.tips,
         sortOrder: newActivity.sortOrder,
         isCustom: newActivity.isCustom,
-        source: newActivity.source
+        source: newActivity.source,
+        energyLevel: newActivity.energyLevel,
+        isHostModeReady: newActivity.isHostModeReady,
+        themeEmoji: newActivity.themeEmoji,
+        themeContext: newActivity.themeContext,
+        stepByStepScript: newActivity.stepByStepScript,
+        soundCues: newActivity.soundCues,
+        isSelected: true
       }
     });
 

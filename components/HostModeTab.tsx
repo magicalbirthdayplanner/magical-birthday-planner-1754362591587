@@ -665,10 +665,10 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
               <Crown className="h-16 w-16 text-gray-400 mx-auto" />
               <h3 className="text-xl font-semibold">No Activities Selected for Host Mode</h3>
               <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                Visit the Activities tab, select the activities you want to include, and click "Ready for Host Mode" to begin your hosting experience!
+                Visit the Activities tab, select the activities you want to include, and click "Add to Host Mode" to begin your hosting experience!
               </p>
               <div className="text-sm text-gray-500 mt-2">
-                💡 Tip: Use the checkboxes in the Activities tab to select activities for Host Mode
+                💡 Tip: Select activities in the Activities tab and click the orange "Add to Host Mode" button
               </div>
             </div>
           </CardContent>

@@ -1457,6 +1457,13 @@ export default function PartyPlanPage() {
                 venue: partyData.venue,
                 guestCount: partyData.guestCount
               } : undefined}
+              onAddToHostMode={(selectedActivities) => {
+                // Switch to Host Mode tab when activities are added
+                const hostModeTab = document.querySelector('[data-value="host-mode"]') as HTMLElement;
+                if (hostModeTab) {
+                  hostModeTab.click();
+                }
+              }}
             />
           </ProtectedTabContent>
 
