@@ -16,7 +16,7 @@ import ShoppingSuite from "@/components/ShoppingSuite";
 import VenueTab from "@/components/VenueTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
-import ActivitiesTab from "@/components/ActivitiesTab";
+import EnhancedActivitiesTab from "@/components/EnhancedActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
 import InspirationTab from "@/components/InspirationTab";
 import SharePlanModal from "@/components/SharePlanModal";
@@ -1445,9 +1445,8 @@ export default function PartyPlanPage() {
 
           {/* Activities Tab */}
           <ProtectedTabContent tabName="activities" className="space-y-6">
-            <ActivitiesTab
+            <EnhancedActivitiesTab
               partyId={currentPartyId || partyData?.childName || 'party'}
-              themeActivities={partyData?.themeActivities || "Musical Chairs, Treasure Hunt, Craft Activity, Dance Party, Story Time"}
               partyData={partyData ? {
                 childName: partyData.childName,
                 childAge: parseInt(partyData.childAge || '0'),
@@ -1457,13 +1456,6 @@ export default function PartyPlanPage() {
                 venue: partyData.venue,
                 guestCount: partyData.guestCount
               } : undefined}
-              onAddToHostMode={(selectedActivities) => {
-                // Switch to Host Mode tab when activities are added
-                const hostModeTab = document.querySelector('[data-value="host-mode"]') as HTMLElement;
-                if (hostModeTab) {
-                  hostModeTab.click();
-                }
-              }}
             />
           </ProtectedTabContent>
 

@@ -446,4 +446,64 @@ enum InspirationCategory {
   PARTY_IDEAS
 }
 
+model BirthdayActivity {
+  id                  String              @id @default(cuid())
+  name                String
+  description         String
+  fullDescription     String?             // Detailed description for modal
+  suppliesNeeded      String[]            @default([])
+  setupTime           Int                 @default(5)  // Setup time in minutes
+  helpersRequired     Int                 @default(1)  // Number of helpers suggested
+  stepByStepInstructions String?          // Detailed step-by-step instructions
+  hostScript          String?             // Optional anchor/host script for engagement
+  ageGroup            AgeGroup[]          // Multiple age groups supported
+  venueType           VenueType[]         // Multiple venue types
+  duration            ActivityDuration    // Duration category
+  durationMinutes     Int                 // Exact duration in minutes
+  themeCompatibility  String[]            @default([]) // Compatible themes
+  effortLevel         EffortLevel         // Low, Medium, High
+  participantRange    String              // e.g., "5-10", "10+", "any"
+  minParticipants     Int                 @default(1)
+  maxParticipants     Int?                // null for unlimited
+  category            String              // Activity category
+  tags                String[]            @default([]) // Additional tags for filtering
+  isActive            Boolean             @default(true)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@map("birthday_activities")
+}
+
+enum AgeGroup {
+  AGE_0_2     // 0-2 years
+  AGE_3_5     // 3-5 years 
+  AGE_6_8     // 6-8 years
+  AGE_9_12    // 9-12 years
+}
+
+enum VenueType {
+  INDOOR
+  OUTDOOR
+  MIXED
+  HOME
+  PARK
+  PARTY_HALL
+  POOL
+  SCHOOL
+}
+
+enum ActivityDuration {
+  DURATION_15    // 15 minutes
+  DURATION_30    // 30 minutes
+  DURATION_45    // 45 minutes
+  DURATION_60    // 60 minutes
+  DURATION_90_PLUS // 90+ minutes
+}
+
+enum EffortLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 
