@@ -258,24 +258,34 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {needsExpansion.map((activity) => (
-                <div key={activity.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                  <div>
+                <div key={activity.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border relative">
+                  <div className="flex-1">
                     <h4 className="font-medium">{activity.name}</h4>
                     <p className="text-sm text-gray-600">{activity.estimatedTime} {activity.timeUnit}</p>
                   </div>
-                  <Button
-                    onClick={() => expandActivityForHostMode(activity.id)}
-                    disabled={expanding === activity.id}
-                    size="sm"
-                    className="bg-orange-600 hover:bg-orange-700"
-                  >
-                    {expanding === activity.id ? (
-                      <RefreshCw className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-3 w-3" />
-                    )}
-                    {expanding === activity.id ? 'Expanding...' : 'Expand'}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => expandActivityForHostMode(activity.id)}
+                      disabled={expanding === activity.id}
+                      size="sm"
+                      className="bg-orange-600 hover:bg-orange-700"
+                    >
+                      {expanding === activity.id ? (
+                        <RefreshCw className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3 w-3" />
+                      )}
+                      {expanding === activity.id ? 'Expanding...' : 'Expand'}
+                    </Button>
+                    <Button
+                      onClick={() => deleteActivity(activity.id)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
