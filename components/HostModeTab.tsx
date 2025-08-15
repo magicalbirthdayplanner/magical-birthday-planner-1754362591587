@@ -279,13 +279,30 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
       {needsExpansion.length > 0 && (
         <Card className="border-orange-200 bg-orange-50 dark:bg-orange-900/20">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-orange-600" />
-              Expand Activities for Host Mode
-            </CardTitle>
-            <CardDescription>
-              These activities need AI expansion to be ready for Host Mode. Check your browser console for detailed debugging information.
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-orange-600" />
+                  Expand Activities for Host Mode
+                </CardTitle>
+                <CardDescription>
+                  These activities need AI expansion to be ready for Host Mode. Check your browser console for detailed debugging information.
+                </CardDescription>
+              </div>
+              <Button
+                onClick={() => {
+                  // Clear all activities that need expansion
+                  const activitiesToDelete = needsExpansion.map(a => a.id);
+                  activitiesToDelete.forEach(activityId => deleteActivity(activityId));
+                }}
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Clear All
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

@@ -1,3 +1,11 @@
+## [usr-1755223585574]
+**User Request:** All a clear all button to delete all the activities at once in the right corner of this box 
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-14 at 10.05.53 PM.png
+
+**Response Summary:** Added a "Clear All" button to the "Expand Activities for Host Mode" section that allows users to delete all activities that need expansion at once. The button is positioned in the right corner of the box header and includes a trash icon. When clicked, it deletes all activities in the needsExpansion array by calling the existing deleteActivity function for each one.
+**Files Modified:** components/HostModeTab.tsx
+
 ## [usr-1755223149566]
 **User Request:** The attached screenshot is the error when deploying to vercel as a webhook
 
