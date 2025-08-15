@@ -130,6 +130,174 @@ function generateMockPinterestData(theme: string = 'princess'): PinterestBoard[]
         aiMatchScore: 96,
         aiAnalysis: 'Perfect superhero theme with bold colors and action-packed decorations'
       }
+    ],
+    space: [
+      {
+        id: 'demo-space-1',
+        title: 'Space Birthday Party Decorations',
+        description: 'Out-of-this-world space decorations for an intergalactic celebration',
+        imageUrl: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=space%20birthday%20decorations',
+        pinCount: 1230,
+        followers: 1890,
+        category: 'DECORATIONS',
+        aiMatchScore: 97,
+        aiAnalysis: 'Amazing space theme with planets, stars, and galaxy decorations perfect for cosmic adventures'
+      },
+      {
+        id: 'demo-space-2',
+        title: 'Galaxy Birthday Cake Ideas',
+        description: 'Cosmic cakes that will transport your party to another galaxy',
+        imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=galaxy%20space%20birthday%20cake',
+        pinCount: 876,
+        followers: 1456,
+        category: 'CAKE',
+        aiMatchScore: 94,
+        aiAnalysis: 'Stunning galaxy-themed cakes with edible glitter and cosmic colors'
+      },
+      {
+        id: 'demo-space-3',
+        title: 'Astronaut Party Games & Activities',
+        description: 'Space mission games and astronaut training activities for future space explorers',
+        imageUrl: 'https://images.unsplash.com/photo-1581822261290-991b38693d1b?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=space%20astronaut%20party%20games',
+        pinCount: 543,
+        followers: 987,
+        category: 'GAMES',
+        aiMatchScore: 91,
+        aiAnalysis: 'Interactive space-themed games that encourage imagination and exploration'
+      },
+      {
+        id: 'demo-space-4',
+        title: 'Solar System Party Crafts',
+        description: 'DIY solar system crafts and planet-making activities',
+        imageUrl: 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=solar%20system%20party%20crafts',
+        pinCount: 432,
+        followers: 765,
+        category: 'CRAFTS',
+        aiMatchScore: 89,
+        aiAnalysis: 'Educational and fun space crafts that kids can take home as souvenirs'
+      },
+      {
+        id: 'demo-space-5',
+        title: 'Space Food & Cosmic Treats',
+        description: 'Galaxy-themed snacks and space food for cosmic adventurers',
+        imageUrl: 'https://images.unsplash.com/photo-1517686469429-8bdb88b9f907?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=space%20themed%20party%20food',
+        pinCount: 678,
+        followers: 1123,
+        category: 'FOOD',
+        aiMatchScore: 86,
+        aiAnalysis: 'Creative space-themed treats that look like they came from another planet'
+      },
+      {
+        id: 'demo-space-6',
+        title: 'Rocket Ship Party Favors',
+        description: 'Space-themed party favors and astronaut gear for young explorers',
+        imageUrl: 'https://images.unsplash.com/photo-1516849841032-87cbac4d88f7?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=space%20rocket%20party%20favors',
+        pinCount: 345,
+        followers: 567,
+        category: 'FAVORS',
+        aiMatchScore: 83,
+        aiAnalysis: 'Exciting space-themed favors that extend the cosmic adventure beyond the party'
+      },
+      {
+        id: 'demo-space-7',
+        title: 'Galaxy Photo Booth Props',
+        description: 'Space-themed photo booth props including helmets, rockets, and alien accessories',
+        imageUrl: 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=space%20photo%20booth%20props',
+        pinCount: 234,
+        followers: 445,
+        category: 'PHOTOGRAPHY',
+        aiMatchScore: 80,
+        aiAnalysis: 'Fun space props perfect for capturing memorable moments from the cosmic celebration'
+      },
+      {
+        id: 'demo-space-8',
+        title: 'Astronaut Training Party Activities',
+        description: 'Space mission training activities and cosmic challenges for party guests',
+        imageUrl: 'https://images.unsplash.com/photo-1581822261290-991b38693d1b?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=astronaut%20training%20party%20activities',
+        pinCount: 456,
+        followers: 789,
+        category: 'ACTIVITIES',
+        aiMatchScore: 88,
+        aiAnalysis: 'Engaging astronaut training activities that make kids feel like real space explorers'
+      }
+    ],
+    dinosaur: [
+      {
+        id: 'demo-dino-1',
+        title: 'Dinosaur Birthday Party Decorations',
+        description: 'Prehistoric decorations to transport your party back to the Jurassic era',
+        imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=dinosaur%20birthday%20decorations',
+        pinCount: 1156,
+        followers: 1743,
+        category: 'DECORATIONS',
+        aiMatchScore: 96,
+        aiAnalysis: 'Perfect dinosaur theme with prehistoric elements and earth-toned decorations'
+      }
+    ],
+    pirate: [
+      {
+        id: 'demo-pirate-1',
+        title: 'Pirate Birthday Party Decorations',
+        description: 'Ahoy matey! Treasure-filled decorations for a swashbuckling celebration',
+        imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=pirate%20birthday%20decorations',
+        pinCount: 892,
+        followers: 1234,
+        category: 'DECORATIONS',
+        aiMatchScore: 95,
+        aiAnalysis: 'Exciting pirate theme with treasure chests, ships, and nautical elements'
+      }
+    ],
+    unicorn: [
+      {
+        id: 'demo-unicorn-1',
+        title: 'Unicorn Birthday Party Decorations',
+        description: 'Magical unicorn decorations with rainbows and sparkles for a fantasy celebration',
+        imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=unicorn%20birthday%20decorations',
+        pinCount: 1378,
+        followers: 2156,
+        category: 'DECORATIONS',
+        aiMatchScore: 97,
+        aiAnalysis: 'Enchanting unicorn theme with pastel colors, rainbows, and magical elements'
+      }
+    ],
+    ocean: [
+      {
+        id: 'demo-ocean-1',
+        title: 'Ocean Birthday Party Decorations',
+        description: 'Under-the-sea decorations with mermaids, fish, and ocean waves',
+        imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=ocean%20birthday%20decorations',
+        pinCount: 967,
+        followers: 1543,
+        category: 'DECORATIONS',
+        aiMatchScore: 94,
+        aiAnalysis: 'Beautiful ocean theme with blue tones and sea creature decorations'
+      }
+    ],
+    safari: [
+      {
+        id: 'demo-safari-1',
+        title: 'Safari Birthday Party Decorations',
+        description: 'Wild safari decorations with jungle animals and adventure themes',
+        imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
+        pinterestUrl: 'https://www.pinterest.com/search/pins/?q=safari%20birthday%20decorations',
+        pinCount: 743,
+        followers: 1298,
+        category: 'DECORATIONS',
+        aiMatchScore: 93,
+        aiAnalysis: 'Adventurous safari theme with earth tones and wild animal decorations'
+      }
     ]
   };
 
@@ -152,9 +320,27 @@ async function searchPinterest(query: string): Promise<PinterestBoard[]> {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Return mock data based on query theme
-    const theme = query.toLowerCase().includes('superhero') ? 'superhero' : 
-                  query.toLowerCase().includes('princess') ? 'princess' : 'princess';
+    // Extract theme from query - check for specific themes first
+    let theme = 'princess'; // default
+    const queryLower = query.toLowerCase();
+    
+    if (queryLower.includes('space') || queryLower.includes('astronaut') || queryLower.includes('galaxy') || queryLower.includes('cosmic')) {
+      theme = 'space';
+    } else if (queryLower.includes('superhero') || queryLower.includes('hero')) {
+      theme = 'superhero';
+    } else if (queryLower.includes('princess') || queryLower.includes('royal')) {
+      theme = 'princess';
+    } else if (queryLower.includes('dinosaur') || queryLower.includes('dino')) {
+      theme = 'dinosaur';
+    } else if (queryLower.includes('pirate') || queryLower.includes('treasure')) {
+      theme = 'pirate';
+    } else if (queryLower.includes('unicorn') || queryLower.includes('rainbow')) {
+      theme = 'unicorn';
+    } else if (queryLower.includes('ocean') || queryLower.includes('mermaid') || queryLower.includes('sea')) {
+      theme = 'ocean';
+    } else if (queryLower.includes('safari') || queryLower.includes('jungle') || queryLower.includes('animal')) {
+      theme = 'safari';
+    }
     
     return generateMockPinterestData(theme);
   } catch (error) {
