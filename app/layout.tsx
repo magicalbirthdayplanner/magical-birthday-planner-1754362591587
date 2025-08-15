@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -27,11 +28,12 @@ export default function RootLayout({
             <AuthProvider>
               <SubscriptionProvider>
                 <Header />
-                <main className="pt-14 sm:pt-16">
+                <main className="pt-14 sm:pt-16 min-h-screen">
                   <ErrorBoundary>
                     {children}
                   </ErrorBoundary>
                 </main>
+                <Footer />
               </SubscriptionProvider>
             </AuthProvider>
           </ThemeProvider>

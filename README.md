@@ -215,7 +215,20 @@ npm start
 - **Billing tab**: Invoice history, payment receipts, account security
 - **Comprehensive interface**: Tabbed navigation with progress tracking and analytics
 
-### 7. Party Plan Results (`/party-plan`)
+### 7. Privacy Policy (`/privacy`)
+- **Legal Compliance**: Comprehensive privacy policy explaining data collection and usage
+- **User Rights**: Clear explanation of user rights regarding personal data
+- **Security Measures**: Information about data protection and security practices
+- **Contact Information**: Privacy-related contact details and support
+
+### 8. Terms & Conditions (`/terms`)
+- **Service Agreement**: Complete terms of service for platform usage
+- **Subscription Terms**: Billing, pricing, and subscription management policies
+- **User Responsibilities**: Acceptable use policies and user obligations
+- **Intellectual Property**: Rights and ownership of content and platform features
+- **Legal Framework**: Governing law, limitations, and dispute resolution
+
+### 9. Party Plan Results (`/party-plan`)
 - **Overview Tab**: Theme details, party information, guest statistics, quick actions
 - **Budget Tab**: Complete budget tracking and AI-powered allocation system
 - **Activities Tab**: Comprehensive activity planner with 105 pre-filled activities organized by category
@@ -365,6 +378,7 @@ components/
 ├── BulkInvitations.tsx   # Bulk invitation system
 ├── RSVPTracker.tsx       # RSVP tracking dashboard
 ├── Header.tsx            # Navigation header with auth
+├── Footer.tsx            # Global footer with legal links
 └── ThemeSwitcher.tsx     # Theme toggle component
 
 contexts/

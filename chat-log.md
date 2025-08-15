@@ -1,3 +1,8 @@
+## [usr-1755224609892]
+**User Request:** Add a privacy policy and terms and condition as a footer note in home page and everywhere else where it is needed 
+**Response Summary:** Successfully implemented comprehensive Privacy Policy and Terms & Conditions as footer links throughout the application. Created reusable Footer component with proper styling, comprehensive Privacy Policy page with 9 sections covering data collection, usage, security, and user rights, and detailed Terms & Conditions page with 13 sections covering service agreement, billing, user obligations, and legal framework. Footer integrated globally via main layout to appear on all pages.
+**Files Modified:** components/Footer.tsx, app/privacy/page.tsx, app/terms/page.tsx, app/layout.tsx, README.md, chat-log.md
+
 ## [usr-1755224194432]
 **User Request:** In the landing page, remove terms like with advanced support , priority support, Email support (72-hour), Priority support (24-hour) etc everywhere
 
