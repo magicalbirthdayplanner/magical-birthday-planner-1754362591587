@@ -1,3 +1,14 @@
+## [usr-1755225021170]
+**User Request:** the footer appears 2 times - delete the repeating one. 
+
+Change contact us information to magicalbirthdayplanner@gmail.com and no need address 
+
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-14 at 10.28.30 PM.png
+
+**Response Summary:** Fixed footer duplication issue by removing redundant Footer component imports and instances from Privacy Policy and Terms & Conditions pages. Updated contact email addresses from privacy@magicalbirthday.com and legal@magicalbirthday.com to magicalbirthdayplanner@gmail.com in both pages. Removed address fields from contact sections as requested. The global footer in layout.tsx now serves all pages consistently without duplication.
+**Files Modified:** app/privacy/page.tsx, app/terms/page.tsx
+
 ## [usr-1755224609892]
 **User Request:** Add a privacy policy and terms and condition as a footer note in home page and everywhere else where it is needed 
 **Response Summary:** Successfully implemented comprehensive Privacy Policy and Terms & Conditions as footer links throughout the application. Created reusable Footer component with proper styling, comprehensive Privacy Policy page with 9 sections covering data collection, usage, security, and user rights, and detailed Terms & Conditions page with 13 sections covering service agreement, billing, user obligations, and legal framework. Footer integrated globally via main layout to appear on all pages.

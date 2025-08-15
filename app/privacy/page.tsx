@@ -1,5 +1,3 @@
-import { Footer } from '@/components/Footer';
-
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
@@ -104,14 +102,12 @@ export default function PrivacyPolicyPage() {
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
               <p className="text-gray-600 dark:text-gray-300 mt-2">
-                Email: privacy@magicalbirthday.com<br />
-                Address: [Your Company Address]
+                Email: magicalbirthdayplanner@gmail.com
               </p>
             </section>
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
