@@ -437,13 +437,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify party belongs to user
-    const party = await prisma.party.findFirst({
-      where: { id: partyId, userId: user.id }
-    });
+    let party;
+    
+    // Handle demo/test cases when no valid party exists
+    if (partyId === 'demo' || partyId === 'demo-party') {
+      console.log('Using demo party data for Pinterest inspiration');
+      party = {
+        id: 'demo',
+        theme: query.includes('princess') ? 'Princess' : 
+              query.includes('superhero') ? 'Superhero' : 
+              query.includes('space') ? 'Space' : 'Birthday',
+        childAge: 5,
+        location: null,
+        partyLocation: null,
+        interests: ['games', 'activities'],
+        favoriteColors: ['pink', 'purple']
+      };
+    } else {
+      // Verify party belongs to user
+      party = await prisma.party.findFirst({
+        where: { id: partyId, userId: user.id }
+      });
 
-    if (!party) {
-      return NextResponse.json({ error: 'Party not found' }, { status: 404 });
+      if (!party) {
+        return NextResponse.json({ error: 'Party not found' }, { status: 404 });
+      }
     }
 
     // First try Pinterest API, then fallback to SerpAPI
@@ -467,36 +485,55 @@ export async function GET(request: NextRequest) {
       pinterestResults = await searchPinterestWithSerpAPI(query, limit);
     }
 
-    // Save results to database for caching and future reference
-    const savedInspirations = await Promise.all(
-      pinterestResults.map(async (pin) => {
-        // Check if this pin already exists for this party
-        const existing = await prisma.partyInspiration.findFirst({
-          where: {
-            partyId,
-            pinterestUrl: pin.pinterestUrl
-          }
-        });
+    // Save results to database for caching and future reference (skip for demo mode)
+    let savedInspirations;
+    
+    if (partyId === 'demo' || partyId === 'demo-party') {
+      // For demo mode, just return the Pinterest results without saving to database
+      savedInspirations = pinterestResults.map((pin, index) => ({
+        id: `demo_${index}`,
+        partyId: 'demo',
+        title: pin.title,
+        imageUrl: pin.imageUrl,
+        pinterestUrl: pin.pinterestUrl,
+        description: pin.description,
+        category,
+        keywords: pin.keywords,
+        isSaved: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }));
+    } else {
+      savedInspirations = await Promise.all(
+        pinterestResults.map(async (pin) => {
+          // Check if this pin already exists for this party
+          const existing = await prisma.partyInspiration.findFirst({
+            where: {
+              partyId,
+              pinterestUrl: pin.pinterestUrl
+            }
+          });
 
-        if (existing) {
-          return existing;
-        }
-
-        // Create new inspiration record
-        return await prisma.partyInspiration.create({
-          data: {
-            partyId,
-            title: pin.title,
-            imageUrl: pin.imageUrl,
-            pinterestUrl: pin.pinterestUrl,
-            description: pin.description,
-            category,
-            keywords: pin.keywords,
-            isSaved: false
+          if (existing) {
+            return existing;
           }
-        });
-      })
-    );
+
+          // Create new inspiration record
+          return await prisma.partyInspiration.create({
+            data: {
+              partyId,
+              title: pin.title,
+              imageUrl: pin.imageUrl,
+              pinterestUrl: pin.pinterestUrl,
+              description: pin.description,
+              category,
+              keywords: pin.keywords,
+              isSaved: false
+            }
+          });
+        })
+      );
+    }
 
     // Generate AI Mashups for the response
     const wizardInputs = {

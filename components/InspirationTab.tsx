@@ -179,30 +179,31 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
     try {
       const query = generateSearchQuery();
       const currentPage = isNewSearch ? 1 : page;
+      const apiUrl = `/api/pinterest-inspiration?query=${encodeURIComponent(query)}&category=${selectedCategory}&limit=20&partyId=${partyData?.id || 'demo'}&page=${currentPage}`;
       
-      const response = await fetch(
-        `/api/pinterest-inspiration?query=${encodeURIComponent(query)}&category=${selectedCategory}&limit=20&partyId=${partyData?.id || 'demo'}&page=${currentPage}`
-      );
+      const response = await fetch(apiUrl);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch inspirations');
+        const errorText = await response.text();
+        console.error('Pinterest API error:', response.status, errorText);
+        throw new Error(`Failed to fetch inspirations: ${response.status}`);
       }
       
       const data = await response.json();
       
       if (isNewSearch) {
-        setInspirations(data.inspirations);
+        setInspirations(data.inspirations || []);
         setPage(2);
         // Set AI mashups if returned
         if (data.aiMashups) {
           setAiMashups(data.aiMashups);
         }
       } else {
-        setInspirations(prev => [...prev, ...data.inspirations]);
+        setInspirations(prev => [...prev, ...(data.inspirations || [])]);
         setPage(prev => prev + 1);
       }
       
-      setHasMore(data.inspirations.length === 20);
+      setHasMore((data.inspirations || []).length === 20);
       
     } catch (error) {
       console.error('Error fetching inspirations:', error);
@@ -426,6 +427,9 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
   // Initial load
   useEffect(() => {
     if (partyData?.id) {
+      fetchInspirations(true);
+    } else if (partyData && !partyData.id) {
+      // Party data exists but no ID - use demo mode to show inspiration boards
       fetchInspirations(true);
     }
   }, [partyData?.id, selectedCategory]);
