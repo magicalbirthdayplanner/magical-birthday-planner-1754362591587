@@ -417,8 +417,8 @@ export default function Home() {
                   A quick and easy starting point for parents seeking basic help.
                 </CardDescription>
                 <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$9.99</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">(One-Time)</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$0</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">Introductory Offer</span>
                 </div>
               </CardHeader>
               <CardContent className="p-6">

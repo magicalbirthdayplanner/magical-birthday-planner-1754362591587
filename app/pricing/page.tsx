@@ -11,8 +11,8 @@ import { useState } from "react"
 const pricingTiers = [
   {
     name: "🎈 Starter",
-    price: 9.99,
-    annualPrice: 9.99,
+    price: 0,
+    annualPrice: 0,
     description: "A quick and easy starting point for parents seeking basic help.",
     icon: Star,
     gradient: "from-purple-500 to-pink-500",
@@ -120,7 +120,7 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {pricingTiers.map((tier, index) => {
             const displayPrice = tier.price
-            const billingPeriod = '(One-Time)'
+            const billingPeriod = tier.price === 0 ? 'Introductory Offer' : '(One-Time)'
             
             return (
               <Card 
@@ -213,7 +213,7 @@ export default function PricingPage() {
                   <th className="text-left p-4 font-semibold text-gray-900">Features</th>
                   <th className="text-center p-4">
                     <div className="font-semibold text-gray-900 text-sm">🎈 Starter</div>
-                    <div className="text-xs text-gray-500">$9.99 one-time</div>
+                    <div className="text-xs text-gray-500">$0 - Introductory Offer</div>
                   </th>
                   <th className="text-center p-4">
                     <div className="font-semibold text-gray-900 text-sm">🧁 Plus</div>

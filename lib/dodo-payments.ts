@@ -212,9 +212,9 @@ export const SUBSCRIPTION_PLANS = {
   STARTER: {
     id: 'starter_onetime',
     name: 'Starter',
-    price: 9.99,
+    price: 0,
     currency: 'USD',
-    interval: 'one-time',
+    interval: 'introductory-offer',
     features: {
       eventsCreation: 1,
       maxGuests: 15,
@@ -222,7 +222,7 @@ export const SUBSCRIPTION_PLANS = {
       themeSuggestions: true,
       smartChecklist: true,
       simpleInvitations: true,
-      emailSupport: '72-hour response',
+      basicSupport: true,
       premiumThemes: false,
       aiRecommendations: false,
       rsvpTracking: false,
@@ -251,11 +251,11 @@ export const SUBSCRIPTION_PLANS = {
       rsvpTracking: true,
       taskReminders: true,
       budgetTracker: 'manual input',
-      emailSupport: '48-hour response',
+      enhancedSupport: true,
       premiumThemes: true,
       aiRecommendations: true,
       vendorRecommendations: false,
-      prioritySupport: false,
+      comprehensiveFeatures: true,
       customThemes: false,
       adminTools: false
     }
@@ -279,7 +279,7 @@ export const SUBSCRIPTION_PLANS = {
       budgetTracker: 'smart with cost insights',
       vendorRecommendations: 'cakes, decor, entertainment',
       personalizedFoodSuggestions: true,
-      prioritySupport: '24-hour response',
+      fullPlatformAccess: true,
       premiumThemes: true,
       aiRecommendations: true,
       customThemes: true,

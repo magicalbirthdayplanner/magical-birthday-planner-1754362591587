@@ -1,3 +1,13 @@
+## [usr-1755224194432]
+**User Request:** In the landing page, remove terms like with advanced support , priority support, Email support (72-hour), Priority support (24-hour) etc everywhere
+
+
+Make the started plan cost as $0 - Introductory offer throughout the application to get more customers signup and drive MRR
+
+**Response Summary:** Removed all support-related terminology throughout the application and updated pricing to show Starter plan as $0 with "Introductory Offer" label. Changes made to landing page, pricing page, account management, subscription context, and payment configuration. Replaced support terms with cleaner feature descriptions like "comprehensive features", "enhanced support", and "full platform access".
+
+**Files Modified:** app/page.tsx, app/pricing/page.tsx, contexts/SubscriptionContext.tsx, app/account/page.tsx, lib/dodo-payments.ts
+
 ## [usr-1755223585574]
 **User Request:** All a clear all button to delete all the activities at once in the right corner of this box 
 

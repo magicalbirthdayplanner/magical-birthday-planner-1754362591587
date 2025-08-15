@@ -19,7 +19,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
     name: 'FREE',
     displayName: 'Starter',
     description: 'A quick and easy starting point for parents seeking basic help.',
-    price: 'Free',
+    price: '$0 - Introductory Offer',
     features: [
       'Theme suggestions based on age',
       'Smart checklist & timeline',
@@ -45,14 +45,14 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
   PROFESSIONAL: {
     name: 'PROFESSIONAL',
     displayName: 'Pro',
-    description: 'All-in-one planning experience with advanced support and recommendations.',
+    description: 'All-in-one planning experience with comprehensive features and recommendations.',
     price: '$29.99',
     features: [
       'Everything in Plus',
       'Vendor recommendations (cakes, decor, entertainment)',
       'Personalized food suggestions by age & theme',
       'Advanced budget tracking',
-      'Premium support',
+      'Complete party planning suite',
     ],
     allowedTabs: ['overview', 'budget', 'activities', 'host-mode', 'shopping', 'venue', 'food', 'cake', 'guests', 'timeline', 'checklist', 'inspiration']
   }

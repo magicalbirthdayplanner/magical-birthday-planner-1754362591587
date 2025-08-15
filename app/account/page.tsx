@@ -61,7 +61,7 @@ const planDetails = {
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
     features: ["Theme suggestions based on age", "Smart checklist & timeline", "Simple invitation creator"],
-    price: "$9.99 (One-Time)"
+    price: "$0 - Introductory Offer"
   },
   PLUS: {
     name: "🧁 Plus", 
