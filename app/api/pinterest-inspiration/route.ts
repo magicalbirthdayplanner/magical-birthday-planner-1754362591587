@@ -491,16 +491,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'PartyId parameter is required' }, { status: 400 });
     }
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     let party;
+    let user: any = null;
     
-    // Handle demo/test cases when no valid party exists
+    // Handle demo/test cases when no valid party exists - allow without authentication
     if (partyId === 'demo' || partyId === 'demo-party') {
       console.log('Using demo party data for Pinterest inspiration');
       party = {
@@ -515,6 +509,15 @@ export async function GET(request: NextRequest) {
         favoriteColors: ['pink', 'purple']
       };
     } else {
+      // For non-demo mode, require authentication
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !authUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      
+      user = authUser;
+      
       // Verify party belongs to user
       party = await prisma.party.findFirst({
         where: { id: partyId, userId: user.id }
@@ -638,7 +641,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'InspirationId and action are required' }, { status: 400 });
     }
 
-    // Get current user
+    // Handle demo mode - return success without database operations
+    if (inspirationId.startsWith('demo')) {
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Demo mode - changes not persisted',
+        inspiration: { id: inspirationId, isSaved: action === 'save' }
+      });
+    }
+
+    // Get current user for non-demo operations
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
