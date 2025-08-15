@@ -69,18 +69,20 @@ import {
 import Link from "next/link";
 
 interface PartyData {
+  id?: string;
   childName: string;
   childAge: string;
   partyDate: Date;
   selectedTheme: string;
+  theme?: string;
+  interests?: string[];
+  favoriteColors?: string[];
   budget?: number;
   zipCode?: string;
   guestCount?: number;
   venue?: 'indoor' | 'outdoor' | 'mixed';
   duration?: string;
   themeActivities?: string;
-  childInterests?: string[];
-  favoriteColors?: string[];
 }
 
 interface ChecklistItem {
@@ -509,10 +511,14 @@ export default function PartyPlanPage() {
       
       // Set party data
       setPartyData({
+        id: party.id,
         childName: party.childName,
         childAge: party.childAge.toString(),
         partyDate: new Date(party.partyDate),
         selectedTheme: party.theme,
+        theme: party.theme,
+        interests: party.interests || [],
+        favoriteColors: party.favoriteColors || [],
         budget: party.budget || undefined,
         zipCode: party.location || undefined,
         guestCount: party.guestCount || undefined,
@@ -1451,7 +1457,7 @@ export default function PartyPlanPage() {
                 childName: partyData.childName,
                 childAge: parseInt(partyData.childAge || '0'),
                 theme: partyData.selectedTheme || 'Birthday',
-                interests: partyData.childInterests || [],
+                interests: partyData.interests || [],
                 favoriteColors: partyData.favoriteColors || [],
                 venue: partyData.venue,
                 guestCount: partyData.guestCount
@@ -1467,7 +1473,7 @@ export default function PartyPlanPage() {
                 childName: partyData.childName,
                 childAge: parseInt(partyData.childAge || '0'),
                 theme: partyData.selectedTheme || 'Birthday',
-                interests: partyData.childInterests || [],
+                interests: partyData.interests || [],
                 favoriteColors: partyData.favoriteColors || [],
                 venue: partyData.venue,
                 guestCount: partyData.guestCount
