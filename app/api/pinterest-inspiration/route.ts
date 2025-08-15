@@ -528,7 +528,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // First try Pinterest API, then fallback to SerpAPI
+    // First try Pinterest API, then fallback to SerpAPI, then fallback to mock data
     let pinterestResults: PinterestPin[] = [];
     const pinterestApiResults = await searchPinterestAPI(query, limit);
     
@@ -547,6 +547,12 @@ export async function GET(request: NextRequest) {
     } else {
       // Fallback to SerpAPI
       pinterestResults = await searchPinterestWithSerpAPI(query, limit);
+      
+      // If SerpAPI also fails or returns no results, ensure we have mock data
+      if (pinterestResults.length === 0) {
+        console.log('All APIs failed, using mock Pinterest data for query:', query);
+        pinterestResults = generateMockPinterestData(query, category);
+      }
     }
 
     // Save results to database for caching and future reference (skip for demo mode)
