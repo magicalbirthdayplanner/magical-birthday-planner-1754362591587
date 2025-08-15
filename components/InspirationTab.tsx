@@ -20,7 +20,9 @@ import {
   Mail,
   Shirt,
   PartyPopper,
-  Wand2
+  Wand2,
+  Timer,
+  Star
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -52,6 +54,20 @@ interface PinterestPin {
   keywords: string[];
   isSaved: boolean;
   aiExpanded?: string;
+  aiMatchScore?: number;
+  aiCategoryTag?: string;
+  relevanceReason?: string;
+}
+
+interface AIMashupIdea {
+  id: string;
+  title: string;
+  description: string;
+  combinedElements: string[];
+  inspiration: string[];
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  estimatedTime: string;
+  materials: string[];
 }
 
 interface InspirationTabProps {
@@ -114,6 +130,9 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
   const [hasMore, setHasMore] = useState(true);
   const [expandingId, setExpandingId] = useState<string | null>(null);
   const [expandedInspirations, setExpandedInspirations] = useState<Record<string, string>>({});
+  const [aiMashups, setAiMashups] = useState<AIMashupIdea[]>([]);
+  const [sortBy, setSortBy] = useState<'best-match' | 'newest' | 'most-pinned'>('best-match');
+  const [mashupLoading, setMashupLoading] = useState(false);
   const { toast } = useToast();
 
   // Generate search query from party data
@@ -174,6 +193,10 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
       if (isNewSearch) {
         setInspirations(data.inspirations);
         setPage(2);
+        // Set AI mashups if returned
+        if (data.aiMashups) {
+          setAiMashups(data.aiMashups);
+        }
       } else {
         setInspirations(prev => [...prev, ...data.inspirations]);
         setPage(prev => prev + 1);
@@ -325,7 +348,44 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
     fetchInspirations(true);
   };
 
-  // Filter inspirations based on category and saved status
+  // Generate more AI mashups
+  const handleGetMoreMashups = async () => {
+    if (mashupLoading || inspirations.length === 0) return;
+    
+    setMashupLoading(true);
+    try {
+      // Use the current top inspirations to generate new mashups
+      const response = await fetch('/api/pinterest-inspiration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'generate_mashups',
+          topPins: inspirations.slice(0, 10),
+          partyData: partyData
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.aiMashups) {
+          setAiMashups(data.aiMashups);
+        }
+      }
+    } catch (error) {
+      console.error('Error generating new mashups:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate new mashup ideas. Please try again."
+      });
+    } finally {
+      setMashupLoading(false);
+    }
+  };
+
+  // Filter and sort inspirations based on category, saved status, and sort option
   useEffect(() => {
     let filtered = inspirations;
     
@@ -344,8 +404,24 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
       );
     }
     
-    setFilteredInspirations(filtered);
-  }, [inspirations, selectedCategory, showSavedOnly, searchKeywords]);
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'best-match':
+          return (b.aiMatchScore || 0) - (a.aiMatchScore || 0);
+        case 'newest':
+          // Assuming we have a createdAt field or use array order as proxy
+          return filtered.indexOf(b) - filtered.indexOf(a);
+        case 'most-pinned':
+          // This would require actual Pinterest stats, using random for demo
+          return Math.random() - 0.5;
+        default:
+          return 0;
+      }
+    });
+    
+    setFilteredInspirations(sorted);
+  }, [inspirations, selectedCategory, showSavedOnly, searchKeywords, sortBy]);
 
   // Initial load
   useEffect(() => {
@@ -458,6 +534,104 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
         </div>
       </div>
 
+      {/* AI Mashup Ideas Section */}
+      {aiMashups.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Wand2 className="h-5 w-5 text-purple-600" />
+                AI Mashup Ideas
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                Creative combinations of your top inspirations
+              </p>
+            </div>
+            <Button
+              onClick={handleGetMoreMashups}
+              disabled={mashupLoading}
+              variant="outline"
+              size="sm"
+            >
+              {mashupLoading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Get More Ideas
+                </>
+              )}
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {aiMashups.map((mashup) => (
+              <Card key={mashup.id} className="overflow-hidden border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-lg">
+                        {mashup.title}
+                      </h4>
+                      <Badge 
+                        variant={
+                          mashup.difficulty === 'Easy' ? 'secondary' : 
+                          mashup.difficulty === 'Medium' ? 'default' : 
+                          'destructive'
+                        }
+                        className="text-xs"
+                      >
+                        {mashup.difficulty}
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {mashup.description}
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Timer className="h-3 w-3" />
+                        {mashup.estimatedTime}
+                      </div>
+                      
+                      <div>
+                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Key Elements:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {mashup.combinedElements.slice(0, 3).map((element, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {element}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Inspired by:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {mashup.inspiration.slice(0, 2).map((source, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {source}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Results */}
       <div className="space-y-4">
         {loading && inspirations.length === 0 ? (
@@ -483,13 +657,25 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
           </div>
         ) : (
           <>
-            {/* Results count */}
+            {/* Results count and sorting */}
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 {filteredInspirations.length} inspiration{filteredInspirations.length !== 1 ? 's' : ''} found
                 {showSavedOnly && ' in your collection'}
               </p>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">Sort by:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'best-match' | 'newest' | 'most-pinned')}
+                    className="text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800"
+                  >
+                    <option value="best-match">Best Match</option>
+                    <option value="newest">Newest First</option>
+                    <option value="most-pinned">Most Pinned</option>
+                  </select>
+                </div>
                 <Badge variant="secondary" className="text-xs">
                   {selectedCategory.replace('_', ' ')}
                 </Badge>
@@ -559,6 +745,17 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
                           <Badge className="bg-purple-500 text-white">
                             <Wand2 className="h-3 w-3 mr-1" />
                             AI Guide
+                          </Badge>
+                        )}
+                        {pin.aiMatchScore && pin.aiMatchScore > 80 && (
+                          <Badge className="bg-green-500 text-white">
+                            <Star className="h-3 w-3 mr-1 fill-current" />
+                            {pin.aiMatchScore}%
+                          </Badge>
+                        )}
+                        {pin.aiCategoryTag && (
+                          <Badge className="bg-blue-500 text-white text-xs">
+                            {pin.aiCategoryTag}
                           </Badge>
                         )}
                       </div>

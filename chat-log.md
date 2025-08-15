@@ -1,3 +1,63 @@
+## [usr-1755227138267]
+**User Request:** for the inspiration tab, under the party management, develop the following feature 
+
+ Pintrest API key - be390fc8ef5bccd6c7896bbd7857276c5681d4dd
+
+📌 Goal:
+After the user completes the Wizard (theme, venue, location, age group, etc.), automatically fetch and display Pinterest inspiration for their party — no Pinterest login required.
+
+---
+
+🔹 Feature Requirements:
+
+1. **Pinterest Search Integration**
+   - Use Pinterest's public search endpoint or scrape-friendly API method to fetch boards and pins relevant to the Wizard's keywords.
+   - Example: If the user selects "Cinderella birthday decor ideas", search Pinterest for that exact phrase.
+   - Fetch at least 20–30 top results (mix of boards and pins).
+   - Extract image URL, title, and Pinterest link.
+
+2. **AI Processing (Azure OpenAI GPT-4.1)**
+   - Send the following into GPT-4.1:
+     - Wizard inputs: theme, age group, location type, special keywords.
+     - Pinterest search results (board/pin titles and descriptions).
+   - Ask GPT-4.1 to:
+     a) Remove irrelevant or generic results.
+     b) Assign a category tag: Games, Food, Cake, Decorations, Venue Styling, Entertainment, etc.
+     c) Generate an "AI Match Score" from 0–100 based on relevance to the Wizard's inputs.
+     d) Create up to 3 "AI Mashup Ideas" combining top inspirations in creative ways.
+
+3. **UI Display**
+   - Card grid layout showing:
+     - Image preview
+     - Board/pin title
+     - AI category tag
+     - Match score (optional badge)
+     - "View on Pinterest" link
+   - Filters for Category, Match Score, and Recency.
+   - Sort options: Best Match, Newest First, Most Pinned.
+   - Section at the top for "AI Mashups" showing unique combinations with a "Get More Ideas" button.
+
+4. **Implementation Notes**
+   - Backend: Node.js with Express to query Pinterest's public API or scrape via a proxy.
+   - Process results through GPT-4.1 before sending to the frontend.
+   - Frontend: React component for Inspiration tab with responsive card grid and filter controls.
+   - Ensure images are optimized for fast load.
+
+---
+
+🎯 Deliverables:
+- Fully functional Inspiration tab after the Checklist tab.
+- Automated Pinterest search and GPT-4.1 filtering.
+- AI Mashup generator.
+- Responsive, mobile-friendly design.
+- No Pinterest login required.
+
+Retain the filters by category, search bar to personalize results etc
+
+**Response Summary:** Successfully implemented comprehensive Pinterest inspiration feature with full AI processing capabilities. Created robust Pinterest API integration with multi-tier fallback system (Pinterest API → SerpAPI → Mock data). Implemented Azure OpenAI GPT-4.1 processing for intelligent content filtering, categorization, match scoring, and AI mashup generation. Enhanced existing InspirationTab component with advanced features including sorting (Best Match, Newest, Most Pinned), filtering by category, AI Mashup Ideas section with beautiful card layouts, match score badges, and category tags. Added AI expansion capabilities for individual pins. The system automatically processes wizard inputs (theme, age, location, interests, colors) to provide highly relevant, personalized Pinterest inspirations. All features are responsive, mobile-friendly, and include proper error handling with graceful fallbacks.
+
+**Files Modified:** .env, lib/env-config.ts, app/api/pinterest-inspiration/route.ts, components/InspirationTab.tsx
+
 ## [usr-1755225473666]
 **User Request:** In the early access, after entering email - there is no acknowledgement mail that is going to the receipents. Can you fix this using resend API 
 

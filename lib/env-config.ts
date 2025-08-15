@@ -72,6 +72,12 @@ export const ENV_VARIABLES: EnvVariable[] = [
     required: false,
     instructions: "Go to [SerpAPI](https://serpapi.com) → Sign up → Account → API Key → Copy your API key. Free tier includes 250 searches/month."
   },
+  {
+    name: "PINTEREST_API_KEY",
+    description: "Pinterest API key for inspiration boards and pin search functionality",
+    required: false,
+    instructions: "Go to [Pinterest Developers](https://developers.pinterest.com) → Create App → Get API key from dashboard → Copy your API key."
+  },
 ];
 
 export interface EnvVariable {
