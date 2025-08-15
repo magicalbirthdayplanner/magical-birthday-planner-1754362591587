@@ -509,7 +509,7 @@ export default function PartyPlanPage() {
       // CRITICAL: Set the current party ID for all subsequent operations
       setCurrentPartyId(party.id);
       
-      // Set party data
+      // Set party data with all required fields for inspiration tab
       setPartyData({
         id: party.id,
         childName: party.childName,
@@ -522,6 +522,9 @@ export default function PartyPlanPage() {
         budget: party.budget || undefined,
         zipCode: party.location || undefined,
         guestCount: party.guestCount || undefined,
+        venue: party.venue || 'mixed',
+        duration: party.duration || '2-3 hours',
+        themeActivities: party.themeActivities || undefined,
       });
 
       // Set guests from database only
