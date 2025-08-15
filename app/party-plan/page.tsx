@@ -18,7 +18,6 @@ import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
-import InspirationTab from "@/components/InspirationTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -249,14 +248,6 @@ export default function PartyPlanPage() {
       hoverColor: 'bg-blue-50 dark:bg-blue-900/20',
       allowedPlans: ['checklist'] // Always allowed (included in all plans)
     },
-    {
-      id: 'inspiration',
-      label: 'Inspiration',
-      icon: Lightbulb,
-      gradient: 'from-yellow-500 to-amber-500',
-      hoverColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-      allowedPlans: ['inspiration'] // Always allowed (included in all plans)
-    }
   ];
 
   // Get tabs allowed for current subscription plan
@@ -1615,12 +1606,6 @@ export default function PartyPlanPage() {
             </div>
           </TabsContent>
 
-          {/* Inspiration Tab */}
-          <TabsContent value="inspiration" className="space-y-6">
-            <InspirationTab
-              partyData={partyData}
-            />
-          </TabsContent>
 
           {/* Guests Tab - Combined Guest Management and Invitations */}
           <TabsContent value="guests" className="space-y-6">

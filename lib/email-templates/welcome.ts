@@ -247,7 +247,7 @@ export function generateWelcomeEmail({ name, baseUrl }: WelcomeEmailProps) {
         <div class="footer">
             <p><strong>Magical Birthday Planner</strong></p>
             <p>Creating magical memories, one party at a time</p>
-            <p>Follow us for party inspiration and tips!</p>
+            <p>Follow us for party tips!</p>
             <p style="margin-top: 20px; font-size: 12px; color: #999;">
                 Questions? Just reply to this email – we love hearing from you! 💕
             </p>

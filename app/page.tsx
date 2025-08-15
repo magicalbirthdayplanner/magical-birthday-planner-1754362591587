@@ -380,7 +380,7 @@ export default function Home() {
                 3
               </div>
               <h3 className="text-xl font-semibold mb-2 dark:text-gray-100">Get Your Plan</h3>
-              <p className="text-gray-600 dark:text-gray-300">Receive personalized suggestions, checklists, and inspiration</p>
+              <p className="text-gray-600 dark:text-gray-300">Receive personalized suggestions and checklists</p>
             </div>
           </div>
         </div>

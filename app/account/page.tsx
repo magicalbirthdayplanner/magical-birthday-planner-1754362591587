@@ -643,7 +643,7 @@ export default function AccountPage() {
                       Marketing Emails
                     </Label>
                     <p className="text-sm text-gray-600">
-                      Receive tips, inspiration, and special offers
+                      Receive tips and special offers
                     </p>
                   </div>
                   <Switch

@@ -16,10 +16,9 @@ A modern, responsive web application designed to help parents plan magical birth
 - **🤖 Revolutionary AI Theme Recommendations**: Advanced GPT-4o powered suggestion engine
   - Real-time personalized theme generation based on child's profile
   - 20+ interest categories and 8 favorite color options for precise personalization
-  - Custom-generated themes with unique names, descriptions, and inspiration boards
+  - Custom-generated themes with unique names and descriptions
   - Intelligent match scoring and personalized explanations
   - Beautiful loading states and seamless fallback to classic themes
-- **🎯 Theme Inspiration Boards**: Detailed decorations, activities, and food suggestions with mini previews
 - **📋 Smart Checklists**: Comprehensive task lists organized by timeline
 - **📊 Progress Tracking**: Visual progress indicators for party planning
 - **🎯 Enhanced Guest Management System**: Comprehensive guest lifecycle management
@@ -78,7 +77,7 @@ A modern, responsive web application designed to help parents plan magical birth
 - **🤖 AI-Powered Theme Recommendations**: Revolutionary personalized theme suggestion system
   - OpenAI GPT-4o integration for intelligent theme generation
   - Personalized recommendations based on child's age, interests, and favorite colors
-  - 3-5 custom AI-generated themes with detailed inspiration boards
+  - 3-5 custom AI-generated themes with detailed recommendations
   - Match scoring system showing compatibility percentage
   - Personalized explanations for each theme recommendation
   - Dynamic color palettes, decorations, activities, and printable ideas
@@ -309,7 +308,7 @@ npm start
 - Enhanced 3-step party creation wizard with AI recommendations
 - Interactive interests collection system (14 interest categories)
 - Smart AI theme recommendation engine based on age and interests
-- 8 themed party options with detailed inspiration boards and mini previews
+- 8 themed party options with detailed suggestions and previews
 - Comprehensive checklist system (15 tasks across 5 timeline phases)
 - Progress tracking and timeline visualization
 - **Complete Guest List & RSVP Management System**:
