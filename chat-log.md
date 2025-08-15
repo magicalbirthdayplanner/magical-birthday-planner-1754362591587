@@ -1,3 +1,52 @@
+## [usr-1755230304318]
+**User Request:** Title: Fix Pinterest Inspiration tab to show results in demo/unsaved party mode
+
+Description:
+Currently, the Pinterest Inspiration tab shows "No inspirations found" when a party is unsaved (missing partyData.id). This happens because the /api/pinterest-inspiration route requires a valid partyId in the DB and returns 404 when missing. We need a fix so that inspiration boards still load in demo/test mode.
+
+Tasks:
+1. **Frontend (InspirationTab.tsx)**:
+   - In the effect where we call fetchInspirations(), detect if `partyData?.id` is missing or null.
+   - If missing, call `/api/pinterest-inspiration?partyId=demo` instead of skipping.
+   - Ensure the search input & filter by category still work with demo data.
+   - Update error handling so that any 404 or "Party not found" automatically retries with `partyId=demo`.
+
+2. **Backend (/pages/api/pinterest-inspiration.ts)**:
+   - Add a conditional: if `partyId === 'demo'`, skip DB validation and instead return a static array of 8–10 mock Pinterest boards.
+     Example mock board object:
+     {
+       id: 'demo-1',
+       title: 'Cinderella Birthday Decor Ideas',
+       image: 'https://i.pinimg.com/736x/demo_image1.jpg',
+       link: 'https://www.pinterest.com/search/pins/?q=cinderella%20birthday%20decor'
+     }
+   - Keep authentication requirements the same for normal mode.
+   - Ensure Pinterest API logic is untouched for valid party IDs.
+
+3. **Testing**:
+   - Verify that with no saved party (no partyData.id), boards from demo mode appear instantly.
+   - Verify that with a valid saved party ID, Pinterest API still fetches real data.
+   - Test with search terms and category filters in both modes.
+
+Acceptance Criteria:
+- Users see Pinterest boards even if the party isn't saved yet.
+- Real Pinterest API results appear when a valid party exists.
+- No blank "No inspirations found" unless Pinterest returns zero matches in both demo & live mode.
+
+**Response Summary:** Successfully fixed the Pinterest Inspiration tab to show results in demo/unsaved party mode. The issue was resolved by enhancing the error handling in the frontend to automatically retry with demo mode when a 404 or "Party not found" error occurs. Also improved the backend mock Pinterest data with realistic titles, descriptions, and high-quality example boards. The system now seamlessly handles both scenarios:
+
+1. **Demo Mode (Unsaved Parties)**: When partyData.id is missing or API returns 404, the system automatically falls back to demo mode with 8 high-quality mock Pinterest boards featuring realistic titles like "Cinderella Birthday Decor Ideas" and proper descriptions.
+
+2. **Live Mode (Saved Parties)**: When valid party ID exists, the Pinterest API integration works normally with real data fetching and AI processing.
+
+Key improvements made:
+- Enhanced fetchInspirations() error handling to automatically retry with demo mode on 404 errors
+- Updated generateMockPinterestData() with realistic Pinterest board examples
+- Maintained all existing functionality including search, category filters, and AI mashups
+- Ensured smooth user experience with no blank screens in either mode
+
+**Files Modified:** components/InspirationTab.tsx (enhanced error handling and demo mode fallback), app/api/pinterest-inspiration/route.ts (improved mock data quality and realistic Pinterest board examples)
+
 ## [usr-1755229421821]
 **User Request:** The Pintrest boards should populate in the attached screenshot. Right now there is nothing poupulating
 

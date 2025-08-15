@@ -179,13 +179,41 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
     try {
       const query = generateSearchQuery();
       const currentPage = isNewSearch ? 1 : page;
-      const apiUrl = `/api/pinterest-inspiration?query=${encodeURIComponent(query)}&category=${selectedCategory}&limit=20&partyId=${partyData?.id || 'demo'}&page=${currentPage}`;
+      const partyId = partyData?.id || 'demo';
+      const apiUrl = `/api/pinterest-inspiration?query=${encodeURIComponent(query)}&category=${selectedCategory}&limit=20&partyId=${partyId}&page=${currentPage}`;
       
       const response = await fetch(apiUrl);
       
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Pinterest API error:', response.status, errorText);
+        
+        // If we get a 404 or "Party not found" error and we're not already in demo mode, retry with demo mode
+        if ((response.status === 404 || errorText.includes('Party not found')) && partyId !== 'demo') {
+          console.log('Party not found, retrying with demo mode...');
+          const demoApiUrl = `/api/pinterest-inspiration?query=${encodeURIComponent(query)}&category=${selectedCategory}&limit=20&partyId=demo&page=${currentPage}`;
+          const demoResponse = await fetch(demoApiUrl);
+          
+          if (demoResponse.ok) {
+            const demoData = await demoResponse.json();
+            
+            if (isNewSearch) {
+              setInspirations(demoData.inspirations || []);
+              setPage(2);
+              if (demoData.aiMashups) {
+                setAiMashups(demoData.aiMashups);
+              }
+            } else {
+              setInspirations(prev => [...prev, ...(demoData.inspirations || [])]);
+              setPage(prev => prev + 1);
+            }
+            
+            setHasMore((demoData.inspirations || []).length === 20);
+            setLoading(false);
+            return;
+          }
+        }
+        
         throw new Error(`Failed to fetch inspirations: ${response.status}`);
       }
       

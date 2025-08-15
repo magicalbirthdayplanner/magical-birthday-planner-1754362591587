@@ -57,38 +57,99 @@ interface PinterestSearchResult {
   };
 }
 
-// Mock Pinterest data for development (will be replaced with actual API)
+// Mock Pinterest data for demo mode
 const generateMockPinterestData = (query: string, category: InspirationCategory = 'GENERAL'): PinterestPin[] => {
   const themes = ['princess', 'superhero', 'dinosaur', 'space', 'safari', 'ocean', 'pirate', 'unicorn'];
-  const categories = ['decorations', 'cake', 'games', 'invitations', 'costumes', 'party ideas'];
-  
   const keywords = query.toLowerCase().split(' ');
-  const theme = themes.find(t => keywords.includes(t)) || 'party';
+  const theme = themes.find(t => keywords.includes(t)) || 'birthday';
   const categoryStr = category.toLowerCase().replace('_', ' ');
 
-  const mockData: PinterestPin[] = [];
-  
-  for (let i = 1; i <= 20; i++) {
-    const id = `pin_${theme}_${category}_${i}`;
-    const title = `${theme.charAt(0).toUpperCase() + theme.slice(1)} ${categoryStr} Ideas ${i}`;
-    const imageUrl = `https://images.unsplash.com/400x600/?party,${theme},${categoryStr}&sig=${i}`;
-    const pinterestUrl = `https://pinterest.com/pin/${id}`;
-    const description = `Beautiful ${theme} ${categoryStr} inspiration for your party planning`;
-    
-    mockData.push({
-      id,
-      title,
-      imageUrl,
-      pinterestUrl,
-      description,
-      keywords: [theme, categoryStr, 'party', 'birthday'],
-      aiCategoryTag: getCategoryFromKeywords(title + ' ' + description),
-      aiMatchScore: Math.floor(Math.random() * 30) + 70,
-      relevanceReason: 'Matches party theme and requirements'
-    });
-  }
+  // High-quality mock Pinterest boards with realistic titles and descriptions
+  const mockBoards = [
+    {
+      id: 'demo-1',
+      title: 'Cinderella Birthday Decor Ideas',
+      imageUrl: 'https://i.pinimg.com/736x/82/8a/98/828a98f42c4a8b9c8f4e8c9a8b7c6d5e.jpg',
+      pinterestUrl: 'https://www.pinterest.com/search/pins/?q=cinderella%20birthday%20decor',
+      description: 'Magical Cinderella party decorations with blue and silver themes, pumpkin carriages, and glass slippers',
+      keywords: ['cinderella', 'princess', 'blue', 'silver', 'birthday', 'decorations'],
+      aiMatchScore: 95
+    },
+    {
+      id: 'demo-2', 
+      title: 'DIY Princess Castle Centerpieces',
+      imageUrl: 'https://i.pinimg.com/736x/91/7b/45/917b45e3c2f4a8b9c8f4e8c9a8b7c6d5.jpg',
+      pinterestUrl: 'https://www.pinterest.com/search/pins/?q=princess%20castle%20centerpieces',
+      description: 'Beautiful princess castle centerpieces made from cardboard towers and glitter - perfect for princess parties',
+      keywords: ['princess', 'castle', 'centerpieces', 'diy', 'decorations'],
+      aiMatchScore: 88
+    },
+    {
+      id: 'demo-3',
+      title: 'Royal Princess Party Games & Activities',
+      imageUrl: 'https://i.pinimg.com/736x/74/6c/38/746c38f42c4a8b9c8f4e8c9a8b7c6d5e.jpg', 
+      pinterestUrl: 'https://www.pinterest.com/search/pins/?q=princess%20party%20games',
+      description: 'Fun princess party games including crown decorating, royal treasure hunts, and princess training activities',
+      keywords: ['princess', 'games', 'activities', 'crown', 'treasure hunt'],
+      aiMatchScore: 92
+    },
+    {
+      id: 'demo-4',
+      title: 'Magical Princess Birthday Cake Ideas',
+      imageUrl: 'https://i.pinimg.com/736x/65/5d/29/655d29f42c4a8b9c8f4e8c9a8b7c6d5e.jpg',
+      pinterestUrl: 'https://www.pinterest.com/search/pins/?q=princess%20birthday%20cake',
+      description: 'Stunning princess birthday cakes with tiered designs, edible pearls, and fondant crowns',
+      keywords: ['princess', 'cake', 'birthday', 'tiered', 'crown'],
+      aiMatchScore: 94
+    },
+    {
+      id: 'demo-5',
+      title: 'Princess Party Invitation Templates',
+      imageUrl: 'https://i.pinimg.com/736x/56/4e/1a/564e1af42c4a8b9c8f4e8c9a8b7c6d5e.jpg',
+      pinterestUrl: 'https://www.pinterest.com/search/pins/?q=princess%20party%20invitations',
+      description: 'Elegant princess party invitations with royal crests, flowing script fonts, and pink and gold accents',
+      keywords: ['princess', 'invitations', 'royal', 'pink', 'gold'],
+      aiMatchScore: 87
+    },
+    {
+      id: 'demo-6',
+      title: 'Princess Dress-Up Station Setup',
+      imageUrl: 'https://i.pinimg.com/736x/47/3f/0b/473f0bf42c4a8b9c8f4e8c9a8b7c6d5e.jpg',
+      pinterestUrl: 'https://www.pinterest.com/search/pins/?q=princess%20dress%20up%20station',
+      description: 'Create a magical dress-up corner with princess costumes, tiaras, jewelry, and a full-length mirror',
+      keywords: ['princess', 'dress-up', 'costumes', 'tiaras', 'jewelry'],
+      aiMatchScore: 90
+    },
+    {
+      id: 'demo-7',
+      title: 'Pink & Gold Princess Table Setting',
+      imageUrl: 'https://i.pinimg.com/736x/38/30/fc/3830fcf42c4a8b9c8f4e8c9a8b7c6d5e.jpg',
+      pinterestUrl: 'https://www.pinterest.com/search/pins/?q=princess%20table%20setting',
+      description: 'Royal table setting with pink linens, gold chargers, crystal glasses, and floral centerpieces',
+      keywords: ['princess', 'table', 'pink', 'gold', 'royal'],
+      aiMatchScore: 89
+    },
+    {
+      id: 'demo-8',
+      title: 'DIY Princess Photo Booth Props',
+      imageUrl: 'https://i.pinimg.com/736x/29/21/ed/2921edf42c4a8b9c8f4e8c9a8b7c6d5e.jpg',
+      pinterestUrl: 'https://www.pinterest.com/search/pins/?q=princess%20photo%20booth%20props',
+      description: 'Create fun princess photo booth props including crowns, wands, lips, and royal speech bubbles',
+      keywords: ['princess', 'photo booth', 'props', 'crowns', 'wands'],
+      aiMatchScore: 85
+    }
+  ];
 
-  return mockData;
+  // Filter and adapt mock boards based on query and category
+  return mockBoards.map((board, index) => ({
+    ...board,
+    id: `demo_${theme}_${category}_${index + 1}`,
+    title: board.title.replace('Princess', theme.charAt(0).toUpperCase() + theme.slice(1)),
+    description: board.description.replace('princess', theme).replace('Princess', theme.charAt(0).toUpperCase() + theme.slice(1)),
+    keywords: [theme, categoryStr, 'party', 'birthday', ...board.keywords.slice(2)],
+    aiCategoryTag: getCategoryFromKeywords(board.title + ' ' + board.description),
+    relevanceReason: `Perfect match for ${theme} ${categoryStr} party planning`
+  }));
 };
 
 // Function to search Pinterest using Pinterest API
