@@ -88,6 +88,11 @@ A modern, responsive web application designed to help parents plan magical birth
   - Secure user registration and authentication
   - Session management with automatic login persistence
   - Protected routes and user account management
+- **📧 Early Access Email System**: Automated welcome emails for early access signups
+  - Resend API integration for transactional emails
+  - Beautiful HTML email templates with brand styling
+  - Automatic acknowledgment emails sent upon early access registration
+  - Link to website (www.magicalbirthdayplanner.com) included in welcome emails
 - **📊 Party Dashboard**: Comprehensive party management interface
   - View all upcoming and completed parties
   - Party statistics and progress tracking
@@ -128,6 +133,7 @@ A modern, responsive web application designed to help parents plan magical birth
 - **Database**: Prisma ORM + Supabase PostgreSQL
 - **Authentication**: Supabase Auth
 - **AI Integration**: OpenAI GPT-4o for personalized theme recommendations
+- **Email Service**: Resend for transactional emails and notifications
 - **Payments**: DoDo Payments gateway for subscription management
 
 ## 🚀 Getting Started
@@ -417,7 +423,16 @@ The app is configured to work with Supabase for database/authentication and Open
    ```
 4. The app works perfectly without this - it will use high-quality fallback themes
 
-**Note**: AI features enhance the experience but aren't required. The app provides excellent theme recommendations even without an OpenAI API key.
+### Required for Email Functionality:
+1. Create a Resend account at [resend.com](https://resend.com)
+2. Generate an API key from your dashboard
+3. Add Resend environment variable to `.env`:
+   ```env
+   RESEND_API_KEY="re_..."
+   ```
+4. Early access welcome emails will be sent automatically upon signup
+
+**Note**: AI features enhance the experience but aren't required. The app provides excellent theme recommendations even without an OpenAI API key. Email functionality is essential for early access acknowledgment emails.
 
 ## 🎯 Target Audience
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { sendEarlyAccessWelcomeEmail } from '@/lib/email';
 
 const prisma = new PrismaClient();
 
@@ -32,17 +33,34 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // Send welcome email after successful database entry
+      const emailResult = await sendEarlyAccessWelcomeEmail({
+        email: email.toLowerCase().trim(),
+      });
+
+      // Log email sending result but don't fail the API if email fails
+      if (!emailResult.success) {
+        console.error('Failed to send early access welcome email:', emailResult.error);
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Email successfully added to early access list',
         id: earlyAccessEntry.id,
+        emailSent: emailResult.success,
       });
     } catch (error: any) {
       // Handle unique constraint violation (email already exists)
       if (error.code === 'P2002') {
+        // For duplicate emails, still try to send welcome email in case they never received it
+        const emailResult = await sendEarlyAccessWelcomeEmail({
+          email: email.toLowerCase().trim(),
+        });
+
         return NextResponse.json({
           success: true,
           message: 'Email already registered for early access',
+          emailSent: emailResult.success,
         });
       }
       throw error;
