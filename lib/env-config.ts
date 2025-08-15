@@ -66,6 +66,12 @@ export const ENV_VARIABLES: EnvVariable[] = [
     required: false,
     instructions: "Go to [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → Create API key → Enable Places API (New) → Copy the API key"
   },
+  {
+    name: "PINTEREST_API_KEY",
+    description: "Pinterest API access token for fetching real Pinterest boards and pins for party inspiration",
+    required: false,
+    instructions: "Go to [Pinterest Developer Portal](https://developers.pinterest.com) → Create App → Generate Access Token → Copy the access token (OAuth2 Bearer token)"
+  },
 ];
 
 export interface EnvVariable {

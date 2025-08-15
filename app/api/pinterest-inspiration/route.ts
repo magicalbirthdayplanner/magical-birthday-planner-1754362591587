@@ -305,48 +305,161 @@ function generateMockPinterestData(theme: string = 'princess'): PinterestBoard[]
   return mockBoards[theme.toLowerCase()] || mockBoards['princess'];
 }
 
-// Function to search Pinterest via unofficial API or scraping
+// Function to search Pinterest using Pinterest API
 async function searchPinterest(query: string): Promise<PinterestBoard[]> {
-  // In a real implementation, you would use:
-  // 1. Unofficial Pinterest API (e.g., from RapidAPI)
-  // 2. Pinterest scraping service (e.g., Apify)
-  // 3. SerpAPI if they add Pinterest support
+  const pinterestApiKey = process.env.PINTEREST_API_KEY;
   
+  if (!pinterestApiKey) {
+    console.log('Pinterest API key not provided, using mock data');
+    return getMockDataForQuery(query);
+  }
+
   try {
-    // Placeholder for actual Pinterest API integration
-    // For now, return mock data based on query
     console.log(`Searching Pinterest for: ${query}`);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Pinterest API v5 search endpoint for boards
+    const searchUrl = `https://api.pinterest.com/v5/search/boards/?query=${encodeURIComponent(query)}&page_size=20`;
     
-    // Extract theme from query - check for specific themes first
-    let theme = 'princess'; // default
-    const queryLower = query.toLowerCase();
-    
-    if (queryLower.includes('space') || queryLower.includes('astronaut') || queryLower.includes('galaxy') || queryLower.includes('cosmic')) {
-      theme = 'space';
-    } else if (queryLower.includes('superhero') || queryLower.includes('hero')) {
-      theme = 'superhero';
-    } else if (queryLower.includes('princess') || queryLower.includes('royal')) {
-      theme = 'princess';
-    } else if (queryLower.includes('dinosaur') || queryLower.includes('dino')) {
-      theme = 'dinosaur';
-    } else if (queryLower.includes('pirate') || queryLower.includes('treasure')) {
-      theme = 'pirate';
-    } else if (queryLower.includes('unicorn') || queryLower.includes('rainbow')) {
-      theme = 'unicorn';
-    } else if (queryLower.includes('ocean') || queryLower.includes('mermaid') || queryLower.includes('sea')) {
-      theme = 'ocean';
-    } else if (queryLower.includes('safari') || queryLower.includes('jungle') || queryLower.includes('animal')) {
-      theme = 'safari';
+    const response = await fetch(searchUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${pinterestApiKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Magical Birthday Planner/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      console.error(`Pinterest API error: ${response.status} ${response.statusText}`);
+      return getMockDataForQuery(query);
     }
+
+    const data = await response.json();
     
-    return generateMockPinterestData(theme);
+    if (!data.items || !Array.isArray(data.items)) {
+      console.log('No Pinterest boards found, using mock data');
+      return getMockDataForQuery(query);
+    }
+
+    // Transform Pinterest API response to our format
+    const boards: PinterestBoard[] = data.items.map((board: any, index: number) => ({
+      id: board.id || `pinterest-${index}`,
+      title: board.name || 'Untitled Board',
+      description: board.description || '',
+      imageUrl: board.media?.image_cover_url || generateFallbackImage(),
+      pinterestUrl: `https://www.pinterest.com/${board.owner?.username || 'pinterest'}/boards/${board.name || board.id}/`,
+      pinCount: board.pin_count || 0,
+      followers: board.follower_count || 0,
+      category: categorizeBoard(board.name || '', query),
+      aiMatchScore: calculateMatchScore(board.name || '', board.description || '', query),
+      aiAnalysis: generateAIAnalysis(board.name || '', board.description || '', query)
+    }));
+
+    // If we got valid results, return them
+    if (boards.length > 0) {
+      return boards.sort((a, b) => (b.aiMatchScore || 0) - (a.aiMatchScore || 0));
+    }
+
+    // Fallback to mock data if no results
+    return getMockDataForQuery(query);
+    
   } catch (error) {
-    console.error('Pinterest search failed:', error);
-    return generateMockPinterestData(); // Fallback to mock data
+    console.error('Pinterest API search failed:', error);
+    return getMockDataForQuery(query);
   }
+}
+
+// Helper function to get theme-appropriate mock data
+function getMockDataForQuery(query: string): PinterestBoard[] {
+  let theme = 'princess'; // default
+  const queryLower = query.toLowerCase();
+  
+  if (queryLower.includes('space') || queryLower.includes('astronaut') || queryLower.includes('galaxy') || queryLower.includes('cosmic')) {
+    theme = 'space';
+  } else if (queryLower.includes('superhero') || queryLower.includes('hero')) {
+    theme = 'superhero';
+  } else if (queryLower.includes('princess') || queryLower.includes('royal')) {
+    theme = 'princess';
+  } else if (queryLower.includes('dinosaur') || queryLower.includes('dino')) {
+    theme = 'dinosaur';
+  } else if (queryLower.includes('pirate') || queryLower.includes('treasure')) {
+    theme = 'pirate';
+  } else if (queryLower.includes('unicorn') || queryLower.includes('rainbow')) {
+    theme = 'unicorn';
+  } else if (queryLower.includes('ocean') || queryLower.includes('mermaid') || queryLower.includes('sea')) {
+    theme = 'ocean';
+  } else if (queryLower.includes('safari') || queryLower.includes('jungle') || queryLower.includes('animal')) {
+    theme = 'safari';
+  }
+  
+  return generateMockPinterestData(theme);
+}
+
+// Helper function to categorize Pinterest boards
+function categorizeBoard(title: string, query: string): string {
+  const titleLower = title.toLowerCase();
+  const queryLower = query.toLowerCase();
+  
+  if (titleLower.includes('cake') || titleLower.includes('dessert') || titleLower.includes('sweet')) return 'CAKE';
+  if (titleLower.includes('decoration') || titleLower.includes('decor') || titleLower.includes('styling')) return 'DECORATIONS';
+  if (titleLower.includes('game') || titleLower.includes('activity') || titleLower.includes('entertainment')) return 'GAMES';
+  if (titleLower.includes('food') || titleLower.includes('snack') || titleLower.includes('treat')) return 'FOOD';
+  if (titleLower.includes('favor') || titleLower.includes('gift') || titleLower.includes('goodie')) return 'FAVORS';
+  if (titleLower.includes('craft') || titleLower.includes('diy') || titleLower.includes('project')) return 'CRAFTS';
+  if (titleLower.includes('photo') || titleLower.includes('picture') || titleLower.includes('memory')) return 'PHOTOGRAPHY';
+  if (titleLower.includes('invitation') || titleLower.includes('invite')) return 'INVITATIONS';
+  
+  return 'ACTIVITIES';
+}
+
+// Helper function to calculate relevance score
+function calculateMatchScore(title: string, description: string, query: string): number {
+  const text = `${title} ${description}`.toLowerCase();
+  const queryWords = query.toLowerCase().split(' ');
+  
+  let score = 0;
+  queryWords.forEach(word => {
+    if (text.includes(word)) {
+      score += 15;
+    }
+  });
+  
+  // Bonus for exact query match
+  if (text.includes(query.toLowerCase())) {
+    score += 30;
+  }
+  
+  // Random variation to simulate AI scoring
+  score += Math.floor(Math.random() * 20);
+  
+  return Math.min(score, 100);
+}
+
+// Helper function to generate AI analysis
+function generateAIAnalysis(title: string, description: string, query: string): string {
+  const category = categorizeBoard(title, query);
+  const score = calculateMatchScore(title, description, query);
+  
+  if (score >= 90) {
+    return `Excellent match for ${query} with highly relevant ${category.toLowerCase()} content`;
+  } else if (score >= 75) {
+    return `Great ${category.toLowerCase()} inspiration that aligns well with your ${query} theme`;
+  } else if (score >= 60) {
+    return `Good ${category.toLowerCase()} ideas that could work for your ${query} party`;
+  } else {
+    return `Creative ${category.toLowerCase()} concepts that offer unique inspiration for your celebration`;
+  }
+}
+
+// Helper function to generate fallback images
+function generateFallbackImage(): string {
+  const fallbackImages = [
+    'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1587691592099-24045742c181?w=400&h=300&fit=crop'
+  ];
+  return fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
 }
 
 export async function GET(request: NextRequest) {
