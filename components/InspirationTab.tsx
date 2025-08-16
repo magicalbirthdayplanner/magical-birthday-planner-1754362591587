@@ -136,9 +136,12 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
       setError(null);
 
       const partyId = partyData?.id || 'demo';
+      const theme = partyData?.selectedTheme || partyData?.theme || 'princess';
+      
+      // Include theme parameter for demo mode and contextual data
       const url = query 
-        ? `/api/pinterest-inspiration?partyId=${partyId}&query=${encodeURIComponent(query)}`
-        : `/api/pinterest-inspiration?partyId=${partyId}`;
+        ? `/api/pinterest-inspiration?partyId=${partyId}&query=${encodeURIComponent(query)}&theme=${encodeURIComponent(theme)}`
+        : `/api/pinterest-inspiration?partyId=${partyId}&theme=${encodeURIComponent(theme)}`;
       
       const response = await fetch(url);
       

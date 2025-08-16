@@ -467,14 +467,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const partyId = searchParams.get('partyId');
     const customQuery = searchParams.get('query'); // Support custom search queries
+    const theme = searchParams.get('theme'); // Accept theme parameter for demo mode
     
     if (!partyId) {
       return NextResponse.json({ error: 'Party ID required' }, { status: 400 });
     }
 
-    // Handle demo mode
+    // Handle demo mode with contextual theme
     if (partyId === 'demo' || partyId === 'demo-party') {
-      const mockData = generateMockPinterestData();
+      const contextualTheme = theme || 'princess'; // Default to princess if no theme provided
+      const mockData = generateMockPinterestData(contextualTheme);
       return NextResponse.json({
         inspirations: mockData,
         totalCount: mockData.length,
@@ -552,8 +554,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Pinterest inspiration API error:', error);
     
-    // Fallback to mock data on any error
-    const mockData = generateMockPinterestData();
+    // Fallback to mock data on any error with theme context if available
+    const { searchParams } = new URL(request.url);
+    const theme = searchParams.get('theme');
+    const contextualTheme = theme || 'princess'; // Default fallback theme
+    const mockData = generateMockPinterestData(contextualTheme);
     return NextResponse.json({
       inspirations: mockData,
       totalCount: mockData.length,

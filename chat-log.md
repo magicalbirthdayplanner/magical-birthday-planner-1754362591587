@@ -1,3 +1,8 @@
+## [usr-1755313469088]
+**User Request:** the below pintrest boards seems to be some demo data. it should be contextual
+**Response Summary:** Successfully fixed the Pinterest inspiration contextual issue by updating the Pinterest API to properly handle theme-based demo data. Modified the Pinterest API endpoint to accept a theme parameter and pass the selected party theme (space, princess, superhero, etc.) from the frontend InspirationTab component. Updated both demo mode handling and error fallback cases to use the contextual theme instead of defaulting to princess theme. The Pinterest boards now correctly display theme-appropriate content matching the user's selected party theme. For example, space-themed parties now show space decorations, galaxy cakes, astronaut games, and cosmic activities instead of princess content.
+**Files Modified:** app/api/pinterest-inspiration/route.ts, components/InspirationTab.tsx
+
 ## [usr-1755312849794]
 **User Request:** In the inspiration tab,  i want to following feature and flow developed. 
 
