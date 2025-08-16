@@ -32,7 +32,8 @@ import {
   Users,
   RefreshCw,
   BookmarkPlus,
-  Bookmark
+  Bookmark,
+  Gamepad2
 } from "lucide-react";
 
 interface PartyData {
@@ -124,6 +125,7 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
   const [enhancedQuery, setEnhancedQuery] = useState('');
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isCustomSearch, setIsCustomSearch] = useState(false);
+  const [filterCategory, setFilterCategory] = useState('all');
 
   // Fetch inspirations on component mount
   useEffect(() => {
@@ -290,8 +292,24 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
     .filter(inspiration => {
       const matchesSearch = inspiration.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            (inspiration.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Category filtering logic for new pill buttons
+      let matchesFilterCategory = true;
+      if (filterCategory !== 'all') {
+        const categoryMapping = {
+          'decorations': ['DECORATIONS', 'VENUE_STYLING'],
+          'cakes': ['CAKE', 'FOOD'],
+          'games': ['GAMES', 'ACTIVITIES', 'ENTERTAINMENT'],
+          'invitations': ['INVITATIONS'],
+          'costumes': ['OUTFITS']
+        };
+        
+        const mappedCategories = categoryMapping[filterCategory as keyof typeof categoryMapping] || [];
+        matchesFilterCategory = mappedCategories.includes(inspiration.category || 'DECORATIONS');
+      }
+      
       const matchesCategory = selectedCategory === 'all' || inspiration.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesCategory && matchesFilterCategory;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -365,7 +383,7 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
           <div className="flex gap-2">
             <div className="flex-1">
               <Input
-                placeholder="e.g., Cinderella birthday decor"
+                placeholder="Add keywords to personalize results..."
                 value={customSearchQuery}
                 onChange={(e) => setCustomSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleCustomSearch()}
@@ -472,12 +490,90 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
         </div>
       )}
 
+      {/* Filter by Category */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Filter className="h-5 w-5 text-gray-600" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Filter by Category
+          </h3>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => setFilterCategory('all')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              filterCategory === 'all'
+                ? 'bg-gray-200 text-gray-800 border border-gray-300'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+            } flex items-center gap-2`}
+          >
+            <Sparkles className="h-4 w-4" />
+            All Ideas
+          </button>
+          <button
+            onClick={() => setFilterCategory('decorations')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              filterCategory === 'decorations'
+                ? 'bg-pink-500 text-white'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-pink-50 hover:text-pink-600'
+            } flex items-center gap-2`}
+          >
+            <Palette className="h-4 w-4" />
+            Decorations
+          </button>
+          <button
+            onClick={() => setFilterCategory('cakes')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              filterCategory === 'cakes'
+                ? 'bg-blue-500 text-white'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50 hover:text-blue-600'
+            } flex items-center gap-2`}
+          >
+            <Cake className="h-4 w-4" />
+            Cakes
+          </button>
+          <button
+            onClick={() => setFilterCategory('games')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              filterCategory === 'games'
+                ? 'bg-purple-500 text-white'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-purple-50 hover:text-purple-600'
+            } flex items-center gap-2`}
+          >
+            <Gamepad2 className="h-4 w-4" />
+            Games
+          </button>
+          <button
+            onClick={() => setFilterCategory('invitations')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              filterCategory === 'invitations'
+                ? 'bg-teal-500 text-white'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-teal-50 hover:text-teal-600'
+            } flex items-center gap-2`}
+          >
+            <Mail className="h-4 w-4" />
+            Invitations
+          </button>
+          <button
+            onClick={() => setFilterCategory('costumes')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              filterCategory === 'costumes'
+                ? 'bg-orange-500 text-white'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-orange-50 hover:text-orange-600'
+            } flex items-center gap-2`}
+          >
+            <Shirt className="h-4 w-4" />
+            Costumes
+          </button>
+        </div>
+      </div>
+
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search inspirations..."
+            placeholder="Add keywords to personalize results..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -515,18 +611,22 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
 
       {/* Inspirations Grid */}
       {filteredInspirations.length === 0 ? (
-        <div className="text-center py-12">
-          <Palette className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <div className="text-center py-16">
+          <div className="relative mx-auto mb-6 w-24 h-24 flex items-center justify-center">
+            <Sparkles className="h-16 w-16 text-gray-300" />
+            <div className="absolute top-0 right-0 w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
+              <Sparkles className="h-3 w-3 text-gray-400" />
+            </div>
+            <div className="absolute bottom-0 left-0 w-4 h-4 bg-gray-200 rounded-full flex items-center justify-center">
+              <Sparkles className="h-2 w-2 text-gray-400" />
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             No inspirations found
           </h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Try adjusting your search or filters to find more ideas.
+          <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
+            Try adjusting your search terms or category filter.
           </p>
-          <Button onClick={() => fetchInspirations()} variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
