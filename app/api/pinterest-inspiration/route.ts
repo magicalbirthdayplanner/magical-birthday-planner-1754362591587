@@ -466,6 +466,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const partyId = searchParams.get('partyId');
+    const customQuery = searchParams.get('query'); // Support custom search queries
     
     if (!partyId) {
       return NextResponse.json({ error: 'Party ID required' }, { status: 400 });
@@ -498,8 +499,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Party not found' }, { status: 404 });
     }
 
-    // If we have cached inspirations, return them
-    if (party.inspirations.length > 0) {
+    // If we have cached inspirations and no custom query, return them
+    if (party.inspirations.length > 0 && !customQuery) {
       return NextResponse.json({
         inspirations: party.inspirations,
         totalCount: party.inspirations.length,
@@ -507,9 +508,19 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Otherwise, fetch fresh Pinterest data
-    const searchQuery = `${party.theme} birthday party decorations ideas`;
+    // Use custom query or default theme-based query
+    const searchQuery = customQuery || `${party.theme} birthday party decorations ideas`;
     const pinterestBoards = await searchPinterest(searchQuery);
+
+    // If using custom query, don't save to database (temporary search)
+    if (customQuery) {
+      return NextResponse.json({
+        inspirations: pinterestBoards,
+        totalCount: pinterestBoards.length,
+        isDemo: false,
+        isCustomSearch: true
+      });
+    }
 
     // Save to database (optional - could be done asynchronously)
     const savedInspirations = await Promise.all(

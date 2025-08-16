@@ -120,19 +120,27 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
   const [sortBy, setSortBy] = useState<string>('best-match');
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(false);
+  const [customSearchQuery, setCustomSearchQuery] = useState('');
+  const [enhancedQuery, setEnhancedQuery] = useState('');
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isCustomSearch, setIsCustomSearch] = useState(false);
 
   // Fetch inspirations on component mount
   useEffect(() => {
     fetchInspirations();
   }, [partyData.id]);
 
-  const fetchInspirations = async () => {
+  const fetchInspirations = async (query?: string) => {
     try {
       setLoading(true);
       setError(null);
 
       const partyId = partyData?.id || 'demo';
-      const response = await fetch(`/api/pinterest-inspiration?partyId=${partyId}`);
+      const url = query 
+        ? `/api/pinterest-inspiration?partyId=${partyId}&query=${encodeURIComponent(query)}`
+        : `/api/pinterest-inspiration?partyId=${partyId}`;
+      
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error('Failed to fetch inspirations');
@@ -141,6 +149,7 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
       const data = await response.json();
       setInspirations(data.inspirations || []);
       setIsDemo(data.isDemo || false);
+      setIsCustomSearch(data.isCustomSearch || false);
       
     } catch (error) {
       console.error('Error fetching inspirations:', error);
@@ -148,6 +157,62 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const enhanceQueryWithAI = async (query: string) => {
+    try {
+      setIsEnhancing(true);
+      
+      const response = await fetch('/api/enhance-pinterest-query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query,
+          partyTheme: partyData.selectedTheme || partyData.theme,
+          childAge: partyData.childAge
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to enhance query');
+      }
+
+      const data = await response.json();
+      setEnhancedQuery(data.enhancedQuery);
+      return data.enhancedQuery;
+      
+    } catch (error) {
+      console.error('Error enhancing query:', error);
+      // Fallback to original query if enhancement fails
+      return query;
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleCustomSearch = async () => {
+    if (!customSearchQuery.trim()) return;
+    
+    try {
+      // First enhance the query with AI
+      const enhanced = await enhanceQueryWithAI(customSearchQuery);
+      
+      // Then search Pinterest with the enhanced query
+      await fetchInspirations(enhanced);
+      
+    } catch (error) {
+      console.error('Custom search failed:', error);
+      setError('Search failed. Please try again.');
+    }
+  };
+
+  const resetToDefaultInspirations = () => {
+    setCustomSearchQuery('');
+    setEnhancedQuery('');
+    setIsCustomSearch(false);
+    fetchInspirations(); // Fetch default inspirations
   };
 
   const generateMashupIdeas = async () => {
@@ -278,6 +343,73 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
         </Button>
       </div>
 
+      {/* Custom Search Section */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700">
+        <CardHeader>
+          <CardTitle className="text-lg text-blue-900 dark:text-blue-100 flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            AI-Enhanced Pinterest Search
+          </CardTitle>
+          <CardDescription className="text-blue-700 dark:text-blue-300">
+            Enter your own keywords and let AI enhance them for better Pinterest results
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Input
+                placeholder="e.g., Cinderella birthday decor"
+                value={customSearchQuery}
+                onChange={(e) => setCustomSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleCustomSearch()}
+                className="border-blue-200 focus:border-blue-400"
+              />
+            </div>
+            <Button 
+              onClick={handleCustomSearch}
+              disabled={!customSearchQuery.trim() || isEnhancing || loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {isEnhancing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Enhancing...
+                </>
+              ) : (
+                <>
+                  <Search className="h-4 w-4 mr-2" />
+                  Search
+                </>
+              )}
+            </Button>
+          </div>
+          
+          {enhancedQuery && (
+            <div className="p-3 bg-white/70 dark:bg-gray-800/70 rounded-lg border border-blue-200 dark:border-blue-700">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">AI Enhanced Query:</p>
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">"{enhancedQuery}"</p>
+            </div>
+          )}
+          
+          {isCustomSearch && (
+            <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
+              <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+                <Search className="h-4 w-4" />
+                <span className="text-sm font-medium">Showing custom search results</span>
+              </div>
+              <Button
+                onClick={resetToDefaultInspirations}
+                variant="outline"
+                size="sm"
+                className="border-yellow-300 text-yellow-800 hover:bg-yellow-100 dark:border-yellow-600 dark:text-yellow-200"
+              >
+                Reset to Default
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {error && (
         <Alert>
           <AlertDescription>{error}</AlertDescription>
@@ -384,7 +516,7 @@ export default function InspirationTab({ partyData }: InspirationTabProps) {
           <p className="text-gray-600 dark:text-gray-300 mb-4">
             Try adjusting your search or filters to find more ideas.
           </p>
-          <Button onClick={fetchInspirations} variant="outline">
+          <Button onClick={() => fetchInspirations()} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
