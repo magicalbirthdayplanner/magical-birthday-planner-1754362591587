@@ -31,6 +31,7 @@ interface PinspirationTabProps {
 
 const FILTER_CATEGORIES = [
   { id: 'all', label: 'All Ideas', color: 'bg-purple-100 text-purple-800 hover:bg-purple-200' },
+  { id: 'favorites', label: 'My Favorites', color: 'bg-red-100 text-red-800 hover:bg-red-200' },
   { id: 'decorations', label: 'Decorations', color: 'bg-blue-100 text-blue-800 hover:bg-blue-200' },
   { id: 'cakes', label: 'Cakes', color: 'bg-pink-100 text-pink-800 hover:bg-pink-200' },
   { id: 'games', label: 'Games', color: 'bg-green-100 text-green-800 hover:bg-green-200' },
@@ -46,6 +47,36 @@ export default function PinspirationTab({ partyData }: PinspirationTabProps) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [baseQuery, setBaseQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [favoritePins, setFavoritePins] = useState<Set<string>>(new Set());
+
+  // Load favorites from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('pinterest-favorites');
+    if (stored) {
+      try {
+        setFavoritePins(new Set(JSON.parse(stored)));
+      } catch (error) {
+        console.error('Error loading favorites:', error);
+      }
+    }
+  }, []);
+
+  // Save favorites to localStorage
+  const saveFavorites = (newFavorites: Set<string>) => {
+    setFavoritePins(newFavorites);
+    localStorage.setItem('pinterest-favorites', JSON.stringify(Array.from(newFavorites)));
+  };
+
+  // Toggle favorite status
+  const toggleFavorite = (pinId: string) => {
+    const newFavorites = new Set(favoritePins);
+    if (newFavorites.has(pinId)) {
+      newFavorites.delete(pinId);
+    } else {
+      newFavorites.add(pinId);
+    }
+    saveFavorites(newFavorites);
+  };
 
   // Generate base query from wizard data
   useEffect(() => {
@@ -81,6 +112,8 @@ export default function PinspirationTab({ partyData }: PinspirationTabProps) {
   useEffect(() => {
     if (selectedCategory === 'all') {
       setFilteredPins(pins);
+    } else if (selectedCategory === 'favorites') {
+      setFilteredPins(pins.filter(pin => favoritePins.has(pin.id)));
     } else {
       const filtered = pins.filter(pin => {
         const category = pin.category?.toLowerCase() || '';
@@ -109,7 +142,7 @@ export default function PinspirationTab({ partyData }: PinspirationTabProps) {
       });
       setFilteredPins(filtered);
     }
-  }, [pins, selectedCategory]);
+  }, [pins, selectedCategory, favoritePins]);
 
   const loadPinterestInspiration = async (query: string) => {
     setLoading(true);
@@ -251,6 +284,9 @@ export default function PinspirationTab({ partyData }: PinspirationTabProps) {
               onClick={() => setSelectedCategory(category.id)}
             >
               {category.label}
+              {category.id === 'favorites' && favoritePins.size > 0 && (
+                <span className="ml-1 text-xs">({favoritePins.size})</span>
+              )}
             </Badge>
           ))}
         </div>
@@ -292,8 +328,16 @@ export default function PinspirationTab({ partyData }: PinspirationTabProps) {
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0">
-                    <Heart className="h-4 w-4" />
+                  <Button 
+                    size="sm" 
+                    variant="secondary" 
+                    className={`h-8 w-8 p-0 ${favoritePins.has(pin.id) ? 'bg-red-100 text-red-600 hover:bg-red-200' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(pin.id);
+                    }}
+                  >
+                    <Heart className={`h-4 w-4 ${favoritePins.has(pin.id) ? 'fill-current' : ''}`} />
                   </Button>
                 </div>
               </div>

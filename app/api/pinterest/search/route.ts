@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     let pinterestResults: any[] = [];
     
     try {
-      const pinterestToken = process.env.PINTEREST_ACCESS_TOKEN;
+      const pinterestToken = process.env.PINTEREST_API_KEY;
       
       if (pinterestToken) {
         // Search pins
@@ -124,15 +124,27 @@ function enhanceQueryManually(query: string, theme?: string): string {
     return `${themeContext}${query} birthday party ideas`;
   }
   
-  // Add context words for better Pinterest results
-  const contextWords = ['kids', 'decorations', 'DIY', 'celebration'];
-  const missingContext = contextWords.filter(word => !baseQuery.includes(word));
+  // Enhanced context words for better Pinterest results - more specific and Pinterest-friendly
+  const contextWords = ['kids', 'children', 'decorations', 'DIY', 'celebration', 'inspiration', 'ideas', 'cute', 'fun'];
+  const categoryKeywords = ['decor', 'cake', 'game', 'activity', 'invitation', 'printable', 'costume', 'favor'];
   
-  if (missingContext.length > 0) {
-    return `${themeContext}${query} ${missingContext.slice(0, 2).join(' ')}`;
+  // Check if query already has contextual keywords
+  const hasContext = contextWords.some(word => baseQuery.includes(word));
+  const hasCategory = categoryKeywords.some(word => baseQuery.includes(word));
+  
+  let enhancedQuery = `${themeContext}${query}`;
+  
+  // Add context if missing
+  if (!hasContext) {
+    enhancedQuery += ' kids birthday party ideas';
   }
   
-  return `${themeContext}${query}`;
+  // Add Pinterest-specific search terms for better discovery
+  if (!baseQuery.includes('pinterest') && !baseQuery.includes('inspiration')) {
+    enhancedQuery += ' inspiration';
+  }
+  
+  return enhancedQuery.trim();
 }
 
 function categorizePin(title?: string, description?: string): string {

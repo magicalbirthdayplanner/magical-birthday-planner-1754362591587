@@ -67,7 +67,7 @@ export const ENV_VARIABLES: EnvVariable[] = [
     instructions: "Go to [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → Create API key → Enable Places API (New) → Copy the API key"
   },
   {
-    name: "PINTEREST_ACCESS_TOKEN",
+    name: "PINTEREST_API_KEY",
     description: "Pinterest API access token for fetching boards and pins in the Pinspiration tab",
     required: false,
     instructions: "Go to [Pinterest Developers](https://developers.pinterest.com/apps/) → Your App → Generate Access Token → Ensure 'pins:read' and 'boards:read' scopes are enabled"
