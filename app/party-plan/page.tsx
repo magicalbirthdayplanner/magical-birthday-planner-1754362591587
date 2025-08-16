@@ -18,7 +18,6 @@ import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
-import InspirationTab from "@/components/InspirationTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -248,14 +247,6 @@ export default function PartyPlanPage() {
       gradient: 'from-blue-500 to-cyan-500',
       hoverColor: 'bg-blue-50 dark:bg-blue-900/20',
       allowedPlans: ['checklist'] // Always allowed (included in all plans)
-    },
-    {
-      id: 'inspiration',
-      label: 'Inspiration',
-      icon: Lightbulb,
-      gradient: 'from-orange-500 to-pink-500',
-      hoverColor: 'bg-orange-50 dark:bg-orange-900/20',
-      allowedPlans: ['inspiration'] // Available in all plans
     },
   ];
 
@@ -1311,7 +1302,7 @@ export default function PartyPlanPage() {
                                         tab.id === 'guests' ? 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #2dd4bf 100%)' :
                                         tab.id === 'timeline' ? 'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)' :
                                         tab.id === 'checklist' ? 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%)' :
-                                        tab.id === 'inspiration' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' : 
+ 
                                         'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)'
                       } as any}
                     >
@@ -2224,10 +2215,6 @@ export default function PartyPlanPage() {
 
           </TabsContent>
 
-          {/* Inspiration Tab */}
-          <ProtectedTabContent tabName="inspiration">
-            <InspirationTab partyData={partyData} />
-          </ProtectedTabContent>
 
           </Tabs>
         </div>

@@ -1,3 +1,8 @@
+## [usr-1755351613235]
+**User Request:** remove inspiration tab from all the plans completely and clean up database if any 
+**Response Summary:** Successfully removed the Pinterest inspiration feature completely from the application. Removed the inspiration tab from all subscription plans (FREE, STARTER, PROFESSIONAL), deleted the InspirationTab component, removed all Pinterest-related API routes (/api/pinterest, /api/pinterest-inspiration, /api/enhance-pinterest-query, /api/ai-expand-inspiration), cleaned up the database schema by removing PartyInspiration and AiMashupIdea models along with their relationships, removed Pinterest API configuration from environment variables, and updated the party plan page to remove all inspiration tab references and styling. The application builds successfully without any errors after the complete removal.
+**Files Modified:** app/party-plan/page.tsx, contexts/SubscriptionContext.tsx, lib/env-config.ts, prisma/schema.prisma, components/InspirationTab.tsx (deleted), app/api/pinterest/ (deleted), app/api/pinterest-inspiration/route.ts (deleted), app/api/enhance-pinterest-query/route.ts (deleted), app/api/ai-expand-inspiration/route.ts (deleted)
+
 ## [usr-1755351086439]
 **User Request:** I need something like this 
 

@@ -67,8 +67,6 @@ model Party {
   user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventPurchase    EventPurchase? @relation(fields: [eventPurchaseId], references: [id])
   activities       PartyActivity[]
-  inspirations     PartyInspiration[]
-  mashupIdeas      AiMashupIdea[]
 
   @@map("parties")
 }
@@ -412,59 +410,7 @@ model PartyActivity {
   @@map("party_activities")
 }
 
-model PartyInspiration {
-  id                String          @id @default(cuid())
-  title             String          // Board/Pin title
-  description       String?         // Board/Pin description
-  imageUrl          String          // Pinterest image URL
-  pinterestUrl      String          // Original Pinterest link
-  sourcePlatform    String          @default("pinterest") // pinterest, unsplash, etc.
-  originalId        String?         // Original Pinterest board/pin ID
-  
-  // AI Analysis Results
-  category          InspirationCategory?
-  aiMatchScore      Int?            // 0-100 relevance score from AI
-  aiAnalysis        String?         // AI explanation of why it matches
-  processedAt       DateTime?       // When AI processing was completed
-  
-  // Metadata
-  pinCount          Int?            // Number of pins in board (if board)
-  boardFollowers    Int?            // Number of followers (if board)
-  createdDate       DateTime?       // Original creation date
-  lastUpdated       DateTime?       // Last Pinterest update
-  
-  // User Interaction
-  isSaved           Boolean         @default(false)
-  isUsedInMashup    Boolean         @default(false)
-  viewCount         Int             @default(0)
-  
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  partyId           String
-  party             Party           @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  mashupIdeas       AiMashupIdea[]
 
-  @@map("party_inspirations")
-}
-
-model AiMashupIdea {
-  id                String            @id @default(cuid())
-  title             String            // AI-generated mashup title
-  description       String            // AI-generated combination description
-  mashupSuggestion  String            // Detailed AI suggestion text
-  confidence        Int               // AI confidence score 0-100
-  
-  // Source inspirations used in mashup
-  sourceInspirations Json            // Array of inspiration IDs used
-  
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  partyId           String
-  party             Party             @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  inspirations      PartyInspiration[]
-
-  @@map("ai_mashup_ideas")
-}
 
 enum ActivitySource {
   AI_GENERATED
@@ -541,19 +487,5 @@ enum EffortLevel {
   HIGH
 }
 
-enum InspirationCategory {
-  GAMES
-  FOOD
-  CAKE
-  DECORATIONS
-  VENUE_STYLING
-  ENTERTAINMENT
-  ACTIVITIES
-  CRAFTS
-  FAVORS
-  INVITATIONS
-  OUTFITS
-  PHOTOGRAPHY
-}
 
 
