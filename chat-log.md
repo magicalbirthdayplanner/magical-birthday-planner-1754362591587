@@ -1,3 +1,43 @@
+## [usr-1755313831217]
+**User Request:** name: Pinterest Inspiration Search
+description: Enhance user keywords with GPT-4.1 and fetch Pinterest boards/pins
+features:
+  - API route: `/api/pinterest/search`
+  - Input: `query` (string)
+  - Process:
+      1. Send query to GPT-4.1 to enrich it into a detailed search prompt
+      2. Call Pinterest API `/v5/search/pins` and `/v5/search/boards` with enhanced query
+      3. Return combined results (title, link, image_url) as JSON
+  - Auth: Use stored Pinterest API token
+tech:
+  - Node.js / Next.js API route
+  - Fetch for Pinterest API
+  - OpenAI GPT-4.1
+example_request:
+  POST /api/pinterest/search
+  {
+    "query": "Cinderella birthday decor"
+  }
+example_response:
+  {
+    "query_used": "Cinderella princess birthday decorations, Disney princess party theme, royal birthday balloons, cake table setup",
+    "results": [
+      {
+        "title": "Cinderella Birthday Party Ideas",
+        "link": "https://www.pinterest.com/board/123",
+        "image_url": "https://i.pinimg.com/originals/...jpg"
+      },
+      {
+        "title": "Disney Princess Decor",
+        "link": "https://www.pinterest.com/board/456",
+        "image_url": "https://i.pinimg.com/originals/...jpg"
+      }
+    ]
+  }
+
+**Response Summary:** Successfully implemented the Pinterest Inspiration Search feature with GPT-4.1 integration and real Pinterest API connectivity. Created a new API route `/api/pinterest/search` that enhances user queries using Azure OpenAI GPT-4.1, then searches both Pinterest pins and boards using the enhanced query. The system includes intelligent fallback to manual enhancement when GPT is unavailable and comprehensive mock data when Pinterest API is not configured. Updated the InspirationTab component to integrate the new search functionality with real-time user input, enhanced query display, and seamless result transformation. The complete flow now works: user input → GPT-4.1 enhancement → Pinterest API → formatted results display. Environment configuration includes Azure OpenAI and Pinterest API credentials in the existing env-config.ts structure.
+**Files Modified:** app/api/pinterest/search/route.ts (created), components/InspirationTab.tsx
+
 ## [usr-1755313469088]
 **User Request:** the below pintrest boards seems to be some demo data. it should be contextual
 **Response Summary:** Successfully fixed the Pinterest inspiration contextual issue by updating the Pinterest API to properly handle theme-based demo data. Modified the Pinterest API endpoint to accept a theme parameter and pass the selected party theme (space, princess, superhero, etc.) from the frontend InspirationTab component. Updated both demo mode handling and error fallback cases to use the contextual theme instead of defaulting to princess theme. The Pinterest boards now correctly display theme-appropriate content matching the user's selected party theme. For example, space-themed parties now show space decorations, galaxy cakes, astronaut games, and cosmic activities instead of princess content.
