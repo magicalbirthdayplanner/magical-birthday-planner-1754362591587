@@ -1,3 +1,84 @@
+## [usr-1755351940132]
+**User Request:** newFeature("Pinspiration Tab in Party Management")
+  .description("AI-enhanced Pinterest board and pin search using wizard data + additional user queries.")
+  .tab("Pinspiration") // New tab in Party Management
+
+  // Step 1: Capture wizard data (already saved in DB from steps 1–5)
+  .run(async ({ db, ai, fetch, input }) => {
+    // Load wizard data (theme, colors, preferences, etc.)
+    const wizardData = await db.get("party_wizard_data", { partyId: input.partyId });
+
+    // Construct initial query from wizard data
+    const baseQuery = await ai.prompt(
+      `You are enhancing search queries for Pinterest birthday inspiration.
+       Given theme, colors, preferences, and party details, generate
+       the most relevant Pinterest search query.
+       Data: ${JSON.stringify(wizardData)}
+       Return a short keyword string only.`,
+      { model: "gpt-4.1" }
+    );
+
+    // Call Pinterest API with base query
+    const token = process.env.PINTEREST_ACCESS_TOKEN;
+    const baseResponse = await fetch(
+      `https://api.pinterest.com/v5/search/pins?query=${encodeURIComponent(baseQuery)}&page_size=20`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const basePins = await baseResponse.json();
+
+    // Optional: Categorize results into boards
+    const categorized = await ai.prompt(
+      `Categorize these Pinterest pins into:
+       - Decorations
+       - Food & Cakes
+       - Games & Activities
+       - Invitations & Printables
+       Return JSON format.
+       Data: ${JSON.stringify(basePins)}`,
+      { model: "gpt-4.1" }
+    );
+
+    return {
+      defaultQuery: baseQuery,
+      defaultResults: JSON.parse(categorized)
+    };
+  })
+
+  // Additional user-driven search
+  .input({
+    label: "Search Pinterest for more ideas",
+    type: "search",
+    placeholder: "e.g., DIY balloon arch, jungle cake"
+  })
+  .run(async ({ input, ai, fetch }) => {
+    const refinedQuery = await ai.prompt(
+      `Enhance this Pinterest query for a kids' birthday party context.
+       Return only a short search string.
+       Query: "${input}"`,
+      { model: "gpt-4.1" }
+    );
+
+    const token = process.env.PINTEREST_ACCESS_TOKEN;
+    const response = await fetch(
+      `https://api.pinterest.com/v5/search/pins?query=${encodeURIComponent(refinedQuery)}&page_size=20`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const pins = await response.json();
+
+    return { refinedQuery, pins };
+  })
+
+  // UI rendering
+  .ui("grid", {
+    items: "defaultResults || pins",
+    image: "image_url",
+    title: "title",
+    subtitle: "category"
+  });
+
+**Response Summary:** Successfully implemented the Pinspiration Tab feature in the Party Management interface. Created a comprehensive AI-enhanced Pinterest search system that automatically generates base queries from wizard data (theme, colors, interests, age, venue) and allows users to refine searches with additional keywords. The implementation includes a beautiful PinspirationTab component with category filtering (All Ideas, Decorations, Cakes, Games, Invitations, Costumes), grid-based pin display with hover effects, and intelligent fallback to demo data. Added a Pinterest API route at /api/pinterest/search that integrates GPT-4.1 for query enhancement and Pinterest API v5 for real pin fetching. The tab is available on STARTER and PROFESSIONAL subscription plans and includes proper error handling, loading states, and responsive design. The system automatically captures party wizard data to create contextual base queries and enables real-time user-driven search refinement.
+**Files Modified:** components/PinspirationTab.tsx (created), app/api/pinterest/search/route.ts (created), lib/env-config.ts, contexts/SubscriptionContext.tsx, app/party-plan/page.tsx
+
 ## [usr-1755351613235]
 **User Request:** remove inspiration tab from all the plans completely and clean up database if any 
 **Response Summary:** Successfully removed the Pinterest inspiration feature completely from the application. Removed the inspiration tab from all subscription plans (FREE, STARTER, PROFESSIONAL), deleted the InspirationTab component, removed all Pinterest-related API routes (/api/pinterest, /api/pinterest-inspiration, /api/enhance-pinterest-query, /api/ai-expand-inspiration), cleaned up the database schema by removing PartyInspiration and AiMashupIdea models along with their relationships, removed Pinterest API configuration from environment variables, and updated the party plan page to remove all inspiration tab references and styling. The application builds successfully without any errors after the complete removal.

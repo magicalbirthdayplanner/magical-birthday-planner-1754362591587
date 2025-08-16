@@ -18,6 +18,7 @@ import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
+import PinspirationTab from "@/components/PinspirationTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -191,6 +192,14 @@ export default function PartyPlanPage() {
       gradient: 'from-purple-600 to-pink-600',
       hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
       allowedPlans: ['activities'] // Plus and Pro plans (same as Activities)
+    },
+    {
+      id: 'pinspiration',
+      label: 'Pinspiration',
+      icon: Lightbulb,
+      gradient: 'from-pink-500 to-purple-500',
+      hoverColor: 'bg-pink-50 dark:bg-pink-900/20',
+      allowedPlans: ['pinspiration'] // Plus and Pro plans
     },
     {
       id: 'venue',
@@ -1295,6 +1304,7 @@ export default function PartyPlanPage() {
                                         tab.id === 'budget' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
                                         tab.id === 'activities' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)' :
                                         tab.id === 'host-mode' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
+                                        tab.id === 'pinspiration' ? 'linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #8b5cf6 100%)' :
                                         tab.id === 'shopping' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
                                         tab.id === 'venue' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' :
                                         tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
@@ -1472,6 +1482,21 @@ export default function PartyPlanPage() {
                 venue: partyData.venue,
                 guestCount: partyData.guestCount
               } : undefined}
+            />
+          </ProtectedTabContent>
+
+          {/* Pinspiration Tab */}
+          <ProtectedTabContent tabName="pinspiration" className="space-y-6">
+            <PinspirationTab
+              partyData={partyData ? {
+                selectedTheme: partyData.selectedTheme,
+                theme: partyData.theme,
+                interests: partyData.interests,
+                favoriteColors: partyData.favoriteColors,
+                childAge: partyData.childAge,
+                venue: partyData.venue,
+                guestCount: partyData.guestCount
+              } : {}}
             />
           </ProtectedTabContent>
 
