@@ -531,11 +531,11 @@ export default function CreatePartyPage() {
               </div>
             )}
           </CardHeader>
-          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
+          <CardContent className="space-y-6 sm:space-y-8 px-6 sm:px-8 pt-8 pb-6">
             {/* Step 1: Child Information */}
             {step === 1 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
+              <div className="space-y-6">
+                <div className="space-y-3">
                   <Label htmlFor="childName" className="text-sm font-medium dark:text-gray-200">
                     Child's Name
                   </Label>
@@ -547,7 +547,7 @@ export default function CreatePartyPage() {
                     className="text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label className="text-sm font-medium dark:text-gray-200">
                     Gender
                   </Label>
@@ -606,7 +606,7 @@ export default function CreatePartyPage() {
                     </Button>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label className="text-sm font-medium dark:text-gray-200">When is the party?</Label>
                   <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                     <PopoverTrigger asChild>
@@ -635,11 +635,11 @@ export default function CreatePartyPage() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <Label htmlFor="childAge" className="text-sm font-medium dark:text-gray-200">
                     Child's Age: {`${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}
                   </Label>
-                  <div className="px-3">
+                  <div className="px-4">
                     <Slider
                       value={[partyData.childAge]}
                       onValueChange={(value) => setPartyData({ ...partyData, childAge: value[0] })}
@@ -665,8 +665,8 @@ export default function CreatePartyPage() {
                   </div>
                   
                   {/* Individual Age Cards */}
-                  <div className="mt-6 space-y-3">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
+                  <div className="mt-8 space-y-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
                       {[
                         { age: 1, label: "Little One", emoji: "🍼" },
                         { age: 2, label: "Toddler", emoji: "🧸" },
@@ -688,7 +688,7 @@ export default function CreatePartyPage() {
                             key={ageCard.age}
                             onClick={() => setPartyData({ ...partyData, childAge: ageCard.age })}
                             className={cn(
-                              "p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 text-center",
+                              "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 text-center",
                               isActive 
                                 ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 shadow-md" 
                                 : "border-gray-200 dark:border-slate-600 hover:border-purple-300 hover:bg-purple-25 dark:hover:bg-purple-900/20"
@@ -718,7 +718,7 @@ export default function CreatePartyPage() {
                     </div>
                     
                     {/* Current Selection Display */}
-                    <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+                    <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
                       <div className="flex items-center justify-center space-x-2">
                         <span className="text-lg">
                           {partyData.childAge === 1 ? "🍼" :
@@ -761,8 +761,8 @@ export default function CreatePartyPage() {
 
             {/* Step 2: Party Details */}
             {step === 2 && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {/* Budget Input with Embedded Currency Selection */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
@@ -872,7 +872,7 @@ export default function CreatePartyPage() {
                 </div>
 
                 {/* Second row of inputs - Venue and Duration */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Venue Type Selection */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
@@ -949,10 +949,10 @@ export default function CreatePartyPage() {
                 </div>
 
                 {/* Streamlined Visual Summary Preview */}
-                <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-yellow-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-700">
-                  <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-4 text-lg text-center">Party Planning Summary</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
+                <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-yellow-900/20 p-8 rounded-xl border border-purple-200 dark:border-purple-700 mt-8">
+                  <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-6 text-xl text-center">Party Planning Summary</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div className="bg-white/50 dark:bg-slate-800/50 p-6 rounded-lg">
                       <div className="text-2xl mb-2">💰</div>
                       <div className="font-semibold text-green-600">Budget</div>
                       <div className="text-lg">
@@ -964,7 +964,7 @@ export default function CreatePartyPage() {
                         {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.name : 'Select currency'}
                       </div>
                     </div>
-                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
+                    <div className="bg-white/50 dark:bg-slate-800/50 p-6 rounded-lg">
                       <div className="text-2xl mb-2">📍</div>
                       <div className="font-semibold text-blue-600">Location</div>
                       <div className="text-lg flex items-center justify-center gap-2">
@@ -979,7 +979,7 @@ export default function CreatePartyPage() {
                         {partyData.country ? countryOptions.find(c => c.code === partyData.country)?.name : 'Auto-detected'}
                       </div>
                     </div>
-                    <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg">
+                    <div className="bg-white/50 dark:bg-slate-800/50 p-6 rounded-lg">
                       <div className="text-2xl mb-2">👥</div>
                       <div className="font-semibold text-purple-600">Guests</div>
                       <div className="text-lg">{partyData.guestCount || 'Not set'}</div>
@@ -992,11 +992,11 @@ export default function CreatePartyPage() {
 
             {/* Step 3: Create Party Plan */}
             {step === 3 && !submitError && (
-              <div className="space-y-8">
+              <div className="space-y-10">
                 {/* Updated Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {/* Card 1: Birthday Star */}
-                  <div className="bg-gradient-to-br from-yellow-50 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/30 p-6 rounded-xl border border-yellow-200 dark:border-yellow-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
+                  <div className="bg-gradient-to-br from-yellow-50 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/30 p-8 rounded-xl border border-yellow-200 dark:border-yellow-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">⭐</div>
                     <h3 className="font-bold text-yellow-800 dark:text-yellow-200 mb-2 text-lg">Birthday Star</h3>
                     <div className="text-yellow-700 dark:text-yellow-300 font-semibold text-lg">{partyData.childName || 'Not set'}</div>
@@ -1008,7 +1008,7 @@ export default function CreatePartyPage() {
                   </div>
 
                   {/* Card 2: Location */}
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/30 p-8 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">{partyData.country ? countryOptions.find(c => c.code === partyData.country)?.flag || '🏴' : '🏴'}</div>
                     <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 text-lg">Location</h3>
                     <div className="text-blue-700 dark:text-blue-300 font-semibold text-lg">
@@ -1020,7 +1020,7 @@ export default function CreatePartyPage() {
                   </div>
 
                   {/* Card 3: Guest Count */}
-                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
+                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 p-8 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">👥</div>
                     <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-2 text-lg">Guests</h3>
                     <div className="text-purple-700 dark:text-purple-300 font-semibold text-lg">
@@ -1032,7 +1032,7 @@ export default function CreatePartyPage() {
                   </div>
 
                   {/* Card 4: Party Date */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 p-8 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">
                       {partyData.partyDate ? (
                         <div className="relative inline-block">
@@ -1057,7 +1057,7 @@ export default function CreatePartyPage() {
                   </div>
 
                   {/* Card 5: Budget */}
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 p-6 rounded-xl border border-green-200 dark:border-green-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 p-8 rounded-xl border border-green-200 dark:border-green-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
                     <div className="text-5xl mb-4">💰</div>
                     <h3 className="font-bold text-green-800 dark:text-green-200 mb-2 text-lg">Budget</h3>
                     <div className="text-green-700 dark:text-green-300 font-semibold text-lg">
@@ -1109,7 +1109,7 @@ export default function CreatePartyPage() {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-6 rounded-xl border border-purple-300 dark:border-purple-600 max-w-3xl mx-auto">
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-8 rounded-xl border border-purple-300 dark:border-purple-600 max-w-3xl mx-auto">
                   <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
                     🎉 Everything is perfectly planned for <span className="font-bold text-purple-600 dark:text-purple-400 text-xl">{partyData.childName}'s</span> magical birthday celebration! 
                     <br />
