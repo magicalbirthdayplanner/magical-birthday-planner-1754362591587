@@ -13,6 +13,11 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Magical Birthday Planner - AI-Powered Kids Birthday Planner',
   description: 'Create magical birthday parties for kids aged 0-12 with AI-generated suggestions and checklists.',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
