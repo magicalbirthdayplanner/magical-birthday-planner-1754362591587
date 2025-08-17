@@ -18,6 +18,7 @@ import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
+import IdeasTab from "@/components/IdeasTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -239,6 +240,14 @@ export default function PartyPlanPage() {
       gradient: 'from-indigo-500 to-purple-500',
       hoverColor: 'bg-indigo-50 dark:bg-indigo-900/20',
       allowedPlans: ['timeline'] // Always allowed (included in all plans)
+    },
+    {
+      id: 'ideas',
+      label: 'Ideas',
+      icon: Lightbulb,
+      gradient: 'from-yellow-500 to-amber-500',
+      hoverColor: 'bg-yellow-50 dark:bg-yellow-900/20',
+      allowedPlans: ['activities'] // Plus and Pro plans (same as Activities)
     },
     {
       id: 'checklist',
@@ -2216,6 +2225,21 @@ export default function PartyPlanPage() {
 
           </TabsContent>
 
+          {/* Ideas Tab */}
+          <ProtectedTabContent tabName="ideas" className="space-y-6">
+            <IdeasTab
+              partyId={currentPartyId || ''}
+              partyData={partyData ? {
+                childName: partyData.childName,
+                childAge: partyData.childAge,
+                theme: partyData.selectedTheme || partyData.theme || '',
+                interests: partyData.interests,
+                favoriteColors: partyData.favoriteColors,
+                guestCount: partyData.guestCount,
+                venue: 'mixed' // Default venue type
+              } : undefined}
+            />
+          </ProtectedTabContent>
 
           </Tabs>
         </div>
