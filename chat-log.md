@@ -1,3 +1,65 @@
+## [usr-1755398413961]
+**User Request:** In the wizard, remove step 2 and 3 - where the theme selection happens and create a new tab called themes in party management and display theme selection options there - use both custom themes and classic theme and have the ability to choose child interest, favorite colors and  child's current favorites, movies, shows, or hobbies to create AI generated themes using GPT model 
+
+have the ability to select a theme/add to favorites/remove etc 
+
+Make necessary backend changes and database changes to reflect this change
+
+**Response Summary:** Successfully reorganized theme selection from party creation wizard to party management interface. Removed theme selection steps from wizard and created comprehensive Themes tab with classic themes, AI-powered custom theme generation, and favorites functionality.
+
+**Key Changes Implemented:**
+
+1. **Wizard Simplification:**
+   - Removed steps 2 and 3 (theme selection) from party creation wizard
+   - Simplified wizard from 5 steps to 3 steps: Child Info → Party Details → Create Plan
+   - Updated all navigation, validation, and progress indicators
+   - Set default "unicorn" theme for all new parties
+
+2. **New Themes Tab in Party Management:**
+   - Created comprehensive ThemesTab component with tabbed interface
+   - Classic Themes section with 8 pre-designed themes (Dinosaur, Space, Safari, Ocean, Princess, Superhero, Sports, Unicorn)
+   - AI Custom Themes section with personalized theme generation
+
+3. **AI-Powered Theme Generation:**
+   - Interest selection from 24 categories (Animals, Art & Crafts, Cars, etc.)
+   - Favorite color selection with visual color picker (8 colors including rainbow)
+   - Additional input fields for child details and current favorites
+   - Integration with existing `/api/theme-recommendations` endpoint
+   - Fallback theme generation when API fails
+
+4. **Theme Management Features:**
+   - Heart-based favorites system with localStorage persistence
+   - Add/remove themes from favorites with visual feedback
+   - Theme selection with visual selection indicators
+   - Detailed theme cards showing decorations, activities, and color palettes
+   - Match scoring for AI-generated themes
+
+5. **Database Schema Updates:**
+   - Added `ThemePreference` model for storing user theme favorites
+   - Added `CustomTheme` model for AI-generated and user-created themes
+   - Added `ThemeType` enum (CLASSIC, CUSTOM, AI_GENERATED)
+   - Proper relationships with User model and cascade deletion
+
+6. **Backend API Routes:**
+   - `/api/theme-favorites` - GET, POST, DELETE for managing favorites
+   - `/api/custom-themes` - CRUD operations for custom themes
+   - Proper authentication using Supabase user tokens
+   - Error handling and validation
+
+7. **Tab Integration:**
+   - Added Themes tab to party plan page configuration
+   - Positioned between Cake and Guests tabs
+   - Proper theme selection updates to database
+   - Real-time UI updates when themes are selected
+
+**Files Modified:**
+- `/app/create-party/page.tsx` - Simplified wizard (removed theme steps)
+- `/app/party-plan/page.tsx` - Added Themes tab integration  
+- `/components/ThemesTab.tsx` - New comprehensive theme management component
+- `/prisma/schema.prisma` - Added theme preferences and custom themes models
+- `/app/api/theme-favorites/route.ts` - New API for favorites management
+- `/app/api/custom-themes/route.ts` - New API for custom themes management
+
 ## [usr-1755397794502]
 **User Request:** when deployed to vercel and to custom domain, getting the attached error while creating party 
 

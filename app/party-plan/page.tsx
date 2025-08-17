@@ -18,6 +18,7 @@ import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
+import ThemesTab from "@/components/ThemesTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -223,6 +224,14 @@ export default function PartyPlanPage() {
       gradient: 'from-pink-500 to-rose-500',
       hoverColor: 'bg-pink-50 dark:bg-pink-900/20',
       allowedPlans: ['cake'] // Pro plan only
+    },
+    {
+      id: 'themes',
+      label: 'Themes',
+      icon: Palette,
+      gradient: 'from-purple-500 to-pink-500',
+      hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
+      allowedPlans: ['themes'] // Always allowed (included in all plans)
     },
     {
       id: 'guests',
@@ -1615,6 +1624,29 @@ export default function PartyPlanPage() {
             </div>
           </TabsContent>
 
+          {/* Themes Tab */}
+          <TabsContent value="themes" className="space-y-6">
+            <ThemesTab
+              partyData={{
+                childName: partyData?.childName || '',
+                childAge: partyData?.childAge || '',
+                interests: partyData?.interests || [],
+                favoriteColors: partyData?.favoriteColors || [],
+                selectedTheme: partyData?.theme || partyData?.selectedTheme
+              }}
+              onThemeSelect={(themeId) => {
+                if (partyData?.id) {
+                  updateParty(partyData.id, { theme: themeId })
+                    .then(() => {
+                      setPartyData(prev => prev ? { ...prev, theme: themeId, selectedTheme: themeId } : prev);
+                    })
+                    .catch(error => {
+                      console.error('Error updating theme:', error);
+                    });
+                }
+              }}
+            />
+          </TabsContent>
 
           {/* Guests Tab - Combined Guest Management and Invitations */}
           <TabsContent value="guests" className="space-y-6">

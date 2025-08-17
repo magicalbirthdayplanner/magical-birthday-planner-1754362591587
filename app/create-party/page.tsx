@@ -21,24 +21,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { createParty, updateParty } from "@/lib/party-actions";
 import AuthModal from "@/components/AuthModal";
 
-const interestOptions = [
-  "Animals", "Art & Crafts", "Cars", "Dancing", "Music", "Sports", "Science",
-  "Books", "Movies", "Games", "Building", "Nature", "Cooking", "Magic",
-  "Dinosaurs", "Space", "Superheroes", "Princesses", "Pirates", "Dragons",
-  "Unicorns", "Robots", "Adventures", "Drawing"
-];
-
-const colorOptions = [
-  { name: "Pink", value: "pink", color: "#FF69B4" },
-  { name: "Purple", value: "purple", color: "#9370DB" },
-  { name: "Blue", value: "blue", color: "#4169E1" },
-  { name: "Green", value: "green", color: "#32CD32" },
-  { name: "Yellow", value: "yellow", color: "#FFD700" },
-  { name: "Orange", value: "orange", color: "#FF8C00" },
-  { name: "Red", value: "red", color: "#FF6347" },
-  { name: "Rainbow", value: "rainbow", color: "linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7, #DDA0DD)" }
-];
-
 const currencyOptions = [
   { code: "USD", symbol: "$", name: "US Dollar" },
   { code: "EUR", symbol: "€", name: "Euro" },
@@ -85,142 +67,6 @@ const countryOptions = [
   { code: "ZA", name: "South Africa", flag: "🇿🇦", postalFormat: "Postal Code", example: "8001" }
 ];
 
-const classicThemes = [
-  { id: "dinosaur", name: "Dinosaur", emoji: "🦕", color: "bg-gradient-to-r from-green-500 to-emerald-600" },
-  { id: "space", name: "Space", emoji: "🚀", color: "bg-gradient-to-r from-purple-600 to-indigo-800" },
-  { id: "safari", name: "Safari", emoji: "🦁", color: "bg-gradient-to-r from-yellow-500 to-orange-600" },
-  { id: "ocean", name: "Ocean", emoji: "🐠", color: "bg-gradient-to-r from-blue-500 to-cyan-600" },
-  { id: "princess", name: "Princess", emoji: "👸", color: "bg-gradient-to-r from-pink-400 to-purple-600" },
-  { id: "superhero", name: "Superhero", emoji: "🦸‍♂️", color: "bg-gradient-to-r from-red-500 to-blue-600" },
-  { id: "sports", name: "Sports", emoji: "⚽", color: "bg-gradient-to-r from-orange-500 to-red-600" },
-  { id: "unicorn", name: "Unicorn", emoji: "🦄", color: "bg-gradient-to-r from-pink-500 to-violet-600" }
-];
-
-// Emoji rotation arrays for each theme to show variety
-const themeEmojiVariations = {
-  dinosaur: ["🦕", "🦖", "🌿", "🥚"],
-  space: ["🚀", "🛸", "🌟", "👨‍🚀"],
-  safari: ["🦁", "🐘", "🦒", "🌍"],
-  ocean: ["🐠", "🐋", "🦈", "🏖️"],
-  princess: ["👸", "👑", "🏰", "🦄"],
-  superhero: ["🦸‍♂️", "🦸‍♀️", "⚡", "🚁"],
-  sports: ["⚽", "🏀", "🏈", "🎾"],
-  unicorn: ["🦄", "🌈", "✨", "🎀"]
-};
-
-const themes = [
-  { 
-    id: "superhero", 
-    name: "Superhero", 
-    color: "bg-gradient-to-r from-red-500 to-blue-600", 
-    emoji: "🦸‍♂️",
-    description: "Action-packed adventure with capes and powers!",
-    preview: {
-      decorations: ["Cape photo booth", "Comic book cutouts", "City skyline backdrop"],
-      activities: ["Hero training course", "Design superhero logos", "Rescue missions"],
-      food: ["Power-up fruit kabobs", "Hero sandwiches", "Lightning bolt cookies"]
-    }
-  },
-  { 
-    id: "princess", 
-    name: "Princess", 
-    color: "bg-gradient-to-r from-pink-400 to-purple-600", 
-    emoji: "👸",
-    description: "Royal elegance with crowns and magical moments",
-    preview: {
-      decorations: ["Castle entrance arch", "Tiaras and jewels display", "Pink and gold balloons"],
-      activities: ["Crown decorating", "Royal dance lessons", "Princess makeover station"],
-      food: ["Royal tea sandwiches", "Crown-shaped cookies", "Pink lemonade"]
-    }
-  },
-  { 
-    id: "dinosaur", 
-    name: "Dinosaur", 
-    color: "bg-gradient-to-r from-green-500 to-emerald-600", 
-    emoji: "🦕",
-    description: "Prehistoric adventure with roaring fun!",
-    preview: {
-      decorations: ["Jungle vines and plants", "Dino footprint trail", "Volcano centerpiece"],
-      activities: ["Fossil dig excavation", "Dino egg hunt", "Paleontologist training"],
-      food: ["Dino nuggets", "Prehistoric fruit salad", "Volcano punch"]
-    }
-  },
-  { 
-    id: "space", 
-    name: "Space", 
-    color: "bg-gradient-to-r from-purple-600 to-indigo-800", 
-    emoji: "🚀",
-    description: "Blast off to the stars for cosmic celebration",
-    preview: {
-      decorations: ["Galaxy backdrop", "Hanging planets", "LED star ceiling"],
-      activities: ["Build rocket ships", "Planet exploration", "Astronaut training"],
-      food: ["Galaxy smoothies", "Rocket sandwiches", "Moon rock candy"]
-    }
-  },
-  { 
-    id: "safari", 
-    name: "Safari", 
-    color: "bg-gradient-to-r from-yellow-500 to-orange-600", 
-    emoji: "🦁",
-    description: "Wild adventure with jungle animals",
-    preview: {
-      decorations: ["Jungle canopy", "Animal print tablecloths", "Safari tent entrance"],
-      activities: ["Animal mask making", "Safari photo shoot", "Wildlife scavenger hunt"],
-      food: ["Animal crackers", "Jungle juice", "Safari trail mix"]
-    }
-  },
-  { 
-    id: "ocean", 
-    name: "Ocean", 
-    color: "bg-gradient-to-r from-blue-400 to-cyan-600", 
-    emoji: "🐙",
-    description: "Underwater exploration with sea creatures",
-    preview: {
-      decorations: ["Blue streamers waves", "Hanging jellyfish", "Treasure chest props"],
-      activities: ["Seashell painting", "Mermaid tail crafts", "Underwater dance party"],
-      food: ["Fish-shaped sandwiches", "Blue punch", "Seaweed snacks"]
-    }
-  },
-  { 
-    id: "pirate", 
-    name: "Pirate", 
-    color: "bg-gradient-to-r from-amber-600 to-red-700", 
-    emoji: "🏴‍☠️",
-    description: "Treasure hunting adventure on the high seas",
-    preview: {
-      decorations: ["Pirate ship backdrop", "Treasure chests", "Skull and crossbones flags"],
-      activities: ["Treasure hunt", "Walk the plank game", "Pirate hat decorating"],
-      food: ["Pirate ship cake", "Gold coin chocolates", "Grog (fruit punch)"]
-    }
-  },
-  { 
-    id: "unicorn", 
-    name: "Unicorn", 
-    color: "bg-gradient-to-r from-pink-500 to-violet-600", 
-    emoji: "🦄",
-    description: "Magical rainbows and sparkly dreams",
-    preview: {
-      decorations: ["Rainbow balloon arch", "Glittery unicorn horns", "Pastel cloud backdrop"],
-      activities: ["Unicorn horn decorating", "Rainbow slime making", "Magical dance party"],
-      food: ["Rainbow cake", "Unicorn hot chocolate", "Sparkly cupcakes"]
-    }
-  }
-];
-
-interface ThemeRecommendation {
-  id: string;
-  name: string;
-  description: string;
-  whyRecommended: string;
-  colorPalette: string[];
-  decorations: string[];
-  activities: string[];
-  printableIdeas: string[];
-  emoji: string;
-  ageAppropriate: boolean;
-  matchScore: number;
-}
-
 interface PartyData {
   childName: string;
   childAge: number;
@@ -229,157 +75,18 @@ interface PartyData {
   favoriteColors: string[];
   childDetails?: string;
   partyDate: Date | undefined;
-  selectedTheme: string;
-  aiRecommendations?: ThemeRecommendation[];
-  isLoadingAI?: boolean;
-  classicTheme?: string; // New field for classic theme selection
-  budget?: number; // New field for party budget
-  currency?: string; // New field for selected currency
-  country?: string; // New field for selected country
-  zipCode?: string; // New field for zip code
-  guestCount?: number; // New field for number of guests
-  zipCodeError?: string; // New field for zip code validation error
-  partyId?: string; // Track party ID for updates and continuity
-  venue?: 'indoor' | 'outdoor' | 'mixed'; // New field for venue type
-  duration?: string; // New field for party duration
-  themeActivities?: string; // Activities from selected theme
+  selectedTheme: string; // Default to "unicorn"
+  budget?: number;
+  currency?: string;
+  country?: string;
+  zipCode?: string;
+  guestCount?: number;
+  zipCodeError?: string;
+  partyId?: string;
+  venue?: 'indoor' | 'outdoor' | 'mixed';
+  duration?: string;
+  themeActivities?: string;
 }
-
-// Profanity detection state interface
-interface ProfanityState {
-  hasProfanity: boolean;
-  detectedWords: string[];
-  warningMessage: string;
-}
-
-// AI Theme Recommendation Logic with OpenAI Integration
-const getAIRecommendations = async (
-  childName: string,
-  age: number,
-  interests: string[],
-  favoriteColors: string[],
-  childGender: string,
-  childDetails?: string,
-  selectedClassicTheme?: string
-): Promise<ThemeRecommendation[]> => {
-  try {
-    const response = await fetch('/api/theme-recommendations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        childName,
-        age,
-        interests,
-        favoriteColors,
-        childGender,
-        childDetails,
-        selectedClassicTheme,
-        activities: interests // Use interests as activities for now
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch recommendations');
-    }
-
-    const data = await response.json();
-    return data.recommendations || [];
-  } catch (error) {
-    console.error('Error fetching AI recommendations:', error);
-    // Return fallback recommendations on error
-    return getFallbackRecommendations(childName, age, interests, selectedClassicTheme);
-  }
-};
-
-// Fallback recommendations when AI is unavailable
-const getFallbackRecommendations = (childName: string, age: number, interests: string[], selectedClassicTheme?: string): ThemeRecommendation[] => {  
-  // If a classic theme is selected, return contextual variations
-  if (selectedClassicTheme) {
-    const themeLower = selectedClassicTheme.toLowerCase();
-    
-    if (themeLower === 'superhero') {
-      return [
-        {
-          id: 'superhero-contextual-1',
-          name: 'Superhero Action Adventure',
-          description: 'Transform into mighty heroes and save the day with action-packed adventures!',
-          whyRecommended: `Perfect for ${childName} who selected the Superhero theme - experience epic hero adventures!`,
-          colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
-          decorations: ['Hero cape station', 'City skyline backdrop', 'Comic book props'],
-          activities: ['Hero training course', 'Superhero logo design', 'Villain capture missions'],
-          printableIdeas: ['Superhero certificates', 'Hero comic pages'],
-          emoji: '🦸‍♂️',
-          ageAppropriate: true,
-          matchScore: 95
-        }
-      ];
-    }
-    
-    // Return contextual fallback for the selected classic theme
-    return [
-      {
-        id: `${themeLower}-contextual`,
-        name: `${selectedClassicTheme} Adventure`,
-        description: `Experience an amazing ${selectedClassicTheme.toLowerCase()} themed party adventure!`,
-        whyRecommended: `Perfect for ${childName} who chose the ${selectedClassicTheme} theme!`,
-        colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
-        decorations: [`${selectedClassicTheme} decorations`, `${selectedClassicTheme} backdrop`, 'Themed party props'],
-        activities: [`${selectedClassicTheme} games`, `${selectedClassicTheme} activities`, 'Theme exploration'],
-        printableIdeas: [`${selectedClassicTheme} coloring pages`, `${selectedClassicTheme} activity sheets`],
-        emoji: '🎉',
-        ageAppropriate: true,
-        matchScore: 90
-      }
-    ];
-  }
-  
-  const ageNum = age;
-  const fallbackThemes: ThemeRecommendation[] = [
-    {
-      id: 'superhero-local',
-      name: 'Superhero Adventure',
-      description: 'Transform into mighty heroes and save the day with action-packed adventures!',
-      whyRecommended: `Perfect for ${childName} who loves action and adventure!`,
-      colorPalette: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'],
-      decorations: ['Cape station', 'Cityscape backdrop', 'Comic speech bubbles'],
-      activities: ['Hero training course', 'Design superhero logos', 'Villain capture game'],
-      printableIdeas: ['Superhero certificates', 'Comic coloring pages'],
-      emoji: '🦸‍♂️',
-      ageAppropriate: ageNum >= 3,
-      matchScore: 90
-    },
-    {
-      id: 'unicorn-local',
-      name: 'Magical Unicorn Paradise',
-      description: 'Enter a world of rainbow magic, sparkles, and enchanted unicorn friends!',
-      whyRecommended: `Chosen for ${childName} because unicorns represent magic and wonder!`,
-      colorPalette: ['#FF69B4', '#9370DB', '#FFB6C1', '#F0E68C'],
-      decorations: ['Rainbow balloon arch', 'Unicorn horn headbands', 'Glittery clouds'],
-      activities: ['Unicorn slime making', 'Rainbow treasure hunt', 'Horn decorating'],
-      printableIdeas: ['Unicorn coloring sheets', 'Magic potion cards'],
-      emoji: '🦄',
-      ageAppropriate: true,
-      matchScore: 85
-    },
-    {
-      id: 'space-local',
-      name: 'Space Explorer Mission',
-      description: 'Blast off to the stars on an intergalactic adventure through the cosmos!',
-      whyRecommended: `Perfect for ${childName} who dreams big and loves exploration!`,
-      colorPalette: ['#4B0082', '#000080', '#C0C0C0', '#FFD700'],
-      decorations: ['Solar system mobile', 'Astronaut photo booth', 'Starry ceiling'],
-      activities: ['Build rockets', 'Planet hunt', 'Astronaut training'],
-      printableIdeas: ['Mission certificates', 'Constellation pages'],
-      emoji: '🚀',
-      ageAppropriate: ageNum >= 4,
-      matchScore: 88
-    }
-  ];
-
-  return fallbackThemes;
-};
 
 export default function CreatePartyPage() {
   const { user } = useAuth();
@@ -400,10 +107,7 @@ export default function CreatePartyPage() {
     childInterests: [],
     favoriteColors: [],
     partyDate: undefined,
-    selectedTheme: "",
-    aiRecommendations: [],
-    isLoadingAI: false,
-    classicTheme: "",
+    selectedTheme: "unicorn", // Default theme
     budget: undefined,
     currency: "USD", // Initialize with default USD currency
     zipCode: "",
@@ -414,38 +118,10 @@ export default function CreatePartyPage() {
     guestCount: undefined
   });
   const [isNavigating, setIsNavigating] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStep, setSubmissionStep] = useState<string>('');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [customThemeMode, setCustomThemeMode] = useState(false);
-  const [showClassicThemes, setShowClassicThemes] = useState(false);
-  const [showCustomOptions, setShowCustomOptions] = useState(false);
-  
-  // Profanity detection state
-  const [profanityState, setProfanityState] = useState<ProfanityState>({
-    hasProfanity: false,
-    detectedWords: [],
-    warningMessage: ''
-  });
-  
-  // Emoji animation state
-  const [currentEmojiIndex, setCurrentEmojiIndex] = useState(0);
-
-  // Dynamic placeholder examples
-  const placeholderExamples = [
-    "She's obsessed with Frozen and unicorns this month...",
-    "He talks about astronauts and loves Pokémon.",
-    "Spiderman, magic tricks, and football!",
-    "Loves painting, fairy tales, and her pet hamster.",
-    "Always building with Legos and watching Minecraft videos.",
-    "Dinosaurs, dragons, and playing dress-up as a knight.",
-    "Dancing to Taylor Swift and collecting sparkly things."
-  ];
-
-  const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
-  const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholderExamples[0]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Restore from localStorage on component mount
@@ -457,6 +133,7 @@ export default function CreatePartyPage() {
         // Ensure required fields are initialized if missing from saved data
         const restoredData = {
           ...parsedData,
+          selectedTheme: "unicorn", // Always use unicorn theme
           currency: parsedData.currency || "USD",
           country: parsedData.country || "",
           zipCodeError: parsedData.zipCodeError || undefined,
@@ -477,58 +154,6 @@ export default function CreatePartyPage() {
     // Only save to localStorage during the wizard process
     localStorage.setItem('partyData', JSON.stringify(partyData));
   }, [partyData]);
-
-
-  // Rotate placeholder text every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPlaceholderIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % placeholderExamples.length;
-        setCurrentPlaceholder(placeholderExamples[nextIndex]);
-        return nextIndex;
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Trigger confetti when AI recommendations are loaded
-  useEffect(() => {
-    if (!partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && !showConfetti) {
-      setShowConfetti(true);
-      // Hide confetti after 4 seconds
-      const confettiTimer = setTimeout(() => {
-        setShowConfetti(false);
-      }, 4000);
-      return () => clearTimeout(confettiTimer);
-    }
-  }, [partyData.isLoadingAI, partyData.aiRecommendations, showConfetti]);
-
-  // Emoji rotation animation - cycle through all theme emojis every 2 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentEmojiIndex((prevIndex) => {
-        // Get all emojis from all themes
-        const allEmojis = Object.values(themeEmojiVariations).flat();
-        return (prevIndex + 1) % allEmojis.length;
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Profanity validation function
-  const handleTextInputChange = (input: string) => {
-    const profanityResult = checkProfanity(input);
-    
-    setProfanityState({
-      hasProfanity: profanityResult.hasProfanity,
-      detectedWords: profanityResult.detectedWords,
-      warningMessage: profanityResult.hasProfanity ? getProfanityWarning(profanityResult.detectedWords) : ''
-    });
-
-    return profanityResult;
-  };
 
   // Auto-detect country from zip code format
   const detectCountryFromZipCode = (zipCode: string) => {
@@ -660,62 +285,7 @@ export default function CreatePartyPage() {
   };
 
   const handleNext = async () => {
-    if (step === 2) {
-      // Check if we have child details (tell us more field) 
-      const hasChildDetails = partyData.childDetails && partyData.childDetails.trim() !== "";
-      
-      // Check for profanity before proceeding
-      if (profanityState.hasProfanity) {
-        // Don't proceed if inappropriate content is detected
-        return;
-      }
-      
-      // Generate AI recommendations for both custom and classic themes when possible
-      // For custom themes: require interests
-      // For classic themes: generate AI if child details provided, otherwise proceed without AI
-      if ((partyData.childAge && partyData.childInterests.length > 0) || 
-          (partyData.classicTheme && hasChildDetails)) {
-        // Start navigation loading animation
-        setIsNavigating(true);
-        
-        // Add a small delay to show the loading animation
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Generate AI recommendations when moving from step 2 to step 3
-        setPartyData(prev => ({ ...prev, isLoadingAI: true }));
-        setIsNavigating(false);
-        setStep(3);
-        
-        try {
-          // For classic themes, include the selected theme name in the request
-          const selectedClassicTheme = partyData.classicTheme ? 
-            classicThemes.find(t => t.id === partyData.classicTheme)?.name : undefined;
-          
-          const recommendations = await getAIRecommendations(
-            partyData.childName,
-            partyData.childAge,
-            partyData.childInterests,
-            partyData.favoriteColors,
-            partyData.childGender,
-            partyData.childDetails,
-            selectedClassicTheme
-          );
-          setPartyData(prev => ({ 
-            ...prev, 
-            aiRecommendations: recommendations,
-            isLoadingAI: false 
-          }));
-        } catch (error) {
-          console.error('Error getting AI recommendations:', error);
-          setPartyData(prev => ({ ...prev, isLoadingAI: false }));
-        }
-      } else {
-        // For classic themes without child details, proceed directly to step 3 
-        if (step < 5) setStep(step + 1);
-      }
-    } else {
-      if (step < 5) setStep(step + 1);
-    }
+    if (step < 3) setStep(step + 1);
   };
 
   const handleBack = () => {
@@ -759,7 +329,7 @@ export default function CreatePartyPage() {
           childAge: partyData.childAge,
           childGender: partyData.childGender,
           partyDate: partyData.partyDate!,
-          theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
+          theme: "unicorn", // Always use unicorn theme
           interests: partyData.childInterests,
           favoriteColors: partyData.favoriteColors,
           guestCount: partyData.guestCount,
@@ -790,228 +360,118 @@ export default function CreatePartyPage() {
         }
 
         partyId = result.party.id;
-      } else {
-        setSubmissionStep('Updating party details...');
-        
-        // Update existing party with latest data
-        const updatePayload = {
-          childName: partyData.childName,
-          childAge: partyData.childAge,
-          childGender: partyData.childGender,
-          partyDate: partyData.partyDate!,
-          theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
-          interests: partyData.childInterests,
-          favoriteColors: partyData.favoriteColors,
-          guestCount: partyData.guestCount,
-          budget: partyData.budget || undefined,
-          location: partyData.zipCode,
-          venue: partyData.venue,
-          duration: partyData.duration,
-        };
-
-        console.log('Updating existing party:', partyId, updatePayload)
-
-        // Update party with timeout protection
-        const result = await Promise.race([
-          updateParty(partyId, updatePayload),
-          timeoutPromise
-        ]);
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to update party');
-        }
       }
 
       setSubmissionStep('Finalizing your party plan...');
       
-      // Clear localStorage after successful save
+      // Clear the form data from localStorage after successful creation
       localStorage.removeItem('partyData');
-
-      setSubmissionStep('🎉 Success! Redirecting to your party plan...');
       
-      // Show success feedback
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-
-      // Navigate to party plan with the party ID - with fallback mechanism
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      try {
-        router.push(`/party-plan?id=${partyId}`);
-      } catch (navError) {
-        console.error('Navigation failed, attempting fallback:', navError);
-        // Fallback: Use window.location for more reliable navigation
-        window.location.href = `/party-plan?id=${partyId}`;
-      }
+      // Navigate to the party dashboard
+      console.log('Redirecting to party:', partyId);
+      router.push(`/party/${partyId}`);
 
     } catch (error) {
-      console.error('Error creating party:', error);
+      console.error('Party creation error:', error);
       
-      // Provide more specific error messages
-      let errorMessage = 'Failed to create party. Please try again.';
-      if (error instanceof Error) {
-        if (error.message.includes('timed out')) {
-          errorMessage = 'The request is taking longer than expected. This might be due to network connectivity issues. Please check your internet connection and try again.';
-        } else if (error.message.includes('database') || error.message.includes('connection')) {
-          errorMessage = 'There seems to be a temporary server issue. Please wait a moment and try again.';
-        } else if (error.message.includes('authentication')) {
-          errorMessage = 'Please sign in again to continue.';
-        } else {
-          errorMessage = error.message;
-        }
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      
+      // Show user-friendly error messages
+      if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+        setSubmitError('The request is taking longer than expected. Please check your internet connection and try again.');
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setSubmitError('Network error occurred. Please check your internet connection and try again.');
+      } else if (errorMessage.includes('validation') || errorMessage.includes('required')) {
+        setSubmitError('Please fill in all required fields and try again.');
+      } else {
+        setSubmitError(`Failed to create party: ${errorMessage}`);
       }
       
-      setSubmitError(errorMessage);
-      
-      // Clear any potentially stale localStorage data on error
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.removeItem('partyData');
-          localStorage.removeItem('partyChecklist');
-          localStorage.removeItem('partyGuests');
-          localStorage.removeItem('partyInvitations');
-        } catch (e) {
-          console.warn('Failed to clear localStorage:', e);
-        }
-      }
-    } finally {
       setIsSubmitting(false);
       setSubmissionStep('');
     }
   };
 
-  const isStepValid = () => {
-    switch (step) {
-      case 1:
-        return partyData.childName.trim() !== "" && partyData.childAge > 0 && partyData.childGender !== "" && partyData.partyDate !== undefined;
-      case 2:
-        // For classic themes, just require theme selection
-        // For custom themes, require interests
-        if (partyData.classicTheme !== "") {
-          return true; // Classic theme selected is sufficient
-        }
-        if (customThemeMode) {
-          return partyData.childInterests.length > 0; // Custom theme requires interests
-        }
-        return false; // Neither theme type selected - navigation disabled
-      case 3:
-        return partyData.selectedTheme !== "";
-      case 4:
-        return partyData.currency && partyData.currency !== "" && partyData.budget !== undefined && partyData.country && partyData.zipCode !== "" && !partyData.zipCodeError && partyData.guestCount !== undefined; // Step 4 requires currency, budget, country, valid postal code, and guest count
-      case 5:
-        return true; // Step 5 is always valid since it's just the summary/creation step
-      default:
-        return false;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-4 sm:py-6 lg:py-8">
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="flex justify-center mb-3 sm:mb-4">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 sm:p-3 rounded-full">
-              <PartyPopper className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-gray-900 dark:via-purple-900 dark:to-pink-900 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-4xl mx-auto">
+        <Card className="shadow-2xl border-2 border-purple-200 dark:border-purple-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+          <CardHeader className="text-center space-y-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg p-6 sm:p-8">
+            <div className="flex items-center justify-center space-x-3">
+              <PartyPopper className="h-8 w-8 sm:h-10 sm:w-10 animate-bounce" />
+              <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-bold">
+                Create Your Party
+              </CardTitle>
+              <Sparkles className="h-8 w-8 sm:h-10 sm:w-10 animate-pulse" />
             </div>
-          </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2 leading-tight">
-            Plan your Magical Birthday Party
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 px-2">Plan your child's dream birthday in just 5 simple steps!</p>
-        </div>
-
-        {/* Progress Indicator */}
-        <div className="flex items-center justify-center mb-6 sm:mb-8 overflow-x-auto">
-          <div className="flex items-center space-x-2 sm:space-x-4 px-4">
-            {[1, 2, 3, 4, 5].map((stepNumber) => (
-              <div key={stepNumber} className="flex items-center flex-shrink-0">
-                <div
-                  className={cn(
-                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold transition-colors",
-                    step >= stepNumber
-                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                      : "bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400"
-                  )}
-                >
-                  {stepNumber}
-                </div>
-                {stepNumber < 5 && (
-                  <div
-                    className={cn(
-                      "w-8 sm:w-16 h-0.5 sm:h-1 mx-1 sm:mx-2 transition-colors",
-                      step > stepNumber ? "bg-gradient-to-r from-purple-600 to-pink-600" : "bg-gray-200 dark:bg-slate-700"
-                    )}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Step Content */}
-        <Card className="border-0 shadow-xl dark:bg-slate-800/90 dark:backdrop-blur-sm">
-          <CardHeader className="text-center px-4 sm:px-6 py-4 sm:py-6">
-            <CardTitle className="text-xl sm:text-2xl">
+            <CardDescription className="text-purple-100 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
               {step === 1 && "Tell us about your child"}
-              {step === 2 && "What does your child love?"}
-              {step === 3 && "Choose a theme"}
-              {step === 4 && "Party details"}
-              {step === 5 && "Create your party plan"}
-            </CardTitle>
-            <CardDescription className="text-sm sm:text-base px-2">
-              {step === 1 && "Basic information about your child and when the party will be"}
-              {step === 2 && "Help us personalize themes based on your child's interests and favorite colors"}
-              {step === 3 && "Select a theme that your child will absolutely love"}
-              {step === 4 && "Budget, location, and guest count information"}
-              {step === 5 && "Ready to create your magical party plan?"}
+              {step === 2 && "Party details"}
+              {step === 3 && "Create your party plan"}
             </CardDescription>
+            <p className="text-purple-200 text-sm sm:text-base">
+              {step === 1 && "Basic information about your child and when the party will be"}
+              {step === 2 && "Budget, location, and guest count information"}
+              {step === 3 && "Ready to create your magical party plan?"}
+            </p>
             
-            {/* Navigation Buttons at Top */}
-            <div className="flex justify-between pt-3 sm:pt-4 border-t border-gray-100 dark:border-slate-700 mt-3 sm:mt-4">
+            {/* Step Progress Indicator */}
+            <div className="flex justify-center space-x-4 mt-6">
+              {[1, 2, 3].map((stepNumber) => (
+                <div key={stepNumber} className="flex items-center">
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300",
+                    step >= stepNumber 
+                      ? "bg-white text-purple-600 shadow-lg" 
+                      : "bg-purple-400 text-white"
+                  )}>
+                    {stepNumber}
+                  </div>
+                  {stepNumber < 3 && (
+                    <div className={cn(
+                      "w-8 h-1 mx-2 rounded transition-all duration-300",
+                      step > stepNumber ? "bg-white" : "bg-purple-400"
+                    )} />
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {/* Navigation Buttons */}
+            <div className="flex justify-between items-center pt-4">
               <Button
-                variant="outline"
                 onClick={handleBack}
+                variant="outline"
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30 backdrop-blur-sm"
                 disabled={step === 1}
-                className="px-4 sm:px-8 text-sm sm:text-base"
               >
-                <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                Back
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Back</span>
               </Button>
               
-              {step < 5 ? (
+              {step < 3 && (
                 <Button
                   onClick={handleNext}
-                  disabled={!isStepValid() || isNavigating}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 sm:px-8 text-sm sm:text-base relative overflow-hidden"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-6 py-3 h-12 text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  disabled={(!partyData.childName || partyData.childAge === 0 || !partyData.childGender || !partyData.partyDate) && step === 1}
                 >
-                  {isNavigating && step === 2 ? (
-                    <>
-                      <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                      <span className="animate-pulse text-sm sm:text-base">Creating Magic...</span>
-                      <Sparkles className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4 animate-pulse" />
-                    </>
-                  ) : (
-                    <>
-                      Next
-                      <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    </>
-                  )}
+                  <span className="hidden sm:inline">Next Step</span>
+                  <span className="sm:hidden">Next</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              ) : (
-                // For step 5, show Create My Party Plan button aligned with Back button
+              )}
+              {step === 3 && !submitError && (
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 sm:px-8 text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold px-8 py-3 h-12 text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 min-w-[200px]"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                      <span className="animate-pulse text-sm sm:text-base">
-                        {submissionStep || 'Creating Party Plan...'}
-                      </span>
-                      <Sparkles className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4 animate-pulse" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <span className="hidden sm:inline">{submissionStep || 'Creating...'}</span>
+                      <span className="sm:hidden">Creating...</span>
                     </>
                   ) : (
                     <>
@@ -1045,10 +505,7 @@ export default function CreatePartyPage() {
                         childInterests: [],
                         favoriteColors: [],
                         partyDate: undefined,
-                        selectedTheme: "",
-                        aiRecommendations: [],
-                        isLoadingAI: false,
-                        classicTheme: "",
+                        selectedTheme: "unicorn",
                         budget: undefined,
                         currency: "",
                         zipCode: "",
@@ -1302,814 +759,8 @@ export default function CreatePartyPage() {
               </div>
             )}
 
-            {/* Step 2: Theme Selection Options */}
+            {/* Step 2: Party Details */}
             {step === 2 && (
-              <div className="space-y-6">
-                {/* Theme Selection Header */}
-                <div className="text-center">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                    Choose Your Theme Style
-                  </h3>
-                  <p className="text-gray-600">
-                    Select Classic Themes for quick setup or Custom Themes for personalized recommendations
-                  </p>
-                </div>
-
-                {/* Main Theme Selection Boxes - Show when no specific option is selected */}
-                {!showClassicThemes && !showCustomOptions && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                    {/* Classic Themes Card */}
-                    <div 
-                      className="relative group h-80 w-full [perspective:1000px] cursor-pointer"
-                      onClick={() => {
-                        setShowClassicThemes(true);
-                        setShowCustomOptions(false);
-                        setCustomThemeMode(false);
-                        setPartyData({ 
-                          ...partyData, 
-                          childInterests: [],
-                          favoriteColors: [],
-                          selectedTheme: "",
-                          classicTheme: ""
-                        });
-                      }}
-                    >
-                      <div className="relative h-full w-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(10deg)]">
-                        <div className="absolute inset-0 h-full w-full rounded-xl [backface-visibility:hidden] bg-gradient-to-br from-purple-600 to-pink-600 p-8 text-white shadow-2xl">
-                          <div className="flex h-full flex-col justify-center text-center space-y-4">
-                            <div className="text-6xl animate-bounce">
-                              {(() => {
-                                const allEmojis = Object.values(themeEmojiVariations).flat();
-                                return allEmojis[currentEmojiIndex % allEmojis.length];
-                              })()}
-                            </div>
-                            <h4 className="text-2xl font-bold">Classic Themes</h4>
-                            <p className="text-purple-100">
-                              Choose from our popular pre-designed themes. Perfect for quick party planning!
-                            </p>
-                            <div className="pt-4">
-                              <div className="inline-block bg-white/20 backdrop-blur-sm rounded-lg px-6 py-3 text-white font-semibold hover:bg-white/30 transition-all">
-                                Select Classic Themes →
-                              </div>
-                            </div>
-                          </div>
-                          <div className="absolute top-4 right-4 text-white/60">
-                            <Sparkles className="h-6 w-6" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Custom Themes Card */}
-                    <div 
-                      className="relative group h-80 w-full [perspective:1000px] cursor-pointer"
-                      onClick={() => {
-                        setShowCustomOptions(true);
-                        setShowClassicThemes(false);
-                        setCustomThemeMode(true);
-                        setPartyData({ 
-                          ...partyData, 
-                          classicTheme: "",
-                          selectedTheme: ""
-                        });
-                      }}
-                    >
-                      <div className="relative h-full w-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(-10deg)]">
-                        <div className="absolute inset-0 h-full w-full rounded-xl [backface-visibility:hidden] bg-gradient-to-br from-green-600 to-blue-600 p-8 text-white shadow-2xl">
-                          <div className="flex h-full flex-col justify-center text-center space-y-4">
-                            <div className="text-6xl animate-pulse">🎨</div>
-                            <h4 className="text-2xl font-bold">Custom Themes</h4>
-                            <p className="text-green-100">
-                              Tell us about your child's interests and get AI-powered personalized recommendations!
-                            </p>
-                            <div className="pt-4">
-                              <div className="inline-block bg-white/20 backdrop-blur-sm rounded-lg px-6 py-3 text-white font-semibold hover:bg-white/30 transition-all">
-                                Select Custom Themes →
-                              </div>
-                            </div>
-                          </div>
-                          <div className="absolute top-4 right-4 text-white/60">
-                            <Heart className="h-6 w-6" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Classic Themes Section - Show when classic theme card is flipped */}
-                {showClassicThemes && (
-                  <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                    {/* Back to selection button */}
-                    <div className="flex items-center justify-between mb-6">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setShowClassicThemes(false);
-                          setShowCustomOptions(false);
-                          setCustomThemeMode(false);
-                          setPartyData({ 
-                            ...partyData, 
-                            classicTheme: "",
-                            selectedTheme: "",
-                            childInterests: [],
-                            favoriteColors: []
-                          });
-                        }}
-                        className="flex items-center space-x-2 hover:bg-purple-50"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                        <span>Back to Theme Selection</span>
-                      </Button>
-                      <div className="text-sm text-gray-500">Step 2 of 4</div>
-                    </div>
-
-                    <div className="text-center mb-8">
-                      <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                        🎭 Classic Themes
-                      </h3>
-                      <p className="text-gray-600">
-                        Choose from our popular pre-designed themes and make them uniquely yours
-                      </p>
-                    </div>
-                    
-                    {/* Theme Cards with uniform styling */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                      {classicThemes.map((theme) => (
-                        <div
-                          key={theme.id}
-                          onClick={() => {
-                            setPartyData({ 
-                              ...partyData, 
-                              classicTheme: theme.id,
-                              selectedTheme: theme.id
-                            });
-                          }}
-                          className={cn(
-                            "relative group p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl",
-                            partyData.classicTheme === theme.id
-                              ? "border-purple-500 ring-2 ring-purple-200 shadow-lg bg-purple-50"
-                              : "border-gray-200 hover:border-purple-300 hover:shadow-md bg-white"
-                          )}
-                        >
-                          <div className={cn(
-                            "absolute inset-0 rounded-xl opacity-10 transition-opacity group-hover:opacity-20",
-                            theme.color.replace('bg-gradient-to-r', 'bg-gradient-to-br')
-                          )}></div>
-                          <div className="relative text-center space-y-3">
-                            <div className="text-4xl group-hover:scale-110 transition-transform duration-200">{theme.emoji}</div>
-                            <div className="text-sm font-semibold text-gray-800">
-                              {theme.name}
-                            </div>
-                            {partyData.classicTheme === theme.id && (
-                              <div className="inline-flex items-center space-x-1 text-xs text-purple-600 font-medium bg-purple-100 rounded-full px-2 py-1">
-                                <Sparkles className="h-3 w-3" />
-                                <span>Selected</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Tell us more section for classic themes */}
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 space-y-4">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-2">Make It Extra Special! ✨</h4>
-                        <p className="text-sm text-gray-600">
-                          Tell us more about your child to get personalized theme variations (max 3 words)
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">
-                          What are your child's current favorites, movies, shows, or hobbies? (Max 3 words)
-                        </Label>
-                        <Textarea
-                          placeholder={currentPlaceholder}
-                          value={partyData.childDetails || ''}
-                          onChange={(e) => {
-                            const input = e.target.value;
-                            const words = input.trim().split(/\s+/).filter(word => word.length > 0);
-                            
-                            let finalText = input;
-                            
-                            // Limit to maximum 3 words
-                            if (words.length > 3) {
-                              // Take only first 3 words
-                              finalText = words.slice(0, 3).join(' ');
-                            }
-                            
-                            // Check for profanity
-                            handleTextInputChange(finalText);
-                            
-                            setPartyData({ ...partyData, childDetails: finalText });
-                          }}
-                          className={cn(
-                            "min-h-[100px] text-sm resize-none bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm transition-colors dark:text-gray-200",
-                            profanityState.hasProfanity 
-                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50 dark:bg-red-900/30 dark:ring-red-800 dark:border-red-400" 
-                              : "border-purple-200 focus:border-purple-400 dark:border-slate-600 dark:focus:border-purple-500"
-                          )}
-                        />
-                        {/* Profanity warning message */}
-                        {profanityState.hasProfanity && (
-                          <div className="flex items-center space-x-2 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
-                            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                            <p className="text-sm text-red-700 font-medium">
-                              {profanityState.warningMessage}
-                            </p>
-                          </div>
-                        )}
-                        <div className="flex justify-between items-center">
-                          <p className="text-xs text-gray-500">
-                            This helps us create magical theme variations just for {partyData.childName || 'your child'}!
-                          </p>
-                          <p className="text-xs text-purple-600 font-medium">
-                            {partyData.childDetails ? 
-                              `${partyData.childDetails.trim().split(/\s+/).filter(word => word.length > 0).length}/3 words` : 
-                              '0/3 words'
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Custom Theme Selection - Show when custom theme card is flipped */}
-                {showCustomOptions && (
-                  <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                    {/* Back to selection button */}
-                    <div className="flex items-center justify-between mb-6">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setShowCustomOptions(false);
-                          setShowClassicThemes(false);
-                          setCustomThemeMode(false);
-                          setPartyData({ 
-                            ...partyData, 
-                            selectedTheme: "",
-                            childInterests: [],
-                            favoriteColors: []
-                          });
-                        }}
-                        className="flex items-center space-x-2 hover:bg-green-50"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                        <span>Back to Theme Selection</span>
-                      </Button>
-                      <div className="text-sm text-gray-500">Step 2 of 4</div>
-                    </div>
-
-                    <div className="text-center mb-8">
-                      <h3 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                        🎨 Custom Themes
-                      </h3>
-                      <p className="text-gray-600">
-                        Tell us about your child's interests and we'll create personalized theme recommendations!
-                      </p>
-                    </div>
-
-                    {/* Interests Selection - Card Style (Single Select) */}
-                    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 space-y-4">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-2">What Does Your Child Love? 💫</h4>
-                        <p className="text-sm text-gray-600">
-                          Choose one main interest for your child
-                        </p>
-                      </div>
-                      <div className="space-y-4">
-                        <div className="flex flex-wrap gap-3 justify-center">
-                          {interestOptions.map((interest) => (
-                            <div
-                              key={interest}
-                              onClick={() => {
-                                // Single select - replace the current selection with new one
-                                setPartyData({ ...partyData, childInterests: [interest] });
-                              }}
-                              className={cn(
-                                "relative group px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-md text-sm font-medium",
-                                partyData.childInterests.includes(interest)
-                                  ? "border-green-500 bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg ring-2 ring-green-200"
-                                  : "border-gray-200 bg-white hover:border-green-300 hover:bg-green-50 text-gray-700"
-                              )}
-                            >
-                              <span>{interest}</span>
-                              {partyData.childInterests.includes(interest) && (
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        {partyData.childInterests.length > 0 && (
-                          <div className="flex flex-wrap gap-2 pt-4 justify-center">
-                            <span className="text-sm text-gray-600 font-medium">Selected:</span>
-                            <div className="inline-flex items-center space-x-1 bg-green-100 text-green-800 rounded-full px-3 py-1 text-xs font-medium">
-                              <span>{partyData.childInterests[0]}</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Favorite Colors - Card Style */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 space-y-4">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-2">Favorite Colors 🌈</h4>
-                        <p className="text-sm text-gray-600">
-                          Optional - helps personalize your themes
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-3 justify-center">
-                        {colorOptions.map((color) => (
-                          <div
-                            key={color.value}
-                            className={cn(
-                              "relative group flex items-center space-x-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 bg-white",
-                              partyData.favoriteColors.includes(color.value)
-                                ? "border-purple-500 ring-2 ring-purple-200 shadow-lg"
-                                : "border-gray-200 hover:border-purple-300 hover:shadow-md"
-                            )}
-                            onClick={() => {
-                              const newColors = partyData.favoriteColors.includes(color.value)
-                                ? partyData.favoriteColors.filter(c => c !== color.value)
-                                : [...partyData.favoriteColors, color.value];
-                              setPartyData({ ...partyData, favoriteColors: newColors });
-                            }}
-                          >
-                            <div
-                              className="w-6 h-6 rounded-full border-2 border-gray-300 group-hover:scale-110 transition-transform"
-                              style={{
-                                background: color.value === 'rainbow' 
-                                  ? 'linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7, #DDA0DD)'
-                                  : color.color
-                              }}
-                            />
-                            <span className="text-sm font-medium text-gray-700">{color.name}</span>
-                            {partyData.favoriteColors.includes(color.value) && (
-                              <Heart className="h-4 w-4 text-red-600 fill-current animate-pulse" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Tell us more section */}
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 space-y-4">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-2">Tell Us More! ✨</h4>
-                        <p className="text-sm text-gray-600">
-                          Share more details to get even more personalized recommendations (max 3 words)
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">
-                          What are your child's current favorites, movies, shows, or hobbies? (Max 3 words)
-                        </Label>
-                        <Textarea
-                          placeholder={currentPlaceholder}
-                          value={partyData.childDetails || ''}
-                          onChange={(e) => {
-                            const input = e.target.value;
-                            const words = input.trim().split(/\s+/).filter(word => word.length > 0);
-                            
-                            let finalText = input;
-                            
-                            // Limit to maximum 3 words
-                            if (words.length > 3) {
-                              // Take only first 3 words
-                              finalText = words.slice(0, 3).join(' ');
-                            }
-                            
-                            // Check for profanity
-                            handleTextInputChange(finalText);
-                            
-                            setPartyData({ ...partyData, childDetails: finalText });
-                          }}
-                          className={cn(
-                            "min-h-[100px] text-sm resize-none bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm transition-colors dark:text-gray-200",
-                            profanityState.hasProfanity 
-                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50 dark:bg-red-900/30 dark:ring-red-800 dark:border-red-400" 
-                              : "border-purple-200 focus:border-purple-400 dark:border-slate-600 dark:focus:border-purple-500"
-                          )}
-                        />
-                        {/* Profanity warning message */}
-                        {profanityState.hasProfanity && (
-                          <div className="flex items-center space-x-2 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
-                            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                            <p className="text-sm text-red-700 font-medium">
-                              {profanityState.warningMessage}
-                            </p>
-                          </div>
-                        )}
-                        <div className="flex justify-between items-center">
-                          <p className="text-xs text-gray-500">
-                            This helps us create magical theme variations just for {partyData.childName || 'your child'}!
-                          </p>
-                          <p className="text-xs text-purple-600 font-medium">
-                            {partyData.childDetails ? 
-                              `${partyData.childDetails.trim().split(/\s+/).filter(word => word.length > 0).length}/3 words` : 
-                              '0/3 words'
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Step 3: Theme Selection */}
-            {step === 3 && (
-              <div className="space-y-6">
-
-                {/* Loading State for Custom Themes */}
-                {!partyData.classicTheme && partyData.isLoadingAI && (
-                  <div className="flex flex-col items-center justify-center py-12 relative">
-                    <div className="animate-bounce mb-4">
-                      <PartyPopper className="h-12 w-12 text-purple-600" />
-                    </div>
-                    <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      🎉 Creating Personalized Themes for {partyData.childName}... 🎉
-                    </h3>
-                    <p className="text-sm text-gray-500 text-center max-w-md">
-                      Our AI is analyzing {partyData.childName}'s interests and creating magical theme suggestions just for them!
-                    </p>
-                    <div className="mt-4 flex items-center space-x-2">
-                      <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
-                      <span className="text-xs text-purple-600 font-medium animate-pulse">Magic in progress...</span>
-                      <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
-                    </div>
-                  </div>
-                )}
-
-                {/* Loading State for Classic Theme Personalization */}
-                {partyData.classicTheme && partyData.isLoadingAI && (
-                  <div className="flex flex-col items-center justify-center py-12 relative">
-                    <div className="animate-bounce mb-4">
-                      <div className="text-4xl">
-                        {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji || "🎊"}
-                      </div>
-                    </div>
-                    <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      ✨ Creating Magical {classicThemes.find(t => t.id === partyData.classicTheme)?.name} Variations for {partyData.childName}... ✨
-                    </h3>
-                    <p className="text-sm text-gray-500 text-center max-w-md">
-                      Our AI is analyzing {partyData.childName}'s interests and creating magical theme suggestions just for them!
-                    </p>
-                    <div className="mt-4 flex items-center space-x-2">
-                      <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
-                      <span className="text-xs text-purple-600 font-medium animate-pulse">Personalizing your {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} theme...</span>
-                      <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
-                    </div>
-                  </div>
-                )}
-
-                {/* AI Recommendations Section for Classic Themes */}
-                {partyData.classicTheme && !partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && (
-                  <div className="space-y-4 relative">
-                    {/* Confetti Effect */}
-                    {showConfetti && (
-                      <div style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        pointerEvents: 'none',
-                        zIndex: 50
-                      }}>
-                        <Fireworks autorun={{ speed: 1, duration: 4000 }} />
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-center space-x-2 mb-4">
-                      <Sparkles className="h-6 w-6 text-purple-600" />
-                      <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        Perfect Themes for {partyData.childName}
-                      </h3>
-                      <Sparkles className="h-6 w-6 text-purple-600" />
-                    </div>
-                    
-                    <p className="text-center text-gray-600 mb-6">
-                      🎯 Our AI created these magical {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} variations perfectly tailored to {partyData.childName}'s interests!
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {partyData.aiRecommendations.map((recommendation, index) => (
-                        <Card
-                          key={recommendation.id}
-                          className={cn(
-                            "cursor-pointer transition-all duration-300 border-2 hover:shadow-xl relative overflow-hidden",
-                            partyData.selectedTheme === recommendation.id
-                              ? "border-purple-500 bg-purple-50 ring-2 ring-purple-200 shadow-lg"
-                              : "border-gray-200 hover:border-purple-300 hover:bg-gray-50"
-                          )}
-                          onClick={() => setPartyData({ 
-                            ...partyData, 
-                            selectedTheme: recommendation.id, 
-                            themeActivities: recommendation.activities.join(", ")
-                          })}
-                        >
-                          {/* AI Badge */}
-                          <div className="absolute top-3 right-3 z-10">
-                            <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white text-xs font-semibold animate-pulse">
-                              🎯 AI Recommended
-                            </Badge>
-                          </div>
-                          
-                          <CardContent className="p-6">
-                            <div className="text-center mb-4">
-                              <div className="text-4xl mb-2">{recommendation.emoji}</div>
-                              <h4 className="text-lg font-bold text-gray-800 mb-2">
-                                {recommendation.name}
-                              </h4>
-                              <p className="text-sm text-gray-600 leading-relaxed">
-                                {recommendation.description}
-                              </p>
-                            </div>
-                            
-                            {/* Match Score */}
-                            <div className="flex items-center justify-center mb-4">
-                              <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-full px-3 py-1 border border-green-200">
-                                <span className="text-xs font-semibold text-green-700">
-                                  {recommendation.matchScore}% Perfect Match! 🎯
-                                </span>
-                              </div>
-                            </div>
-                            
-                            {/* Why Recommended */}
-                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 mb-4 border border-blue-100">
-                              <h5 className="text-xs font-semibold text-blue-800 mb-1">
-                                Why perfect for {partyData.childName}:
-                              </h5>
-                              <p className="text-xs text-blue-700 leading-relaxed">
-                                {recommendation.whyRecommended}
-                              </p>
-                            </div>
-                            
-                            {/* Quick Preview */}
-                            <div className="space-y-2">
-                              <div className="text-xs text-gray-600">
-                                <strong>Activities:</strong> {recommendation.activities.slice(0, 2).join(", ")}
-                              </div>
-                              <div className="text-xs text-gray-600">
-                                <strong>Decorations:</strong> {recommendation.decorations.slice(0, 2).join(", ")}
-                              </div>
-                            </div>
-                            
-                            {/* Selection Indicator */}
-                            {partyData.selectedTheme === recommendation.id && (
-                              <div className="mt-4 text-center">
-                                <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-                                  ✓ Selected
-                                </Badge>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    
-                  </div>
-                )}
-
-                {/* AI Recommendations Section for Custom Themes */}
-                {!partyData.classicTheme && !partyData.isLoadingAI && partyData.aiRecommendations && partyData.aiRecommendations.length > 0 && (
-                  <div className="space-y-4 relative">
-                    {/* Confetti Effect */}
-                    {showConfetti && (
-                      <div style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        pointerEvents: 'none',
-                        zIndex: 50
-                      }}>
-                        <Fireworks autorun={{ speed: 3, duration: 4000 }} />
-                      </div>
-                    )}
-                    <div className="flex items-center justify-center space-x-2 mb-4">
-                      <Sparkles className="h-5 w-5 text-purple-600" />
-                      <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        Personalized Themes for {partyData.childName}
-                      </h3>
-                      <Sparkles className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <p className="text-center text-sm text-gray-600 mb-4">
-                      Based on {partyData.childName}'s age ({`${partyData.childAge} year${partyData.childAge > 1 ? 's' : ''} old`}), interests: {partyData.childInterests.join(", ")}
-                      {partyData.favoriteColors.length > 0 && `, and favorite colors: ${partyData.favoriteColors.join(", ")}`}
-                    </p>
-                    <div className="grid grid-cols-1 gap-6">
-                      {partyData.aiRecommendations.map((theme, index) => (
-                        <Card
-                          key={theme.id}
-                          className={cn(
-                            "cursor-pointer transition-all duration-200 hover:scale-102 relative",
-                            partyData.selectedTheme === theme.id
-                              ? "ring-2 ring-purple-500 shadow-lg bg-purple-50"
-                              : "hover:shadow-lg border-2 border-purple-200"
-                          )}
-                          onClick={() => setPartyData({ 
-                            ...partyData, 
-                            selectedTheme: theme.id, 
-                            themeActivities: theme.activities.join(", ")
-                          })}
-                        >
-                          <div className="absolute top-3 right-3 z-10 flex space-x-2">
-                            <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs">
-                              <Sparkles className="h-3 w-3 mr-1" />
-                              AI Recommended
-                            </Badge>
-                            <Badge className="bg-green-100 text-green-800 text-xs">
-                              {theme.matchScore}% Match
-                            </Badge>
-                          </div>
-                          <CardContent className="p-6">
-                            <div className="flex items-start space-x-4">
-                              <div className="text-4xl">{theme.emoji}</div>
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between mb-2">
-                                  <h3 className="font-bold text-xl text-gray-800">{theme.name}</h3>
-                                  {partyData.selectedTheme === theme.id && (
-                                    <Badge className="bg-purple-100 text-purple-700">Selected</Badge>
-                                  )}
-                                </div>
-                                <p className="text-gray-600 mb-3">{theme.description}</p>
-                                
-                                {/* Why Recommended */}
-                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
-                                  <p className="text-sm text-yellow-800">
-                                    <strong>Why we picked this:</strong> {theme.whyRecommended}
-                                  </p>
-                                </div>
-
-                                {/* Color Palette */}
-                                <div className="mb-4">
-                                  <h4 className="font-semibold text-sm text-gray-700 mb-2">Color Palette:</h4>
-                                  <div className="flex space-x-2">
-                                    {theme.colorPalette.map((color, colorIndex) => (
-                                      <div
-                                        key={colorIndex}
-                                        className="w-6 h-6 rounded-full border border-gray-300"
-                                        style={{ backgroundColor: color }}
-                                        title={color}
-                                      />
-                                    ))}
-                                  </div>
-                                </div>
-
-                                {/* Details Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                                  <div>
-                                    <h4 className="font-semibold text-gray-700 mb-1">Decorations:</h4>
-                                    <ul className="text-gray-600 space-y-1">
-                                      {theme.decorations.slice(0, 3).map((decoration, i) => (
-                                        <li key={i}>• {decoration}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                  <div>
-                                    <h4 className="font-semibold text-gray-700 mb-1">Activities:</h4>
-                                    <ul className="text-gray-600 space-y-1">
-                                      {theme.activities.slice(0, 3).map((activity, i) => (
-                                        <li key={i}>• {activity}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                  <div>
-                                    <h4 className="font-semibold text-gray-700 mb-1">Printables:</h4>
-                                    <ul className="text-gray-600 space-y-1">
-                                      {theme.printableIdeas.slice(0, 2).map((printable, i) => (
-                                        <li key={i}>• {printable}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Classic Theme Display - Without AI Recommendations */}
-                {partyData.classicTheme && !partyData.isLoadingAI && (!partyData.aiRecommendations || partyData.aiRecommendations.length === 0) && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-center space-x-2 mb-6">
-                      <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        Your {classicThemes.find(t => t.id === partyData.classicTheme)?.name} Theme
-                      </h3>
-                    </div>
-                    
-                    <p className="text-center text-gray-600 mb-6">
-                      Perfect choice! Your {classicThemes.find(t => t.id === partyData.classicTheme)?.name.toLowerCase()} theme is ready to go.
-                    </p>
-                    
-                    <div className="flex justify-center">
-                      <Card
-                        className={cn(
-                          "cursor-pointer transition-all duration-200 hover:scale-105 max-w-md w-full",
-                          partyData.selectedTheme === partyData.classicTheme
-                            ? "ring-2 ring-purple-500 shadow-lg bg-purple-50"
-                            : "hover:shadow-lg border-2 border-purple-200"
-                        )}
-                        onClick={() => {
-                          const selectedClassicTheme = themes.find(t => t.id === partyData.classicTheme);
-                          setPartyData({ 
-                            ...partyData, 
-                            selectedTheme: partyData.classicTheme || "", 
-                            themeActivities: selectedClassicTheme?.preview.activities.join(", ") || ""
-                          });
-                        }}
-                      >
-                        <CardContent className="p-0">
-                          <div className={`${classicThemes.find(t => t.id === partyData.classicTheme)?.color} h-24 rounded-t-lg flex items-center justify-center text-4xl`}>
-                            {classicThemes.find(t => t.id === partyData.classicTheme)?.emoji}
-                          </div>
-                          <div className="p-6">
-                            <div className="flex items-center justify-between mb-3">
-                              <h3 className="font-bold text-xl">{classicThemes.find(t => t.id === partyData.classicTheme)?.name}</h3>
-                              {partyData.selectedTheme === partyData.classicTheme && (
-                                <Badge className="bg-purple-100 text-purple-700">Selected</Badge>
-                              )}
-                            </div>
-                            <p className="text-gray-600 mb-4">
-                              {themes.find(t => t.id === partyData.classicTheme)?.description}
-                            </p>
-                            <div className="text-sm text-gray-600 space-y-2">
-                              <div><strong>Popular Decorations:</strong> {themes.find(t => t.id === partyData.classicTheme)?.preview.decorations.slice(0, 2).join(", ")}</div>
-                              <div><strong>Fun Activities:</strong> {themes.find(t => t.id === partyData.classicTheme)?.preview.activities.slice(0, 2).join(", ")}</div>
-                              <div><strong>Themed Food:</strong> {themes.find(t => t.id === partyData.classicTheme)?.preview.food.slice(0, 2).join(", ")}</div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-                )}
-
-                {/* Traditional Themes Section */}
-                {!partyData.classicTheme && !partyData.isLoadingAI && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-center space-x-2 mb-4">
-                      <h3 className="text-lg font-semibold text-gray-700">
-                        Or Choose from Classic Themes
-                      </h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {themes.map((theme) => (
-                        <Card
-                          key={theme.id}
-                          className={cn(
-                            "cursor-pointer transition-all duration-200 hover:scale-105",
-                            partyData.selectedTheme === theme.id
-                              ? "ring-2 ring-purple-500 shadow-lg"
-                              : "hover:shadow-lg"
-                          )}
-                          onClick={() => setPartyData({ 
-                            ...partyData, 
-                            selectedTheme: theme.id, 
-                            themeActivities: theme.preview.activities.join(", ")
-                          })}
-                        >
-                          <CardContent className="p-0">
-                            <div className={`${theme.color} h-20 rounded-t-lg flex items-center justify-center text-3xl`}>
-                              {theme.emoji}
-                            </div>
-                            <div className="p-4">
-                              <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-semibold text-lg">{theme.name}</h3>
-                                {partyData.selectedTheme === theme.id && (
-                                  <Badge className="bg-purple-100 text-purple-700">Selected</Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 mb-3">{theme.description}</p>
-                              <div className="text-xs text-gray-500 space-y-1">
-                                <div><strong>Decorations:</strong> {theme.preview.decorations.slice(0, 2).join(", ")}</div>
-                                <div><strong>Activities:</strong> {theme.preview.activities.slice(0, 2).join(", ")}</div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-
-            {/* Step 4: Party Details - Streamlined Budget with Currency, Zip Code with Auto-Detection, Guest Count */}
-            {step === 4 && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Budget Input with Embedded Currency Selection */}
@@ -2339,8 +990,8 @@ export default function CreatePartyPage() {
               </div>
             )}
 
-            {/* Step 5: Create Party Plan (previously step 4) */}
-            {step === 5 && !submitError && (
+            {/* Step 3: Create Party Plan */}
+            {step === 3 && !submitError && (
               <div className="space-y-8">
                 {/* Updated Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -2417,22 +1068,12 @@ export default function CreatePartyPage() {
                     </div>
                   </div>
 
-                  {/* Card 6: Chosen Theme */}
+                  {/* Card 6: Chosen Theme - Always Unicorn */}
                   <div className="bg-gradient-to-br from-pink-50 to-rose-100 dark:from-pink-900/20 dark:to-rose-900/30 p-6 rounded-xl border border-pink-200 dark:border-pink-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
-                    <div className="text-5xl mb-4">
-                      {(() => {
-                        const aiTheme = partyData.aiRecommendations?.find(t => t.id === partyData.selectedTheme);
-                        const classicTheme = themes.find(t => t.id === partyData.selectedTheme);
-                        return aiTheme?.emoji || classicTheme?.emoji || "🎉";
-                      })()}
-                    </div>
+                    <div className="text-5xl mb-4">🦄</div>
                     <h3 className="font-bold text-pink-800 dark:text-pink-200 mb-2 text-lg">Chosen Theme</h3>
                     <div className="text-pink-700 dark:text-pink-300 font-semibold text-lg">
-                      {(() => {
-                        const aiTheme = partyData.aiRecommendations?.find(t => t.id === partyData.selectedTheme);
-                        const classicTheme = themes.find(t => t.id === partyData.selectedTheme);
-                        return aiTheme?.name || classicTheme?.name || "Not selected";
-                      })()}
+                      Unicorn
                     </div>
                     <div className="text-pink-600 dark:text-pink-400 text-sm mt-2">
                       <span className="bg-pink-200 dark:bg-pink-800 px-2 py-1 rounded-full">Perfect match! 🌟</span>
@@ -2481,7 +1122,7 @@ export default function CreatePartyPage() {
 
                 <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-6 rounded-xl border border-purple-300 dark:border-purple-600 max-w-3xl mx-auto">
                   <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
-                    🎉 Everything is perfectly planned for <span className="font-bold text-purple-600 dark:text-purple-400 text-xl">{partyData.childName}'s</span> magical birthday celebration! 
+                    🎉 Everything is perfectly planned for <span className="font-bold text-purple-600 dark:text-purple-400 text-xl">{partyData.childName}'s</span> magical unicorn birthday celebration! 
                     <br />
                     <span className="text-purple-700 dark:text-purple-300 font-medium">Let's create your comprehensive party plan and make this birthday unforgettable! 🌟</span>
                   </p>

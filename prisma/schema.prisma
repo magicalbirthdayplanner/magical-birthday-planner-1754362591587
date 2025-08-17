@@ -26,6 +26,8 @@ model User {
   invoices       Invoice[]
   eventPurchases EventPurchase[]
   emailLogs      EmailLog[]
+  themePreferences ThemePreference[]
+  customThemes   CustomTheme[]
 
   @@map("users")
 }
@@ -485,6 +487,49 @@ enum EffortLevel {
   LOW
   MEDIUM
   HIGH
+}
+
+model ThemePreference {
+  id        String   @id @default(cuid())
+  userId    String
+  themeId   String   // Can be classic theme ID or custom theme ID
+  themeType ThemeType @default(CLASSIC)
+  isFavorite Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, themeId])
+  @@map("theme_preferences")
+}
+
+model CustomTheme {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String
+  description     String
+  emoji           String
+  colorPalette    String[] @default([])
+  decorations     String[] @default([])
+  activities      String[] @default([])
+  printableIdeas  String[] @default([])
+  whyRecommended  String?
+  matchScore      Int?     @default(0)
+  ageAppropriate  Boolean  @default(true)
+  generatedBy     String?  @default("AI") // "AI" or "USER"
+  basedOnInterests String[] @default([])
+  basedOnColors   String[] @default([])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("custom_themes")
+}
+
+enum ThemeType {
+  CLASSIC
+  CUSTOM
+  AI_GENERATED
 }
 
 
