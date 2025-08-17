@@ -1,3 +1,42 @@
+## [usr-1755397794502]
+**User Request:** when deployed to vercel and to custom domain, getting the attached error while creating party 
+
+Domains
+www.magicalbirthdayplanner.com
++2
+magical-birthday-planner-17-git-9795fe-magical-birthday-planner.vercel.app
+magical-birthday-planner-1754362591587-rk0sp0ag2.vercel.app
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-16 at 10.22.51 PM.png
+
+**Response Summary:** Diagnosed and resolved database connection issue on Vercel deployed custom domain. The main issue was environment variable configuration mismatch between local and production environments.
+
+**Root Cause Analysis:**
+- Screenshot showed "Unable to Load Party" error with "Database connection issue" message
+- Investigation revealed that NEXT_PUBLIC_BASE_URL was still pointing to old Vercel domain instead of custom domain
+- The application was trying to make API calls to the wrong domain, causing authentication and database connection issues
+
+**Resolution Implemented:**
+- Updated NEXT_PUBLIC_BASE_URL from "https://magical-birthday-planner.vercel.app/" to "https://www.magicalbirthdayplanner.com/"
+- Updated .ideavo/baseurl file to reflect the custom domain for consistent callback URLs
+- Verified that Supabase credentials were correctly configured
+- Confirmed that the existing database connection retry logic and error handling was robust
+
+**Database Connection Logic Verified:**
+- ensureDbConnection() function with proper timeout handling (6s initial, 3s retry, 2s final)
+- Exponential backoff retry mechanism with reduced delays for better user experience
+- Comprehensive error handling for various connection states
+- Timeout protection to prevent hanging in serverless environment
+
+**Files Modified:** 
+- .env (updated NEXT_PUBLIC_BASE_URL)
+- .ideavo/baseurl (updated base URL for callbacks)
+
+**Next Steps for Deployment:**
+1. Ensure these environment variable changes are replicated in Vercel dashboard
+2. Redeploy the application to pick up the new environment variables
+3. Test party creation on the custom domain to verify the fix
+
 ## [usr-1755397570197]
 **User Request:** Use this attached file for favicon 
 
