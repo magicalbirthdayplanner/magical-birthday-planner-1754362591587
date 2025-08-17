@@ -806,56 +806,6 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
         </Card>
       )}
 
-      {/* Favorites Section */}
-      {favoriteThemes.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-red-500" />
-              Your Favorite Themes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {favoriteThemes.map((themeId) => {
-                const classicTheme = classicThemes.find(t => t.id === themeId);
-                const aiTheme = aiThemes.find(t => t.id === themeId);
-                const theme = classicTheme || aiTheme;
-                
-                if (!theme) return null;
-                
-                return (
-                  <Card
-                    key={themeId}
-                    className="cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg relative"
-                    onClick={() => onThemeSelect(themeId)}
-                  >
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl mb-2">
-                        {classicTheme ? classicTheme.emoji : aiTheme?.emoji}
-                      </div>
-                      <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                        {classicTheme ? classicTheme.name : aiTheme?.name}
-                      </h4>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute top-1 right-1 p-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(themeId);
-                        }}
-                      >
-                        <Heart className="w-3 h-3 text-red-500 fill-current" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

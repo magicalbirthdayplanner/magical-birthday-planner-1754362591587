@@ -1,3 +1,13 @@
+## [usr-1755405924181]
+**User Request:** No need of this section. Please remove
+
+Attachments: @.ideavo-attachments/Screenshot 2025-08-17 at 12.45.02 AM.png
+
+**Response Summary:** Successfully removed the "Your Favorite Themes" section from the ThemesTab component based on the screenshot provided. This section was displaying saved favorite themes at the bottom of the themes tab but is no longer needed according to the user's request.
+
+**Files Modified:** 
+- components/ThemesTab.tsx
+
 ## [usr-1755405361708]
 **User Request:** In all the subscription plans., theme is the 2nd tab after overview 
 
