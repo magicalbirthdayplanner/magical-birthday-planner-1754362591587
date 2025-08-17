@@ -41,14 +41,166 @@ interface ThemesTabProps {
 }
 
 const classicThemes = [
-  { id: "dinosaur", name: "Dinosaur", emoji: "🦕", color: "bg-gradient-to-r from-green-500 to-emerald-600" },
-  { id: "space", name: "Space", emoji: "🚀", color: "bg-gradient-to-r from-purple-600 to-indigo-800" },
-  { id: "safari", name: "Safari", emoji: "🦁", color: "bg-gradient-to-r from-yellow-500 to-orange-600" },
-  { id: "ocean", name: "Ocean", emoji: "🐠", color: "bg-gradient-to-r from-blue-500 to-cyan-600" },
-  { id: "princess", name: "Princess", emoji: "👸", color: "bg-gradient-to-r from-pink-400 to-purple-600" },
-  { id: "superhero", name: "Superhero", emoji: "🦸‍♂️", color: "bg-gradient-to-r from-red-500 to-blue-600" },
-  { id: "sports", name: "Sports", emoji: "⚽", color: "bg-gradient-to-r from-orange-500 to-red-600" },
-  { id: "unicorn", name: "Unicorn", emoji: "🦄", color: "bg-gradient-to-r from-pink-500 to-violet-600" }
+  { 
+    id: "dinosaur", 
+    name: "Dinosaur Adventure", 
+    emoji: "🦕", 
+    color: "bg-gradient-to-r from-green-500 to-emerald-600",
+    description: "A prehistoric party adventure with dinosaurs from all eras! Perfect for little paleontologists.",
+    decorations: [
+      "Dinosaur footprint path leading to party area",
+      "Large inflatable dinosaurs and fossils",
+      "Jungle backdrop with prehistoric plants",
+      "Volcano centerpiece with dry ice effect"
+    ],
+    activities: [
+      "Dinosaur fossil dig in sandbox",
+      "Pin the tail on the T-Rex",
+      "Dinosaur egg hunt with surprise toys",
+      "Create-your-own dinosaur craft station"
+    ],
+    colorPalette: ["#32CD32", "#228B22", "#8FBC8F", "#6B8E23"]
+  },
+  { 
+    id: "space", 
+    name: "Space Explorer Mission", 
+    emoji: "🚀", 
+    color: "bg-gradient-to-r from-purple-600 to-indigo-800",
+    description: "Blast off to an intergalactic celebration among the stars! Mission: Fun activated.",
+    decorations: [
+      "Silver balloon archway as space station entrance",
+      "Hanging planets and stars from ceiling",
+      "Rocket ship photo booth backdrop",
+      "Galaxy tablecloth with LED lights"
+    ],
+    activities: [
+      "Build and launch paper rockets",
+      "Space trivia and alien encounter games",
+      "Astronaut training obstacle course",
+      "Design your own planet art activity"
+    ],
+    colorPalette: ["#4169E1", "#8A2BE2", "#191970", "#483D8B"]
+  },
+  { 
+    id: "safari", 
+    name: "African Safari Adventure", 
+    emoji: "🦁", 
+    color: "bg-gradient-to-r from-yellow-500 to-orange-600",
+    description: "Join the wild adventure through African savanna with majestic animals!",
+    decorations: [
+      "Jungle vine entrance with animal sounds",
+      "Safari jeep cardboard cutout",
+      "Animal print tablecloth and napkins",
+      "Stuffed safari animals throughout venue"
+    ],
+    activities: [
+      "Animal charades and sounds game",
+      "Safari scavenger hunt",
+      "Face painting with animal designs",
+      "Make binoculars craft for exploration"
+    ],
+    colorPalette: ["#FFD700", "#FF8C00", "#DAA520", "#B8860B"]
+  },
+  { 
+    id: "ocean", 
+    name: "Under the Sea Adventure", 
+    emoji: "🐠", 
+    color: "bg-gradient-to-r from-blue-500 to-cyan-600",
+    description: "Dive deep into an underwater world filled with colorful sea creatures and treasures!",
+    decorations: [
+      "Blue streamers as ocean waves",
+      "Hanging jellyfish made from paper lanterns",
+      "Treasure chest filled with party favors",
+      "Coral reef backdrop with sea creatures"
+    ],
+    activities: [
+      "Fishing game with magnetic rods",
+      "Mermaid tail craft making",
+      "Musical sea creatures game",
+      "Ocean slime making station"
+    ],
+    colorPalette: ["#4169E1", "#00CED1", "#20B2AA", "#87CEEB"]
+  },
+  { 
+    id: "princess", 
+    name: "Royal Princess Castle", 
+    emoji: "👸", 
+    color: "bg-gradient-to-r from-pink-400 to-purple-600",
+    description: "A magical royal celebration fit for princesses and princes in an enchanted castle!",
+    decorations: [
+      "Castle entrance archway with towers",
+      "Pink and purple balloon bouquets",
+      "Royal throne chair for birthday child",
+      "Sparkling tiara centerpieces on tables"
+    ],
+    activities: [
+      "Princess dress-up and photo session",
+      "Royal treasure hunt for jewels",
+      "Decorate your own crown craft",
+      "Princess etiquette tea party games"
+    ],
+    colorPalette: ["#FF69B4", "#DA70D6", "#DDA0DD", "#F0E68C"]
+  },
+  { 
+    id: "superhero", 
+    name: "Superhero Training Academy", 
+    emoji: "🦸‍♂️", 
+    color: "bg-gradient-to-r from-red-500 to-blue-600",
+    description: "Calling all heroes! Train to become the ultimate superhero and save the day!",
+    decorations: [
+      "City skyline backdrop with buildings",
+      "Comic book action bubble decorations",
+      "Superhero cape station entrance",
+      "POW! BAM! table centerpieces"
+    ],
+    activities: [
+      "Design your own superhero cape",
+      "Superhero training obstacle course",
+      "Villain freeze dance battle",
+      "Create comic book covers activity"
+    ],
+    colorPalette: ["#FF6347", "#4169E1", "#FFD700", "#DC143C"]
+  },
+  { 
+    id: "sports", 
+    name: "Championship Sports Day", 
+    emoji: "⚽", 
+    color: "bg-gradient-to-r from-orange-500 to-red-600",
+    description: "Game on! A championship celebration with sports challenges and victory fun!",
+    decorations: [
+      "Sports equipment garland banners",
+      "Trophy and medal centerpieces",
+      "Team pennant flags hanging",
+      "Goal post entrance archway"
+    ],
+    activities: [
+      "Mini sports tournament stations",
+      "Medal ceremony and awards",
+      "Sports trivia championship",
+      "Design team jersey craft"
+    ],
+    colorPalette: ["#FF8C00", "#FF6347", "#32CD32", "#4169E1"]
+  },
+  { 
+    id: "unicorn", 
+    name: "Magical Unicorn Kingdom", 
+    emoji: "🦄", 
+    color: "bg-gradient-to-r from-pink-500 to-violet-600",
+    description: "Enter a mystical realm where unicorns roam and rainbow magic fills the air!",
+    decorations: [
+      "Rainbow balloon archway entrance",
+      "Unicorn horn and tail photo props",
+      "Glittery cloud and star hanging decorations",
+      "Pastel rainbow tablecloth settings"
+    ],
+    activities: [
+      "Unicorn horn decorating craft",
+      "Rainbow parachute play time",
+      "Pin the horn on the unicorn",
+      "Magical unicorn slime making"
+    ],
+    colorPalette: ["#FF69B4", "#9370DB", "#87CEEB", "#F0E68C"]
+  }
 ];
 
 const interestOptions = [
@@ -78,6 +230,7 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
   const [selectedColors, setSelectedColors] = useState<string[]>(partyData.favoriteColors || []);
   const [childDetails, setChildDetails] = useState("");
   const [currentFavorites, setCurrentFavorites] = useState("");
+  const [selectedThemeDetails, setSelectedThemeDetails] = useState<any>(null);
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -86,6 +239,17 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
       setFavoriteThemes(JSON.parse(saved));
     }
   }, []);
+
+  // Update selected theme details when theme changes
+  useEffect(() => {
+    if (partyData.selectedTheme) {
+      const classicTheme = classicThemes.find(t => t.id === partyData.selectedTheme);
+      const aiTheme = aiThemes.find(t => t.id === partyData.selectedTheme);
+      setSelectedThemeDetails(classicTheme || aiTheme || null);
+    } else {
+      setSelectedThemeDetails(null);
+    }
+  }, [partyData.selectedTheme, aiThemes]);
 
   // Save favorites to localStorage
   const saveFavorites = (favorites: string[]) => {
@@ -462,6 +626,124 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
             </div>
           )}
         </div>
+      )}
+
+      {/* Selected Theme Details */}
+      {selectedThemeDetails && (
+        <Card className="border-2 border-purple-200 dark:border-purple-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <div className="text-3xl">{selectedThemeDetails.emoji}</div>
+              <div>
+                <h3 className="text-xl font-bold text-purple-800 dark:text-purple-200">
+                  {selectedThemeDetails.name}
+                </h3>
+                <p className="text-sm text-purple-600 dark:text-purple-300 font-medium">
+                  Selected Theme
+                </p>
+              </div>
+              <Badge className="ml-auto bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100">
+                <Star className="w-3 h-3 mr-1" />
+                Current Theme
+              </Badge>
+            </CardTitle>
+            <CardDescription className="text-gray-700 dark:text-gray-300">
+              {selectedThemeDetails.description}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {selectedThemeDetails.whyRecommended && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
+                <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Why This Theme?
+                </h4>
+                <p className="text-gray-700 dark:text-gray-300 text-sm">
+                  {selectedThemeDetails.whyRecommended}
+                </p>
+                {selectedThemeDetails.matchScore && (
+                  <Badge variant="secondary" className="mt-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800">
+                    {selectedThemeDetails.matchScore}% perfect match
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Decorations */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
+                <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-3 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  Decorations
+                </h4>
+                <ul className="space-y-2">
+                  {(selectedThemeDetails.decorations || []).map((item: string, index: number) => (
+                    <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                      <span className="text-purple-500 mt-1">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Activities */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
+                <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-3 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+                  Activities
+                </h4>
+                <ul className="space-y-2">
+                  {(selectedThemeDetails.activities || []).map((item: string, index: number) => (
+                    <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                      <span className="text-pink-500 mt-1">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Color Palette */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
+                <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-3 flex items-center gap-2">
+                  <Palette className="w-4 h-4" />
+                  Color Palette
+                </h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {(selectedThemeDetails.colorPalette || []).map((color: string, index: number) => (
+                    <div key={index} className="flex flex-col items-center">
+                      <div
+                        className="w-8 h-8 rounded-lg border-2 border-gray-200 dark:border-gray-600 shadow-sm"
+                        style={{ backgroundColor: color }}
+                        title={color}
+                      />
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {color.toUpperCase()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Theme Information for AI Themes */}
+            {selectedThemeDetails.printableIdeas && selectedThemeDetails.printableIdeas.length > 0 && (
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-700">
+                <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-3 flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  Printable Ideas & Extras
+                </h4>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {selectedThemeDetails.printableIdeas.map((item: string, index: number) => (
+                    <li key={index} className="text-sm text-yellow-700 dark:text-yellow-300 flex items-start gap-2">
+                      <span className="text-yellow-600 mt-1">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* Favorites Section */}
