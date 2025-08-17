@@ -392,15 +392,45 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                 <div className={cn("absolute inset-0 rounded-lg opacity-20", theme.color)} />
                 <CardContent className="p-6 text-center relative">
                   <div className="text-4xl mb-2">{theme.emoji}</div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
                     {theme.name}
                   </h3>
+                  
+                  {/* Add to Party Button */}
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onThemeSelect(theme.id);
+                    }}
+                    variant={partyData.selectedTheme === theme.id ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "w-full mb-2 transition-all duration-200",
+                      partyData.selectedTheme === theme.id 
+                        ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md" 
+                        : "border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-300 dark:hover:bg-purple-900/20"
+                    )}
+                  >
+                    {partyData.selectedTheme === theme.id ? (
+                      <>
+                        <Star className="w-3 h-3 mr-1" />
+                        Added to Party
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-3 h-3 mr-1" />
+                        Add to Party
+                      </>
+                    )}
+                  </Button>
+
                   {partyData.selectedTheme === theme.id && (
                     <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                       <Star className="w-3 h-3 mr-1" />
-                      Selected
+                      Current Theme
                     </Badge>
                   )}
+                  
                   <Button
                     variant="ghost"
                     size="sm"
@@ -579,6 +609,36 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                         </div>
                       </div>
 
+                      {/* Add to Party Button for AI Themes */}
+                      <div className="mb-4">
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onThemeSelect(theme.id);
+                          }}
+                          variant={partyData.selectedTheme === theme.id ? "default" : "outline"}
+                          size="sm"
+                          className={cn(
+                            "transition-all duration-200",
+                            partyData.selectedTheme === theme.id 
+                              ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md" 
+                              : "border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-300 dark:hover:bg-purple-900/20"
+                          )}
+                        >
+                          {partyData.selectedTheme === theme.id ? (
+                            <>
+                              <Star className="w-3 h-3 mr-1" />
+                              Added to Party
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3 h-3 mr-1" />
+                              Add to Party
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div>
                           <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Decorations</h5>
@@ -615,7 +675,7 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                           <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                             <Star className="w-3 h-3 mr-1" />
-                            Selected Theme
+                            Current Theme
                           </Badge>
                         </div>
                       )}

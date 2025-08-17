@@ -170,6 +170,14 @@ export default function PartyPlanPage() {
       allowedPlans: ['overview'] // Always allowed (included in all plans)
     },
     {
+      id: 'themes',
+      label: 'Themes',
+      icon: Palette,
+      gradient: 'from-purple-500 to-pink-500',
+      hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
+      allowedPlans: ['themes'] // Always allowed (included in all plans)
+    },
+    {
       id: 'budget',
       label: 'Budget',
       icon: DollarSign,
@@ -224,14 +232,6 @@ export default function PartyPlanPage() {
       gradient: 'from-pink-500 to-rose-500',
       hoverColor: 'bg-pink-50 dark:bg-pink-900/20',
       allowedPlans: ['cake'] // Pro plan only
-    },
-    {
-      id: 'themes',
-      label: 'Themes',
-      icon: Palette,
-      gradient: 'from-purple-500 to-pink-500',
-      hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
-      allowedPlans: ['themes'] // Always allowed (included in all plans)
     },
     {
       id: 'guests',
@@ -1035,7 +1035,72 @@ export default function PartyPlanPage() {
 
   const getThemeDetails = () => {
     if (!partyData?.selectedTheme) return null;
-    return themeData[partyData.selectedTheme as keyof typeof themeData];
+    
+    // Define classic themes data to match ThemesTab component
+    const classicThemesData = {
+      dinosaur: {
+        name: "Dinosaur Adventure",
+        emoji: "🦕",
+        colors: ["Green", "Brown", "Orange", "Yellow"]
+      },
+      space: {
+        name: "Space Explorer Mission",
+        emoji: "🚀",
+        colors: ["Blue", "Purple", "Silver", "Black"]
+      },
+      safari: {
+        name: "African Safari Adventure",
+        emoji: "🦁",
+        colors: ["Yellow", "Orange", "Brown", "Green"]
+      },
+      ocean: {
+        name: "Under the Sea Adventure",
+        emoji: "🐠",
+        colors: ["Blue", "Cyan", "Teal", "Aqua"]
+      },
+      princess: {
+        name: "Royal Princess Castle",
+        emoji: "👸",
+        colors: ["Pink", "Purple", "Gold", "Silver"]
+      },
+      superhero: {
+        name: "Superhero Training Academy",
+        emoji: "🦸‍♂️",
+        colors: ["Red", "Blue", "Yellow", "Silver"]
+      },
+      sports: {
+        name: "Championship Sports Day",
+        emoji: "⚽",
+        colors: ["Orange", "Red", "Green", "Blue"]
+      },
+      unicorn: {
+        name: "Magical Unicorn Kingdom",
+        emoji: "🦄",
+        colors: ["Pink", "Purple", "Blue", "Yellow"]
+      }
+    };
+
+    // Check if it's a classic theme
+    const classicTheme = classicThemesData[partyData.selectedTheme as keyof typeof classicThemesData];
+    if (classicTheme) {
+      return classicTheme;
+    }
+
+    // If it's an AI theme (starts with 'ai-'), return generic AI theme info
+    if (partyData.selectedTheme.startsWith('ai-')) {
+      return {
+        name: "AI Custom Theme",
+        emoji: "🤖",
+        colors: ["Purple", "Pink", "Blue", "Gold"]
+      };
+    }
+
+    // Fallback for any other themes
+    return {
+      name: "Custom Theme",
+      emoji: "🎉",
+      colors: ["Purple", "Pink"]
+    };
   };
 
   const completedTasks = checklist.filter(item => item.completed).length;
@@ -1309,6 +1374,7 @@ export default function PartyPlanPage() {
                       className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg transition-all duration-200 text-gray-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-gray-100 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold data-[state=active]:border-none data-[state=active]:transform data-[state=active]:scale-[1.02]"
                       style={{
                         backgroundImage: tab.id === 'overview' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' : 
+                                        tab.id === 'themes' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
                                         tab.id === 'budget' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
                                         tab.id === 'activities' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)' :
                                         tab.id === 'host-mode' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
@@ -1338,19 +1404,64 @@ export default function PartyPlanPage() {
               <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <span className="text-2xl">{themeDetails?.emoji}</span>
-                    {themeDetails?.name} Theme
+                    <span className="text-2xl">{themeDetails?.emoji || "🎉"}</span>
+                    <div className="flex-1">
+                      {themeDetails?.name || "No Theme Selected"} 
+                      {partyData?.selectedTheme ? " Theme" : ""}
+                    </div>
+                    {partyData?.selectedTheme && (
+                      <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                        <Star className="w-3 h-3 mr-1" />
+                        Selected
+                      </Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    <h4 className="font-semibold">Color Palette:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {themeDetails?.colors.map((color, index) => (
-                        <Badge key={index} variant="secondary">{color}</Badge>
-                      ))}
+                  {partyData?.selectedTheme ? (
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-semibold mb-2">Color Palette:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {themeDetails?.colors.map((color, index) => (
+                            <Badge key={index} variant="secondary">{color}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
+                            if (themesTab) themesTab.click();
+                          }}
+                          className="w-full"
+                        >
+                          <Palette className="w-4 h-4 mr-2" />
+                          Change Theme
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-gray-600 dark:text-gray-400 mb-3">
+                        No theme selected yet
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
+                          if (themesTab) themesTab.click();
+                        }}
+                        className="w-full"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Select Theme
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
