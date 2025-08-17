@@ -107,7 +107,7 @@ export default function CreatePartyPage() {
     childInterests: [],
     favoriteColors: [],
     partyDate: undefined,
-    selectedTheme: "unicorn", // Default theme
+    selectedTheme: "", // No default theme
     budget: undefined,
     currency: "USD", // Initialize with default USD currency
     zipCode: "",
@@ -133,7 +133,7 @@ export default function CreatePartyPage() {
         // Ensure required fields are initialized if missing from saved data
         const restoredData = {
           ...parsedData,
-          selectedTheme: "unicorn", // Always use unicorn theme
+          selectedTheme: "", // No default theme
           currency: parsedData.currency || "USD",
           country: parsedData.country || "",
           zipCodeError: parsedData.zipCodeError || undefined,
@@ -329,7 +329,7 @@ export default function CreatePartyPage() {
           childAge: partyData.childAge,
           childGender: partyData.childGender,
           partyDate: partyData.partyDate!,
-          theme: "unicorn", // Always use unicorn theme
+          theme: "", // No default theme - user can select in themes tab
           interests: partyData.childInterests,
           favoriteColors: partyData.favoriteColors,
           guestCount: partyData.guestCount,
@@ -369,7 +369,7 @@ export default function CreatePartyPage() {
       
       // Navigate to the party dashboard
       console.log('Redirecting to party:', partyId);
-      router.push(`/party/${partyId}`);
+      router.push(`/party-plan?id=${partyId}`);
 
     } catch (error) {
       console.error('Party creation error:', error);
@@ -505,7 +505,7 @@ export default function CreatePartyPage() {
                         childInterests: [],
                         favoriteColors: [],
                         partyDate: undefined,
-                        selectedTheme: "unicorn",
+                        selectedTheme: "",
                         budget: undefined,
                         currency: "",
                         zipCode: "",
@@ -1068,17 +1068,6 @@ export default function CreatePartyPage() {
                     </div>
                   </div>
 
-                  {/* Card 6: Chosen Theme - Always Unicorn */}
-                  <div className="bg-gradient-to-br from-pink-50 to-rose-100 dark:from-pink-900/20 dark:to-rose-900/30 p-6 rounded-xl border border-pink-200 dark:border-pink-700 shadow-lg transform hover:scale-105 transition-all duration-300 text-center">
-                    <div className="text-5xl mb-4">🦄</div>
-                    <h3 className="font-bold text-pink-800 dark:text-pink-200 mb-2 text-lg">Chosen Theme</h3>
-                    <div className="text-pink-700 dark:text-pink-300 font-semibold text-lg">
-                      Unicorn
-                    </div>
-                    <div className="text-pink-600 dark:text-pink-400 text-sm mt-2">
-                      <span className="bg-pink-200 dark:bg-pink-800 px-2 py-1 rounded-full">Perfect match! 🌟</span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* What's Included Preview */}
@@ -1122,9 +1111,9 @@ export default function CreatePartyPage() {
 
                 <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-6 rounded-xl border border-purple-300 dark:border-purple-600 max-w-3xl mx-auto">
                   <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
-                    🎉 Everything is perfectly planned for <span className="font-bold text-purple-600 dark:text-purple-400 text-xl">{partyData.childName}'s</span> magical unicorn birthday celebration! 
+                    🎉 Everything is perfectly planned for <span className="font-bold text-purple-600 dark:text-purple-400 text-xl">{partyData.childName}'s</span> magical birthday celebration! 
                     <br />
-                    <span className="text-purple-700 dark:text-purple-300 font-medium">Let's create your comprehensive party plan and make this birthday unforgettable! 🌟</span>
+                    <span className="text-purple-700 dark:text-purple-300 font-medium">Let's create your comprehensive party plan and make this birthday unforgettable! You can choose a theme later in the Themes tab! 🌟</span>
                   </p>
                 </div>
               </div>
