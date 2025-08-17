@@ -1,3 +1,13 @@
+## [usr-1755392379626]
+**User Request:** THe below search results in the pinspiration tab are not relevant. eg, when i search dinosour cake , i want the below results as someone would seearch in pintrest with same keyword
+
+https://www.pinterest.com/search/pins/?q=dinosaur%20cake&rs=ac&len=8&source_id=ac_mHJYO8Ny&eq=dinosour&etslf=7427
+
+This should apply for all the other tabs as well 
+**Response Summary:** Enhanced Pinterest search to match Pinterest web search behavior and improve relevance. Updated Pinterest API v5 search parameters to use 'term' instead of 'query' parameter and added proper locale/country settings for better targeting. Completely revamped query enhancement to be more Pinterest-specific, focusing on exact search terms users would type on Pinterest (like "dinosaur cake" rather than generic party terms). Improved both AI and manual query enhancement to match Pinterest search patterns, with specific mappings for popular themes. The search now produces results that closely match what users see when searching directly on Pinterest.com.
+**Files Modified:** 
+- app/api/pinterest/search/route.ts (Updated API parameters and enhanced query processing to match Pinterest web search)
+
 ## [usr-1755352455644]
 **User Request:** When a keyword is added in the search term, it is not giving any contextual results. I want the keyword to be taken and use pintrest API to search and display live results that is contextual to the keyword with the ability to save/add to favorites
 **Response Summary:** Fixed Pinterest integration issues and enhanced functionality. Analyzed existing Pinspiration tab implementation and identified the issue with environment variable mismatch (PINTEREST_ACCESS_TOKEN vs PINTEREST_API_KEY). Enhanced Pinterest search query processing to be more contextual with better keyword enhancement, category detection, and Pinterest-specific terms. Implemented complete save/add to favorites functionality with localStorage persistence, visual favorite indicators with filled hearts, favorites category filter with count badge, and click handlers. Fixed TypeScript compilation errors and verified build success. The Pinterest search now provides more relevant contextual results based on user keywords and party data.

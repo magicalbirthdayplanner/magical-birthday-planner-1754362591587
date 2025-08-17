@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
             messages: [
               {
                 role: 'system',
-                content: 'You are enhancing search queries for Pinterest birthday inspiration. Given theme, colors, preferences, and party details, generate the most relevant Pinterest search query. Return a short keyword string only, optimized for Pinterest search.'
+                content: 'You are optimizing search queries for Pinterest to find the most relevant pins. Your goal is to create search terms that match what users would naturally search for on Pinterest. Focus on specific, visual, actionable keywords rather than generic terms. Pinterest users search for things like "dinosaur cake", "princess party decorations", "superhero birthday invitations", etc.'
               },
               {
                 role: 'user',
-                content: `Enhance this Pinterest query for a kids' birthday party context: "${query}". Theme: ${theme || 'general'}. Return only a short search string.`
+                content: `Convert this search query into Pinterest-optimized keywords: "${query}". Theme context: ${theme || 'general'}. Make it specific and visual, like Pinterest users search (e.g., "dinosaur cake" not "dinosaur birthday party ideas"). Return only the optimized search terms.`
               }
             ],
             max_tokens: 100,
@@ -60,9 +60,17 @@ export async function POST(request: NextRequest) {
       const pinterestToken = process.env.PINTEREST_API_KEY;
       
       if (pinterestToken) {
-        // Search pins
+        // Search pins - use 'term' parameter instead of 'query' to match Pinterest API v5 specification
+        // Also add additional parameters for better search relevance
+        const searchParams = new URLSearchParams({
+          term: enhancedQuery,
+          page_size: '25',
+          country_code: 'US',
+          locale: 'en'
+        });
+
         const pinsResponse = await fetch(
-          `https://api.pinterest.com/v5/search/pins?query=${encodeURIComponent(enhancedQuery)}&page_size=20`,
+          `https://api.pinterest.com/v5/search/pins?${searchParams.toString()}`,
           {
             headers: {
               'Authorization': `Bearer ${pinterestToken}`,
@@ -116,35 +124,51 @@ export async function POST(request: NextRequest) {
 }
 
 function enhanceQueryManually(query: string, theme?: string): string {
-  const baseQuery = query.toLowerCase();
-  const themeContext = theme ? `${theme} ` : '';
+  const baseQuery = query.toLowerCase().trim();
   
-  // Add birthday party context if not present
-  if (!baseQuery.includes('birthday') && !baseQuery.includes('party')) {
-    return `${themeContext}${query} birthday party ideas`;
+  // Pinterest users search for specific, visual items rather than broad concepts
+  // Transform broad queries into specific Pinterest-style searches
+  
+  // Map common search patterns to Pinterest-style queries
+  const pinterestQueryMappings: { [key: string]: string } = {
+    'dinosaur cake': 'dinosaur cake',
+    'dinosaur': 'dinosaur birthday cake decorations',
+    'princess cake': 'princess cake',
+    'princess': 'princess birthday party decorations',
+    'superhero': 'superhero birthday party ideas',
+    'unicorn': 'unicorn birthday cake decorations',
+    'space': 'space birthday party decorations',
+    'pirate': 'pirate birthday party decorations',
+    'safari': 'safari birthday party decorations',
+    'ocean': 'ocean birthday party decorations'
+  };
+  
+  // Check if query matches a specific mapping
+  for (const [pattern, replacement] of Object.entries(pinterestQueryMappings)) {
+    if (baseQuery.includes(pattern)) {
+      return replacement;
+    }
   }
   
-  // Enhanced context words for better Pinterest results - more specific and Pinterest-friendly
-  const contextWords = ['kids', 'children', 'decorations', 'DIY', 'celebration', 'inspiration', 'ideas', 'cute', 'fun'];
-  const categoryKeywords = ['decor', 'cake', 'game', 'activity', 'invitation', 'printable', 'costume', 'favor'];
-  
-  // Check if query already has contextual keywords
-  const hasContext = contextWords.some(word => baseQuery.includes(word));
-  const hasCategory = categoryKeywords.some(word => baseQuery.includes(word));
-  
-  let enhancedQuery = `${themeContext}${query}`;
-  
-  // Add context if missing
-  if (!hasContext) {
-    enhancedQuery += ' kids birthday party ideas';
+  // If theme is provided, create theme-specific search
+  if (theme && theme !== 'general') {
+    // Check if query already includes theme
+    if (!baseQuery.includes(theme.toLowerCase())) {
+      return `${theme.toLowerCase()} ${query}`;
+    }
   }
   
-  // Add Pinterest-specific search terms for better discovery
-  if (!baseQuery.includes('pinterest') && !baseQuery.includes('inspiration')) {
-    enhancedQuery += ' inspiration';
+  // For specific items (cake, decorations, etc.), keep them simple
+  const specificItems = ['cake', 'decoration', 'invitation', 'favor', 'costume', 'game'];
+  const hasSpecificItem = specificItems.some(item => baseQuery.includes(item));
+  
+  if (hasSpecificItem) {
+    // Keep specific searches clean and Pinterest-like
+    return query;
   }
   
-  return enhancedQuery.trim();
+  // For general queries, add minimal context
+  return `${query} birthday party`;
 }
 
 function categorizePin(title?: string, description?: string): string {
