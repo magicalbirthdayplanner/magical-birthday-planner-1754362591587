@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { query, theme } = body;
+    const { query, theme, partyData } = body;
 
     if (!query) {
       return NextResponse.json(
@@ -12,13 +12,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 1: Enhance query with GPT-4.1 (if available)
+    // Step 1: Enhance query with GPT-4.1 (if available) using comprehensive party context
     let enhancedQuery = query;
     
     try {
       const openaiApiKey = process.env.OPENAI_API_KEY;
       
       if (openaiApiKey) {
+        // Create comprehensive context from party data for better query enhancement
+        const partyContext = partyData ? {
+          theme: partyData.selectedTheme || partyData.theme || theme,
+          childAge: partyData.childAge,
+          interests: partyData.interests || [],
+          favoriteColors: partyData.favoriteColors || [],
+          venue: partyData.venue,
+          guestCount: partyData.guestCount
+        } : { theme: theme || 'general' };
+
+        const contextString = `Party theme: ${partyContext.theme}, Child age: ${partyContext.childAge || 'not specified'}, Interests: ${partyContext.interests.join(', ')}, Favorite colors: ${partyContext.favoriteColors.join(', ')}, Venue: ${partyContext.venue || 'not specified'}`;
+
         const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -26,19 +38,19 @@ export async function POST(request: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4',
+            model: 'gpt-4-turbo-preview',
             messages: [
               {
                 role: 'system',
-                content: 'You are optimizing search queries for Pinterest to find the most relevant pins. Your goal is to create search terms that match what users would naturally search for on Pinterest. Focus on specific, visual, actionable keywords rather than generic terms. Pinterest users search for things like "dinosaur cake", "princess party decorations", "superhero birthday invitations", etc.'
+                content: 'You are an expert at creating Pinterest search queries that find the most relevant and inspiring pins for birthday parties. Your goal is to transform user search terms into Pinterest-optimized keywords that match exactly what users would search for on Pinterest. Focus on specific, visual, actionable keywords. Pinterest users search for concrete items like "dinosaur cake", "princess party decorations", "superhero birthday invitations", not abstract concepts.'
               },
               {
                 role: 'user',
-                content: `Convert this search query into Pinterest-optimized keywords: "${query}". Theme context: ${theme || 'general'}. Make it specific and visual, like Pinterest users search (e.g., "dinosaur cake" not "dinosaur birthday party ideas"). Return only the optimized search terms.`
+                content: `Transform this search query into highly specific Pinterest-optimized keywords: "${query}"\n\nParty context: ${contextString}\n\nRules:\n1. Make keywords specific and visual (like Pinterest users actually search)\n2. Use the party context to enhance relevance\n3. Focus on concrete items/ideas people can create or buy\n4. Keep it concise but descriptive\n5. Examples: "dinosaur cake" not "dinosaur party ideas", "princess crown cupcakes" not "princess themed treats"\n\nReturn only the optimized search keywords:`
               }
             ],
-            max_tokens: 100,
-            temperature: 0.7,
+            max_tokens: 150,
+            temperature: 0.3,
           }),
         });
 
@@ -48,9 +60,9 @@ export async function POST(request: NextRequest) {
         }
       }
     } catch (openaiError) {
-      console.log('OpenAI enhancement failed, using original query:', openaiError);
-      // Fallback: Manual enhancement
-      enhancedQuery = enhanceQueryManually(query, theme);
+      console.log('OpenAI enhancement failed, using enhanced manual fallback:', openaiError);
+      // Fallback: Enhanced manual enhancement with party context
+      enhancedQuery = enhanceQueryManually(query, theme, partyData);
     }
 
     // Step 2: Search Pinterest (if API token available)
@@ -60,13 +72,15 @@ export async function POST(request: NextRequest) {
       const pinterestToken = process.env.PINTEREST_API_KEY;
       
       if (pinterestToken) {
-        // Search pins - use 'term' parameter instead of 'query' to match Pinterest API v5 specification
-        // Also add additional parameters for better search relevance
+        // Search pins using Pinterest API v5 with optimized parameters for better relevance
         const searchParams = new URLSearchParams({
           term: enhancedQuery,
           page_size: '25',
           country_code: 'US',
-          locale: 'en'
+          locale: 'en-US',
+          // Add additional parameters to improve search quality and relevance
+          search_source: 'typed_query',
+          scope: 'pins'
         });
 
         const pinsResponse = await fetch(
@@ -82,15 +96,23 @@ export async function POST(request: NextRequest) {
         if (pinsResponse.ok) {
           const pinsData = await pinsResponse.json();
           
-          // Transform Pinterest API response to our format
-          pinterestResults = (pinsData.items || []).map((pin: any) => ({
-            id: pin.id,
-            title: pin.title || pin.description || 'Pinterest Inspiration',
-            image_url: pin.media?.images?.['474x']?.url || pin.media?.images?.original?.url,
-            url: pin.url || `https://www.pinterest.com/pin/${pin.id}`,
-            category: categorizePin(pin.title, pin.description),
-            description: pin.description || pin.title
-          }));
+          // Transform Pinterest API response to our format with enhanced categorization
+          pinterestResults = (pinsData.items || []).map((pin: any) => {
+            const title = pin.title || pin.description || 'Pinterest Inspiration';
+            const description = pin.description || pin.title || '';
+            
+            return {
+              id: pin.id,
+              title: title,
+              image_url: pin.media?.images?.['474x']?.url || 
+                        pin.media?.images?.['564x']?.url || 
+                        pin.media?.images?.original?.url ||
+                        'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400',
+              url: pin.url || `https://www.pinterest.com/pin/${pin.id}/`,
+              category: categorizePinWithAI(title, description, partyData),
+              description: description
+            };
+          });
         }
       }
     } catch (pinterestError) {
@@ -123,17 +145,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function enhanceQueryManually(query: string, theme?: string): string {
+function enhanceQueryManually(query: string, theme?: string, partyData?: any): string {
   const baseQuery = query.toLowerCase().trim();
   
   // Pinterest users search for specific, visual items rather than broad concepts
   // Transform broad queries into specific Pinterest-style searches
   
-  // Map common search patterns to Pinterest-style queries
+  // Enhanced Pinterest query mappings with party context
   const pinterestQueryMappings: { [key: string]: string } = {
     'dinosaur cake': 'dinosaur cake',
     'dinosaur': 'dinosaur birthday cake decorations',
-    'princess cake': 'princess cake',
+    'princess cake': 'princess castle cake',
     'princess': 'princess birthday party decorations',
     'superhero': 'superhero birthday party ideas',
     'unicorn': 'unicorn birthday cake decorations',
@@ -143,50 +165,82 @@ function enhanceQueryManually(query: string, theme?: string): string {
     'ocean': 'ocean birthday party decorations'
   };
   
+  // Use party context to enhance the query
+  let enhancedQuery = query;
+  const currentTheme = partyData?.selectedTheme || partyData?.theme || theme || '';
+  const childAge = partyData?.childAge || '';
+  const interests = partyData?.interests || [];
+  const colors = partyData?.favoriteColors || [];
+  
   // Check if query matches a specific mapping
   for (const [pattern, replacement] of Object.entries(pinterestQueryMappings)) {
     if (baseQuery.includes(pattern)) {
-      return replacement;
+      enhancedQuery = replacement;
+      break;
     }
   }
   
-  // If theme is provided, create theme-specific search
-  if (theme && theme !== 'general') {
-    // Check if query already includes theme
-    if (!baseQuery.includes(theme.toLowerCase())) {
-      return `${theme.toLowerCase()} ${query}`;
-    }
+  // If theme context exists and query doesn't already include it
+  if (currentTheme && !baseQuery.includes(currentTheme.toLowerCase())) {
+    enhancedQuery = `${currentTheme.toLowerCase()} ${enhancedQuery}`;
   }
   
-  // For specific items (cake, decorations, etc.), keep them simple
+  // Add age context for relevant searches
+  if (childAge && (baseQuery.includes('game') || baseQuery.includes('activity'))) {
+    enhancedQuery += ` age ${childAge}`;
+  }
+  
+  // Add color context for decoration and craft searches
+  if (colors.length > 0 && (baseQuery.includes('decor') || baseQuery.includes('craft') || baseQuery.includes('diy'))) {
+    enhancedQuery += ` ${colors[0]} color`;
+  }
+  
+  // For specific items (cake, decorations, etc.), keep them Pinterest-specific
   const specificItems = ['cake', 'decoration', 'invitation', 'favor', 'costume', 'game'];
   const hasSpecificItem = specificItems.some(item => baseQuery.includes(item));
   
   if (hasSpecificItem) {
-    // Keep specific searches clean and Pinterest-like
-    return query;
+    return enhancedQuery;
   }
   
-  // For general queries, add minimal context
-  return `${query} birthday party`;
+  // For general queries, add minimal but relevant context
+  return enhancedQuery.includes('birthday') ? enhancedQuery : `${enhancedQuery} birthday party`;
+}
+
+function categorizePinWithAI(title?: string, description?: string, partyData?: any): string {
+  // First try basic categorization for speed
+  const basicCategory = categorizePin(title, description);
+  
+  // For now, return basic categorization (can be enhanced with GPT-4.1 later if needed)
+  return basicCategory;
 }
 
 function categorizePin(title?: string, description?: string): string {
   const text = `${title || ''} ${description || ''}`.toLowerCase();
   
-  if (text.includes('decor') || text.includes('decoration') || text.includes('balloon')) {
+  // Enhanced categorization with more keywords
+  if (text.includes('decor') || text.includes('decoration') || text.includes('balloon') || 
+      text.includes('banner') || text.includes('backdrop') || text.includes('centerpiece') ||
+      text.includes('table setting') || text.includes('party setup')) {
     return 'DECORATIONS';
   }
-  if (text.includes('cake') || text.includes('dessert') || text.includes('sweet')) {
+  if (text.includes('cake') || text.includes('dessert') || text.includes('sweet') || 
+      text.includes('cupcake') || text.includes('cookie') || text.includes('treat') ||
+      text.includes('candy') || text.includes('frosting')) {
     return 'CAKE';
   }
-  if (text.includes('game') || text.includes('activity') || text.includes('fun')) {
+  if (text.includes('game') || text.includes('activity') || text.includes('fun') || 
+      text.includes('entertainment') || text.includes('play') || text.includes('craft') ||
+      text.includes('diy') || text.includes('project')) {
     return 'GAMES';
   }
-  if (text.includes('invitation') || text.includes('invite')) {
+  if (text.includes('invitation') || text.includes('invite') || text.includes('card') ||
+      text.includes('announcement') || text.includes('rsvp')) {
     return 'INVITATIONS';
   }
-  if (text.includes('costume') || text.includes('outfit') || text.includes('dress')) {
+  if (text.includes('costume') || text.includes('outfit') || text.includes('dress') ||
+      text.includes('clothing') || text.includes('mask') || text.includes('hat') ||
+      text.includes('accessories')) {
     return 'COSTUMES';
   }
   

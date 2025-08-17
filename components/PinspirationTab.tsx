@@ -88,12 +88,27 @@ export default function PinspirationTab({ partyData }: PinspirationTabProps) {
         const interests = partyData.interests || [];
         const colors = partyData.favoriteColors || [];
 
-        let query = `${theme} birthday party`;
+        // Create Pinterest-optimized default query based on theme
+        let query = theme ? `${theme} birthday party ideas` : 'birthday party ideas';
         
-        if (age) query += ` for ${age} year old`;
-        if (venue) query += ` ${venue}`;
-        if (interests.length > 0) query += ` ${interests.slice(0, 2).join(' ')}`;
-        if (colors.length > 0) query += ` ${colors.slice(0, 2).join(' ')} colors`;
+        // For specific popular themes, use more Pinterest-specific terms
+        if (theme) {
+          const themeMap: { [key: string]: string } = {
+            'dinosaur': 'dinosaur birthday party decorations',
+            'princess': 'princess birthday party ideas',
+            'unicorn': 'unicorn birthday party',
+            'superhero': 'superhero birthday party',
+            'space': 'space birthday party',
+            'pirate': 'pirate birthday party',
+            'safari': 'safari birthday party',
+            'ocean': 'ocean birthday party'
+          };
+          
+          const lowerTheme = theme.toLowerCase();
+          if (themeMap[lowerTheme]) {
+            query = themeMap[lowerTheme];
+          }
+        }
 
         return query.trim();
       };
@@ -156,7 +171,8 @@ export default function PinspirationTab({ partyData }: PinspirationTabProps) {
         },
         body: JSON.stringify({ 
           query,
-          theme: partyData.selectedTheme || partyData.theme 
+          theme: partyData.selectedTheme || partyData.theme,
+          partyData: partyData // Send complete party data for enhanced AI processing
         }),
       });
 
@@ -209,8 +225,9 @@ export default function PinspirationTab({ partyData }: PinspirationTabProps) {
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     
-    const enhancedQuery = baseQuery ? `${baseQuery} ${searchQuery}` : searchQuery;
-    await loadPinterestInspiration(enhancedQuery);
+    // Improved query combination - let AI enhance the combination
+    const combinedQuery = searchQuery;
+    await loadPinterestInspiration(combinedQuery);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
