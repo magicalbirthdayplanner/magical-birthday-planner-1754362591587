@@ -18,7 +18,6 @@ import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
-import IdeasTab from "@/components/IdeasTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -2225,21 +2224,6 @@ export default function PartyPlanPage() {
 
           </TabsContent>
 
-          {/* Ideas Tab */}
-          <ProtectedTabContent tabName="ideas" className="space-y-6">
-            <IdeasTab
-              partyId={currentPartyId || ''}
-              partyData={partyData ? {
-                childName: partyData.childName,
-                childAge: partyData.childAge,
-                theme: partyData.selectedTheme || partyData.theme || '',
-                interests: partyData.interests,
-                favoriteColors: partyData.favoriteColors,
-                guestCount: partyData.guestCount,
-                venue: 'mixed' // Default venue type
-              } : undefined}
-            />
-          </ProtectedTabContent>
 
           </Tabs>
         </div>
