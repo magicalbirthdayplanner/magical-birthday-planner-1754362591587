@@ -123,6 +123,7 @@ export default function CreatePartyPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [showSparklingEffect, setShowSparklingEffect] = useState(false);
 
   // Restore from localStorage on component mount
   useEffect(() => {
@@ -364,12 +365,18 @@ export default function CreatePartyPage() {
 
       setSubmissionStep('Finalizing your party plan...');
       
-      // Clear the form data from localStorage after successful creation
-      localStorage.removeItem('partyData');
+      // Show sparkling effect
+      setShowSparklingEffect(true);
       
-      // Navigate to the party dashboard
-      console.log('Redirecting to party:', partyId);
-      router.push(`/party-plan?id=${partyId}`);
+      // Wait for sparkling effect to show before navigation
+      setTimeout(() => {
+        // Clear the form data from localStorage after successful creation
+        localStorage.removeItem('partyData');
+        
+        // Navigate to the party dashboard
+        console.log('Redirecting to party:', partyId);
+        router.push(`/party-plan?id=${partyId}`);
+      }, 2000); // 2 second delay for sparkling effect
 
     } catch (error) {
       console.error('Party creation error:', error);
@@ -1130,6 +1137,66 @@ export default function CreatePartyPage() {
         title="Save Your Party Plan"
         description="Sign in to save your party plan, access AI-powered recommendations, and keep your celebrations safe and organized."
       />
+
+      {/* Sparkling Effect Overlay */}
+      {showSparklingEffect && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {/* Sparkling particles */}
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-yellow-400 rounded-full animate-ping"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${0.5 + Math.random() * 1}s`,
+              }}
+            />
+          ))}
+          
+          {/* Additional sparkles with different colors */}
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={`sparkle-${i}`}
+              className="absolute w-1 h-1 bg-pink-400 rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${0.8 + Math.random() * 1.2}s`,
+              }}
+            />
+          ))}
+          
+          {/* Star-like sparkles */}
+          {[...Array(10)].map((_, i) => (
+            <div
+              key={`star-${i}`}
+              className="absolute text-yellow-300 text-xl animate-bounce"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${1 + Math.random() * 1}s`,
+              }}
+            >
+              ✨
+            </div>
+          ))}
+          
+          {/* Central celebration message */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl shadow-2xl animate-pulse">
+              <div className="text-center">
+                <div className="text-3xl mb-2">🎉 ✨ 🎊</div>
+                <div className="text-xl font-bold">Party Plan Created!</div>
+                <div className="text-sm opacity-90">Taking you to your magical celebration...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
