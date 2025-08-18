@@ -123,10 +123,19 @@ export default function AccountPage() {
     }
 
     if (user) {
-      // Fetch actual user profile from API
+      // Fetch actual user profile from API with timeout
       const fetchProfile = async () => {
         try {
-          const response = await fetch('/api/user/profile');
+          // Create abort controller for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          
+          const response = await fetch('/api/user/profile', {
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          
           if (response.ok) {
             const profileData = await response.json();
             
@@ -164,9 +173,63 @@ export default function AccountPage() {
               reminders: profileData.partyReminders ?? true,
               marketing: profileData.marketingEmails ?? false
             });
+          } else {
+            console.error('Failed to fetch profile:', response.status, response.statusText);
+            // Create fallback profile from auth user data
+            const fallbackProfile: UserProfile = {
+              id: user.id,
+              email: user.email || '',
+              name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+              displayName: user.user_metadata?.display_name || '',
+              createdAt: new Date().toISOString(),
+              isSupeadmin: user.email === "arunexprasad@gmail.com",
+              subscription: {
+                planType: "STARTER",
+                status: "ACTIVE",
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                cancelAtPeriodEnd: false
+              },
+              usageStats: {
+                partiesThisMonth: 0,
+                totalParties: 0,
+                guestsThisMonth: 0,
+                aiRequestsThisMonth: 0
+              }
+            };
+            setUserProfile(fallbackProfile);
+            setFormData({
+              name: fallbackProfile.name,
+              displayName: fallbackProfile.displayName || ""
+            });
           }
         } catch (error) {
           console.error('Error fetching profile:', error);
+          // Create fallback profile from auth user data
+          const fallbackProfile: UserProfile = {
+            id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+            displayName: user.user_metadata?.display_name || '',
+            createdAt: new Date().toISOString(),
+            isSupeadmin: user.email === "arunexprasad@gmail.com",
+            subscription: {
+              planType: "STARTER",
+              status: "ACTIVE",
+              currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              cancelAtPeriodEnd: false
+            },
+            usageStats: {
+              partiesThisMonth: 0,
+              totalParties: 0,
+              guestsThisMonth: 0,
+              aiRequestsThisMonth: 0
+            }
+          };
+          setUserProfile(fallbackProfile);
+          setFormData({
+            name: fallbackProfile.name,
+            displayName: fallbackProfile.displayName || ""
+          });
         }
       };
 
