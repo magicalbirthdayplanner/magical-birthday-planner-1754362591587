@@ -61,15 +61,27 @@ export async function PATCH(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.error('PATCH /api/user/profile - Authentication failed:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, displayName, emailNotifications, partyReminders, marketingEmails } = await request.json();
+    const requestBody = await request.json();
+    const { name, displayName, emailNotifications, partyReminders, marketingEmails } = requestBody;
+    
+    console.log('PATCH /api/user/profile - Request body:', requestBody);
+    console.log('PATCH /api/user/profile - User email:', user.email);
 
     // Validate input
     if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
       return NextResponse.json(
         { error: 'Name must be a non-empty string' },
+        { status: 400 }
+      );
+    }
+
+    if (displayName !== undefined && typeof displayName !== 'string') {
+      return NextResponse.json(
+        { error: 'Display name must be a string' },
         { status: 400 }
       );
     }
@@ -81,6 +93,8 @@ export async function PATCH(request: NextRequest) {
     if (emailNotifications !== undefined) updateData.emailNotifications = Boolean(emailNotifications);
     if (partyReminders !== undefined) updateData.partyReminders = Boolean(partyReminders);
     if (marketingEmails !== undefined) updateData.marketingEmails = Boolean(marketingEmails);
+
+    console.log('PATCH /api/user/profile - Update data:', updateData);
 
     // Update user's profile in database
     const updatedDbUser = await prisma.user.update({
@@ -98,6 +112,8 @@ export async function PATCH(request: NextRequest) {
         createdAt: true
       }
     });
+
+    console.log('PATCH /api/user/profile - Updated user:', updatedDbUser);
 
     // Update user metadata in Supabase Auth only for name and displayName
     const supabaseUpdateData: any = {};

@@ -26,7 +26,10 @@ import {
   Edit,
   Save,
   X,
-  Check
+  Check,
+  Loader2,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -95,6 +98,9 @@ export default function AccountPage() {
     reminders: true,
     marketing: false
   });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   
   const handlePlanChange = (newPlan: 'STARTER' | 'PLUS' | 'PRO') => {
     if (userProfile?.isSupeadmin && userProfile.subscription) {
@@ -238,20 +244,31 @@ export default function AccountPage() {
   }, [user, loading, router]);
 
   const handleSaveProfile = async () => {
+    // Clear previous states
+    setSaveError(null);
+    setSaveSuccess(false);
+    setIsSaving(true);
+
     try {
+      // Validate form data
+      if (!formData.name.trim()) {
+        throw new Error('Name is required');
+      }
+
       const response = await fetch('/api/user/profile', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name,
-          displayName: formData.displayName
+          name: formData.name.trim(),
+          displayName: formData.displayName.trim()
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update profile');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
       }
 
       const updatedProfile = await response.json();
@@ -272,10 +289,16 @@ export default function AccountPage() {
         } 
       }));
 
+      setSaveSuccess(true);
       setIsEditing(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
       console.error('Error updating profile:', error);
-      // You could add a toast notification here
+      setSaveError(error instanceof Error ? error.message : 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -286,6 +309,8 @@ export default function AccountPage() {
         displayName: userProfile.displayName || ""
       });
     }
+    setSaveError(null);
+    setSaveSuccess(false);
     setIsEditing(false);
   };
 
@@ -378,17 +403,25 @@ export default function AccountPage() {
                     </CardDescription>
                   </div>
                   {!isEditing ? (
-                    <Button variant="outline" onClick={() => setIsEditing(true)}>
+                    <Button variant="outline" onClick={() => {
+                      setIsEditing(true);
+                      setSaveError(null);
+                      setSaveSuccess(false);
+                    }}>
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </Button>
                   ) : (
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={handleSaveProfile}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save
+                      <Button size="sm" onClick={handleSaveProfile} disabled={isSaving}>
+                        {isSaving ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4 mr-2" />
+                        )}
+                        {isSaving ? 'Saving...' : 'Save'}
                       </Button>
-                      <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                      <Button size="sm" variant="outline" onClick={handleCancelEdit} disabled={isSaving}>
                         <X className="h-4 w-4 mr-2" />
                         Cancel
                       </Button>
@@ -397,6 +430,25 @@ export default function AccountPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Success/Error Messages */}
+                {saveSuccess && (
+                  <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <span className="text-sm text-green-700 dark:text-green-300">
+                      Profile updated successfully!
+                    </span>
+                  </div>
+                )}
+                
+                {saveError && (
+                  <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+                    <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                    <span className="text-sm text-red-700 dark:text-red-300">
+                      {saveError}
+                    </span>
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="email">Email Address</Label>
