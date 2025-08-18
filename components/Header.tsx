@@ -45,6 +45,7 @@ export function Header() {
   const { user, signOut, isSigningOut } = useAuth();
   const { currentPlan, planDetails, updateUserPlan, loading } = useSubscription();
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
+  const [userDisplayName, setUserDisplayName] = useState<string>('');
 
   const handleSignOut = async () => {
     if (isSigningOut) return; // Prevent multiple clicks
@@ -82,6 +83,25 @@ export function Header() {
     }
   };
 
+  // Initialize display name and listen for profile updates
+  useEffect(() => {
+    if (user) {
+      setUserDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0] || 'Account');
+    }
+
+    // Listen for profile updates
+    const handleProfileUpdate = (event: CustomEvent) => {
+      const { displayName, name } = event.detail;
+      setUserDisplayName(displayName || name || user?.email?.split('@')[0] || 'Account');
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
+    };
+  }, [user]);
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
@@ -114,7 +134,7 @@ export function Header() {
                     <Button variant="ghost" size="sm" className="flex items-center space-x-2 px-3 sm:px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 rounded-lg">
                       <User className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                       <span className="hidden md:inline text-sm font-medium text-gray-900 dark:text-gray-100 max-w-32 truncate">
-                        {user.user_metadata?.display_name || user.email?.split('@')[0] || 'Account'}
+                        {userDisplayName}
                       </span>
                     </Button>
                   </DropdownMenuTrigger>

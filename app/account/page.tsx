@@ -123,49 +123,97 @@ export default function AccountPage() {
     }
 
     if (user) {
-      // Check if user is superadmin
-      const isSupeadmin = user.email === "arunexprasad@gmail.com";
-      
-      // Mock user profile data - in real app, fetch from API
-      const mockProfile: UserProfile = {
-        id: user.id,
-        email: user.email || "",
-        name: user.user_metadata?.name || user.email?.split("@")[0] || "",
-        displayName: user.user_metadata?.display_name,
-        createdAt: user.created_at || new Date().toISOString(),
-        isSupeadmin,
-        subscription: {
-          planType: "STARTER",
-          status: "ACTIVE",
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          cancelAtPeriodEnd: false
-        },
-        usageStats: {
-          partiesThisMonth: 1,
-          totalParties: 3,
-          guestsThisMonth: 8,
-          aiRequestsThisMonth: 5
+      // Fetch actual user profile from API
+      const fetchProfile = async () => {
+        try {
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const profileData = await response.json();
+            
+            // Check if user is superadmin
+            const isSupeadmin = user.email === "arunexprasad@gmail.com";
+            
+            const profile: UserProfile = {
+              id: profileData.id,
+              email: profileData.email,
+              name: profileData.name,
+              displayName: profileData.displayName,
+              createdAt: profileData.createdAt,
+              isSupeadmin,
+              subscription: {
+                planType: "STARTER",
+                status: "ACTIVE",
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                cancelAtPeriodEnd: false
+              },
+              usageStats: {
+                partiesThisMonth: 1,
+                totalParties: 3,
+                guestsThisMonth: 8,
+                aiRequestsThisMonth: 5
+              }
+            };
+
+            setUserProfile(profile);
+            setFormData({
+              name: profile.name,
+              displayName: profile.displayName || ""
+            });
+            setNotifications({
+              email: profileData.emailNotifications ?? true,
+              reminders: profileData.partyReminders ?? true,
+              marketing: profileData.marketingEmails ?? false
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error);
         }
       };
 
-      setUserProfile(mockProfile);
-      setFormData({
-        name: mockProfile.name,
-        displayName: mockProfile.displayName || ""
-      });
+      fetchProfile();
     }
   }, [user, loading, router]);
 
-  const handleSaveProfile = () => {
-    // In real app, update profile via API
-    if (userProfile) {
-      setUserProfile({
-        ...userProfile,
-        name: formData.name,
-        displayName: formData.displayName
+  const handleSaveProfile = async () => {
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          displayName: formData.displayName
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+
+      const updatedProfile = await response.json();
+      
+      if (userProfile) {
+        setUserProfile({
+          ...userProfile,
+          name: updatedProfile.name,
+          displayName: updatedProfile.displayName
+        });
+      }
+
+      // Dispatch event to notify header component of profile update
+      window.dispatchEvent(new CustomEvent('profileUpdated', { 
+        detail: { 
+          name: updatedProfile.name,
+          displayName: updatedProfile.displayName
+        } 
+      }));
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      // You could add a toast notification here
     }
-    setIsEditing(false);
   };
 
   const handleCancelEdit = () => {
@@ -176,6 +224,32 @@ export default function AccountPage() {
       });
     }
     setIsEditing(false);
+  };
+
+  const handleSaveNotifications = async () => {
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          emailNotifications: notifications.email,
+          partyReminders: notifications.reminders,
+          marketingEmails: notifications.marketing
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update notification preferences');
+      }
+
+      // Show success message (you could add a toast notification here)
+      console.log('Notification preferences updated successfully');
+    } catch (error) {
+      console.error('Error updating notification preferences:', error);
+      // You could add a toast notification here
+    }
   };
 
   if (loading || !userProfile) {
@@ -656,7 +730,7 @@ export default function AccountPage() {
                 </div>
 
                 <div className="pt-4">
-                  <Button>Save Notification Preferences</Button>
+                  <Button onClick={handleSaveNotifications}>Save Notification Preferences</Button>
                 </div>
               </CardContent>
             </Card>

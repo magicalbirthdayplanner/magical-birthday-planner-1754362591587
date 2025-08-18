@@ -1,3 +1,23 @@
+## [usr-1755491867303]
+**User Request:** add functionality to all the buttons /text in the account settings/profile management. Eg, if i edit the full name or display name, there should be changes in UI and the database. Right now nothing is changing and reverts to previously saved text for name 
+
+Attachments: @.ideavo-attachments/image_1.png
+
+**Response Summary:** Successfully implemented full functionality for profile editing in the account settings page, including UI updates and database persistence. The implementation includes:
+
+1. **Database Schema Updates**: Added `displayName`, `emailNotifications`, `partyReminders`, and `marketingEmails` fields to the User model
+2. **API Enhancement**: Updated `/api/user/profile` endpoint to support PATCH requests for updating profile and notification preferences
+3. **Real-time UI Updates**: Modified account page to fetch actual profile data from database instead of using mock data
+4. **Header Component Integration**: Existing event listener system properly updates user display name across the application
+5. **Notification Preferences**: Implemented save functionality for email notifications, party reminders, and marketing preferences
+6. **Database Migration**: Successfully pushed schema changes to Supabase database using Prisma
+7. **Build Verification**: Confirmed successful build with all new functionality working correctly
+
+**Files Modified:** 
+- prisma/schema.prisma (added user profile and notification fields)
+- app/api/user/profile/route.ts (enhanced API to support all profile updates)
+- app/account/page.tsx (implemented real database integration and notification saving)
+
 ## [usr-1755490960171]
 **User Request:** REMOVE SIGNUP THROUGH APPLE - NOT REQUIRED
 **Response Summary:** Successfully removed Apple sign-in functionality from the authentication system. The changes include:
