@@ -13,7 +13,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signInWithGoogle: () => Promise<{ error: any }>
   signInWithFacebook: () => Promise<{ error: any }>
-  signInWithApple: () => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
 }
 
@@ -149,15 +148,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }
 
-  const signInWithApple = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai'}/auth/callback?next=/dashboard`
-      }
-    })
-    return { error }
-  }
 
   const signOut = async () => {
     if (isSigningOut) return { error: new Error('Signout already in progress') }
@@ -227,7 +217,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signInWithGoogle,
     signInWithFacebook,
-    signInWithApple,
     signOut,
   }
 

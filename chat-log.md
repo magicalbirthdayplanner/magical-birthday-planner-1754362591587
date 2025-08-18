@@ -1,3 +1,17 @@
+## [usr-1755490960171]
+**User Request:** REMOVE SIGNUP THROUGH APPLE - NOT REQUIRED
+**Response Summary:** Successfully removed Apple sign-in functionality from the authentication system. The changes include:
+
+1. **SignUp Component**: Removed Apple sign-in button, updated function parameters to exclude 'apple' provider
+2. **SignIn Component**: Removed Apple sign-in button, updated function parameters to exclude 'apple' provider  
+3. **AuthContext**: Removed signInWithApple function from interface and implementation
+4. **Type Safety**: Updated TypeScript types to remove 'apple' from provider union types
+5. **Build Verification**: Confirmed successful build with no errors after removal
+
+The authentication system now supports only Google and Facebook OAuth providers alongside email/password authentication. All Apple-related code has been cleanly removed without affecting other functionality.
+
+**Files Modified:** components/auth/SignUp.tsx, components/auth/SignIn.tsx, contexts/AuthContext.tsx
+
 ## [usr-1755406736844]
 **User Request:** Add sparking effect after step 3 when it goes to the party plan 
 **Response Summary:** Successfully implemented a beautiful sparkling visual effect that displays when users complete step 3 of the party creation wizard and transition to the party plan page. The effect includes:
