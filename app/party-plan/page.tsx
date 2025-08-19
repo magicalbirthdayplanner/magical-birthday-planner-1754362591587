@@ -1437,19 +1437,54 @@ export default function PartyPlanPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            // Multiple fallback methods to ensure tab navigation works
+                            // Enhanced navigation with multiple robust fallback methods
+                            let success = false;
+                            
+                            // Method 1: Direct value selector
                             const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
-                            if (themesTab) {
+                            if (themesTab && !success) {
                               themesTab.click();
-                            } else {
-                              // Fallback: try to find by text content
-                              const tabButtons = document.querySelectorAll('[role="tab"]');
-                              Array.from(tabButtons).forEach(button => {
-                                if (button.textContent?.includes('Themes')) {
-                                  (button as HTMLButtonElement).click();
-                                }
-                              });
+                              success = true;
                             }
+                            
+                            // Method 2: Find by role="tab" and text content
+                            if (!success) {
+                              const tabButtons = document.querySelectorAll('[role="tab"]');
+                              for (const button of Array.from(tabButtons)) {
+                                if (button.textContent?.trim().toLowerCase().includes('themes')) {
+                                  (button as HTMLButtonElement).click();
+                                  success = true;
+                                  break;
+                                }
+                              }
+                            }
+                            
+                            // Method 3: Find by data-state attribute and text content
+                            if (!success) {
+                              const allButtons = document.querySelectorAll('button');
+                              for (const button of Array.from(allButtons)) {
+                                if (button.textContent?.trim().toLowerCase() === 'themes' && 
+                                    button.getAttribute('data-state') !== null) {
+                                  button.click();
+                                  success = true;
+                                  break;
+                                }
+                              }
+                            }
+                            
+                            // Method 4: Direct class-based search for TabsTrigger
+                            if (!success) {
+                              const triggers = document.querySelectorAll('[class*="TabsTrigger"], [class*="tabs-trigger"]');
+                              for (const trigger of Array.from(triggers)) {
+                                if (trigger.textContent?.trim().toLowerCase().includes('themes')) {
+                                  (trigger as HTMLButtonElement).click();
+                                  success = true;
+                                  break;
+                                }
+                              }
+                            }
+                            
+                            console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
                           }}
                           className="w-full"
                         >
@@ -1467,19 +1502,54 @@ export default function PartyPlanPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          // Multiple fallback methods to ensure tab navigation works
+                          // Enhanced navigation with multiple robust fallback methods
+                          let success = false;
+                          
+                          // Method 1: Direct value selector
                           const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
-                          if (themesTab) {
+                          if (themesTab && !success) {
                             themesTab.click();
-                          } else {
-                            // Fallback: try to find by text content
-                            const tabButtons = document.querySelectorAll('[role="tab"]');
-                            Array.from(tabButtons).forEach(button => {
-                              if (button.textContent?.includes('Themes')) {
-                                (button as HTMLButtonElement).click();
-                              }
-                            });
+                            success = true;
                           }
+                          
+                          // Method 2: Find by role="tab" and text content
+                          if (!success) {
+                            const tabButtons = document.querySelectorAll('[role="tab"]');
+                            for (const button of Array.from(tabButtons)) {
+                              if (button.textContent?.trim().toLowerCase().includes('themes')) {
+                                (button as HTMLButtonElement).click();
+                                success = true;
+                                break;
+                              }
+                            }
+                          }
+                          
+                          // Method 3: Find by data-state attribute and text content
+                          if (!success) {
+                            const allButtons = document.querySelectorAll('button');
+                            for (const button of Array.from(allButtons)) {
+                              if (button.textContent?.trim().toLowerCase() === 'themes' && 
+                                  button.getAttribute('data-state') !== null) {
+                                button.click();
+                                success = true;
+                                break;
+                              }
+                            }
+                          }
+                          
+                          // Method 4: Direct class-based search for TabsTrigger
+                          if (!success) {
+                            const triggers = document.querySelectorAll('[class*="TabsTrigger"], [class*="tabs-trigger"]');
+                            for (const trigger of Array.from(triggers)) {
+                              if (trigger.textContent?.trim().toLowerCase().includes('themes')) {
+                                (trigger as HTMLButtonElement).click();
+                                success = true;
+                                break;
+                              }
+                            }
+                          }
+                          
+                          console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
                         }}
                         className="w-full"
                       >
