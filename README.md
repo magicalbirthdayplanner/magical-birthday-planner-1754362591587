@@ -47,22 +47,14 @@ A modern, responsive web application designed to help parents plan magical birth
   - Export analytics with detailed guest response data
   - Plan-based feature gating and upgrade prompts
 - **🛒 Shopping Suite**: Comprehensive party shopping platform
-  - 6 distinct shopping categories (Cake & Bakeries, Venue Booking, Decor/Balloons, Food & Pizza, Beverages, Return Gifts)
+  - 6 distinct shopping categories (Cake & Bakeries, Decor/Balloons, Food & Pizza, Beverages, Return Gifts)
   - Affiliate product integration with Amazon, Walmart, and Temu
-  - Local vendor search by zip code for bakeries, restaurants, and venues
+  - Local vendor search by zip code for bakeries and restaurants
   - Party Shopping List/Wish List with budget tracking
   - Real-time estimated spend counter with budget warnings
   - Search, filters, and "Best Deals" badges
   - Mobile-responsive product cards with ratings and reviews
   - Shopping checklist and money-saving tips
-- **🏠 AI-Powered Venue Recommendations**: Smart venue discovery system
-  - Location-based venue search using zip code and guest count
-  - Three venue categories: Outdoor, Indoor, and Sports Arena
-  - Advanced filtering by venue type, price range, and minimum ratings
-  - Smart sorting by distance, popularity, and review count
-  - AI-powered recommendations based on party requirements
-  - Detailed venue information with capacity, amenities, and contact details
-  - Venue bookmarking and contact management
 - **🍕 AI-Powered Food Vendor Recommendations**: Comprehensive catering solution
   - Cuisine-based food vendor discovery with 18+ cuisine types
   - Advanced dietary restriction filtering (Vegetarian, Vegan, Gluten Free, etc.)
@@ -110,7 +102,7 @@ A modern, responsive web application designed to help parents plan magical birth
   - Real-time tab visibility based on user's current subscription plan
   - Starter Plan: Overview, Guests, Timeline, Checklist tabs
   - Plus Plan: Adds Budget and Activities tabs to Starter features
-  - Pro Plan: All tabs including Shopping, Venue, Food, and Cake
+  - Pro Plan: All tabs including Shopping, Food, and Cake
   - Seamless plan switching with immediate tab updates (no refresh required)
   - Elegant upgrade notifications for restricted features
   - Database-backed plan persistence with real-time synchronization
@@ -197,7 +189,6 @@ npm start
   - Budget with multi-currency support (USD, EUR, GBP, etc.)
   - Location with auto-country detection from zip code
   - Guest count with validation
-  - **NEW: Venue type selection** (Indoor, Outdoor, or Mixed)
   - **NEW: Party duration selection** (1-2 hours to 4+ hours)
 - Interactive interests selection with 20+ categories
 - Smart AI recommendations based on age and interests
@@ -251,12 +242,6 @@ npm start
   - Party Shopping List with budget tracking and warnings
   - Search, filters, and deal highlighting features
   - Shopping tips and completion checklist
-- **Venue Tab**: AI-powered venue discovery and booking
-  - Smart venue recommendations based on zip code and guest count
-  - Advanced filtering by venue type (Outdoor/Indoor/Sports), price range, ratings
-  - Sorting by distance, popularity, and review count
-  - Detailed venue profiles with capacity, amenities, and contact information
-  - Venue bookmarking and direct contact capabilities
 - **Food Tab**: Intelligent food vendor recommendations
   - Multi-cuisine vendor discovery with 18+ cuisine types
   - Comprehensive dietary restriction filtering and accommodation

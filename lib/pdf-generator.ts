@@ -52,14 +52,6 @@ interface BudgetData {
   }[];
 }
 
-interface VenueData {
-  name: string;
-  address: string;
-  rating?: number;
-  capacity?: number;
-  priceRange?: string;
-  amenities?: string[];
-}
 
 interface FoodVendor {
   name: string;
@@ -154,7 +146,6 @@ export function generatePartyPlanPDF(
   guests: Guest[],
   invitations: Invitation[] = [],
   budgetData?: BudgetData,
-  venues?: VenueData[],
   foodVendors?: FoodVendor[]
 ) {
   const doc = new jsPDF();
@@ -339,37 +330,6 @@ export function generatePartyPlanPDF(
     yPosition += 15;
   }
   
-  // Venues Section
-  if (venues && venues.length > 0) {
-    if (yPosition > 200) {
-      doc.addPage();
-      yPosition = 20;
-    }
-    
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Venue Options', 20, yPosition);
-    yPosition += 10;
-    
-    const venueTableData = venues.slice(0, 10).map(venue => [
-      venue.name,
-      venue.address,
-      venue.rating ? venue.rating.toString() : 'N/A',
-      venue.capacity ? venue.capacity.toString() : 'N/A',
-      venue.priceRange || 'N/A'
-    ]);
-    
-    autoTable(doc, {
-      startY: yPosition,
-      head: [['Venue Name', 'Address', 'Rating', 'Capacity', 'Price Range']],
-      body: venueTableData,
-      theme: 'grid',
-      headStyles: { fillColor: [245, 158, 11] },
-      margin: { left: 20, right: 20 }
-    });
-    
-    yPosition = (doc as any).lastAutoTable.finalY + 15;
-  }
   
   // Food Vendors Section
   if (foodVendors && foodVendors.length > 0) {

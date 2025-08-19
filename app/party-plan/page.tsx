@@ -13,8 +13,6 @@ import BulkInvitations from "@/components/BulkInvitations";
 import RSVPTracker from "@/components/RSVPTracker";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
 import ShoppingSuite from "@/components/ShoppingSuite";
-import VenueTab from "@/components/VenueTab";
-import VenuesTab from "@/components/VenuesTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
@@ -183,14 +181,6 @@ export default function PartyPlanPage() {
       allowedPlans: ['themes'] // Always allowed (included in all plans)
     },
     {
-      id: 'venues',
-      label: 'Venues',
-      icon: Home,
-      gradient: 'from-blue-500 to-purple-500',
-      hoverColor: 'bg-blue-50 dark:bg-blue-900/20',
-      allowedPlans: ['pro']
-    },
-    {
       id: 'budget',
       label: 'Budget',
       icon: DollarSign,
@@ -308,15 +298,6 @@ export default function PartyPlanPage() {
         }
       }
 
-      // Collect venue data (if available)
-      let venues;
-      if (isTabAllowed('venue')) {
-        // Mock venue data - in real implementation, this would come from VenueTab component
-        venues = [
-          { name: 'Sample Venue 1', address: 'Main St, City', rating: 4.5, capacity: 50, priceRange: '$$' },
-          { name: 'Sample Venue 2', address: 'Oak Ave, City', rating: 4.2, capacity: 30, priceRange: '$' }
-        ];
-      }
 
       // Collect food vendor data (if available)
       let foodVendors;
@@ -335,7 +316,6 @@ export default function PartyPlanPage() {
         guests,
         invitations,
         budgetData,
-        venues,
         foodVendors
       );
 
@@ -1771,14 +1751,6 @@ export default function PartyPlanPage() {
             />
           </ProtectedTabContent>
 
-          {/* Venue Tab */}
-          <ProtectedTabContent tabName="venue" className="space-y-6">
-            <VenueTab
-              zipCode={partyData?.zipCode}
-              partyId={currentPartyId || partyData?.childName || 'party'}
-              guestCount={guests.length}
-            />
-          </ProtectedTabContent>
 
           {/* Food Tab */}
           <ProtectedTabContent tabName="food" className="space-y-6">
@@ -1983,19 +1955,6 @@ export default function PartyPlanPage() {
             />
           </TabsContent>
 
-          {/* Venues Tab */}
-          <TabsContent value="venues" className="space-y-6">
-            <VenuesTab
-              partyId={currentPartyId || partyData?.childName || 'party'}
-              childName={partyData?.childName}
-              childAge={partyData?.childAge ? parseInt(partyData.childAge.toString()) : undefined}
-              selectedTheme={partyData?.selectedTheme || partyData?.theme || undefined}
-              interests={partyData?.interests}
-              favoriteColors={partyData?.favoriteColors}
-              guestCount={partyData?.guestCount}
-              venue={partyData?.venue}
-            />
-          </TabsContent>
 
           {/* Guests Tab - Combined Guest Management and Invitations */}
           <TabsContent value="guests" className="space-y-6">
