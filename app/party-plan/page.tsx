@@ -1107,6 +1107,9 @@ export default function PartyPlanPage() {
     };
   };
 
+  // Calculate theme details for display
+  const themeDetails = getThemeDetails();
+
   const completedTasks = checklist.filter(item => item.completed).length;
   const totalTasks = checklist.length;
   const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -1194,8 +1197,6 @@ export default function PartyPlanPage() {
       </div>
     );
   }
-
-  const themeDetails = getThemeDetails();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-4 sm:py-6 lg:py-8">
@@ -1867,10 +1868,78 @@ export default function PartyPlanPage() {
                   updateParty(partyData.id, { theme: themeId })
                     .then(() => {
                       setPartyData(prev => prev ? { ...prev, theme: themeId, selectedTheme: themeId } : prev);
+                      
+                      // Auto-navigate back to overview tab after theme selection
+                      setTimeout(() => {
+                        let success = false;
+                        
+                        // Method 1: Direct value selector
+                        const overviewTab = document.querySelector('[value="overview"]') as HTMLButtonElement;
+                        if (overviewTab && !success) {
+                          overviewTab.click();
+                          success = true;
+                        }
+                        
+                        // Method 2: Find by role="tab" and text content
+                        if (!success) {
+                          const tabButtons = document.querySelectorAll('[role="tab"]');
+                          for (const button of Array.from(tabButtons)) {
+                            if (button.textContent?.trim().toLowerCase().includes('overview')) {
+                              (button as HTMLButtonElement).click();
+                              success = true;
+                              break;
+                            }
+                          }
+                        }
+                        
+                        console.log(success ? 'Successfully navigated back to overview tab' : 'Failed to navigate back to overview tab');
+                      }, 500);
                     })
                     .catch(error => {
                       console.error('Error updating theme:', error);
                     });
+                } else {
+                  // Fallback to localStorage for parties without database ID
+                  setPartyData(prev => prev ? { ...prev, theme: themeId, selectedTheme: themeId } : prev);
+                  
+                  // Save to localStorage as backup
+                  const currentPartyData = localStorage.getItem('currentPartyData');
+                  if (currentPartyData) {
+                    try {
+                      const parsed = JSON.parse(currentPartyData);
+                      parsed.theme = themeId;
+                      parsed.selectedTheme = themeId;
+                      localStorage.setItem('currentPartyData', JSON.stringify(parsed));
+                    } catch (error) {
+                      console.error('Error saving theme to localStorage:', error);
+                    }
+                  }
+                  
+                  // Auto-navigate back to overview tab
+                  setTimeout(() => {
+                    let success = false;
+                    
+                    // Method 1: Direct value selector
+                    const overviewTab = document.querySelector('[value="overview"]') as HTMLButtonElement;
+                    if (overviewTab && !success) {
+                      overviewTab.click();
+                      success = true;
+                    }
+                    
+                    // Method 2: Find by role="tab" and text content
+                    if (!success) {
+                      const tabButtons = document.querySelectorAll('[role="tab"]');
+                      for (const button of Array.from(tabButtons)) {
+                        if (button.textContent?.trim().toLowerCase().includes('overview')) {
+                          (button as HTMLButtonElement).click();
+                          success = true;
+                          break;
+                        }
+                      }
+                    }
+                    
+                    console.log(success ? 'Successfully navigated back to overview tab' : 'Failed to navigate back to overview tab');
+                  }, 500);
                 }
               }}
             />
