@@ -14,6 +14,7 @@ import RSVPTracker from "@/components/RSVPTracker";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
 import ShoppingSuite from "@/components/ShoppingSuite";
 import VenueTab from "@/components/VenueTab";
+import VenuesTab from "@/components/VenuesTab";
 import FoodTab from "@/components/FoodTab";
 import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
@@ -180,6 +181,14 @@ export default function PartyPlanPage() {
       gradient: 'from-purple-500 to-pink-500',
       hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
       allowedPlans: ['themes'] // Always allowed (included in all plans)
+    },
+    {
+      id: 'venues',
+      label: 'Venues',
+      icon: Home,
+      gradient: 'from-blue-500 to-purple-500',
+      hoverColor: 'bg-blue-50 dark:bg-blue-900/20',
+      allowedPlans: ['pro']
     },
     {
       id: 'budget',
@@ -1971,6 +1980,20 @@ export default function PartyPlanPage() {
                   }, 500);
                 }
               }}
+            />
+          </TabsContent>
+
+          {/* Venues Tab */}
+          <TabsContent value="venues" className="space-y-6">
+            <VenuesTab
+              partyId={currentPartyId || partyData?.childName || 'party'}
+              childName={partyData?.childName}
+              childAge={partyData?.childAge ? parseInt(partyData.childAge.toString()) : undefined}
+              selectedTheme={partyData?.selectedTheme || partyData?.theme || undefined}
+              interests={partyData?.interests}
+              favoriteColors={partyData?.favoriteColors}
+              guestCount={partyData?.guestCount}
+              venue={partyData?.venue}
             />
           </TabsContent>
 
