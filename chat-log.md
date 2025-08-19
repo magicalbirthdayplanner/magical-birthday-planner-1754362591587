@@ -1,3 +1,26 @@
+## [usr-1755577851318]
+**User Request:** Have the text box side by side - compact it. 
+
+Attachments: @.ideavo-attachments/image_8.png
+
+**Response Summary:** Successfully updated the guest count input fields to display side by side in a compact layout for improved user experience:
+
+### 1. Layout Improvement:
+- **Side-by-Side Layout**: Changed the adult and kids count input fields from stacked (vertical) to side-by-side (horizontal) layout using CSS Grid
+- **Compact Design**: Used `grid grid-cols-2 gap-3` to create a 2-column layout with appropriate spacing between the fields
+- **Maintained Functionality**: All existing form logic, validation, and total calculation remain unchanged
+- **Responsive Design**: Layout automatically adapts on smaller screens while maintaining usability
+
+### 2. Implementation Details:
+- **Grid Container**: Wrapped both adult and kids input sections in a CSS Grid container
+- **Equal Width Columns**: Both input fields now have equal width and appear side by side
+- **Consistent Spacing**: Maintained consistent gap between the fields for visual balance
+- **Icon and Label Preservation**: All existing icons, labels, and placeholder text remain unchanged
+
+The updated layout provides a more compact and visually appealing design that matches the attached image, making better use of horizontal space while maintaining all existing functionality.
+
+**Files Modified:** app/create-party/page.tsx
+
 ## [usr-1755577294420]
 **User Request:** We must be able to add # of adults and # of kids 
 

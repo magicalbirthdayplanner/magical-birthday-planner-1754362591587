@@ -871,59 +871,62 @@ export default function CreatePartyPage() {
                       Number of Guests
                     </Label>
                     
-                    {/* Adults Count */}
-                    <div className="space-y-2">
-                      <Label className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        # of Adults
-                      </Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          type="number"
-                          placeholder="10"
-                          value={partyData.adultCount || ''}
-                          onChange={(e) => {
-                            const adultCount = e.target.value ? parseInt(e.target.value) : undefined;
-                            const totalGuests = (adultCount || 0) + (partyData.kidCount || 0);
-                            setPartyData({ 
-                              ...partyData, 
-                              adultCount,
-                              guestCount: totalGuests > 0 ? totalGuests : undefined
-                            });
-                          }}
-                          className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
-                          min="0"
-                          max="50"
-                        />
+                    {/* Adults and Kids Count Side by Side */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Adults Count */}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          # of Adults
+                        </Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            type="number"
+                            placeholder="10"
+                            value={partyData.adultCount || ''}
+                            onChange={(e) => {
+                              const adultCount = e.target.value ? parseInt(e.target.value) : undefined;
+                              const totalGuests = (adultCount || 0) + (partyData.kidCount || 0);
+                              setPartyData({ 
+                                ...partyData, 
+                                adultCount,
+                                guestCount: totalGuests > 0 ? totalGuests : undefined
+                              });
+                            }}
+                            className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                            min="0"
+                            max="50"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Kids Count */}
-                    <div className="space-y-2">
-                      <Label className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                        <Baby className="h-3 w-3" />
-                        # of Kids
-                      </Label>
-                      <div className="relative">
-                        <Baby className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          type="number"
-                          placeholder="10"
-                          value={partyData.kidCount || ''}
-                          onChange={(e) => {
-                            const kidCount = e.target.value ? parseInt(e.target.value) : undefined;
-                            const totalGuests = (partyData.adultCount || 0) + (kidCount || 0);
-                            setPartyData({ 
-                              ...partyData, 
-                              kidCount,
-                              guestCount: totalGuests > 0 ? totalGuests : undefined
-                            });
-                          }}
-                          className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
-                          min="0"
-                          max="50"
-                        />
+                      {/* Kids Count */}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <Baby className="h-3 w-3" />
+                          # of Kids
+                        </Label>
+                        <div className="relative">
+                          <Baby className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            type="number"
+                            placeholder="10"
+                            value={partyData.kidCount || ''}
+                            onChange={(e) => {
+                              const kidCount = e.target.value ? parseInt(e.target.value) : undefined;
+                              const totalGuests = (partyData.adultCount || 0) + (kidCount || 0);
+                              setPartyData({ 
+                                ...partyData, 
+                                kidCount,
+                                guestCount: totalGuests > 0 ? totalGuests : undefined
+                              });
+                            }}
+                            className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                            min="0"
+                            max="50"
+                          />
+                        </div>
                       </div>
                     </div>
 
