@@ -101,6 +101,7 @@ export default function AccountPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showUsageDetails, setShowUsageDetails] = useState(false);
   
   const handlePlanChange = (newPlan: 'STARTER' | 'PLUS' | 'PRO') => {
     if (userProfile?.isSupeadmin && userProfile.subscription) {
@@ -161,11 +162,11 @@ export default function AccountPage() {
                 currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 cancelAtPeriodEnd: false
               },
-              usageStats: {
-                partiesThisMonth: 1,
-                totalParties: 3,
-                guestsThisMonth: 8,
-                aiRequestsThisMonth: 5
+              usageStats: profileData.usageStats || {
+                partiesThisMonth: 0,
+                totalParties: 0,
+                guestsThisMonth: 0,
+                aiRequestsThisMonth: 0
               }
             };
 
@@ -743,27 +744,72 @@ export default function AccountPage() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => {
-                        // Create a modal or expand section to show detailed usage
-                        const usageDetails = `
-Your Usage Details for This Month:
-
-Total Usage:
-- Parties Created: ${userProfile.usageStats?.partiesThisMonth || 0}
-- Total Guests: ${userProfile.usageStats?.guestsThisMonth || 0}
-- AI Requests: ${userProfile.usageStats?.aiRequestsThisMonth || 0}
-
-All-Time Statistics:
-- Total Parties Created: ${userProfile.usageStats?.totalParties || 0}
-- Current Plan: ${currentPlan.name}
-- Member Since: ${new Date(userProfile.createdAt).toLocaleDateString()}
-                        `;
-                        alert(usageDetails);
-                      }}
+                      onClick={() => setShowUsageDetails(!showUsageDetails)}
                     >
-                      View Usage Details
+                      {showUsageDetails ? 'Hide' : 'View'} Usage Details
                     </Button>
                   </div>
+                  
+                  {showUsageDetails && (
+                    <div className="mt-4 p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Usage Details for This Month
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Parties Created</span>
+                            <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                              {userProfile.usageStats?.partiesThisMonth || 0}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Guests</span>
+                            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                              {userProfile.usageStats?.guestsThisMonth || 0}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Separator className="my-4" />
+                      
+                      <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-3">All-Time Statistics</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                              {userProfile.usageStats?.totalParties || 0}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-300">Total Parties</div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-pink-600 dark:text-pink-400">
+                              {currentPlan.name}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-300">Current Plan</div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-amber-600 dark:text-amber-400">
+                              {new Date(userProfile.createdAt).toLocaleDateString()}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-300">Member Since</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

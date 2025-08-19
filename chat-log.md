@@ -1,3 +1,8 @@
+## [usr-1755575992775]
+**User Request:** usage details to appear not as a pop up window but below the button with data neatly organized. Ensure that this details are also stored in the database per user and all information is accurately retrived 
+**Response Summary:** Successfully transformed usage details from popup/alert to inline display below the button with neatly organized data. Implemented database-backed usage statistics retrieval including parties created this month, total parties, and guests this month. Updated user profile API to fetch real usage data from database using Prisma queries. Enhanced UI with clean card-based layout showing usage metrics in organized sections.
+**Files Modified:** app/account/page.tsx, app/api/user/profile/route.ts
+
 ## [usr-1755575532514]
 **User Request:** 1. Remove email support and priority support. 
 

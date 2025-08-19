@@ -32,6 +32,39 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Calculate usage statistics
+    const currentDate = new Date();
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    
+    // Get parties created this month
+    const partiesThisMonth = await prisma.party.count({
+      where: {
+        userId: dbUser.id,
+        createdAt: {
+          gte: startOfMonth
+        }
+      }
+    });
+
+    // Get total parties created
+    const totalParties = await prisma.party.count({
+      where: {
+        userId: dbUser.id
+      }
+    });
+
+    // Get total guests this month
+    const guestsThisMonth = await prisma.guest.count({
+      where: {
+        party: {
+          userId: dbUser.id,
+          createdAt: {
+            gte: startOfMonth
+          }
+        }
+      }
+    });
+
     // Combine database data with Supabase user metadata
     const profile = {
       id: dbUser.id,
@@ -42,7 +75,13 @@ export async function GET() {
       emailNotifications: dbUser.emailNotifications,
       partyReminders: dbUser.partyReminders,
       marketingEmails: dbUser.marketingEmails,
-      createdAt: dbUser.createdAt.toISOString()
+      createdAt: dbUser.createdAt.toISOString(),
+      usageStats: {
+        partiesThisMonth,
+        totalParties,
+        guestsThisMonth,
+        aiRequestsThisMonth: 0 // We'll implement AI request tracking later if needed
+      }
     };
 
     return NextResponse.json(profile);
