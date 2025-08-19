@@ -1,3 +1,30 @@
+## [usr-1755607161032]
+**User Request:** If i select custom theme, dancing and generate AI generated content, the overview view tab shows - 🎉 - Custom Theme Theme
+
+It should show the theme selected in this case dancing  
+**Response Summary:** Fixed overview tab theme display issue where AI-generated custom themes showed "🎉 - Custom Theme Theme" instead of the actual selected theme name. Enhanced the getThemeDetails function fallback logic to properly extract and display theme names from theme IDs.
+
+### Key Issue Resolved:
+
+**🐛 Theme Display Bug:**
+- Problem: When selecting custom AI theme "dancing", overview tab displayed "🎉 - Custom Theme Theme"
+- Root Cause: getThemeDetails function fallback logic returned generic "Custom Theme" name instead of extracting actual theme name from ID
+- AI themes stored as "ai-dancing" but fallback didn't parse the actual name
+
+**🔧 Technical Fix:**
+- Enhanced fallback logic in getThemeDetails function (lines 1119-1136 in party-plan/page.tsx)
+- Added theme name extraction from IDs: `currentTheme.replace('ai-', '').replace(/[-_]/g, ' ')`
+- Added proper capitalization for extracted theme names
+- Applied fix to both AI themes and regular custom themes fallback scenarios
+
+**✅ Verification:**
+- LocalStorage AI theme persistence verified as working correctly
+- AI themes properly saved and retrieved from localStorage
+- Build completed successfully with no TypeScript errors
+- Theme display now shows actual theme names (e.g., "Dancing" instead of "Custom Theme Theme")
+
+**Files Modified:** app/party-plan/page.tsx
+
 ## [usr-1755582239355]
 **User Request:** There can only be one theme selected between classic or ai generated themes. Once a theme is selcted it must be persistent til the user decides to change. In this case, if i use a ai generated theme, after adding the theme, the name of the selected theme should reflect in the overivew tab. Also, currently if i change the tab to classic theme and then change to ai generated theme, my previous selection is gone and unable to recall what was the theme selcted earlier
 **Response Summary:** Successfully implemented comprehensive theme persistence and state management system to maintain theme selections across tab navigation. Fixed issues where users lost their theme selections when switching between classic and AI-generated theme tabs. Enhanced theme persistence in Overview tab to properly display selected theme names and details.

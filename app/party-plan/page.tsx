@@ -1116,17 +1116,21 @@ export default function PartyPlanPage() {
         }
       }
       
-      // Fallback for AI themes
+      // Fallback for AI themes - extract theme name from ID
+      const extractedName = currentTheme.replace('ai-', '').replace(/[-_]/g, ' ');
+      const capitalizedName = extractedName.charAt(0).toUpperCase() + extractedName.slice(1);
       return {
-        name: "AI Custom Theme",
+        name: capitalizedName,
         emoji: "🤖",
         colors: ["Purple", "Pink", "Blue", "Gold"]
       };
     }
 
-    // Fallback for any other themes
+    // Fallback for any other themes - extract theme name from ID
+    const extractedName = currentTheme.replace(/[-_]/g, ' ');
+    const capitalizedName = extractedName.charAt(0).toUpperCase() + extractedName.slice(1);
     return {
-      name: "Custom Theme",
+      name: capitalizedName,
       emoji: "🎉",
       colors: ["Purple", "Pink"]
     };
