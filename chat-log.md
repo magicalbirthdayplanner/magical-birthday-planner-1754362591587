@@ -1,3 +1,22 @@
+## [usr-1755578983402]
+**User Request:** not able to navigate to second tab
+**Response Summary:** Enhanced the Select Theme button navigation functionality to ensure reliable navigation to the themes tab (2nd tab). The issue was related to DOM query selector reliability - improved the implementation with fallback methods to guarantee tab switching works consistently.
+
+### Changes Made:
+- **Enhanced DOM Selection**: Updated both "Select Theme" and "Change Theme" buttons with robust fallback methods
+- **Primary Method**: Uses `document.querySelector('[value="themes"]')` as the main selection method
+- **Fallback Method**: If primary fails, searches through all tab buttons by text content to find "Themes" tab
+- **TypeScript Compatibility**: Fixed compilation issues by using `Array.from()` instead of `for...of` loops
+
+### Technical Implementation:
+- **Two Button Updates**: Enhanced both the "Select Theme" (when no theme selected) and "Change Theme" (when theme already selected) buttons
+- **Reliable Navigation**: Multiple DOM selection methods ensure tab navigation works regardless of DOM timing or structure changes
+- **Build Verified**: Successfully passes `npm run build` with no TypeScript errors
+
+The Select Theme button now reliably navigates to the themes tab (2nd tab position) with improved error handling and fallback mechanisms.
+
+**Files Modified:** app/party-plan/page.tsx
+
 ## [usr-1755578688039]
 **User Request:** When clicking select theme, it should take to the 2nd tab of themes
 

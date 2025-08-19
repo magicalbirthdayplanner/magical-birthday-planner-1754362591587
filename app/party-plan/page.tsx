@@ -1437,8 +1437,19 @@ export default function PartyPlanPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
+                            // Multiple fallback methods to ensure tab navigation works
                             const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
-                            if (themesTab) themesTab.click();
+                            if (themesTab) {
+                              themesTab.click();
+                            } else {
+                              // Fallback: try to find by text content
+                              const tabButtons = document.querySelectorAll('[role="tab"]');
+                              Array.from(tabButtons).forEach(button => {
+                                if (button.textContent?.includes('Themes')) {
+                                  (button as HTMLButtonElement).click();
+                                }
+                              });
+                            }
                           }}
                           className="w-full"
                         >
@@ -1456,8 +1467,19 @@ export default function PartyPlanPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
+                          // Multiple fallback methods to ensure tab navigation works
                           const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
-                          if (themesTab) themesTab.click();
+                          if (themesTab) {
+                            themesTab.click();
+                          } else {
+                            // Fallback: try to find by text content
+                            const tabButtons = document.querySelectorAll('[role="tab"]');
+                            Array.from(tabButtons).forEach(button => {
+                              if (button.textContent?.includes('Themes')) {
+                                (button as HTMLButtonElement).click();
+                              }
+                            });
+                          }
                         }}
                         className="w-full"
                       >
