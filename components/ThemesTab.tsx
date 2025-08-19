@@ -32,12 +32,12 @@ interface PartyData {
   childAge: string;
   interests?: string[];
   favoriteColors?: string[];
-  selectedTheme?: string;
+  selectedTheme?: string | null;
 }
 
 interface ThemesTabProps {
   partyData: PartyData;
-  onThemeSelect: (themeId: string) => void;
+  onThemeSelect: (themeId: string | null) => void;
 }
 
 const classicThemes = [
@@ -387,7 +387,7 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                     ? "ring-2 ring-purple-500 shadow-lg"
                     : "hover:shadow-md"
                 )}
-                onClick={() => onThemeSelect(theme.id)}
+                onClick={() => onThemeSelect(partyData.selectedTheme === theme.id ? null : theme.id)}
               >
                 <div className={cn("absolute inset-0 rounded-lg opacity-20", theme.color)} />
                 <CardContent className="p-6 text-center relative">
@@ -396,11 +396,11 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                     {theme.name}
                   </h3>
                   
-                  {/* Add to Party Button */}
+                  {/* Add to Party / Deselect Button */}
                   <Button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onThemeSelect(theme.id);
+                      onThemeSelect(partyData.selectedTheme === theme.id ? null : theme.id);
                     }}
                     variant={partyData.selectedTheme === theme.id ? "default" : "outline"}
                     size="sm"
@@ -413,8 +413,8 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                   >
                     {partyData.selectedTheme === theme.id ? (
                       <>
-                        <Star className="w-3 h-3 mr-1" />
-                        Added to Party
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Remove Theme
                       </>
                     ) : (
                       <>
@@ -573,7 +573,7 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                         ? "ring-2 ring-purple-500 shadow-lg"
                         : "hover:shadow-md"
                     )}
-                    onClick={() => onThemeSelect(theme.id)}
+                    onClick={() => onThemeSelect(partyData.selectedTheme === theme.id ? null : theme.id)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
@@ -609,12 +609,12 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                         </div>
                       </div>
 
-                      {/* Add to Party Button for AI Themes */}
+                      {/* Add to Party / Deselect Button for AI Themes */}
                       <div className="mb-4">
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onThemeSelect(theme.id);
+                            onThemeSelect(partyData.selectedTheme === theme.id ? null : theme.id);
                           }}
                           variant={partyData.selectedTheme === theme.id ? "default" : "outline"}
                           size="sm"
@@ -627,8 +627,8 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                         >
                           {partyData.selectedTheme === theme.id ? (
                             <>
-                              <Star className="w-3 h-3 mr-1" />
-                              Added to Party
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Remove Theme
                             </>
                           ) : (
                             <>

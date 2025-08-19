@@ -5,7 +5,7 @@ interface PartyData {
   childName: string;
   childAge: string;
   partyDate: Date;
-  selectedTheme: string;
+  selectedTheme?: string | null;
   budget?: number;
   zipCode?: string;
   guestCount?: number;
@@ -168,7 +168,7 @@ export function generatePartyPlanPDF(
   yPosition += 15;
   doc.setFontSize(16);
   doc.setFont('helvetica', 'normal');
-  doc.text(`${partyData.childName}'s ${partyData.selectedTheme} Party`, 20, yPosition);
+  doc.text(`${partyData.childName}'s ${partyData.selectedTheme || 'Birthday'} Party`, 20, yPosition);
   
   yPosition += 20;
   
@@ -185,7 +185,7 @@ export function generatePartyPlanPDF(
     ['Child Name', partyData.childName],
     ['Age', partyData.childAge],
     ['Party Date', partyData.partyDate.toLocaleDateString()],
-    ['Theme', partyData.selectedTheme],
+    ['Theme', partyData.selectedTheme || 'No theme selected'],
     ['Guest Count', partyData.guestCount?.toString() || 'Not specified'],
     ['Venue Type', partyData.venue || 'Not specified'],
     ['Duration', partyData.duration || 'Not specified'],
@@ -205,7 +205,7 @@ export function generatePartyPlanPDF(
   yPosition = (doc as any).lastAutoTable.finalY + 20;
   
   // Theme Details Section
-  const selectedThemeData = themeData[partyData.selectedTheme.toLowerCase()];
+  const selectedThemeData = partyData.selectedTheme ? themeData[partyData.selectedTheme.toLowerCase()] : null;
   if (selectedThemeData) {
     if (yPosition > 250) {
       doc.addPage();

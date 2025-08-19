@@ -75,8 +75,8 @@ interface PartyData {
   childName: string;
   childAge: string;
   partyDate: Date;
-  selectedTheme: string;
-  theme?: string;
+  selectedTheme?: string | null;
+  theme?: string | null;
   interests?: string[];
   favoriteColors?: string[];
   budget?: number;
@@ -1728,7 +1728,7 @@ export default function PartyPlanPage() {
               partyBudget={partyData?.budget}
               zipCode={partyData?.zipCode}
               childAge={parseInt(partyData?.childAge || '0')}
-              theme={partyData?.selectedTheme}
+              theme={partyData?.selectedTheme || undefined}
               partyId={partyData?.childName || 'party'}
             />
           </ProtectedTabContent>
@@ -1861,13 +1861,13 @@ export default function PartyPlanPage() {
                 childAge: partyData?.childAge || '',
                 interests: partyData?.interests || [],
                 favoriteColors: partyData?.favoriteColors || [],
-                selectedTheme: partyData?.theme || partyData?.selectedTheme
+                selectedTheme: (partyData?.theme && partyData.theme !== '') ? partyData.theme : (partyData?.selectedTheme && partyData.selectedTheme !== '') ? partyData.selectedTheme : null
               }}
               onThemeSelect={(themeId) => {
                 if (partyData?.id) {
-                  updateParty(partyData.id, { theme: themeId })
+                  updateParty(partyData.id, { theme: themeId || '' })
                     .then(() => {
-                      setPartyData(prev => prev ? { ...prev, theme: themeId, selectedTheme: themeId } : prev);
+                      setPartyData(prev => prev ? { ...prev, theme: themeId || '', selectedTheme: themeId || null } : prev);
                       
                       // Auto-navigate back to overview tab after theme selection
                       setTimeout(() => {
@@ -1900,15 +1900,15 @@ export default function PartyPlanPage() {
                     });
                 } else {
                   // Fallback to localStorage for parties without database ID
-                  setPartyData(prev => prev ? { ...prev, theme: themeId, selectedTheme: themeId } : prev);
+                  setPartyData(prev => prev ? { ...prev, theme: themeId || '', selectedTheme: themeId || null } : prev);
                   
                   // Save to localStorage as backup
                   const currentPartyData = localStorage.getItem('currentPartyData');
                   if (currentPartyData) {
                     try {
                       const parsed = JSON.parse(currentPartyData);
-                      parsed.theme = themeId;
-                      parsed.selectedTheme = themeId;
+                      parsed.theme = themeId || '';
+                      parsed.selectedTheme = themeId || null;
                       localStorage.setItem('currentPartyData', JSON.stringify(parsed));
                     } catch (error) {
                       console.error('Error saving theme to localStorage:', error);
@@ -2566,7 +2566,7 @@ export default function PartyPlanPage() {
           party={{
             id: currentPartyId,
             childName: partyData.childName,
-            theme: partyData.selectedTheme,
+            theme: partyData.selectedTheme || 'Birthday',
             date: partyData.partyDate.toISOString(),
             age: parseInt(partyData.childAge),
           }}
