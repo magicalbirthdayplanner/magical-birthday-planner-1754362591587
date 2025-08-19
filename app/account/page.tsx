@@ -29,7 +29,9 @@ import {
   Check,
   Loader2,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Key,
+  Trash2
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -370,7 +372,7 @@ export default function AccountPage() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -379,13 +381,9 @@ export default function AccountPage() {
               <CreditCard className="h-4 w-4" />
               Subscription
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Notifications
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Billing
+            <TabsTrigger value="account-security" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Account Security
             </TabsTrigger>
           </TabsList>
 
@@ -815,108 +813,9 @@ export default function AccountPage() {
             )}
           </TabsContent>
 
-          {/* Notifications Tab */}
-          <TabsContent value="notifications" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  Notification Preferences
-                </CardTitle>
-                <CardDescription>
-                  Choose how you want to be notified about your parties and account
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="email-notifications" className="text-base font-medium">
-                      Email Notifications
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Receive party reminders and updates via email
-                    </p>
-                  </div>
-                  <Switch
-                    id="email-notifications"
-                    checked={notifications.email}
-                    onCheckedChange={(checked) => 
-                      setNotifications({ ...notifications, email: checked })
-                    }
-                  />
-                </div>
 
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="party-reminders" className="text-base font-medium">
-                      Party Reminders
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Get reminders for upcoming party tasks and deadlines
-                    </p>
-                  </div>
-                  <Switch
-                    id="party-reminders"
-                    checked={notifications.reminders}
-                    onCheckedChange={(checked) => 
-                      setNotifications({ ...notifications, reminders: checked })
-                    }
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="marketing-emails" className="text-base font-medium">
-                      Marketing Emails
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Receive tips and special offers
-                    </p>
-                  </div>
-                  <Switch
-                    id="marketing-emails"
-                    checked={notifications.marketing}
-                    onCheckedChange={(checked) => 
-                      setNotifications({ ...notifications, marketing: checked })
-                    }
-                  />
-                </div>
-
-                <div className="pt-4">
-                  <Button onClick={handleSaveNotifications}>Save Notification Preferences</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Billing Tab */}
-          <TabsContent value="billing" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Billing History
-                </CardTitle>
-                <CardDescription>
-                  View and download your invoices and receipts
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">No billing history available</p>
-                  <p className="text-sm text-gray-500">
-                    Your invoices and receipts will appear here once you upgrade to a paid plan
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Account Security */}
+          {/* Account Security Tab */}
+          <TabsContent value="account-security" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -927,27 +826,36 @@ export default function AccountPage() {
                   Manage your password and security settings
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-base font-medium">Password</Label>
-                    <p className="text-sm text-gray-600">
-                      Last updated {new Date().toLocaleDateString()}
+                    <Label className="text-base font-medium flex items-center gap-2">
+                      <Key className="h-4 w-4" />
+                      Password
+                    </Label>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Keep your account secure with a strong password
                     </p>
                   </div>
-                  <Button variant="outline">Change Password</Button>
+                  <Button variant="outline">
+                    Change Password
+                  </Button>
                 </div>
 
                 <Separator />
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-base font-medium">Account Deletion</Label>
-                    <p className="text-sm text-gray-600">
-                      Permanently delete your account and all data
+                    <Label className="text-base font-medium text-red-600 dark:text-red-400 flex items-center gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Delete Account
+                    </Label>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Permanently delete your account and all associated data
                     </p>
                   </div>
                   <Button variant="destructive" size="sm">
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Delete Account
                   </Button>
                 </div>

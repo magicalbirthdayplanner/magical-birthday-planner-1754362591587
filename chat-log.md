@@ -1,3 +1,31 @@
+## [usr-1755576510511]
+**User Request:** 1. Notifications tab not required. attached screenshot
+
+2. Billing tab - Call this as Account Security tab. Remove bill history section and just keep account security. Add functionality to change password and Delete Account button 
+
+Attachments: @.ideavo-attachments/image_6.png
+
+**Response Summary:** Successfully updated the account settings page to remove the Notifications tab and restructure the Billing tab into an Account Security tab:
+
+### 1. Notifications Tab Removal:
+- **Removed Notifications Tab**: Completely removed the notifications tab from the account page navigation
+- **Updated Tab Layout**: Changed from 4-column grid (Profile, Subscription, Notifications, Billing) to 3-column grid (Profile, Subscription, Account Security)
+- **Cleaned Up Code**: Removed all notification preferences code including email notifications, party reminders, and marketing emails
+
+### 2. Billing to Account Security Conversion:
+- **Renamed Tab**: Changed "Billing" tab to "Account Security" with proper Shield icon
+- **Removed Billing History**: Eliminated the entire billing history section that showed "No billing history available"
+- **Enhanced Security Focus**: Restructured the tab to focus solely on account security features
+
+### 3. Account Security Features:
+- **Change Password**: Added enhanced change password functionality with Key icon and improved styling
+- **Delete Account**: Added prominent delete account button with Trash2 icon and warning styling in red
+- **Improved UI**: Enhanced the styling with better visual hierarchy, proper dark mode support, and clearer descriptions
+
+The account settings page now has a cleaner, more focused interface with only essential tabs and improved security management capabilities.
+
+**Files Modified:** app/account/page.tsx
+
 ## [usr-1755575992775]
 **User Request:** usage details to appear not as a pop up window but below the button with data neatly organized. Ensure that this details are also stored in the database per user and all information is accurately retrived 
 **Response Summary:** Successfully transformed usage details from popup/alert to inline display below the button with neatly organized data. Implemented database-backed usage statistics retrieval including parties created this month, total parties, and guests this month. Updated user profile API to fetch real usage data from database using Prisma queries. Enhanced UI with clean card-based layout showing usage metrics in organized sections.
