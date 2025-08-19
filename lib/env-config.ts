@@ -66,6 +66,18 @@ export const ENV_VARIABLES: EnvVariable[] = [
     required: false,
     instructions: "Go to [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → Create API key → Enable Places API (New) → Copy the API key"
   },
+  {
+    name: "APIFY_API_TOKEN",
+    description: "Apify API token for venue scraping using Google Maps Scraper Actor",
+    required: false,
+    instructions: "Go to [Apify Console](https://console.apify.com) → Settings → Integrations → API tokens → Create new token → Copy the API token (starts with 'apify_api_')"
+  },
+  {
+    name: "APIFY_USER_ID",
+    description: "Apify user ID for API authentication",
+    required: false,
+    instructions: "Go to [Apify Console](https://console.apify.com) → Settings → Account → Copy your User ID"
+  },
 ];
 
 export interface EnvVariable {

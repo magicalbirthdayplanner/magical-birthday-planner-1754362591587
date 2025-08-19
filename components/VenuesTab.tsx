@@ -23,7 +23,9 @@ import {
   Sparkles,
   ArrowUpDown,
   Info,
-  Loader2
+  Loader2,
+  ThumbsUp,
+  ThumbsDown
 } from "lucide-react";
 
 export interface VenueData {
@@ -184,6 +186,7 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
   const [hasMore, setHasMore] = useState(true);
   const [activeTab, setActiveTab] = useState("browse");
   const [compareDrawerOpen, setCompareDrawerOpen] = useState(false);
+  const [venueFeedback, setVenueFeedback] = useState<Record<string, 'up' | 'down'>>({});
   const observer = useRef<IntersectionObserver>();
 
   const venuesPerPage = 5;
@@ -208,26 +211,51 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
       setLoading(page === 1);
       setLoadingMore(page > 1);
       
-      // Simulate API call - later replace with Apify integration
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Build search parameters from party data
+      const searchParams = new URLSearchParams();
+      if (partyData.zipCode) searchParams.set('zipCode', partyData.zipCode);
+      if (partyData.childAge) searchParams.set('age', partyData.childAge);
+      if (partyData.selectedTheme || partyData.theme) {
+        searchParams.set('theme', partyData.selectedTheme || partyData.theme || '');
+      }
+      if (partyData.guestCount) searchParams.set('capacity', partyData.guestCount.toString());
+      if (partyData.budget) searchParams.set('budget', partyData.budget.toString());
+      if (partyData.venue && partyData.venue !== 'mixed') {
+        searchParams.set('venueType', partyData.venue);
+      }
+      searchParams.set('page', page.toString());
+      searchParams.set('limit', '10'); // Load 10 venues at a time for infinite scroll
       
-      // Generate AI contextual notes based on party data
-      const contextualizedVenues = await generateContextualNotes(DEMO_VENUES, partyData);
+      console.log('Fetching venues with params:', Object.fromEntries(searchParams));
       
-      const startIdx = (page - 1) * venuesPerPage;
-      const endIdx = startIdx + venuesPerPage;
-      const paginatedVenues = contextualizedVenues.slice(startIdx, endIdx);
+      const response = await fetch(`/api/venues?${searchParams.toString()}`);
       
-      if (page === 1) {
-        setVenues(paginatedVenues);
-      } else {
-        setVenues(prev => [...prev, ...paginatedVenues]);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch venues: ${response.statusText}`);
       }
       
-      setHasMore(endIdx < contextualizedVenues.length);
+      const data = await response.json();
+      
+      if (page === 1) {
+        setVenues(data.venues || []);
+      } else {
+        setVenues(prev => [...prev, ...(data.venues || [])]);
+      }
+      
+      setHasMore(data.pagination?.hasNext || false);
       setCurrentPage(page);
+      
+      console.log(`Loaded ${data.venues?.length || 0} venues for page ${page}`);
+      
     } catch (error) {
       console.error('Error loading venues:', error);
+      
+      // Fallback to demo data on error
+      if (page === 1) {
+        const contextualizedVenues = await generateContextualNotes(DEMO_VENUES, partyData);
+        setVenues(contextualizedVenues.slice(0, 10));
+        setHasMore(contextualizedVenues.length > 10);
+      }
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -273,17 +301,67 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
     });
   };
 
-  const handleFavorite = (venue: VenueData) => {
+  const handleFavorite = async (venue: VenueData) => {
     const isFavorited = favoritedVenues.some(fav => fav.id === venue.id);
     
-    if (isFavorited) {
-      const updated = favoritedVenues.filter(fav => fav.id !== venue.id);
-      setFavoritedVenues(updated);
-      localStorage.setItem('venue-favorites', JSON.stringify(updated.map(v => v.id)));
-    } else {
-      const updated = [...favoritedVenues, venue];
-      setFavoritedVenues(updated);
-      localStorage.setItem('venue-favorites', JSON.stringify(updated.map(v => v.id)));
+    try {
+      const response = await fetch('/api/venues', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: isFavorited ? 'unfavorite' : 'favorite',
+          venueId: venue.id,
+          venueName: venue.name,
+          venueLocation: venue.location,
+          venueAddress: venue.address,
+          venueRating: venue.rating,
+          venuePrice: venue.priceRange,
+          venueType: venue.venueType,
+          venueWebsite: venue.website,
+          venuePhone: venue.phone,
+          matchScore: venue.matchScore,
+          aiNote: venue.aiContextualNote
+        })
+      });
+
+      if (response.ok) {
+        if (isFavorited) {
+          const updated = favoritedVenues.filter(fav => fav.id !== venue.id);
+          setFavoritedVenues(updated);
+          // Keep localStorage as backup
+          localStorage.setItem('venue-favorites', JSON.stringify(updated.map(v => v.id)));
+        } else {
+          const updated = [...favoritedVenues, venue];
+          setFavoritedVenues(updated);
+          localStorage.setItem('venue-favorites', JSON.stringify(updated.map(v => v.id)));
+        }
+      } else {
+        console.error('Failed to update favorite status');
+        // Fallback to localStorage only
+        if (isFavorited) {
+          const updated = favoritedVenues.filter(fav => fav.id !== venue.id);
+          setFavoritedVenues(updated);
+          localStorage.setItem('venue-favorites', JSON.stringify(updated.map(v => v.id)));
+        } else {
+          const updated = [...favoritedVenues, venue];
+          setFavoritedVenues(updated);
+          localStorage.setItem('venue-favorites', JSON.stringify(updated.map(v => v.id)));
+        }
+      }
+    } catch (error) {
+      console.error('Error updating favorite:', error);
+      // Fallback to localStorage only
+      if (isFavorited) {
+        const updated = favoritedVenues.filter(fav => fav.id !== venue.id);
+        setFavoritedVenues(updated);
+        localStorage.setItem('venue-favorites', JSON.stringify(updated.map(v => v.id)));
+      } else {
+        const updated = [...favoritedVenues, venue];
+        setFavoritedVenues(updated);
+        localStorage.setItem('venue-favorites', JSON.stringify(updated.map(v => v.id)));
+      }
     }
   };
 
@@ -301,6 +379,50 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
 
   const removeFromCompare = (venueId: string) => {
     setCompareVenues(compareVenues.filter(venue => venue.id !== venueId));
+  };
+
+  const handleFeedback = async (venue: VenueData, feedbackType: 'up' | 'down') => {
+    const currentFeedback = venueFeedback[venue.id];
+    const newFeedback = currentFeedback === feedbackType ? undefined : feedbackType;
+    
+    try {
+      const response = await fetch('/api/venues', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'feedback',
+          venueId: venue.id,
+          venueName: venue.name,
+          feedback: newFeedback ? (feedbackType === 'up' ? 'THUMBS_UP' : 'THUMBS_DOWN') : 'REMOVED'
+        })
+      });
+
+      if (response.ok) {
+        if (newFeedback) {
+          setVenueFeedback(prev => ({ ...prev, [venue.id]: newFeedback }));
+        } else {
+          setVenueFeedback(prev => {
+            const updated = { ...prev };
+            delete updated[venue.id];
+            return updated;
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      // Update UI optimistically even if API fails
+      if (newFeedback) {
+        setVenueFeedback(prev => ({ ...prev, [venue.id]: newFeedback }));
+      } else {
+        setVenueFeedback(prev => {
+          const updated = { ...prev };
+          delete updated[venue.id];
+          return updated;
+        });
+      }
+    }
   };
 
   const lastVenueElementRef = useCallback((node: HTMLDivElement) => {
@@ -407,7 +529,7 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             variant={isFavorited(venue.id) ? "default" : "outline"}
             size="sm"
@@ -428,6 +550,26 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
             <Plus className="w-4 h-4 mr-2" />
             {isInCompare(venue.id) ? 'Added' : 'Compare'}
           </Button>
+
+          <div className="flex gap-1">
+            <Button
+              variant={venueFeedback[venue.id] === 'up' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleFeedback(venue, 'up')}
+              className={venueFeedback[venue.id] === 'up' ? "bg-green-500 hover:bg-green-600 text-white" : "border-green-200 text-green-600 hover:bg-green-50"}
+            >
+              <ThumbsUp className={`w-4 h-4 ${venueFeedback[venue.id] === 'up' ? 'fill-current' : ''}`} />
+            </Button>
+            
+            <Button
+              variant={venueFeedback[venue.id] === 'down' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleFeedback(venue, 'down')}
+              className={venueFeedback[venue.id] === 'down' ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-200 text-red-600 hover:bg-red-50"}
+            >
+              <ThumbsDown className={`w-4 h-4 ${venueFeedback[venue.id] === 'down' ? 'fill-current' : ''}`} />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

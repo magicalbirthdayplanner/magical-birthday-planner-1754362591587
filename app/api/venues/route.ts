@@ -200,129 +200,344 @@ const DEMO_VENUES: VenueData[] = [
 ];
 
 async function generateAIContextualNotes(venues: VenueData[], searchParams: VenueSearchParams): Promise<VenueData[]> {
-  // Future: Integrate with OpenAI GPT-4 for contextual AI notes
-  // For now, use intelligent matching based on search parameters
+  const azureApiKey = process.env.AZURE_OPENAI_API_KEY;
+  const azureEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
+  const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
+  const apiVersion = process.env.AZURE_OPENAI_API_VERSION;
+
+  // If Azure OpenAI is not configured, use fallback logic
+  if (!azureApiKey || !azureEndpoint) {
+    console.log("Azure OpenAI not configured, using fallback AI contextual notes");
+    return generateFallbackContextualNotes(venues, searchParams);
+  }
+
+  try {
+    // Process venues in batches to avoid token limits
+    const batchSize = 5;
+    const enrichedVenues: VenueData[] = [];
+    
+    for (let i = 0; i < venues.length; i += batchSize) {
+      const batch = venues.slice(i, i + batchSize);
+      
+      const prompt = `You are an AI assistant specializing in kids' birthday party planning. Generate playful, contextual notes explaining why each venue is perfect for the specific party requirements.
+
+Party Details:
+- Child's Age: ${searchParams.age || 'Not specified'}
+- Theme: ${searchParams.theme || 'Not specified'}  
+- Location: ${searchParams.location || searchParams.zipCode || 'Not specified'}
+- Party Size: ${searchParams.capacity || 'Not specified'} guests
+- Budget: ${searchParams.budget ? `$${searchParams.budget}` : 'Not specified'}
+- Venue Preference: ${searchParams.venueType || 'Any'}
+
+For each venue below, write a fun, engaging 1-2 sentence contextual note explaining why it's a great match. Include relevant emojis and focus on how it fits the party theme, age group, and specific requirements:
+
+${batch.map((venue, idx) => 
+  `${idx + 1}. ${venue.name} - ${venue.description} (Rating: ${venue.rating}/5, Capacity: ${venue.capacity}, Type: ${venue.venueType})`
+).join('\n')}
+
+Return only the contextual notes, one per line, numbered 1-${batch.length}.`;
+
+      const response = await fetch(`${azureEndpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': azureApiKey
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful AI assistant specializing in kids birthday party planning. Be fun, playful, and enthusiastic in your responses.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.8,
+          top_p: 0.9
+        })
+      });
+
+      if (!response.ok) {
+        console.log("Azure OpenAI request failed, using fallback for batch");
+        const fallbackBatch = generateFallbackContextualNotes(batch, searchParams);
+        enrichedVenues.push(...fallbackBatch);
+        continue;
+      }
+
+      const data = await response.json();
+      const aiNotes = data.choices?.[0]?.message?.content?.split('\n').filter((line: string) => line.trim()) || [];
+      
+      // Apply AI-generated notes to venues
+      const enrichedBatch = batch.map((venue, idx) => ({
+        ...venue,
+        aiContextualNote: aiNotes[idx]?.replace(/^\d+\.\s*/, '').trim() || generateFallbackNote(venue, searchParams)
+      }));
+      
+      enrichedVenues.push(...enrichedBatch);
+      
+      // Small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    console.log(`Successfully generated AI contextual notes for ${enrichedVenues.length} venues`);
+    return enrichedVenues;
+    
+  } catch (error) {
+    console.error("Error generating AI contextual notes:", error);
+    // Fallback to rule-based contextual notes
+    return generateFallbackContextualNotes(venues, searchParams);
+  }
+}
+
+function generateFallbackContextualNotes(venues: VenueData[], searchParams: VenueSearchParams): VenueData[] {
+  return venues.map(venue => ({
+    ...venue,
+    aiContextualNote: generateFallbackNote(venue, searchParams)
+  }));
+}
+
+function generateFallbackNote(venue: VenueData, searchParams: VenueSearchParams): string {
+  let contextualNote = venue.description || `Great venue for birthday parties`;
   
-  return venues.map(venue => {
-    let contextualNote = venue.aiContextualNote;
-    
-    // Match theme
-    if (searchParams.theme) {
-      const theme = searchParams.theme.toLowerCase();
-      if (theme.includes('princess') && venue.name.toLowerCase().includes('princess')) {
-        contextualNote = `🏰 Perfect match! ${contextualNote}`;
-      } else if (theme.includes('superhero') && venue.amenities.some(a => a.toLowerCase().includes('arcade'))) {
-        contextualNote = `⚡ Superhero headquarters! ${contextualNote}`;
-      } else if (theme.includes('ocean') && venue.name.toLowerCase().includes('aquatic')) {
-        contextualNote = `🌊 Ocean adventure awaits! ${contextualNote}`;
-      } else if (theme.includes('safari') && venue.name.toLowerCase().includes('safari')) {
-        contextualNote = `🦁 Safari expedition ready! ${contextualNote}`;
-      } else if (theme.includes('pirate') && venue.name.toLowerCase().includes('pirate')) {
-        contextualNote = `🏴‍☠️ Ahoy matey! ${contextualNote}`;
-      } else if (theme.includes('space') && venue.name.toLowerCase().includes('science')) {
-        contextualNote = `🚀 Blast off to space! ${contextualNote}`;
-      }
+  // Match theme
+  if (searchParams.theme) {
+    const theme = searchParams.theme.toLowerCase();
+    if (theme.includes('princess') && venue.name.toLowerCase().includes('princess')) {
+      contextualNote = `🏰 Perfect princess paradise! ${contextualNote}`;
+    } else if (theme.includes('superhero') && (venue.amenities.some(a => a.toLowerCase().includes('arcade')) || venue.name.toLowerCase().includes('adventure'))) {
+      contextualNote = `⚡ Superhero headquarters awaits! ${contextualNote}`;
+    } else if (theme.includes('ocean') && (venue.name.toLowerCase().includes('aquatic') || venue.name.toLowerCase().includes('water'))) {
+      contextualNote = `🌊 Dive into ocean adventures! ${contextualNote}`;
+    } else if (theme.includes('safari') && venue.name.toLowerCase().includes('safari')) {
+      contextualNote = `🦁 Safari expedition central! ${contextualNote}`;
+    } else if (theme.includes('pirate') && venue.name.toLowerCase().includes('pirate')) {
+      contextualNote = `🏴‍☠️ Ahoy! Pirate adventure starts here! ${contextualNote}`;
+    } else if (theme.includes('space') && (venue.name.toLowerCase().includes('science') || venue.name.toLowerCase().includes('sky'))) {
+      contextualNote = `🚀 Blast off to space adventures! ${contextualNote}`;
+    } else if (theme.includes('dinosaur') && venue.name.toLowerCase().includes('adventure')) {
+      contextualNote = `🦕 Dinosaur discoveries await! ${contextualNote}`;
+    } else if (theme.includes('unicorn') && venue.name.toLowerCase().includes('magical')) {
+      contextualNote = `🦄 Magical unicorn wonderland! ${contextualNote}`;
     }
-    
-    // Match age
-    if (searchParams.age) {
-      const age = searchParams.age;
-      if (age <= 4 && venue.ageRecommendation?.includes('3-')) {
-        contextualNote += ` Great for toddlers and preschoolers!`;
-      } else if (age >= 8 && venue.ageRecommendation?.includes('-12')) {
-        contextualNote += ` Perfect for older kids!`;
-      }
+  }
+  
+  // Match age appropriateness
+  if (searchParams.age) {
+    const age = searchParams.age;
+    if (age <= 4) {
+      contextualNote += ` 🍼 Perfect for little ones with safe, age-appropriate fun!`;
+    } else if (age >= 8) {
+      contextualNote += ` 🎯 Exciting adventures for older kids who love action!`;
+    } else {
+      contextualNote += ` 🎈 Great for kids this age with engaging activities!`;
     }
-    
-    // Match capacity
-    if (searchParams.capacity && venue.capacity >= searchParams.capacity) {
-      contextualNote += ` Can easily accommodate your ${searchParams.capacity} guests.`;
+  }
+  
+  // Match capacity
+  if (searchParams.capacity && venue.capacity >= searchParams.capacity) {
+    contextualNote += ` 👨‍👩‍👧‍👦 Spacious enough for all ${searchParams.capacity} of your guests!`;
+  }
+  
+  // Match venue type preference
+  if (searchParams.venueType && searchParams.venueType !== 'both') {
+    if (venue.venueType === searchParams.venueType || venue.venueType === 'both') {
+      contextualNote += ` ✨ Perfect ${searchParams.venueType} setting just as you wanted!`;
     }
-    
-    // Match venue type preference
-    if (searchParams.venueType && searchParams.venueType !== 'both') {
-      if (venue.venueType === searchParams.venueType || venue.venueType === 'both') {
-        contextualNote += ` Matches your ${searchParams.venueType} venue preference!`;
-      }
-    }
-    
-    return { ...venue, aiContextualNote: contextualNote };
-  });
+  }
+  
+  return contextualNote;
 }
 
 async function fetchVenuesFromApify(searchParams: VenueSearchParams): Promise<VenueData[]> {
-  // Future implementation: Call Apify actors for real venue data
-  /*
-  const apifyApiKey = process.env.APIFY_API_KEY;
-  const actorId = process.env.APIFY_PLACES_ACTOR_ID; // e.g., "apify/google-places-scraper"
+  const ApifyClient = require('apify-client');
+  const apifyToken = process.env.APIFY_API_TOKEN;
   
-  if (!apifyApiKey) {
-    console.log("No Apify API key configured, using demo data");
+  if (!apifyToken) {
+    console.log("No Apify API token configured, using demo data");
     return DEMO_VENUES;
   }
   
   try {
-    const runInput = {
-      searchTerms: [`kids birthday party venue near ${searchParams.zipCode || searchParams.location}`],
-      locationSearch: searchParams.location || searchParams.zipCode,
-      maxPlacesPerSearch: searchParams.limit || 20,
+    const client = new ApifyClient({
+      token: apifyToken,
+    });
+
+    // Build dynamic search query based on wizard inputs
+    const searchTerms = buildSearchQueries(searchParams);
+    const locationQuery = searchParams.location || searchParams.zipCode || "New York, NY";
+    
+    const input = {
+      searchStringsArray: searchTerms,
+      locationQuery: locationQuery,
+      maxCrawledPlacesPerSearch: 20,
       language: "en",
-      countryCode: "us"
+      countryCode: "US",
+      exportPlaceUrls: false,
+      additionalInfo: true,
+      maxImages: 1,
+      maxReviews: 5,
+      reviewsSort: "newest",
+      onlyDataFromSearchPage: false,
+      maxCrawledPlaces: 50
     };
+
+    console.log("Calling Apify Google Maps Scraper with input:", input);
     
-    // Start Apify actor run
-    const response = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apifyApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ input: runInput })
+    // Run the Google Maps Scraper actor
+    const run = await client.actor("apify/google-maps-scraper").call(input, {
+      waitForFinish: 300, // Wait up to 5 minutes
     });
+
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
     
-    const runData = await response.json();
-    
-    // Wait for completion and fetch results
-    const resultsResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs/${runData.data.id}/dataset/items`, {
-      headers: {
-        'Authorization': `Bearer ${apifyApiKey}`,
-      }
-    });
-    
-    const venues = await resultsResponse.json();
-    
+    if (!items || items.length === 0) {
+      console.log("No venues found from Apify, using demo data");
+      return DEMO_VENUES;
+    }
+
     // Transform Apify results to our VenueData format
-    return venues.map((place: any): VenueData => ({
+    const venues = items.map((place: any): VenueData => ({
       id: place.placeId || `venue-${Date.now()}-${Math.random()}`,
-      name: place.title || place.name,
-      location: place.address?.neighborhood || place.address?.city || "Unknown Location",
-      address: place.address?.full || place.address,
-      capacity: estimateCapacityFromPlace(place), // Custom logic
-      priceRange: estimatePriceRange(place), // Custom logic
+      name: place.title || place.name || "Unknown Venue",
+      location: place.neighborhood || place.city || place.address || "Unknown Location",
+      address: place.address || "Address not available",
+      capacity: estimateCapacityFromPlace(place),
+      priceRange: estimatePriceRange(place),
       pricePerHour: place.priceLevel ? place.priceLevel * 100 : undefined,
       rating: place.totalScore || place.rating || 0,
       reviewCount: place.reviewsCount || 0,
       description: place.description || generateDescription(place),
-      aiContextualNote: "", // Will be filled by generateAIContextualNotes
+      aiContextualNote: "", // Will be filled by GPT-4.1
       amenities: extractAmenities(place),
       venueType: determineVenueType(place),
       ageRecommendation: "All ages",
-      imageUrl: place.imageUrl || place.photos?.[0]?.url,
+      imageUrl: place.imageUrls?.[0] || place.photos?.[0]?.url,
       phone: place.phone,
       website: place.website,
       availability: "Contact for availability",
       matchScore: calculateMatchScore(place, searchParams)
     }));
+
+    console.log(`Successfully fetched ${venues.length} venues from Apify`);
+    return venues;
     
   } catch (error) {
     console.error("Error fetching from Apify:", error);
     // Fallback to demo data
+    console.log("Falling back to demo data due to Apify error");
     return DEMO_VENUES;
   }
-  */
+}
+
+// Build dynamic search queries based on wizard inputs
+function buildSearchQueries(params: VenueSearchParams): string[] {
+  const queries: string[] = [];
   
-  // For MVP, return demo data
-  return DEMO_VENUES;
+  // Base query with location
+  const baseLocation = params.location || params.zipCode || "";
+  
+  // Age-based venue filtering
+  if (params.age) {
+    if (params.age <= 3) {
+      queries.push(`toddler birthday party venues near ${baseLocation}`);
+      queries.push(`indoor play spaces for toddlers ${baseLocation}`);
+    } else if (params.age <= 6) {
+      queries.push(`kids birthday party venues ${baseLocation}`);
+      queries.push(`children's party halls ${baseLocation}`);
+      queries.push(`soft play centers ${baseLocation}`);
+    } else if (params.age <= 10) {
+      queries.push(`kids party venues ${baseLocation}`);
+      queries.push(`indoor entertainment centers ${baseLocation}`);
+      queries.push(`trampoline parks ${baseLocation}`);
+    } else {
+      queries.push(`teen birthday party venues ${baseLocation}`);
+      queries.push(`arcade centers ${baseLocation}`);
+      queries.push(`bowling alleys ${baseLocation}`);
+    }
+  }
+  
+  // Theme-based venue filtering
+  if (params.theme) {
+    const theme = params.theme.toLowerCase();
+    if (theme.includes('princess')) {
+      queries.push(`princess party venues ${baseLocation}`);
+      queries.push(`elegant party halls ${baseLocation}`);
+    } else if (theme.includes('superhero')) {
+      queries.push(`superhero party venues ${baseLocation}`);
+      queries.push(`arcade birthday parties ${baseLocation}`);
+    } else if (theme.includes('dinosaur')) {
+      queries.push(`dinosaur theme parties ${baseLocation}`);
+      queries.push(`museum birthday parties ${baseLocation}`);
+    } else if (theme.includes('space')) {
+      queries.push(`space theme birthday parties ${baseLocation}`);
+      queries.push(`planetarium parties ${baseLocation}`);
+      queries.push(`science center events ${baseLocation}`);
+    } else if (theme.includes('safari') || theme.includes('animal')) {
+      queries.push(`zoo birthday parties ${baseLocation}`);
+      queries.push(`animal encounters parties ${baseLocation}`);
+      queries.push(`petting zoo events ${baseLocation}`);
+    } else if (theme.includes('ocean') || theme.includes('mermaid')) {
+      queries.push(`aquarium birthday parties ${baseLocation}`);
+      queries.push(`water park parties ${baseLocation}`);
+      queries.push(`swimming pool parties ${baseLocation}`);
+    } else if (theme.includes('pirate')) {
+      queries.push(`pirate theme parties ${baseLocation}`);
+      queries.push(`adventure party venues ${baseLocation}`);
+    } else if (theme.includes('unicorn')) {
+      queries.push(`unicorn birthday parties ${baseLocation}`);
+      queries.push(`magical party venues ${baseLocation}`);
+    }
+  }
+  
+  // Indoor/Outdoor preference
+  if (params.venueType) {
+    if (params.venueType === 'indoor') {
+      queries.push(`indoor birthday party venues ${baseLocation}`);
+      queries.push(`indoor play centers ${baseLocation}`);
+    } else if (params.venueType === 'outdoor') {
+      queries.push(`outdoor birthday party venues ${baseLocation}`);
+      queries.push(`park party venues ${baseLocation}`);
+      queries.push(`outdoor event spaces ${baseLocation}`);
+    }
+  }
+  
+  // Party size consideration
+  if (params.capacity) {
+    if (params.capacity > 50) {
+      queries.push(`large party venues ${baseLocation}`);
+      queries.push(`banquet halls ${baseLocation}`);
+    } else if (params.capacity > 20) {
+      queries.push(`medium party venues ${baseLocation}`);
+      queries.push(`private party rooms ${baseLocation}`);
+    } else {
+      queries.push(`small party venues ${baseLocation}`);
+      queries.push(`intimate party spaces ${baseLocation}`);
+    }
+  }
+  
+  // Budget consideration
+  if (params.budget) {
+    if (params.budget < 200) {
+      queries.push(`affordable birthday party venues ${baseLocation}`);
+      queries.push(`budget party halls ${baseLocation}`);
+    } else if (params.budget > 500) {
+      queries.push(`premium birthday party venues ${baseLocation}`);
+      queries.push(`luxury party spaces ${baseLocation}`);
+    }
+  }
+  
+  // Fallback queries if none specified
+  if (queries.length === 0) {
+    queries.push(`kids birthday party venues ${baseLocation}`);
+    queries.push(`children's party halls ${baseLocation}`);
+    queries.push(`birthday party venues ${baseLocation}`);
+  }
+  
+  // Limit to maximum 10 queries to avoid rate limits
+  return queries.slice(0, 10);
 }
 
 export async function GET(request: NextRequest) {
@@ -402,17 +617,41 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, venueId, userId } = body;
+    const { 
+      action, 
+      venueId, 
+      venueName, 
+      venueLocation, 
+      venueAddress,
+      venueRating,
+      venuePrice,
+      venueType,
+      venueWebsite,
+      venuePhone,
+      matchScore,
+      aiNote,
+      feedback,
+      rating,
+      notes 
+    } = body;
+    
+    // For now, return success without database operation
+    // In production, you would integrate with Supabase auth to get userId
+    // and store favorites/feedback in the database
     
     if (action === 'favorite') {
-      // Future: Store in database
-      // For MVP, favorites are handled client-side with localStorage
+      console.log(`Favoriting venue: ${venueName} (${venueId})`);
       return NextResponse.json({ success: true, message: 'Venue favorited' });
     }
     
     if (action === 'unfavorite') {
-      // Future: Remove from database
+      console.log(`Unfavoriting venue: ${venueName} (${venueId})`);
       return NextResponse.json({ success: true, message: 'Venue unfavorited' });
+    }
+    
+    if (action === 'feedback') {
+      console.log(`Feedback for venue ${venueName}: ${feedback}`, { rating, notes });
+      return NextResponse.json({ success: true, message: 'Feedback recorded' });
     }
     
     return NextResponse.json(

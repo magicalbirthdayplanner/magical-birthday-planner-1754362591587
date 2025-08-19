@@ -1,3 +1,107 @@
+## [usr-1755611175977]
+**User Request:** You are adding Apify-powered venue search to the Magical Birthday Planner app.  
+
+🎯 Goal: Use wizard inputs (Steps 1–4) to dynamically build queries for Apify's Google Maps Scraper Actor and return relevant party venues.  
+
+---
+
+### Requirements
+1. **Wizard → Query Mapping**
+   - Step 1: Age → filter venue type (indoor play, bowling, soft play, banquet halls).
+   - Step 2: Theme → inject into Apify searchStringsArray.
+   - Step 3: Location (city, zip) → map to Apify locationQuery or postalCode.
+   - Step 4: Party size, budget, indoor/outdoor → refine search with categoryFilterWords, placeMinimumStars, skipClosedPlaces.
+
+2. **Backend**
+   - Build JSON payload dynamically (example provided).  
+   - Call Apify Actor with Node SDK (`apifyClient.actor("apify/google-maps-scraper").call()`).  
+   - Fetch structured results and pass to GPT-4.1 to enrich with playful contextual notes.  
+   - Return JSON with: venue_id, name, address, rating, price, website, ai_note.  
+
+3. **Frontend (Venues Tab)**
+   - Display cards with:
+     - Venue name, location, price, rating
+     - AI contextual note (theme-specific)
+     - ⭐ Favorite, 👍 / 👎
+   - Infinite scroll (load 10 at a time).  
+   - Compare Drawer (optional).  
+
+4. **Demo Mode**
+   - If Apify not connected, fall back to mock JSON dataset.  
+
+---
+
+### Deliverable
+- New backend route: `/api/venues` (calls Apify → GPT → returns structured JSON).
+- New Venues Tab UI: Grid of venue cards (responsive).
+- Favorites + Feedback stored in DB.  
+
+
+apify_api_RdwdNVmEgwhxFVR2IaU68qeobLhmHy35A047
+
+Apify user ID : x6eZYRoonkLj5ODY3
+
+**Response Summary:** Successfully implemented comprehensive Apify-powered venue search system for the Magical Birthday Planner app with full wizard integration, AI contextual matching, and database storage.
+
+### Key Implementation Details:
+
+**1. Environment & Dependencies Setup:**
+- Added Apify API credentials (APIFY_API_TOKEN, APIFY_USER_ID) to .env and env-config.ts
+- Installed apify-client SDK for Google Maps Scraper integration
+- Updated environment configuration with proper validation
+
+**2. Backend API Endpoint (/api/venues):**
+- Dynamic query building based on wizard inputs:
+  - Age-based venue filtering (toddler spaces, kids centers, teen venues)
+  - Theme-specific searches (princess halls, superhero arcades, ocean aquariums)
+  - Indoor/outdoor preferences and capacity requirements
+  - Budget-based filtering (affordable vs premium venues)
+- Apify Google Maps Scraper integration with proper Actor calls
+- GPT-4.1 AI contextual note generation with batch processing and fallback logic
+- Demo mode fallback with mock dataset when Apify unavailable
+- Infinite scroll pagination support (10 venues per page)
+
+**3. Database Models:**
+- VenueFavorite model for user venue preferences
+- VenueFeedback model for thumbs up/down ratings
+- Proper relationships with User model and unique constraints
+- Database migration successfully applied
+
+**4. Frontend Venues Tab Enhancement:**
+- Real API integration replacing static demo data
+- Dynamic venue cards with AI contextual matching notes
+- Interactive favorites system with database persistence
+- Thumbs up/down feedback buttons with optimistic UI updates
+- Infinite scroll implementation with intersection observer
+- Advanced comparison drawer for side-by-side venue analysis
+- Responsive design with proper loading states
+
+**5. AI Integration:**
+- Azure OpenAI GPT-4.1 integration for contextual venue recommendations
+- Batch processing to optimize API calls and avoid rate limits
+- Personalized notes based on child age, theme, venue preferences
+- Intelligent fallback system with rule-based matching
+
+**6. Key Features Delivered:**
+- Wizard-driven dynamic query generation
+- Real-time Apify venue scraping with 50+ venue capacity per search
+- AI-enriched contextual matching explanations
+- Database-backed favorites and feedback storage
+- Infinite scroll with seamless pagination
+- Advanced venue comparison functionality
+- Mobile-responsive venue cards with comprehensive venue details
+- Demo mode fallback ensuring system reliability
+
+The system successfully maps all wizard inputs (age, theme, location, party size, budget, venue preferences) to dynamic Apify search queries, processes results through GPT-4.1 for contextual AI notes, and presents them in an intuitive, feature-rich interface with persistent user interactions.
+
+**Files Modified:** 
+- .env (added Apify credentials)
+- lib/env-config.ts (environment variable configuration)
+- package.json (apify-client dependency)
+- prisma/schema.prisma (VenueFavorite and VenueFeedback models)
+- app/api/venues/route.ts (comprehensive Apify + GPT integration)
+- components/VenuesTab.tsx (real API integration with enhanced UI)
+
 ## [usr-1755609626805]
 **User Request:** You are building a new **Venues Tab** in the Magical Birthday Planner app in the pro plan only 
 
