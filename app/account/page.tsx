@@ -557,35 +557,16 @@ export default function AccountPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Plan Features</h4>
-                    <ul className="space-y-1">
-                      {currentPlan.features.map((feature, index) => (
-                        <li key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                          <Check className="h-3 w-3 text-green-500 mr-2" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Usage This Month</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-300">Parties Created</span>
-                        <span className="font-medium">{userProfile.usageStats?.partiesThisMonth || 0}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-300">Total Guests</span>
-                        <span className="font-medium">{userProfile.usageStats?.guestsThisMonth || 0}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-300">AI Requests</span>
-                        <span className="font-medium">{userProfile.usageStats?.aiRequestsThisMonth || 0}</span>
-                      </div>
-                    </div>
-                  </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Plan Features</h4>
+                  <ul className="space-y-1">
+                    {currentPlan.features.map((feature, index) => (
+                      <li key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                        <Check className="h-3 w-3 text-green-500 mr-2" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </CardContent>
             </Card>
@@ -621,7 +602,6 @@ export default function AccountPage() {
                       <li>• Theme suggestions based on age</li>
                       <li>• Smart checklist & timeline</li>
                       <li>• Simple invitation creator</li>
-                      <li>• Email support (72-hour)</li>
                     </ul>
                     {userProfile.subscription?.planType === 'STARTER' ? (
                       <Badge className="w-full text-center py-2 bg-purple-100 text-purple-800">
@@ -632,7 +612,7 @@ export default function AccountPage() {
                         className="w-full text-xs bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                         asChild
                       >
-                        <Link href="/pricing">
+                        <Link href="https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1">
                           Choose Starter
                         </Link>
                       </Button>
@@ -672,7 +652,7 @@ export default function AccountPage() {
                         className="w-full text-xs bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
                         asChild
                       >
-                        <Link href="/pricing">
+                        <Link href="https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1">
                           Upgrade to Plus
                         </Link>
                       </Button>
@@ -698,7 +678,6 @@ export default function AccountPage() {
                       <li>• Vendor recommendations</li>
                       <li>• Personalized food suggestions</li>
                       <li>• Smart budget tracker</li>
-                      <li>• Priority support (24-hour)</li>
                     </ul>
                     {userProfile.subscription?.planType === 'PRO' ? (
                       <Badge className="w-full text-center py-2 bg-emerald-100 text-emerald-800">
@@ -709,7 +688,7 @@ export default function AccountPage() {
                         className="w-full text-xs bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
                         asChild
                       >
-                        <Link href="/pricing">
+                        <Link href="https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1">
                           Upgrade to Pro
                         </Link>
                       </Button>
@@ -756,16 +735,33 @@ export default function AccountPage() {
                       </p>
                     </div>
                     <Badge variant="outline">
-                      {userProfile.subscription.cancelAtPeriodEnd ? 'Ends at period' : 'Auto-renew'}
+                      One-time Payment
                     </Badge>
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        // Create a modal or expand section to show detailed usage
+                        const usageDetails = `
+Your Usage Details for This Month:
+
+Total Usage:
+- Parties Created: ${userProfile.usageStats?.partiesThisMonth || 0}
+- Total Guests: ${userProfile.usageStats?.guestsThisMonth || 0}
+- AI Requests: ${userProfile.usageStats?.aiRequestsThisMonth || 0}
+
+All-Time Statistics:
+- Total Parties Created: ${userProfile.usageStats?.totalParties || 0}
+- Current Plan: ${currentPlan.name}
+- Member Since: ${new Date(userProfile.createdAt).toLocaleDateString()}
+                        `;
+                        alert(usageDetails);
+                      }}
+                    >
                       View Usage Details
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Download Receipt
                     </Button>
                   </div>
                 </CardContent>

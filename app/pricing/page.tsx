@@ -183,7 +183,13 @@ export default function PricingPage() {
                     variant={tier.ctaVariant}
                     asChild
                   >
-                    <Link href={`/create-party?package=${tier.name.replace(/[^a-zA-Z]/g, '').toLowerCase()}`}>
+                    <Link href={
+                      tier.name === "🎈 Starter" 
+                        ? "https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1"
+                        : tier.name === "🧁 Plus"
+                          ? "https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1"
+                          : "https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1"
+                    }>
                       {tier.cta}
                     </Link>
                   </Button>

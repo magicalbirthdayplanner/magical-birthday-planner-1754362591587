@@ -1,3 +1,58 @@
+## [usr-1755575532514]
+**User Request:** 1. Remove email support and priority support. 
+
+2. When clicking upgrade to Plus or Upgrade to Pro - Take to the Dodo payments links in all pages. 
+
+Starter Plan - https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1
+
+
+Plus plan - https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1
+
+Pro Plan - https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1
+
+
+3. Add functionality to View Usage Details and  remove Download Receipt, Remove Autorenew. 
+
+For usage add details like 
+
+Total Usage - 
+Parties Created - 1
+Total Guests- 8
+AI Requests - 5
+
+Remove usage stats from the above card - Your current subscription details and usage
+
+
+Attachments: @.ideavo-attachments/image_4.png @.ideavo-attachments/image_5.png
+
+**Response Summary:** Successfully updated the pricing and account management system with comprehensive changes to align with the new business model:
+
+### 1. Support Features Removal:
+- **Removed Email Support**: Eliminated "Email support (72-hour)" from Starter plan features in both pricing page and account page
+- **Removed Priority Support**: Eliminated "Priority support (24-hour)" from Pro plan features across all pages
+
+### 2. Payment Integration Update:
+- **Updated Pricing Page**: All upgrade buttons now redirect to Dodo Payments checkout URLs for the correct plans
+- **Updated Account Page**: All plan upgrade buttons (Starter, Plus, Pro) now link directly to Dodo Payments checkout
+- **Proper URL Mapping**: Starter Plan → pdt_Jw4ObhU8ojSaq87wELhsm, Plus Plan → pdt_rSGRT2hBbKsoln84yQgHC, Pro Plan → pdt_v3NFp5Zq587xbPoPLd29x
+
+### 3. Usage Details and Billing Updates:
+- **Added View Usage Details**: Implemented functional button that displays detailed usage statistics in a popup showing:
+  - Current month statistics (Parties Created, Total Guests, AI Requests)
+  - All-time statistics and member information
+- **Removed Download Receipt**: Eliminated the non-functional download receipt button from subscription management
+- **Removed Autorenew**: Replaced autorenew status with "One-time Payment" badge to reflect the new payment model
+- **Cleaned Up Subscription Card**: Removed usage statistics from the main subscription details card to reduce clutter
+
+### 4. UI/UX Improvements:
+- Streamlined the account page by removing redundant usage information from subscription card
+- Added proper functionality to View Usage Details with comprehensive usage breakdown
+- Updated all payment flows to use external Dodo Payments checkout instead of internal pricing pages
+
+All changes maintain the existing design aesthetic while updating the business model to use one-time payments through Dodo Payments and providing cleaner usage tracking functionality.
+
+**Files Modified:** app/pricing/page.tsx, app/account/page.tsx
+
 ## [usr-1755574334182]
 **User Request:** Optimize the code and delete any unused and unnecessary data base
 **Response Summary:** Successfully optimized the codebase and database by implementing comprehensive cleanup and optimization strategies:
