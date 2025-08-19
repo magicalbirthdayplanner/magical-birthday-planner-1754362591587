@@ -63,6 +63,15 @@ A modern, responsive web application designed to help parents plan magical birth
   - Delivery and catering availability information
   - Specialty dish highlights and minimum order requirements
   - Food vendor bookmarking and direct contact options
+- **🏟️ AI-Powered Venue Discovery**: Comprehensive venue discovery and comparison system (Pro Plan)
+  - Smart venue recommendations based on party theme, age, budget, and location
+  - Interactive venue cards with capacity, pricing, ratings, and AI contextual matching
+  - Favorites system with persistent storage and dedicated favorites sub-tab
+  - Advanced comparison drawer for side-by-side venue analysis
+  - Infinite scroll loading with search and filtering capabilities
+  - AI-generated contextual notes explaining why venues fit specific party requirements
+  - Responsive grid layout optimized for desktop (2 per row) and mobile (1 per row)
+  - Future-ready architecture for Apify integration with Google Places and Yelp scrapers
 - **📱 Responsive Design**: Mobile-first approach with seamless experience across devices
 
 ### Recently Added Features
@@ -102,7 +111,7 @@ A modern, responsive web application designed to help parents plan magical birth
   - Real-time tab visibility based on user's current subscription plan
   - Starter Plan: Overview, Guests, Timeline, Checklist tabs
   - Plus Plan: Adds Budget and Activities tabs to Starter features
-  - Pro Plan: All tabs including Shopping, Food, and Cake
+  - Pro Plan: All tabs including Venues, Shopping, Food, and Cake
   - Seamless plan switching with immediate tab updates (no refresh required)
   - Elegant upgrade notifications for restricted features
   - Database-backed plan persistence with real-time synchronization
@@ -226,6 +235,15 @@ npm start
 
 ### 9. Party Plan Results (`/party-plan`)
 - **Overview Tab**: Theme details, party information, guest statistics, quick actions
+- **Venues Tab**: AI-powered venue discovery and comparison (Pro plan exclusive)
+  - **Smart Venue Recommendations**: AI-contextual venue matching based on party theme, child's age, budget, and location
+  - **Interactive Venue Cards**: Detailed cards showing venue name, location, capacity, price range, ratings, and contextual AI notes
+  - **Favorites System**: Save preferred venues with persistent localStorage and dedicated favorites sub-tab
+  - **Advanced Comparison**: Side-by-side venue comparison drawer supporting up to 3 venues simultaneously
+  - **Search & Filtering**: Real-time search by name/location with filters for indoor/outdoor venue types
+  - **Infinite Scroll**: Load venues in batches of 5 with seamless pagination
+  - **Future Apify Integration**: Architecture ready for Google Places and Yelp Business scrapers
+  - **Match Scoring**: AI-generated compatibility scores explaining why venues fit party requirements
 - **Budget Tab**: Complete budget tracking and AI-powered allocation system
 - **Activities Tab**: Comprehensive activity planner with 105 pre-filled activities organized by category
   - **Pre-filled Activity Library**: 21 activities across 5 categories (Games & Competitions, Creative & Crafty, Performance & Storytelling, Interactive Play, Calm & Relax Zones)

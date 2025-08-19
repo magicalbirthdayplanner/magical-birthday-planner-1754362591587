@@ -53,7 +53,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
       'Advanced budget tracking',
       'Complete party planning suite',
     ],
-    allowedTabs: ['overview', 'themes', 'budget', 'activities', 'host-mode', 'shopping', 'food', 'cake', 'guests', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'themes', 'venues', 'budget', 'activities', 'host-mode', 'shopping', 'food', 'cake', 'guests', 'timeline', 'checklist']
   }
 };
 
