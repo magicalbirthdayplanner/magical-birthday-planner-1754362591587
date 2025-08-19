@@ -222,14 +222,50 @@ const colorOptions = [
 ];
 
 export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) {
-  const [activeTab, setActiveTab] = useState<'classic' | 'custom'>('classic');
+  // Persist active tab in localStorage to maintain state across navigation
+  const [activeTab, setActiveTab] = useState<'classic' | 'custom'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('themesTabActiveTab');
+      return (saved as 'classic' | 'custom') || 'classic';
+    }
+    return 'classic';
+  });
+  
   const [favoriteThemes, setFavoriteThemes] = useState<string[]>([]);
-  const [aiThemes, setAiThemes] = useState<ThemeRecommendation[]>([]);
+  // Persist AI themes in localStorage to maintain state across navigation
+  const [aiThemes, setAiThemes] = useState<ThemeRecommendation[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aiGeneratedThemes');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (error) {
+          console.error('Error parsing saved AI themes:', error);
+        }
+      }
+    }
+    return [];
+  });
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>(partyData.interests || []);
   const [selectedColors, setSelectedColors] = useState<string[]>(partyData.favoriteColors || []);
-  const [childDetails, setChildDetails] = useState("");
-  const [currentFavorites, setCurrentFavorites] = useState("");
+  
+  // Persist theme generation form data
+  const [childDetails, setChildDetails] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('themeGenChildDetails') || "";
+    }
+    return "";
+  });
+  
+  const [currentFavorites, setCurrentFavorites] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('themeGenCurrentFavorites') || "";
+    }
+    return "";
+  });
+  
   const [selectedThemeDetails, setSelectedThemeDetails] = useState<any>(null);
 
   // Load favorites from localStorage
@@ -239,6 +275,33 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
       setFavoriteThemes(JSON.parse(saved));
     }
   }, []);
+
+  // Persist active tab to localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('themesTabActiveTab', activeTab);
+    }
+  }, [activeTab]);
+
+  // Persist AI themes to localStorage when they change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && aiThemes.length > 0) {
+      localStorage.setItem('aiGeneratedThemes', JSON.stringify(aiThemes));
+    }
+  }, [aiThemes]);
+
+  // Persist form data to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('themeGenChildDetails', childDetails);
+    }
+  }, [childDetails]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('themeGenCurrentFavorites', currentFavorites);
+    }
+  }, [currentFavorites]);
 
   // Update selected theme details when theme changes
   useEffect(() => {
@@ -293,11 +356,16 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
       }
 
       const data = await response.json();
-      setAiThemes(data.recommendations || []);
+      const newThemes = data.recommendations || [];
+      setAiThemes(newThemes);
+      // Save to localStorage immediately
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('aiGeneratedThemes', JSON.stringify(newThemes));
+      }
     } catch (error) {
       console.error('Error generating AI themes:', error);
       // Fallback themes
-      setAiThemes([
+      const fallbackThemes = [
         {
           id: 'ai-magical-adventure',
           name: 'Magical Adventure Quest',
@@ -312,7 +380,12 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
           matchScore: 95,
           isCustom: true
         }
-      ]);
+      ];
+      setAiThemes(fallbackThemes);
+      // Save fallback themes to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('aiGeneratedThemes', JSON.stringify(fallbackThemes));
+      }
     } finally {
       setIsGenerating(false);
     }

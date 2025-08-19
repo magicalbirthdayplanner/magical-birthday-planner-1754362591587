@@ -1038,7 +1038,11 @@ export default function PartyPlanPage() {
   };
 
   const getThemeDetails = () => {
-    if (!partyData?.selectedTheme) return null;
+    // Check for selected theme in both fields (theme and selectedTheme)
+    const currentTheme = (partyData?.theme && partyData.theme !== '') ? partyData.theme : 
+                        (partyData?.selectedTheme && partyData.selectedTheme !== '') ? partyData.selectedTheme : null;
+    
+    if (!currentTheme) return null;
     
     // Define classic themes data to match ThemesTab component
     const classicThemesData = {
@@ -1085,13 +1089,34 @@ export default function PartyPlanPage() {
     };
 
     // Check if it's a classic theme
-    const classicTheme = classicThemesData[partyData.selectedTheme as keyof typeof classicThemesData];
+    const classicTheme = classicThemesData[currentTheme as keyof typeof classicThemesData];
     if (classicTheme) {
       return classicTheme;
     }
 
-    // If it's an AI theme (starts with 'ai-'), return generic AI theme info
-    if (partyData.selectedTheme.startsWith('ai-')) {
+    // If it's an AI theme (starts with 'ai-'), try to get details from localStorage
+    if (currentTheme.startsWith('ai-')) {
+      // Try to get the AI theme details from localStorage
+      if (typeof window !== 'undefined') {
+        const savedAiThemes = localStorage.getItem('aiGeneratedThemes');
+        if (savedAiThemes) {
+          try {
+            const aiThemes = JSON.parse(savedAiThemes);
+            const aiTheme = aiThemes.find((theme: any) => theme.id === currentTheme);
+            if (aiTheme) {
+              return {
+                name: aiTheme.name,
+                emoji: aiTheme.emoji,
+                colors: aiTheme.colorPalette || ["Purple", "Pink", "Blue", "Gold"]
+              };
+            }
+          } catch (error) {
+            console.error('Error parsing AI themes from localStorage:', error);
+          }
+        }
+      }
+      
+      // Fallback for AI themes
       return {
         name: "AI Custom Theme",
         emoji: "🤖",
@@ -1412,9 +1437,9 @@ export default function PartyPlanPage() {
                     <span className="text-2xl">{themeDetails?.emoji || "🎉"}</span>
                     <div className="flex-1">
                       {themeDetails?.name || "No Theme Selected"} 
-                      {partyData?.selectedTheme ? " Theme" : ""}
+                      {themeDetails ? " Theme" : ""}
                     </div>
-                    {partyData?.selectedTheme && (
+                    {themeDetails && (
                       <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                         <Star className="w-3 h-3 mr-1" />
                         Selected
@@ -1423,7 +1448,7 @@ export default function PartyPlanPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {partyData?.selectedTheme ? (
+                  {themeDetails ? (
                     <div className="space-y-3">
                       <div>
                         <h4 className="font-semibold mb-2">Color Palette:</h4>
