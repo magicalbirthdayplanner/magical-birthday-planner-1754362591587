@@ -1,3 +1,39 @@
+## [usr-1755577294420]
+**User Request:** We must be able to add # of adults and # of kids 
+
+Attachments: @.ideavo-attachments/image_7.png
+
+**Response Summary:** Successfully implemented separate adult and kids count fields in the party creation wizard and updated guest displays throughout the application:
+
+### 1. Party Creation Form Enhancement:
+- **Replaced Single Guest Count Field**: Removed the single "Number of Guests" field with "Including adults and children" text
+- **Added Separate Adult/Kids Fields**: Implemented two distinct input fields for "# of Adults" and "# of Kids" with User and Baby icons
+- **Real-time Total Calculation**: Added automatic total guest count calculation that updates as users enter adult and kids counts
+- **Visual Total Display**: Added a purple-themed summary box showing the total breakdown (e.g., "20 total: 10 adults + 10 kids")
+- **Form State Management**: Updated all form state management to track adultCount and kidCount separately
+
+### 2. Database Schema Updates:
+- **Added New Fields**: Extended the Party model in Prisma schema with `adultCount` and `kidCount` integer fields
+- **Migration Applied**: Successfully pushed database schema changes using `npx prisma db push --accept-data-loss`
+- **Server Action Updates**: Updated the `createParty` function signature and database insertion to handle the new fields
+
+### 3. Party Plan Display Updates:
+- **Guest Overview Enhancement**: Updated the Guest Overview card in party plan to show adult/kids breakdown when available
+- **Icon Integration**: Added User and Baby icons to visually distinguish between adult and kids counts
+- **Conditional Display**: Made the breakdown display only when adult or kids counts are provided
+- **Interface Updates**: Updated TypeScript interfaces throughout the application to support the new fields
+
+### 4. Build Verification:
+- **Successful Build**: Verified all changes compile correctly with `npm run build`
+- **No Breaking Changes**: Confirmed all existing functionality remains intact
+- **Type Safety**: Ensured TypeScript type safety across all modified components
+
+**Files Modified:** 
+- app/create-party/page.tsx (main form implementation)
+- prisma/schema.prisma (database schema)
+- lib/party-actions.ts (server actions)
+- app/party-plan/page.tsx (display updates)
+
 ## [usr-1755576510511]
 **User Request:** 1. Notifications tab not required. attached screenshot
 

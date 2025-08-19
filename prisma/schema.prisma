@@ -47,6 +47,8 @@ model Party {
   interests        String[]
   favoriteColors   String[]
   guestCount       Int?
+  adultCount       Int?         // Number of adults attending
+  kidCount         Int?         // Number of kids attending
   maxGuests        Int?         // Maximum guest limit based on plan
   budget           Float?
   checklistData    Json?

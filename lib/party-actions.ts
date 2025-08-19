@@ -153,6 +153,8 @@ export async function createParty(partyData: {
   interests: string[]
   favoriteColors: string[]
   guestCount?: number
+  adultCount?: number
+  kidCount?: number
   budget?: number
   location?: string
   status?: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELED'
@@ -209,6 +211,8 @@ export async function createParty(partyData: {
             interests: partyData.interests,
             favoriteColors: partyData.favoriteColors,
             guestCount: partyData.guestCount || null,
+            adultCount: partyData.adultCount || null,
+            kidCount: partyData.kidCount || null,
             budget: partyData.budget || null,
             status: partyData.status || 'PLANNING',
             userId: user.id,

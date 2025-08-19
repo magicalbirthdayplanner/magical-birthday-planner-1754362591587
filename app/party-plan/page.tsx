@@ -28,6 +28,8 @@ import {
   PartyPopper, 
   CheckCircle2, 
   Users, 
+  User,
+  Baby,
   Utensils, 
   Gift, 
   Music, 
@@ -80,6 +82,8 @@ interface PartyData {
   budget?: number;
   zipCode?: string;
   guestCount?: number;
+  adultCount?: number;
+  kidCount?: number;
   venue?: 'indoor' | 'outdoor' | 'mixed';
   duration?: string;
   themeActivities?: string;
@@ -1478,6 +1482,27 @@ export default function PartyPlanPage() {
                     <span className="text-sm">Total Guests</span>
                     <Badge variant="secondary">{guests.length}</Badge>
                   </div>
+                  
+                  {/* Adults/Kids Breakdown */}
+                  {(partyData?.adultCount || partyData?.kidCount) && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          Adults
+                        </span>
+                        <Badge variant="outline">{partyData.adultCount || 0}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm flex items-center gap-1">
+                          <Baby className="h-3 w-3" />
+                          Kids
+                        </span>
+                        <Badge variant="outline">{partyData.kidCount || 0}</Badge>
+                      </div>
+                    </>
+                  )}
+                  
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Invitations Sent</span>
                     <Badge variant="outline">

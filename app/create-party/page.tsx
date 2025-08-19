@@ -81,6 +81,8 @@ interface PartyData {
   country?: string;
   zipCode?: string;
   guestCount?: number;
+  adultCount?: number;
+  kidCount?: number;
   zipCodeError?: string;
   partyId?: string;
   venue?: 'indoor' | 'outdoor' | 'mixed';
@@ -115,7 +117,9 @@ export default function CreatePartyPage() {
     zipCodeError: undefined,
     venue: 'mixed', // Default venue type
     duration: '2-3 hours', // Default party duration
-    guestCount: undefined
+    guestCount: undefined,
+    adultCount: undefined,
+    kidCount: undefined
   });
   const [isNavigating, setIsNavigating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -334,6 +338,8 @@ export default function CreatePartyPage() {
           interests: partyData.childInterests,
           favoriteColors: partyData.favoriteColors,
           guestCount: partyData.guestCount,
+          adultCount: partyData.adultCount,
+          kidCount: partyData.kidCount,
           budget: partyData.budget || undefined,
           location: partyData.zipCode,
           venue: partyData.venue,
@@ -518,7 +524,9 @@ export default function CreatePartyPage() {
                         zipCode: "",
                         country: "",
                         zipCodeError: undefined,
-                        guestCount: undefined
+                        guestCount: undefined,
+                        adultCount: undefined,
+                        kidCount: undefined
                       });
                     }}
                     size="sm"
@@ -856,25 +864,85 @@ export default function CreatePartyPage() {
                     </p>
                   </div>
 
-                  {/* Guest Count Input */}
+                  {/* Guest Count - Adults and Kids */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
                       <Users className="h-4 w-4 text-purple-600" />
                       Number of Guests
                     </Label>
-                    <div className="relative">
-                      <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        type="number"
-                        placeholder="Expected guests"
-                        value={partyData.guestCount || ''}
-                        onChange={(e) => setPartyData({ ...partyData, guestCount: e.target.value ? parseInt(e.target.value) : undefined })}
-                        className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
-                        min="1"
-                        max="100"
-                      />
+                    
+                    {/* Adults Count */}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        # of Adults
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          type="number"
+                          placeholder="10"
+                          value={partyData.adultCount || ''}
+                          onChange={(e) => {
+                            const adultCount = e.target.value ? parseInt(e.target.value) : undefined;
+                            const totalGuests = (adultCount || 0) + (partyData.kidCount || 0);
+                            setPartyData({ 
+                              ...partyData, 
+                              adultCount,
+                              guestCount: totalGuests > 0 ? totalGuests : undefined
+                            });
+                          }}
+                          className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                          min="0"
+                          max="50"
+                        />
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500">Including adults and children</p>
+
+                    {/* Kids Count */}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                        <Baby className="h-3 w-3" />
+                        # of Kids
+                      </Label>
+                      <div className="relative">
+                        <Baby className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          type="number"
+                          placeholder="10"
+                          value={partyData.kidCount || ''}
+                          onChange={(e) => {
+                            const kidCount = e.target.value ? parseInt(e.target.value) : undefined;
+                            const totalGuests = (partyData.adultCount || 0) + (kidCount || 0);
+                            setPartyData({ 
+                              ...partyData, 
+                              kidCount,
+                              guestCount: totalGuests > 0 ? totalGuests : undefined
+                            });
+                          }}
+                          className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                          min="0"
+                          max="50"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Total Display */}
+                    {(partyData.adultCount || partyData.kidCount) && (
+                      <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-purple-800 dark:text-purple-300">
+                            Total Guests:
+                          </span>
+                          <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                            {(partyData.adultCount || 0) + (partyData.kidCount || 0)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                          {partyData.adultCount || 0} adults + {partyData.kidCount || 0} kids
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
