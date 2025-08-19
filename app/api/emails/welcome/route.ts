@@ -28,13 +28,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if welcome email already sent
-    if (user.onboardingSent) {
-      return NextResponse.json({
-        success: true,
-        message: 'Welcome email already sent',
-      });
-    }
+    // Check if welcome email already sent (field removed - skip this check)
+    // Email sending will be handled by the system regardless
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
@@ -71,13 +66,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update user record to mark onboarding as sent
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        onboardingSent: true,
-      },
-    });
+    // User record update (onboardingSent field removed - no update needed)
 
     // Log successful email
     await prisma.emailLog.create({

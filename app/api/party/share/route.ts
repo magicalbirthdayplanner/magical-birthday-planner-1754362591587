@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
       age: party.childAge,
       theme: party.theme,
       date: party.partyDate,
-      location: party.partyLocation || party.location,
+      location: party.partyLocation,
       guestCount: party.guestCount,
       budget: party.budget || 0,
       currency: 'USD', // Default currency since not stored separately

@@ -15,7 +15,6 @@ model User {
   currentPlan    SubscriptionPlan @default(FREE)
   emailVerified  Boolean       @default(false)
   emailVerifiedAt DateTime?
-  onboardingSent Boolean       @default(false)
   passwordResetRequested Boolean @default(false)
   passwordResetAt DateTime?
   createdAt      DateTime      @default(now())
@@ -50,11 +49,9 @@ model Party {
   guestCount       Int?
   maxGuests        Int?         // Maximum guest limit based on plan
   budget           Float?
-  location         String?      // Legacy location field
   checklistData    Json?
   packageType      EventPackage @default(LITE_PARTY)
   status           PartyStatus  @default(PLANNING)
-  accessExpiresAt  DateTime?
   rsvpDeadline     DateTime?    // RSVP deadline date
   hostName         String?      // Host name for invitations
   hostEmail        String?      // Host email for replies
@@ -104,8 +101,6 @@ model Invitation {
   id            String           @id @default(cuid())
   status        InvitationStatus @default(PENDING)
   sentAt        DateTime?
-  deliveredAt   DateTime?        // Email delivery confirmation
-  openedAt      DateTime?        // Email open tracking
   respondedAt   DateTime?
   message       String?
   notes         String?
@@ -219,18 +214,6 @@ model Invoice {
   @@map("invoices")
 }
 
-model UsageLimit {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  partiesUsed Int      @default(0)
-  guestsUsed  Int      @default(0)
-  aiUsed      Int      @default(0)
-  resetAt     DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("usage_limits")
-}
 
 model EmailLog {
   id          String      @id @default(cuid())

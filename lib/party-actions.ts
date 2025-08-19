@@ -210,7 +210,6 @@ export async function createParty(partyData: {
             favoriteColors: partyData.favoriteColors,
             guestCount: partyData.guestCount || null,
             budget: partyData.budget || null,
-            location: partyData.location || null,
             status: partyData.status || 'PLANNING',
             userId: user.id,
           },
