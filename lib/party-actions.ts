@@ -139,9 +139,73 @@ async function retryWithExponentialBackoff<T>(
 }
 
 export async function getCurrentUser() {
-  const supabase = createServerComponentClient({ cookies })
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+  try {
+    const supabase = createServerComponentClient({ cookies })
+    
+    // Enhanced session validation with retry mechanism for production environment
+    let authAttempts = 0
+    const maxAttempts = 3
+    let lastError: Error | null = null
+    
+    while (authAttempts < maxAttempts) {
+      try {
+        console.log(`Auth attempt ${authAttempts + 1}/${maxAttempts}`)
+        
+        // Get user with timeout protection
+        const getUserPromise = supabase.auth.getUser()
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Auth timeout')), 5000)
+        })
+        
+        const { data, error } = await Promise.race([getUserPromise, timeoutPromise])
+        
+        if (error) {
+          throw new Error(`Authentication error: ${error.message}`)
+        }
+        
+        if (!data.user) {
+          throw new Error('No authenticated user found')
+        }
+        
+        // Validate user has required properties
+        if (!data.user.id || !data.user.email) {
+          throw new Error('Invalid user data: missing id or email')
+        }
+        
+        console.log('✅ User authentication successful:', { 
+          id: data.user.id, 
+          email: data.user.email,
+          attempt: authAttempts + 1 
+        })
+        
+        return data.user
+        
+      } catch (error) {
+        lastError = error as Error
+        authAttempts++
+        
+        console.warn(`Auth attempt ${authAttempts} failed:`, lastError.message)
+        
+        // Don't retry on the last attempt
+        if (authAttempts === maxAttempts) {
+          break
+        }
+        
+        // Progressive delay between retries
+        const delay = 500 * authAttempts
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+    
+    // All attempts failed
+    const errorMessage = lastError?.message || 'Authentication failed'
+    console.error('❌ All authentication attempts failed:', errorMessage)
+    throw new Error(`Authentication failed after ${maxAttempts} attempts: ${errorMessage}`)
+    
+  } catch (error) {
+    console.error('getCurrentUser error:', error)
+    throw error
+  }
 }
 
 export async function createParty(partyData: {
@@ -244,12 +308,16 @@ export async function createParty(partyData: {
     if (error instanceof Error) {
       if (error.message.includes('timeout') || error.message.includes('took too long')) {
         errorMessage = 'The server is taking longer than expected to respond. This might be due to high traffic or network issues. Please try again in a moment.'
+      } else if (error.message.includes('Authentication failed') || error.message.includes('Auth timeout') || error.message.includes('No authenticated user') || error.message.includes('Invalid user data')) {
+        errorMessage = 'Authentication issue detected. Please sign out and sign back in, then try creating your party again.'
       } else if (error.message.includes('Authentication required') || error.message.includes('not authenticated')) {
         errorMessage = 'Please sign in again to continue creating your party.'
       } else if (error.message.includes('Database connectivity') || error.message.includes('connection')) {
         errorMessage = 'We\'re experiencing temporary connectivity issues. Please wait a moment and try again.'
       } else if (error.message.includes('UNIQUE constraint') || error.message.includes('duplicate')) {
         errorMessage = 'It looks like this party already exists. Please check your party list or try with different details.'
+      } else if (error.message.includes('after') && error.message.includes('attempts')) {
+        errorMessage = 'Multiple connection attempts failed. Please check your internet connection and try again, or try refreshing the page.'
       } else {
         errorMessage = `Unable to create party: ${error.message}`
       }

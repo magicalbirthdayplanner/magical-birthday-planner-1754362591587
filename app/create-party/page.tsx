@@ -20,6 +20,7 @@ import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
 import { useAuth } from "@/contexts/AuthContext";
 import { createParty, updateParty } from "@/lib/party-actions";
 import AuthModal from "@/components/AuthModal";
+import { createClientComponentClient } from "@/lib/supabase";
 
 const currencyOptions = [
   { code: "USD", symbol: "$", name: "US Dollar" },
@@ -91,7 +92,7 @@ interface PartyData {
 }
 
 export default function CreatePartyPage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   // Clear demo data when user signs in
   useEffect(() => {
@@ -303,6 +304,24 @@ export default function CreatePartyPage() {
       return;
     }
 
+    // Validate session before proceeding
+    console.log('Validating user session before party creation...')
+    const supabase = createClientComponentClient()
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (error || !session) {
+        console.error('Session validation failed:', error)
+        setSubmitError('Session expired. Please sign in again to create your party.')
+        setShowAuthModal(true)
+        return
+      }
+      console.log('✅ Session validated successfully')
+    } catch (sessionError) {
+      console.error('Session check failed:', sessionError)
+      setSubmitError('Unable to validate your session. Please try refreshing the page or signing in again.')
+      return
+    }
+
     console.log('Starting party creation with user:', { id: user.id, email: user.email })
     console.log('Party data:', partyData)
 
@@ -389,13 +408,17 @@ export default function CreatePartyPage() {
       
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       
-      // Show user-friendly error messages
-      if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+      // Show user-friendly error messages with specific actions
+      if (errorMessage.includes('Authentication issue detected') || errorMessage.includes('sign out and sign back in')) {
+        setSubmitError('Authentication session issue detected. Please sign out and sign back in to resolve this issue.');
+      } else if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
         setSubmitError('The request is taking longer than expected. Please check your internet connection and try again.');
       } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
         setSubmitError('Network error occurred. Please check your internet connection and try again.');
       } else if (errorMessage.includes('validation') || errorMessage.includes('required')) {
         setSubmitError('Please fill in all required fields and try again.');
+      } else if (errorMessage.includes('Multiple connection attempts failed')) {
+        setSubmitError('Multiple connection attempts failed. Please try refreshing the page or check your internet connection.');
       } else {
         setSubmitError(`Failed to create party: ${errorMessage}`);
       }
@@ -506,42 +529,74 @@ export default function CreatePartyPage() {
                   <p className="text-sm text-red-700 dark:text-red-300">{submitError}</p>
                 </div>
                 <div className="flex gap-3">
-                  <Button 
-                    onClick={() => {
-                      setSubmitError(null);
-                      setStep(1);
-                      // Reset form data
-                      setPartyData({
-                        childName: "",
-                        childAge: 0,
-                        childGender: "",
-                        childInterests: [],
-                        favoriteColors: [],
-                        partyDate: undefined,
-                        selectedTheme: "",
-                        budget: undefined,
-                        currency: "",
-                        zipCode: "",
-                        country: "",
-                        zipCodeError: undefined,
-                        guestCount: undefined,
-                        adultCount: undefined,
-                        kidCount: undefined
-                      });
-                    }}
-                    size="sm"
-                    variant="outline"
-                    className="text-red-700 border-red-300 hover:bg-red-100"
-                  >
-                    Start Over
-                  </Button>
-                  <Button 
-                    onClick={() => setSubmitError(null)}
-                    size="sm"
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Try Again
-                  </Button>
+                  {submitError.includes('Authentication session issue') ? (
+                    <>
+                      <Button 
+                        onClick={async () => {
+                          try {
+                            await signOut();
+                            // Redirect to signin page after signout
+                            setTimeout(() => {
+                              window.location.href = '/signin?redirect=/create-party';
+                            }, 100);
+                          } catch (error) {
+                            console.error('Sign out error:', error);
+                          }
+                        }}
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        Sign Out & Sign In Again
+                      </Button>
+                      <Button 
+                        onClick={() => window.location.reload()}
+                        size="sm"
+                        variant="outline"
+                        className="text-red-700 border-red-300 hover:bg-red-100"
+                      >
+                        Refresh Page
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        onClick={() => {
+                          setSubmitError(null);
+                          setStep(1);
+                          // Reset form data
+                          setPartyData({
+                            childName: "",
+                            childAge: 0,
+                            childGender: "",
+                            childInterests: [],
+                            favoriteColors: [],
+                            partyDate: undefined,
+                            selectedTheme: "",
+                            budget: undefined,
+                            currency: "",
+                            zipCode: "",
+                            country: "",
+                            zipCodeError: undefined,
+                            guestCount: undefined,
+                            adultCount: undefined,
+                            kidCount: undefined
+                          });
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="text-red-700 border-red-300 hover:bg-red-100"
+                      >
+                        Start Over
+                      </Button>
+                      <Button 
+                        onClick={() => setSubmitError(null)}
+                        size="sm"
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        Try Again
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
