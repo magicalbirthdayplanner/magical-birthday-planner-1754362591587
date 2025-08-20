@@ -9,7 +9,7 @@ export const ENV_VARIABLES: EnvVariable[] = [
   {
     name: "DIRECT_URL",
     description: "Supabase PostgreSQL direct connection string for migrations (port 5432)",
-    required: true,
+    required: false,
     instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → Database → Connection string → Direct connection.\n Format: postgres://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require"
   },
   {
