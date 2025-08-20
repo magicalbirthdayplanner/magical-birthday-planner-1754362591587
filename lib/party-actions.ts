@@ -144,17 +144,32 @@ export async function getCurrentUser() {
     
     // Enhanced session validation with retry mechanism for production environment
     let authAttempts = 0
-    const maxAttempts = 3
+    const maxAttempts = 5 // Increased for better reliability
     let lastError: Error | null = null
     
     while (authAttempts < maxAttempts) {
       try {
-        console.log(`Auth attempt ${authAttempts + 1}/${maxAttempts}`)
+        console.log(`🔐 Auth attempt ${authAttempts + 1}/${maxAttempts}`)
         
-        // Get user with timeout protection
+        // First, check session validity
+        const sessionPromise = supabase.auth.getSession()
+        const sessionTimeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Session check timeout')), 3000)
+        })
+        
+        const { data: sessionData, error: sessionError } = await Promise.race([
+          sessionPromise, 
+          sessionTimeoutPromise
+        ])
+        
+        if (sessionError || !sessionData.session) {
+          throw new Error(`Session invalid: ${sessionError?.message || 'No active session'}`)
+        }
+        
+        // If session is valid, get user with timeout protection
         const getUserPromise = supabase.auth.getUser()
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Auth timeout')), 5000)
+          setTimeout(() => reject(new Error('User fetch timeout')), 8000) // Increased timeout
         })
         
         const { data, error } = await Promise.race([getUserPromise, timeoutPromise])
@@ -172,9 +187,15 @@ export async function getCurrentUser() {
           throw new Error('Invalid user data: missing id or email')
         }
         
+        // Cross-validate session and user consistency
+        if (sessionData.session.user.id !== data.user.id) {
+          throw new Error('Session-user mismatch detected')
+        }
+        
         console.log('✅ User authentication successful:', { 
           id: data.user.id, 
           email: data.user.email,
+          sessionValid: !!sessionData.session,
           attempt: authAttempts + 1 
         })
         
@@ -184,23 +205,47 @@ export async function getCurrentUser() {
         lastError = error as Error
         authAttempts++
         
-        console.warn(`Auth attempt ${authAttempts} failed:`, lastError.message)
+        console.warn(`❌ Auth attempt ${authAttempts} failed:`, lastError.message)
         
         // Don't retry on the last attempt
         if (authAttempts === maxAttempts) {
           break
         }
         
-        // Progressive delay between retries
-        const delay = 500 * authAttempts
-        await new Promise(resolve => setTimeout(resolve, delay))
+        // Enhanced error-specific retry logic
+        const errorMessage = lastError.message.toLowerCase()
+        if (errorMessage.includes('timeout') || errorMessage.includes('connection')) {
+          // Connection issues - progressive delay
+          const delay = 1000 + (500 * authAttempts) // 1.5s, 2s, 2.5s, 3s
+          console.log(`⏳ Connection issue detected, retrying in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        } else if (errorMessage.includes('session')) {
+          // Session issues - shorter delay
+          const delay = 300 * authAttempts // 300ms, 600ms, 900ms, 1.2s
+          console.log(`🔄 Session issue detected, retrying in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        } else {
+          // Other errors - standard delay
+          const delay = 500 * authAttempts
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
       }
     }
     
-    // All attempts failed
+    // All attempts failed - provide specific error categorization
     const errorMessage = lastError?.message || 'Authentication failed'
     console.error('❌ All authentication attempts failed:', errorMessage)
-    throw new Error(`Authentication failed after ${maxAttempts} attempts: ${errorMessage}`)
+    
+    // Categorize the final error for better user guidance
+    if (errorMessage.includes('timeout')) {
+      throw new Error('Authentication service is taking too long to respond. Please check your internet connection and try again.')
+    } else if (errorMessage.includes('session') || errorMessage.includes('No authenticated user')) {
+      throw new Error('Your session has expired or is invalid. Please sign in again to continue.')
+    } else if (errorMessage.includes('connection') || errorMessage.includes('network')) {
+      throw new Error('Network connectivity issues detected. Please check your internet connection and try again.')
+    } else {
+      throw new Error(`Authentication failed after ${maxAttempts} attempts: ${errorMessage}`)
+    }
     
   } catch (error) {
     console.error('getCurrentUser error:', error)
