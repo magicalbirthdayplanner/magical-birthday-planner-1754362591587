@@ -1,3 +1,40 @@
+## [usr-1755650772050]
+**User Request:** Create a new utility file at utils/geocode.js
+
+Requirements:
+1. Export a function geocodeLocation(locationString) that:
+   - Uses the OpenStreetMap Nominatim API (https://nominatim.openstreetmap.org/search).
+   - Accepts a string like "10001" or "New York, NY".
+   - Fetches coordinates from the API.
+   - Returns { lat, lng } if found.
+   - Returns null if not found.
+
+2. Update /api/venues.js:
+   - Import geocodeLocation from utils/geocode.js.
+   - Before calling Apify, geocode the provided "location".
+   - Pass { lat, lng } into the Apify input under customGeolocation with radiusKm.
+
+3. Example Apify input:
+   {
+     searchStringsArray: ["party hall", "kids birthday venue"],
+     customGeolocation: {
+       type: "Point",
+       coordinates: [lng, lat],
+       radiusKm: radiusKm
+     }
+   }
+
+4. Error handling:
+   - If geocoding fails, return 400 with { error: "Invalid location" }.
+   - If Apify fails, return 500 with { error: "Failed to fetch venues" }.
+
+**Response Summary:** Successfully implemented geocoding functionality for the venues API. Created a new utility file `utils/geocode.js` that uses the OpenStreetMap Nominatim API to convert location strings into coordinates. Updated the existing venues API route to integrate geocoding before calling Apify, ensuring that location strings are properly converted to lat/lng coordinates and passed in the customGeolocation format required by the Apify Google Maps Scraper. Added comprehensive error handling for both geocoding failures (400 error) and Apify failures (500 error). All functionality tested and build passes successfully.
+
+**Files Modified:** 
+- utils/geocode.js (created)
+- app/api/venues/route.ts (modified)
+- utils/apifyClient.js (modified)
+
 ## [usr-1755650472601]
 **User Request:** Create a new API route in Next.js at /api/venues.
 

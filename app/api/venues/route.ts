@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scrapeGoogleMapsVenues, cleanVenueData } from '../../../utils/apifyClient.js';
+import { geocodeLocation } from '../../../utils/geocode.js';
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,11 +39,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call Apify Google Maps Scraper
+    // Geocode the provided location
+    const coordinates = await geocodeLocation(location);
+    
+    if (!coordinates) {
+      return NextResponse.json(
+        { error: 'Invalid location' },
+        { status: 400 }
+      );
+    }
+
+    // Call Apify Google Maps Scraper with custom geolocation
     const rawVenues = await scrapeGoogleMapsVenues({
       location,
       searchTerms,
       radiusKm,
+      customGeolocation: {
+        type: "Point",
+        coordinates: [coordinates.lng, coordinates.lat],
+        radiusKm: radiusKm
+      }
     });
 
     // Clean and format the venue data

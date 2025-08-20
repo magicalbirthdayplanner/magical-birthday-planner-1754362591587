@@ -22,9 +22,10 @@ export function createApifyClient() {
  * @param {string} params.location - Location (ZIP code or city name)
  * @param {string[]} params.searchTerms - Array of search terms
  * @param {number} params.radiusKm - Search radius in kilometers (default: 16)
+ * @param {Object} params.customGeolocation - Custom geolocation object with coordinates
  * @returns {Promise<Array>} Array of venue results
  */
-export async function scrapeGoogleMapsVenues({ location, searchTerms, radiusKm = 16 }) {
+export async function scrapeGoogleMapsVenues({ location, searchTerms, radiusKm = 16, customGeolocation }) {
   const client = createApifyClient();
   
   // Google Maps Scraper Actor ID (public actor)
@@ -43,6 +44,11 @@ export async function scrapeGoogleMapsVenues({ location, searchTerms, radiusKm =
     exportPlaceUrls: false,
     deeperCityScrape: false,
   };
+
+  // Add custom geolocation if provided
+  if (customGeolocation) {
+    input.customGeolocation = customGeolocation;
+  }
 
   try {
     // Run the actor and wait for results
