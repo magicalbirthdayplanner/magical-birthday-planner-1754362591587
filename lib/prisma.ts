@@ -4,11 +4,14 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
+// Check if DATABASE_URL is available
+const hasDatabaseUrl = process.env.DATABASE_URL && process.env.DATABASE_URL.trim() !== ''
+
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   datasources: {
     db: {
-      url: process.env.DATABASE_URL,
+      url: hasDatabaseUrl ? process.env.DATABASE_URL : 'postgresql://dummy:dummy@localhost:5432/dummy',
     },
   },
   // Optimized configuration for Vercel serverless deployment with Supabase
@@ -30,6 +33,12 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 // Database connection test function
 export async function testDatabaseConnection(): Promise<boolean> {
   try {
+    // Skip test if no database URL is configured
+    if (!hasDatabaseUrl) {
+      console.warn('No DATABASE_URL configured, skipping connection test')
+      return false
+    }
+    
     // Test basic connectivity with timeout
     const testPromise = prisma.$queryRaw`SELECT 1 as test`
     const timeoutPromise = new Promise((_, reject) => {
