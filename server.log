@@ -1,8 +1,7 @@
 
-> ideavo-nextjs@0.1.0 dev
-> next dev
+> ideavo-nextjs@0.1.0 start
+> next start
 
- ⚠ You are using a non-standard "NODE_ENV" value in your environment. This creates inconsistencies in the project and is strongly advised against. Read more: https://nextjs.org/docs/messages/non-standard-node-env
  ⨯ Failed to start server
 Error: listen EADDRINUSE: address already in use :::3000
     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
@@ -11,14 +10,11 @@ Error: listen EADDRINUSE: address already in use :::3000
     at /opt/ideavo-server/projects/cmdqv4mun01sdmp0fv1p76s5z/node_modules/next/dist/server/lib/start-server.js:280:16
     at new Promise (<anonymous>)
     at startServer (/opt/ideavo-server/projects/cmdqv4mun01sdmp0fv1p76s5z/node_modules/next/dist/server/lib/start-server.js:191:11)
-    at /opt/ideavo-server/projects/cmdqv4mun01sdmp0fv1p76s5z/node_modules/next/dist/server/lib/start-server.js:310:52
-    at Span.traceAsyncFn (/opt/ideavo-server/projects/cmdqv4mun01sdmp0fv1p76s5z/node_modules/next/dist/trace/trace.js:154:26)
-    at process.<anonymous> (/opt/ideavo-server/projects/cmdqv4mun01sdmp0fv1p76s5z/node_modules/next/dist/server/lib/start-server.js:310:35)
-    at process.emit (node:events:524:28) {
+    at Module.nextStart (/opt/ideavo-server/projects/cmdqv4mun01sdmp0fv1p76s5z/node_modules/next/dist/cli/next-start.js:25:40)
+    at /opt/ideavo-server/projects/cmdqv4mun01sdmp0fv1p76s5z/node_modules/next/dist/bin/next:105:856 {
   code: 'EADDRINUSE',
   errno: -98,
   syscall: 'listen',
   address: '::',
   port: 3000
 }
-[?25h
