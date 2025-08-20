@@ -10,10 +10,10 @@ async function ensureDbConnection() {
   try {
     console.log('Testing database connection...')
     
-    // Set connection timeout to prevent hanging
+    // Set connection timeout to prevent hanging - optimized for production
     const connectionPromise = prisma.$queryRaw`SELECT 1 as health_check`
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Database connection timeout')), 6000)
+      setTimeout(() => reject(new Error('Database connection timeout')), 10000) // Increased to 10s for stability
     })
     
     await Promise.race([connectionPromise, timeoutPromise])
@@ -166,7 +166,7 @@ export async function createParty(partyData: {
     const operationTimeout = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new Error('Operation timeout: Party creation took too long. This might be due to database connectivity issues.'))
-      }, 8000) // 8 second timeout - Vercel compatible
+      }, 15000) // 15 second timeout - increased for better reliability on production
     })
     
     const createPartyOperation = async () => {
