@@ -18,6 +18,8 @@ import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
 import ThemesTab from "@/components/ThemesTab";
+import VenuesTab from "@/components/VenuesTab";
+import FavoritesTab from "@/components/FavoritesTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -66,6 +68,8 @@ import {
   Cake,
   Crown,
   Lightbulb,
+  Building,
+  Heart,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -251,6 +255,22 @@ export default function PartyPlanPage() {
       gradient: 'from-yellow-500 to-amber-500',
       hoverColor: 'bg-yellow-50 dark:bg-yellow-900/20',
       allowedPlans: ['activities'] // Plus and Pro plans (same as Activities)
+    },
+    {
+      id: 'venues',
+      label: 'Venues',
+      icon: Building,
+      gradient: 'from-violet-500 to-purple-500',
+      hoverColor: 'bg-violet-50 dark:bg-violet-900/20',
+      allowedPlans: ['venues'] // Pro plan only
+    },
+    {
+      id: 'favorites',
+      label: '⭐ Favorites',
+      icon: Heart,
+      gradient: 'from-pink-500 to-rose-500',
+      hoverColor: 'bg-pink-50 dark:bg-pink-900/20',
+      allowedPlans: ['favorites'] // Pro plan only
     },
     {
       id: 'checklist',
@@ -1395,6 +1415,8 @@ export default function PartyPlanPage() {
                                         tab.id === 'host-mode' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
                                         tab.id === 'shopping' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
                                         tab.id === 'venue' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' :
+                                        tab.id === 'venues' ? 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a855f7 100%)' :
+                                        tab.id === 'favorites' ? 'linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fb7185 100%)' :
                                         tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
                                         tab.id === 'cake' ? 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f472b6 100%)' :
                                         tab.id === 'guests' ? 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #2dd4bf 100%)' :
@@ -1760,6 +1782,18 @@ export default function PartyPlanPage() {
               partyId={currentPartyId || partyData?.childName || 'party'}
               guestCount={guests.length}
             />
+          </ProtectedTabContent>
+
+          {/* Venues Tab */}
+          <ProtectedTabContent tabName="venues" className="space-y-6">
+            <VenuesTab
+              partyData={partyData}
+            />
+          </ProtectedTabContent>
+
+          {/* Favorites Tab */}
+          <ProtectedTabContent tabName="favorites" className="space-y-6">
+            <FavoritesTab />
           </ProtectedTabContent>
 
           {/* Checklist Tab */}
