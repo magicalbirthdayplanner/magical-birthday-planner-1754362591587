@@ -29,15 +29,18 @@ export default function EnvCheckPage() {
     }
   };
 
-  const getStatusBadge = (isSet: boolean) => {
+  const getStatusBadge = (isSet: boolean, required: boolean) => {
     if (isSet) {
       return <Badge variant="default" className="bg-green-500">Set</Badge>;
-    } else {
+    } else if (required) {
       return <Badge variant="destructive">Missing</Badge>;
+    } else {
+      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Optional</Badge>;
     }
   };
 
-  const missingCount = ENV_VARIABLES.filter(env => !envStatus[env.name]).length;
+  const missingCount = ENV_VARIABLES.filter(env => env.required && !envStatus[env.name]).length;
+  const optionalCount = ENV_VARIABLES.filter(env => !env.required && !envStatus[env.name]).length;
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
@@ -84,7 +87,12 @@ export default function EnvCheckPage() {
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
-                <strong>All environment variables are properly configured!</strong>
+                <strong>✅ Core functionality ready!</strong>
+                {optionalCount > 0 && (
+                  <span className="text-sm ml-2">
+                    - {optionalCount} optional variable{optionalCount > 1 ? 's' : ''} available for enhanced features
+                  </span>
+                )}
               </AlertDescription>
             </div>
             <Link href="/">
@@ -104,10 +112,15 @@ export default function EnvCheckPage() {
             <Card key={envVar.name} className="relative">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-mono">{envVar.name}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg font-mono">{envVar.name}</CardTitle>
+                    <Badge variant={envVar.required ? "destructive" : "secondary"} className={envVar.required ? "text-xs" : "text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"}>
+                      {envVar.required ? "Required" : "Optional"}
+                    </Badge>
+                  </div>
                   <div className="flex items-center gap-2">
                     {getStatusIcon(isSet)}
-                    {getStatusBadge(isSet)}
+                    {getStatusBadge(isSet, envVar.required)}
                   </div>
                 </div>
                 <CardDescription>{envVar.description}</CardDescription>

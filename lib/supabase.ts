@@ -21,11 +21,15 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
       set(name: string, value: string, options: any) {
         try {
           // Set cookies with domain configuration for cross-domain compatibility
+          const isProduction = process.env.NODE_ENV === 'production'
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'localhost:3000'
+          const domain = isProduction && baseUrl.includes('.') ? `.${baseUrl.replace(/^https?:\/\/(www\.)?/, '')}` : undefined
+          
           const cookieOptions = {
             ...options,
-            domain: process.env.NODE_ENV === 'production' ? '.magicalbirthdayplanner.com' : undefined,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+            domain,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax'
           }
           cookies().set({ name, value, ...cookieOptions })
         } catch (error) {
@@ -36,11 +40,15 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
       },
       remove(name: string, options: any) {
         try {
+          const isProduction = process.env.NODE_ENV === 'production'
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'localhost:3000'
+          const domain = isProduction && baseUrl.includes('.') ? `.${baseUrl.replace(/^https?:\/\/(www\.)?/, '')}` : undefined
+          
           const cookieOptions = {
             ...options,
-            domain: process.env.NODE_ENV === 'production' ? '.magicalbirthdayplanner.com' : undefined,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+            domain,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax'
           }
           cookies().set({ name, value: '', ...cookieOptions })
         } catch (error) {
