@@ -2,9 +2,15 @@
 export const ENV_VARIABLES: EnvVariable[] = [
   {
     name: "DATABASE_URL",
-    description: "Supabase PostgreSQL database connection string for migrations and server-side operations",
+    description: "Supabase PostgreSQL pooled connection string for runtime operations (port 6543)",
     required: true,
-    instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → Database → Connection string (URI format).\n Copy the full postgresql:// connection string.\n Make sure to replace [YOUR-PASSWORD] with actual password"
+    instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → Database → Connection string → Session pooling.\n Format: postgres://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:6543/postgres?pgbouncer=true&connection_limit=1&connect_timeout=15"
+  },
+  {
+    name: "DIRECT_URL",
+    description: "Supabase PostgreSQL direct connection string for migrations (port 5432)",
+    required: true,
+    instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → Database → Connection string → Direct connection.\n Format: postgres://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require"
   },
   {
     name: "NEXT_PUBLIC_SUPABASE_URL",
