@@ -1,3 +1,48 @@
+## [usr-1755650472601]
+**User Request:** Create a new API route in Next.js at /api/venues.
+
+Requirements:
+1. Accept POST requests with JSON body:
+   {
+     "location": "ZIP or City",
+     "searchTerms": ["party hall", "kids birthday venue"],
+     "radiusKm": 16
+   }
+
+2. Use the apify-client npm package to call the Apify Google Maps Scraper Actor.
+   - Authenticate using process.env.APIFY_TOKEN.
+   - Use the location and searchTerms from the request.
+   - Default search radius to 16 km (≈10 miles).
+
+3. Return JSON with the following cleaned fields per venue:
+   {
+     id,
+     title,
+     address,
+     rating,
+     reviewsCount,
+     price,
+     phone,
+     website,
+     imageUrl,
+     coordinates: { lat, lng },
+     category
+   }
+
+4. Error handling:
+   - If the Apify call fails, return { error: "Failed to fetch venues" } with status 500.
+   - Validate input: if location or searchTerms are missing, return 400.
+
+5. Make the code modular:
+   - utils/apifyClient.js for Apify client setup
+   - pages/api/venues.js for the API route
+
+**Response Summary:** Successfully implemented a complete venue search API using Apify Google Maps Scraper. Created modular utility functions for Apify client management and data cleaning, implemented robust error handling with proper validation, and configured environment variables. The API accepts POST requests with location and search terms, calls the Apify actor, and returns cleaned venue data with all required fields.
+**Files Modified:** 
+- Created: utils/apifyClient.js (Apify client setup and venue data cleaning utilities)
+- Created: app/api/venues/route.ts (Next.js 14 API route handler with full validation and error handling)
+- Modified: lib/env-config.ts (APIFY_API_TOKEN environment variable already configured)
+
 ## [usr-1755650018706]
 **User Request:** remove the venue functionality all together
 **Response Summary:** Successfully removed all venue functionality from the application, including the VenuesTab component, venues API route, venue-related database models (VenueFavorite, VenueFeedback), venue references from subscription plans, party plan tabs, and documentation. The application now focuses on other party planning features without venue discovery capabilities.
