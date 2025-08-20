@@ -13,7 +13,7 @@ async function ensureDbConnection() {
     // Set connection timeout to prevent hanging - optimized for production
     const connectionPromise = prisma.$queryRaw`SELECT 1 as health_check`
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Database connection timeout')), 10000) // Increased to 10s for stability
+      setTimeout(() => reject(new Error('Database connection timeout')), 5000) // Reduced to 5s for faster feedback
     })
     
     await Promise.race([connectionPromise, timeoutPromise])
@@ -29,7 +29,7 @@ async function ensureDbConnection() {
       console.log('Disconnected from database, waiting for reconnection...')
       
       // Reduced wait time for better user experience
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 500))
       
       // Test connection again with timeout protection
       const reconnectPromise = prisma.$queryRaw`SELECT CURRENT_TIMESTAMP as reconnect_test`
@@ -45,7 +45,7 @@ async function ensureDbConnection() {
       
       // Final attempt with minimal timeout to fail fast
       try {
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 200))
         const finalPromise = prisma.$queryRaw`SELECT 'final_attempt' as test`
         const finalTimeout = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Final connection attempt timeout')), 2000)
@@ -56,7 +56,8 @@ async function ensureDbConnection() {
         return true
       } catch (finalError) {
         console.error('❌ All database connection attempts failed:', finalError)
-        throw new Error(`Database connectivity issues detected. Please try again in a few moments.`)
+        // Don't throw error, just return false to allow fallback
+        return false
       }
     }
   }
@@ -244,7 +245,11 @@ export async function createParty(partyData: {
 
       // Enhanced pre-operation database health check
       console.log('🔍 Performing comprehensive database health check...')
-      await ensureDbConnection()
+      const dbConnectionOk = await ensureDbConnection()
+      
+      if (!dbConnectionOk) {
+        console.warn('⚠️ Database connection check failed, but proceeding with operation...')
+      }
       
       // Create user in database if doesn't exist with enhanced retry mechanism
       console.log('👤 Creating/updating user in database...')
@@ -312,12 +317,16 @@ export async function createParty(partyData: {
         errorMessage = 'Authentication issue detected. Please sign out and sign back in, then try creating your party again.'
       } else if (error.message.includes('Authentication required') || error.message.includes('not authenticated')) {
         errorMessage = 'Please sign in again to continue creating your party.'
-      } else if (error.message.includes('Database connectivity') || error.message.includes('connection')) {
-        errorMessage = 'We\'re experiencing temporary connectivity issues. Please wait a moment and try again.'
+      } else if (error.message.includes('Database connectivity') || error.message.includes('connection') || error.message.includes('P1001') || error.message.includes('P1002') || error.message.includes('P1003')) {
+        errorMessage = 'We\'re experiencing temporary connectivity issues with our database. Please wait a moment and try again. If the problem persists, please refresh the page.'
       } else if (error.message.includes('UNIQUE constraint') || error.message.includes('duplicate')) {
         errorMessage = 'It looks like this party already exists. Please check your party list or try with different details.'
       } else if (error.message.includes('after') && error.message.includes('attempts')) {
         errorMessage = 'Multiple connection attempts failed. Please check your internet connection and try again, or try refreshing the page.'
+      } else if (error.message.includes('P2002') || error.message.includes('Unique constraint')) {
+        errorMessage = 'A party with these details already exists. Please try with different information.'
+      } else if (error.message.includes('P2003') || error.message.includes('Foreign key constraint')) {
+        errorMessage = 'There was an issue with the party data. Please try again with different details.'
       } else {
         errorMessage = `Unable to create party: ${error.message}`
       }
