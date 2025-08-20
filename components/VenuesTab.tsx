@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,10 +41,16 @@ interface VenuesTabProps {
     zipCode?: string;
     theme?: string | null;
     selectedTheme?: string | null;
+    guestCount?: number;
+    adultCount?: number;
+    kidCount?: number;
+    childAge?: string | number;
+    interests?: string[];
   };
 }
 
 export default function VenuesTab({ partyData }: VenuesTabProps) {
+  const { user } = useAuth();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
@@ -56,33 +63,78 @@ export default function VenuesTab({ partyData }: VenuesTabProps) {
   const [radius, setRadius] = useState("10");
   const [keyword, setKeyword] = useState("party hall");
 
-  // Load favorites from localStorage on mount
+  // Load favorites from database on mount
   useEffect(() => {
-    const savedFavorites = localStorage.getItem('venueFavorites');
-    if (savedFavorites) {
+    const loadFavorites = async () => {
+      if (!user) return;
+      
       try {
-        const favoritesArray = JSON.parse(savedFavorites);
-        setFavorites(new Set(favoritesArray));
+        const response = await fetch('/api/venue-favorites');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.favorites) {
+            const favoriteIds = data.favorites.map((fav: any) => fav.venueId);
+            setFavorites(new Set(favoriteIds));
+          }
+        }
       } catch (error) {
-        console.error('Error loading favorites:', error);
+        console.error('Error loading favorites from database:', error);
+        // Fallback to localStorage
+        const savedFavorites = localStorage.getItem('venueFavorites');
+        if (savedFavorites) {
+          try {
+            const favoritesArray = JSON.parse(savedFavorites);
+            setFavorites(new Set(favoritesArray));
+          } catch (error) {
+            console.error('Error loading favorites from localStorage:', error);
+          }
+        }
       }
-    }
-  }, []);
+    };
+    
+    loadFavorites();
+  }, [user]);
 
-  // Save favorites to localStorage whenever it changes
+  // Sync favorites to localStorage for backward compatibility
   useEffect(() => {
     localStorage.setItem('venueFavorites', JSON.stringify(Array.from(favorites)));
   }, [favorites]);
 
-  // Set default keyword based on theme
+  // Set default keyword based on theme, party size, and interests
   useEffect(() => {
+    let newKeyword = "party hall";
+    
+    // Build keyword based on wizard inputs
     if (partyData?.theme || partyData?.selectedTheme) {
       const theme = partyData.theme || partyData.selectedTheme;
       if (theme) {
-        setKeyword(`${theme.toLowerCase()} birthday venue`);
+        newKeyword = `${theme.toLowerCase()} party hall`;
       }
     }
-  }, [partyData?.theme, partyData?.selectedTheme]);
+    
+    // Add party size context
+    if (partyData?.guestCount) {
+      newKeyword += ` ${partyData.guestCount} guests`;
+    } else if (partyData?.kidCount) {
+      newKeyword += ` kids birthday venue ${partyData.kidCount} children`;
+    }
+    
+    // Add interests if available
+    if (partyData?.interests && partyData.interests.length > 0) {
+      const topInterest = partyData.interests[0];
+      newKeyword += ` ${topInterest.toLowerCase()}`;
+    }
+    
+    // Add age context if available
+    if (partyData?.childAge) {
+      const age = typeof partyData.childAge === 'string' ? parseInt(partyData.childAge) : partyData.childAge;
+      if (age && age > 0) {
+        newKeyword += ` ${age} year old birthday`;
+      }
+    }
+    
+    setKeyword(newKeyword);
+  }, [partyData?.theme, partyData?.selectedTheme, partyData?.guestCount, partyData?.kidCount, partyData?.interests, partyData?.childAge]);
 
   const searchVenues = async (isNewSearch = false) => {
     if (!location.trim()) {
@@ -190,23 +242,103 @@ export default function VenuesTab({ partyData }: VenuesTabProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [loadMore]);
 
-  const toggleFavorite = (venueId: string) => {
-    setFavorites(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(venueId)) {
-        newFavorites.delete(venueId);
-      } else {
-        newFavorites.add(venueId);
-      }
-      return newFavorites;
-    });
+  const toggleFavorite = async (venueId: string) => {
+    if (!user) {
+      // For logged out users, fall back to localStorage
+      setFavorites(prev => {
+        const newFavorites = new Set(prev);
+        if (newFavorites.has(venueId)) {
+          newFavorites.delete(venueId);
+        } else {
+          newFavorites.add(venueId);
+        }
+        return newFavorites;
+      });
 
-    // Update venues list to reflect favorite status
-    setVenues(prev => prev.map(venue => 
-      venue.id === venueId 
-        ? { ...venue, isFavorite: !venue.isFavorite }
-        : venue
-    ));
+      // Update venues list to reflect favorite status
+      setVenues(prev => prev.map(venue => 
+        venue.id === venueId 
+          ? { ...venue, isFavorite: !venue.isFavorite }
+          : venue
+      ));
+      return;
+    }
+
+    const venue = venues.find(v => v.id === venueId);
+    if (!venue) return;
+
+    const isFavorited = favorites.has(venueId);
+
+    try {
+      if (isFavorited) {
+        // Remove from favorites
+        const response = await fetch(`/api/venue-favorites?venueId=${venueId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          setFavorites(prev => {
+            const newFavorites = new Set(prev);
+            newFavorites.delete(venueId);
+            return newFavorites;
+          });
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch('/api/venue-favorites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            venueId,
+            title: venue.title,
+            address: venue.address,
+            rating: venue.rating,
+            reviewsCount: venue.reviewsCount,
+            phone: venue.phone,
+            website: venue.website,
+            imageUrl: venue.imageUrl,
+            category: venue.category,
+            coordinates: venue.coordinates
+          })
+        });
+        
+        if (response.ok) {
+          setFavorites(prev => {
+            const newFavorites = new Set(prev);
+            newFavorites.add(venueId);
+            return newFavorites;
+          });
+        }
+      }
+
+      // Update venues list to reflect favorite status
+      setVenues(prev => prev.map(v => 
+        v.id === venueId 
+          ? { ...v, isFavorite: !v.isFavorite }
+          : v
+      ));
+      
+    } catch (error) {
+      console.error('Error toggling venue favorite:', error);
+      // Fall back to localStorage behavior
+      setFavorites(prev => {
+        const newFavorites = new Set(prev);
+        if (newFavorites.has(venueId)) {
+          newFavorites.delete(venueId);
+        } else {
+          newFavorites.add(venueId);
+        }
+        return newFavorites;
+      });
+
+      setVenues(prev => prev.map(v => 
+        v.id === venueId 
+          ? { ...v, isFavorite: !v.isFavorite }
+          : v
+      ));
+    }
   };
 
   const formatAddress = (address: string) => {

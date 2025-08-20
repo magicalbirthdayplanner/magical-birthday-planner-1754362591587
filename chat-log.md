@@ -1,3 +1,59 @@
+## [usr-1755652110534]
+**User Request:** Enhance the Venues feature with these integrations:
+
+1. Link with Wizard Inputs
+   - Pre-fill search based on Wizard Step 1–5:
+     - Location → ZIP code (Step 1 or 2 input)
+     - Theme → append to keywords for better matches
+       (e.g. if theme = "Princess", keyword = "princess party hall")
+     - Party size → use as filter text (e.g. "kids birthday venue 50 guests").
+   - Ensure every venue query uses these inputs for more contextual results.
+
+2. Save to Favorites
+   - When user clicks ⭐ Save on a venue:
+     - Store venueId + userId + wizardSessionId in database.
+     - Saved venues appear both in the "⭐ Favorites" tab AND in the Wizard's Summary step.
+
+3. Favorites Tab
+   - Add ability to:
+     - Remove saved venues
+     - Re-order saved venues (drag & drop if possible)
+   - Each saved venue card has a "✔️ Select" button.
+   - Only one venue can be marked as the "Final Venue".
+   - Display "Selected Venue" at the top of Favorites tab.
+
+4. Wizard Integration
+   - In Wizard Step 5 (Review & Confirm), show:
+     - "Selected Venue" section with chosen venue details (name, address, link, image).
+     - Button → "Change Venue" that links back to Venues tab.
+
+5. Backend
+   - Update venue DB schema:
+     {
+       venueId,
+       userId,
+       wizardSessionId,
+       favorited: true/false,
+       selected: true/false,
+       createdAt,
+       updatedAt
+     }
+
+6. UX Flow
+   - User goes through wizard → lands in Venues tab → searches venues → saves favorites → picks final one → returns to Wizard → sees the venue auto-filled in Review.
+   - Playful confirmation: "🎉 Venue locked in: [Venue Name]!"
+
+**Response Summary:** Successfully implemented a comprehensive venue favorites and selection system with full database integration and wizard context enhancement. Created VenueFavorite database model with proper schema migration, implemented complete API endpoints for favorites management (/api/venue-favorites with GET/POST/PUT/DELETE operations and /api/venue-favorites/selected for selected venue retrieval). Enhanced VenuesTab to integrate wizard inputs (location, theme, party size, child age, interests) for contextual venue search pre-filling. Updated Favorites tab with database-backed favorites management, venue selection functionality, and beautiful UI showing selected venue at top. Created SelectedVenueDisplay component and useSelectedVenue hook for wizard integration. All features work for both authenticated (database) and non-authenticated (localStorage fallback) users. Added proper TypeScript types, error handling, and build optimization. The complete UX flow now allows users to go through wizard → search contextual venues → save favorites → select final venue → see confirmation in wizard review step.
+
+**Files Modified:** 
+- prisma/schema.prisma (added VenueFavorite model with proper relations)
+- app/api/venue-favorites/route.ts (created - comprehensive favorites CRUD API)
+- app/api/venue-favorites/selected/route.ts (created - selected venue API)
+- components/VenuesTab.tsx (enhanced with wizard inputs integration and database favorites)
+- components/FavoritesTab.tsx (complete rewrite with database integration and selection)
+- components/SelectedVenueDisplay.tsx (created - wizard integration component)
+- hooks/useSelectedVenue.ts (created - custom hook for selected venue management)
+
 ## [usr-1755651093458]
 **User Request:** Create a new tab in the app called "Venues" only for the Pro Plan 
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,9 @@ import {
   Trash2,
   Heart,
   PartyPopper,
-  BookmarkX
+  BookmarkX,
+  CheckCircle,
+  Crown
 } from "lucide-react";
 
 interface Venue {
@@ -29,38 +32,122 @@ interface Venue {
   coordinates?: { lat: number; lng: number };
   category?: string;
   isFavorite?: boolean;
+  isSelected?: boolean;
+}
+
+interface VenueFavorite {
+  id: string;
+  venueId: string;
+  title: string;
+  address: string;
+  rating?: number;
+  reviewsCount?: number;
+  phone?: string;
+  website?: string;
+  imageUrl?: string;
+  category?: string;
+  coordinates?: any;
+  selected: boolean;
+  createdAt: string;
 }
 
 export default function FavoritesTab() {
-  const [favoriteVenues, setFavoriteVenues] = useState<Venue[]>([]);
+  const { user } = useAuth();
+  const [favoriteVenues, setFavoriteVenues] = useState<VenueFavorite[]>([]);
+  const [selectedVenue, setSelectedVenue] = useState<VenueFavorite | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
-  // Load favorites from localStorage
+  // Load favorites from database
   useEffect(() => {
     const loadFavorites = async () => {
-      try {
-        // Load favorite venue IDs
-        const savedFavorites = localStorage.getItem('venueFavorites');
-        const favoriteIds = savedFavorites ? JSON.parse(savedFavorites) : [];
-        setFavorites(new Set(favoriteIds));
+      if (!user) {
+        // Fallback to localStorage for non-authenticated users
+        try {
+          const savedFavorites = localStorage.getItem('venueFavorites');
+          const favoriteIds = savedFavorites ? JSON.parse(savedFavorites) : [];
+          setFavorites(new Set(favoriteIds));
 
-        // Load venue data from localStorage cache
-        const cachedVenues = localStorage.getItem('cachedVenues');
-        if (cachedVenues) {
-          const allVenues: Venue[] = JSON.parse(cachedVenues);
-          const favVenues = allVenues.filter(venue => favoriteIds.includes(venue.id));
-          setFavoriteVenues(favVenues.map(venue => ({ ...venue, isFavorite: true })));
+          const cachedVenues = localStorage.getItem('cachedVenues');
+          if (cachedVenues) {
+            const allVenues: Venue[] = JSON.parse(cachedVenues);
+            const favVenues = allVenues.filter(venue => favoriteIds.includes(venue.id));
+            setFavoriteVenues(favVenues.map(venue => ({
+              id: venue.id,
+              venueId: venue.id,
+              title: venue.title,
+              address: venue.address,
+              rating: venue.rating,
+              reviewsCount: venue.reviewsCount,
+              phone: venue.phone,
+              website: venue.website,
+              imageUrl: venue.imageUrl,
+              category: venue.category,
+              coordinates: venue.coordinates,
+              selected: false,
+              createdAt: new Date().toISOString()
+            })));
+          }
+        } catch (error) {
+          console.error('Error loading favorites from localStorage:', error);
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/venue-favorites');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.favorites) {
+            setFavoriteVenues(data.favorites);
+            const favoriteIds = data.favorites.map((fav: VenueFavorite) => fav.venueId);
+            setFavorites(new Set(favoriteIds));
+            
+            // Find selected venue
+            const selected = data.favorites.find((fav: VenueFavorite) => fav.selected);
+            setSelectedVenue(selected || null);
+          }
         }
       } catch (error) {
-        console.error('Error loading favorites:', error);
+        console.error('Error loading favorites from database:', error);
+        // Fallback to localStorage
+        try {
+          const savedFavorites = localStorage.getItem('venueFavorites');
+          const favoriteIds = savedFavorites ? JSON.parse(savedFavorites) : [];
+          setFavorites(new Set(favoriteIds));
+
+          const cachedVenues = localStorage.getItem('cachedVenues');
+          if (cachedVenues) {
+            const allVenues: Venue[] = JSON.parse(cachedVenues);
+            const favVenues = allVenues.filter(venue => favoriteIds.includes(venue.id));
+            setFavoriteVenues(favVenues.map(venue => ({
+              id: venue.id,
+              venueId: venue.id,
+              title: venue.title,
+              address: venue.address,
+              rating: venue.rating,
+              reviewsCount: venue.reviewsCount,
+              phone: venue.phone,
+              website: venue.website,
+              imageUrl: venue.imageUrl,
+              category: venue.category,
+              coordinates: venue.coordinates,
+              selected: false,
+              createdAt: new Date().toISOString()
+            })));
+          }
+        } catch (error) {
+          console.error('Error loading favorites from localStorage:', error);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     loadFavorites();
-  }, []);
+  }, [user]);
 
   // Listen for venue data updates from VenuesTab
   useEffect(() => {
@@ -74,7 +161,21 @@ export default function FavoritesTab() {
       if (cachedVenues) {
         const allVenues: Venue[] = JSON.parse(cachedVenues);
         const favVenues = allVenues.filter(venue => favoriteIds.includes(venue.id));
-        setFavoriteVenues(favVenues.map(venue => ({ ...venue, isFavorite: true })));
+        setFavoriteVenues(favVenues.map(venue => ({
+          id: venue.id,
+          venueId: venue.id,
+          title: venue.title,
+          address: venue.address,
+          rating: venue.rating,
+          reviewsCount: venue.reviewsCount,
+          phone: venue.phone,
+          website: venue.website,
+          imageUrl: venue.imageUrl,
+          category: venue.category,
+          coordinates: venue.coordinates,
+          selected: false,
+          createdAt: new Date().toISOString()
+        })));
       }
     };
 
@@ -82,22 +183,108 @@ export default function FavoritesTab() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const removeFavorite = (venueId: string) => {
-    // Remove from favorites set
-    const newFavorites = new Set(favorites);
-    newFavorites.delete(venueId);
-    setFavorites(newFavorites);
+  const removeFavorite = async (venueId: string) => {
+    if (!user) {
+      // Fallback for non-authenticated users
+      const newFavorites = new Set(favorites);
+      newFavorites.delete(venueId);
+      setFavorites(newFavorites);
+      localStorage.setItem('venueFavorites', JSON.stringify(Array.from(newFavorites)));
+      setFavoriteVenues(prev => prev.filter(venue => venue.venueId !== venueId));
+      return;
+    }
 
-    // Update localStorage
-    localStorage.setItem('venueFavorites', JSON.stringify(Array.from(newFavorites)));
+    try {
+      const response = await fetch(`/api/venue-favorites?venueId=${venueId}`, {
+        method: 'DELETE'
+      });
 
-    // Remove from displayed venues
-    setFavoriteVenues(prev => prev.filter(venue => venue.id !== venueId));
+      if (response.ok) {
+        // Remove from state
+        const newFavorites = new Set(favorites);
+        newFavorites.delete(venueId);
+        setFavorites(newFavorites);
+        
+        // Update localStorage for compatibility
+        localStorage.setItem('venueFavorites', JSON.stringify(Array.from(newFavorites)));
 
-    // Trigger a custom event to notify other components
-    window.dispatchEvent(new CustomEvent('favoriteRemoved', { 
-      detail: { venueId } 
-    }));
+        // Remove from displayed venues
+        setFavoriteVenues(prev => prev.filter(venue => venue.venueId !== venueId));
+
+        // Clear selected venue if it was removed
+        if (selectedVenue?.venueId === venueId) {
+          setSelectedVenue(null);
+        }
+
+        // Trigger a custom event to notify other components
+        window.dispatchEvent(new CustomEvent('favoriteRemoved', { 
+          detail: { venueId } 
+        }));
+      }
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+    }
+  };
+
+  const selectVenue = async (venue: VenueFavorite) => {
+    if (!user) {
+      // For non-authenticated users, just update local state
+      setSelectedVenue(venue);
+      setFavoriteVenues(prev => prev.map(v => ({ ...v, selected: v.venueId === venue.venueId })));
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/venue-favorites', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          venueId: venue.venueId,
+          selected: true
+        })
+      });
+
+      if (response.ok) {
+        // Update state
+        setSelectedVenue(venue);
+        setFavoriteVenues(prev => prev.map(v => ({ ...v, selected: v.venueId === venue.venueId })));
+      }
+    } catch (error) {
+      console.error('Error selecting venue:', error);
+    }
+  };
+
+  const unselectVenue = async () => {
+    if (!selectedVenue) return;
+
+    if (!user) {
+      // For non-authenticated users, just update local state
+      setSelectedVenue(null);
+      setFavoriteVenues(prev => prev.map(v => ({ ...v, selected: false })));
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/venue-favorites', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          venueId: selectedVenue.venueId,
+          selected: false
+        })
+      });
+
+      if (response.ok) {
+        setSelectedVenue(null);
+        setFavoriteVenues(prev => prev.map(v => ({ ...v, selected: false })));
+      }
+    } catch (error) {
+      console.error('Error unselecting venue:', error);
+    }
   };
 
   const formatAddress = (address: string) => {
@@ -134,6 +321,61 @@ export default function FavoritesTab() {
           Your saved venues for easy access and comparison
         </p>
       </div>
+
+      {/* Selected Venue Section */}
+      {selectedVenue && (
+        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-700">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Crown className="h-6 w-6 text-yellow-600" />
+                <CardTitle className="text-lg text-yellow-800 dark:text-yellow-200">
+                  🎉 Selected Venue
+                </CardTitle>
+              </div>
+              <Button
+                onClick={unselectVenue}
+                variant="outline"
+                size="sm"
+                className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+              >
+                Change
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4">
+              {selectedVenue.imageUrl && (
+                <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                  <img 
+                    src={selectedVenue.imageUrl} 
+                    alt={selectedVenue.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=300&fit=crop&crop=center';
+                    }}
+                  />
+                </div>
+              )}
+              <div className="flex-1">
+                <h3 className="font-bold text-yellow-800 dark:text-yellow-200 mb-1">
+                  {selectedVenue.title}
+                </h3>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                  {formatAddress(selectedVenue.address)}
+                </p>
+                {selectedVenue.rating && selectedVenue.reviewsCount && (
+                  <div className="flex items-center gap-1 text-sm">
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    <span className="font-medium">{selectedVenue.rating}</span>
+                    <span className="text-yellow-600">({selectedVenue.reviewsCount} reviews)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       {favoriteVenues.length > 0 && (
@@ -250,12 +492,35 @@ export default function FavoritesTab() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-2">
+                  {/* Select/Unselect Button */}
+                  {venue.selected ? (
+                    <Button
+                      onClick={() => unselectVenue()}
+                      variant="default"
+                      size="sm"
+                      className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                    >
+                      <CheckCircle className="mr-1 h-4 w-4" />
+                      ✔️ Selected
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => selectVenue(venue)}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-green-600 border-green-200 hover:bg-green-50 hover:border-green-300"
+                    >
+                      <CheckCircle className="mr-1 h-4 w-4" />
+                      ✔️ Select
+                    </Button>
+                  )}
+
                   {/* Remove from Favorites */}
                   <Button
-                    onClick={() => removeFavorite(venue.id)}
+                    onClick={() => removeFavorite(venue.venueId)}
                     variant="outline"
                     size="sm"
-                    className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
+                    className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
                   >
                     <BookmarkX className="mr-1 h-4 w-4" />
                     Remove
