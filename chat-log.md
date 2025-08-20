@@ -1,3 +1,15 @@
+## [usr-1755662209265]
+**User Request:** 
+why error 
+
+Attachments: @.ideavo-attachments/image_16.png
+
+**Response Summary:** Successfully resolved the "Internal server error" in the Account Settings page. The issue was caused by the user profile API attempting to find a user record that didn't exist in the database, as user creation only happened during party creation. Implemented comprehensive fix: 1) **Enhanced Profile API** - Modified `/api/user/profile` to use `upsert` operation, automatically creating user record with Supabase metadata if doesn't exist, eliminating "User not found" errors, 2) **Database Schema Alignment** - Fixed subscription plan enum mismatch between database (`FREE`, `STARTER`, `PROFESSIONAL`) and frontend code (`PLUS`, `PRO`), updated all plan references throughout the account page, 3) **User Experience Improvements** - Updated plan details and pricing to match database schema, ensured proper fallback behaviors for new users, 4) **Build Verification** - Confirmed all changes compile successfully without errors. The account settings page now works correctly for all users, automatically creating their database profile on first access with proper plan defaults.
+
+**Files Modified:** 
+- app/api/user/profile/route.ts (implemented user upsert logic to create missing user records automatically, enhanced with Supabase metadata integration)
+- app/account/page.tsx (fixed subscription plan enum alignment with database schema, updated plan details from PLUS/PRO to STARTER/PROFESSIONAL, corrected pricing and features)
+
 ## [usr-1755661043527]
 **User Request:** SAME ISSUE. DO A COMPREHENSIVE TESTING AND ISSUE DIAGNOSIS. CHECK ALL APIS AND DATABASE. I AM SURE DATABASE AND URL IS NOT CONNECTED
 

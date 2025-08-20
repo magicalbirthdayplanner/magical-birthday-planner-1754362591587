@@ -12,9 +12,23 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's profile data from database
-    const dbUser = await prisma.user.findUnique({
+    // Get user's profile data from database or create if doesn't exist
+    const dbUser = await prisma.user.upsert({
       where: { email: user.email! },
+      update: {
+        // Update name from Supabase metadata if available
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        displayName: user.user_metadata?.display_name || ''
+      },
+      create: {
+        email: user.email!,
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        displayName: user.user_metadata?.display_name || '',
+        currentPlan: 'FREE',
+        emailNotifications: true,
+        partyReminders: true,
+        marketingEmails: false
+      },
       select: { 
         id: true,
         email: true,
@@ -27,10 +41,6 @@ export async function GET() {
         createdAt: true
       }
     });
-
-    if (!dbUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
 
     // Calculate usage statistics
     const currentDate = new Date();

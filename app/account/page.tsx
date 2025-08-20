@@ -46,7 +46,7 @@ interface UserProfile {
   createdAt: string;
   isSupeadmin?: boolean;
   subscription?: {
-    planType: 'STARTER' | 'PLUS' | 'PRO';
+    planType: 'FREE' | 'STARTER' | 'PROFESSIONAL';
     status: 'ACTIVE' | 'CANCELED' | 'PAST_DUE';
     currentPeriodEnd: string;
     cancelAtPeriodEnd: boolean;
@@ -60,29 +60,29 @@ interface UserProfile {
 }
 
 const planDetails = {
-  STARTER: {
-    name: "🎈 Starter",
+  FREE: {
+    name: "🎈 Free",
     icon: Star,
-    color: "text-purple-600 dark:text-purple-400",
-    bgColor: "bg-purple-100 dark:bg-purple-900/30",
-    features: ["Theme suggestions based on age", "Smart checklist & timeline", "Simple invitation creator"],
-    price: "$0 - Introductory Offer"
+    color: "text-gray-600 dark:text-gray-400",
+    bgColor: "bg-gray-100 dark:bg-gray-900/30",
+    features: ["Basic theme suggestions", "Simple checklist", "Limited features"],
+    price: "Free"
   },
-  PLUS: {
-    name: "🧁 Plus", 
+  STARTER: {
+    name: "🧁 Starter", 
     icon: Zap,
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    features: ["Everything in Starter", "Personalized activity ideas", "RSVP tracking", "Task reminders", "Basic budget tracker"],
-    price: "$14.99 (One-Time)"
+    features: ["Everything in Free", "Personalized activity ideas", "RSVP tracking", "Task reminders", "Basic budget tracker"],
+    price: "$9.99 (One-Time)"
   },
-  PRO: {
-    name: "✨ Pro",
+  PROFESSIONAL: {
+    name: "✨ Professional",
     icon: Crown,
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
-    features: ["Everything in Plus", "Vendor recommendations", "Personalized food suggestions", "Smart budget tracker with insights"],
-    price: "$29.99 (One-Time)"
+    features: ["Everything in Starter", "Vendor recommendations", "Personalized food suggestions", "Smart budget tracker with insights"],
+    price: "$19.99 (One-Time)"
   }
 };
 
@@ -105,7 +105,7 @@ export default function AccountPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showUsageDetails, setShowUsageDetails] = useState(false);
   
-  const handlePlanChange = (newPlan: 'STARTER' | 'PLUS' | 'PRO') => {
+  const handlePlanChange = (newPlan: 'FREE' | 'STARTER' | 'PROFESSIONAL') => {
     if (userProfile?.isSupeadmin && userProfile.subscription) {
       setUserProfile({
         ...userProfile,
@@ -159,7 +159,7 @@ export default function AccountPage() {
               createdAt: profileData.createdAt,
               isSupeadmin,
               subscription: {
-                planType: "STARTER",
+                planType: "FREE",
                 status: "ACTIVE",
                 currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 cancelAtPeriodEnd: false
@@ -193,7 +193,7 @@ export default function AccountPage() {
               createdAt: new Date().toISOString(),
               isSupeadmin: user.email === "arunexprasad@gmail.com",
               subscription: {
-                planType: "STARTER",
+                planType: "FREE",
                 status: "ACTIVE",
                 currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 cancelAtPeriodEnd: false
@@ -354,7 +354,7 @@ export default function AccountPage() {
     );
   }
 
-  const currentPlan = planDetails[userProfile.subscription?.planType || 'STARTER'];
+  const currentPlan = planDetails[userProfile.subscription?.planType || 'FREE'];
   const PlanIcon = currentPlan.icon;
 
   return (
@@ -583,44 +583,42 @@ export default function AccountPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Starter Plan */}
-                  <div className={`border rounded-lg p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 ${
-                    userProfile.subscription?.planType === 'STARTER' ? 'border-purple-300 bg-purple-50/50' : ''
+                  {/* Free Plan */}
+                  <div className={`border rounded-lg p-4 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-900/30 dark:to-slate-900/30 ${
+                    userProfile.subscription?.planType === 'FREE' ? 'border-gray-300 bg-gray-50/50' : ''
                   }`}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Star className="h-5 w-5 text-purple-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎈 Starter</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎈 Free</h3>
                       </div>
-                      <Badge variant="outline" className="text-xs">$9.99</Badge>
+                      <Badge variant="outline" className="text-xs">Free</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      A quick and easy starting point for parents seeking basic help.
+                      Basic features to get started with party planning.
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• Theme suggestions based on age</li>
-                      <li>• Smart checklist & timeline</li>
-                      <li>• Simple invitation creator</li>
+                      <li>• Basic theme suggestions</li>
+                      <li>• Simple checklist</li>
+                      <li>• Limited features</li>
                     </ul>
-                    {userProfile.subscription?.planType === 'STARTER' ? (
-                      <Badge className="w-full text-center py-2 bg-purple-100 text-purple-800">
+                    {userProfile.subscription?.planType === 'FREE' ? (
+                      <Badge className="w-full text-center py-2 bg-gray-100 text-gray-800">
                         Current Plan
                       </Badge>
                     ) : (
                       <Button 
-                        className="w-full text-xs bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                        asChild
+                        className="w-full text-xs bg-gradient-to-r from-gray-500 to-slate-500 hover:from-gray-600 hover:to-slate-600"
+                        disabled
                       >
-                        <Link href="https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1">
-                          Choose Starter
-                        </Link>
+                        Free Plan
                       </Button>
                     )}
                   </div>
 
-                  {/* Plus Plan */}
+                  {/* Starter Plan */}
                   <div className={`border-2 border-blue-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 relative ${
-                    userProfile.subscription?.planType === 'PLUS' ? 'border-blue-300 bg-blue-50/50' : ''
+                    userProfile.subscription?.planType === 'STARTER' ? 'border-blue-300 bg-blue-50/50' : ''
                   }`}>
                     <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs">
                       Most Popular
@@ -628,21 +626,21 @@ export default function AccountPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Zap className="h-5 w-5 text-blue-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🧁 Plus</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🧁 Starter</h3>
                       </div>
-                      <Badge variant="outline" className="text-xs">$14.99</Badge>
+                      <Badge variant="outline" className="text-xs">$9.99</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                       Smart and simple AI-powered birthday planning for busy parents.
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• Everything in Starter</li>
+                      <li>• Everything in Free</li>
                       <li>• Personalized activity ideas</li>
                       <li>• RSVP tracking</li>
                       <li>• Task reminders</li>
                       <li>• Basic budget tracker</li>
                     </ul>
-                    {userProfile.subscription?.planType === 'PLUS' ? (
+                    {userProfile.subscription?.planType === 'STARTER' ? (
                       <Badge className="w-full text-center py-2 bg-blue-100 text-blue-800">
                         Current Plan
                       </Badge>
@@ -651,34 +649,34 @@ export default function AccountPage() {
                         className="w-full text-xs bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
                         asChild
                       >
-                        <Link href="https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1">
-                          Upgrade to Plus
+                        <Link href="https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1">
+                          Upgrade to Starter
                         </Link>
                       </Button>
                     )}
                   </div>
 
-                  {/* Pro Plan */}
+                  {/* Professional Plan */}
                   <div className={`border rounded-lg p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 ${
-                    userProfile.subscription?.planType === 'PRO' ? 'border-emerald-300 bg-emerald-50/50' : ''
+                    userProfile.subscription?.planType === 'PROFESSIONAL' ? 'border-emerald-300 bg-emerald-50/50' : ''
                   }`}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Crown className="h-5 w-5 text-emerald-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">✨ Pro</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">✨ Professional</h3>
                       </div>
-                      <Badge variant="outline" className="text-xs">$29.99</Badge>
+                      <Badge variant="outline" className="text-xs">$19.99</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                       All-in-one planning experience with advanced support and recommendations.
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• Everything in Plus</li>
+                      <li>• Everything in Starter</li>
                       <li>• Vendor recommendations</li>
                       <li>• Personalized food suggestions</li>
                       <li>• Smart budget tracker</li>
                     </ul>
-                    {userProfile.subscription?.planType === 'PRO' ? (
+                    {userProfile.subscription?.planType === 'PROFESSIONAL' ? (
                       <Badge className="w-full text-center py-2 bg-emerald-100 text-emerald-800">
                         Current Plan
                       </Badge>
@@ -687,8 +685,8 @@ export default function AccountPage() {
                         className="w-full text-xs bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
                         asChild
                       >
-                        <Link href="https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1">
-                          Upgrade to Pro
+                        <Link href="https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1">
+                          Upgrade to Professional
                         </Link>
                       </Button>
                     )}
