@@ -31,7 +31,6 @@ model User {
   emailLogs      EmailLog[]
   themePreferences ThemePreference[]
   customThemes   CustomTheme[]
-  venueFavorites VenueFavorite[]
 
   @@map("users")
 }
@@ -516,30 +515,6 @@ model CustomTheme {
   @@map("custom_themes")
 }
 
-model VenueFavorite {
-  id              String   @id @default(cuid())
-  venueId         String   // External venue ID from venue provider
-  userId          String
-  wizardSessionId String?  // Optional wizard session ID for tracking
-  favorited       Boolean  @default(true)
-  selected        Boolean  @default(false) // Only one venue can be selected per user/party
-  // Cached venue data for quick access
-  title           String
-  address         String
-  rating          Float?
-  reviewsCount    Int?
-  phone           String?
-  website         String?
-  imageUrl        String?
-  category        String?
-  coordinates     Json?    // Store lat/lng coordinates
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([venueId, userId]) // Prevent duplicate favorites
-  @@map("venue_favorites")
-}
 
 enum ThemeType {
   CLASSIC

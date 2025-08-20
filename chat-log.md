@@ -1,3 +1,17 @@
+## [usr-1755654335616]
+**User Request:** remove the venue tab and favourite venue tab. do a complete cleanup and ensure there is no junk data or non-functional code.
+**Response Summary:** Successfully completed comprehensive removal of all venue and favorites functionality from the birthday planner application. Removed VenueFavorite database model and schema, deleted all venue-related API endpoints (/api/venues and /api/venue-favorites), removed VenuesTab, FavoritesTab, and SelectedVenueDisplay components, cleaned up venue tabs from party plan page, removed venue-related imports and hooks (useSelectedVenue), updated subscription context to remove venues and favorites from Pro plan features, and ensured build passes without errors. Complete cleanup completed with no remaining venue-related code or junk data.
+**Files Modified:** 
+- prisma/schema.prisma (removed VenueFavorite model and User relation)
+- app/api/venues/ (deleted entire directory)
+- app/api/venue-favorites/ (deleted entire directory)
+- components/VenuesTab.tsx (deleted)
+- components/FavoritesTab.tsx (deleted)
+- components/SelectedVenueDisplay.tsx (deleted)
+- hooks/useSelectedVenue.ts (deleted)
+- app/party-plan/page.tsx (removed venue/favorites imports, tab definitions, content sections, and gradient styles)
+- contexts/SubscriptionContext.tsx (removed venue references from Pro plan features and allowedTabs)
+
 ## [usr-1755652110534]
 **User Request:** Enhance the Venues feature with these integrations:
 

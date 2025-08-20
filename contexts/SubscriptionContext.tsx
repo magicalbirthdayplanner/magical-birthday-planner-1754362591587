@@ -49,12 +49,11 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
     features: [
       'Everything in Plus',
       'Vendor recommendations (cakes, decor, entertainment)',
-      'Venue discovery and booking assistance',
       'Personalized food suggestions by age & theme',
       'Advanced budget tracking',
       'Complete party planning suite',
     ],
-    allowedTabs: ['overview', 'themes', 'budget', 'activities', 'host-mode', 'shopping', 'food', 'cake', 'venues', 'favorites', 'guests', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'themes', 'budget', 'activities', 'host-mode', 'shopping', 'food', 'cake', 'guests', 'timeline', 'checklist']
   }
 };
 
