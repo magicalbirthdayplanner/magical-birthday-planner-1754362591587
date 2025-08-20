@@ -59,6 +59,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           setSession(session)
           setUser(session?.user ?? null)
+          
+          // Clear localStorage when user signs in to prevent fallback data conflicts
+          if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
+            try {
+              localStorage.removeItem('partyData')
+              localStorage.removeItem('partyChecklist')
+              localStorage.removeItem('partyGuests')
+              localStorage.removeItem('partyGuests_timestamp')
+              localStorage.removeItem('partyInvitations')
+              localStorage.removeItem('partyInvitations_timestamp')
+              localStorage.removeItem('partyBudget')
+              localStorage.removeItem('partyShoppingList')
+              localStorage.removeItem('demoPartyData')
+              console.log('Cleared localStorage on sign-in to prevent data conflicts')
+            } catch (error) {
+              console.warn('Failed to clear localStorage on sign-in:', error)
+            }
+          }
         } else if (event === 'SIGNED_OUT') {
           setSession(null)
           setUser(null)
@@ -95,6 +113,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.user && data.session) {
         setUser(data.user)
         setSession(data.session)
+        
+        // Clear localStorage to prevent fallback data conflicts
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('partyData')
+            localStorage.removeItem('partyChecklist')
+            localStorage.removeItem('partyGuests')
+            localStorage.removeItem('partyGuests_timestamp')
+            localStorage.removeItem('partyInvitations')
+            localStorage.removeItem('partyInvitations_timestamp')
+            localStorage.removeItem('partyBudget')
+            localStorage.removeItem('partyShoppingList')
+            localStorage.removeItem('demoPartyData')
+          } catch (error) {
+            console.warn('Failed to clear localStorage on signup:', error)
+          }
+        }
       }
       
       return { error: null }
@@ -119,6 +154,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.user && data.session) {
         setUser(data.user)
         setSession(data.session)
+        
+        // Clear localStorage to prevent fallback data conflicts
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('partyData')
+            localStorage.removeItem('partyChecklist')
+            localStorage.removeItem('partyGuests')
+            localStorage.removeItem('partyGuests_timestamp')
+            localStorage.removeItem('partyInvitations')
+            localStorage.removeItem('partyInvitations_timestamp')
+            localStorage.removeItem('partyBudget')
+            localStorage.removeItem('partyShoppingList')
+            localStorage.removeItem('demoPartyData')
+          } catch (error) {
+            console.warn('Failed to clear localStorage on signin:', error)
+          }
+        }
       }
       
       return { error: null }

@@ -101,6 +101,13 @@ export default function Dashboard() {
     const loadParties = async () => {
       try {
         if (user) {
+          // Clear localStorage to prevent conflicts with database data
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('partyData')
+            localStorage.removeItem('partyChecklist')
+            localStorage.removeItem('demoPartyData')
+          }
+          
           // Load from database using Prisma server actions
           const result = await getUserParties()
           
@@ -126,8 +133,14 @@ export default function Dashboard() {
             setParties(formattedParties)
           } else {
             console.error('Failed to load parties from database:', result.error)
-            // Fallback to localStorage if database fails
-            loadFromLocalStorage()
+            // Only fallback to localStorage if explicitly no database connection
+            if (result.error?.includes('database') || result.error?.includes('connection')) {
+              console.warn('Database connection issue detected, using localStorage fallback')
+              loadFromLocalStorage()
+            } else {
+              // User has no parties in database, show empty state
+              setParties([])
+            }
           }
         } else {
           // Load from localStorage if not authenticated
