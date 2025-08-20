@@ -18,7 +18,6 @@ import CakeBakeryTab from "@/components/CakeBakeryTab";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
 import ThemesTab from "@/components/ThemesTab";
-import VenuesTab from "@/components/VenuesTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -204,14 +203,6 @@ export default function PartyPlanPage() {
       gradient: 'from-purple-600 to-pink-600',
       hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
       allowedPlans: ['activities'] // Plus and Pro plans (same as Activities)
-    },
-    {
-      id: 'venues',
-      label: 'Venues',
-      icon: MapPin,
-      gradient: 'from-amber-500 to-orange-500',
-      hoverColor: 'bg-amber-50 dark:bg-amber-900/20',
-      allowedPlans: ['venues'] // Pro plan only
     },
     {
       id: 'shopping',
@@ -1740,28 +1731,6 @@ export default function PartyPlanPage() {
             />
           </ProtectedTabContent>
 
-          {/* Venues Tab */}
-          <ProtectedTabContent tabName="venues" className="space-y-6">
-            <VenuesTab
-              partyData={{
-                childName: partyData?.childName,
-                childAge: partyData?.childAge,
-                selectedTheme: partyData?.selectedTheme || undefined,
-                theme: partyData?.theme || undefined,
-                interests: partyData?.interests,
-                favoriteColors: partyData?.favoriteColors,
-                budget: partyData?.budget,
-                zipCode: partyData?.zipCode,
-                guestCount: partyData?.guestCount,
-                venue: partyData?.venue,
-                duration: partyData?.duration
-              }}
-              onUpdateParty={(updates) => {
-                // Future: Handle party data updates 
-                console.log('Venue updates:', updates);
-              }}
-            />
-          </ProtectedTabContent>
 
           {/* Shopping Tab */}
           <ProtectedTabContent tabName="shopping" className="space-y-6">

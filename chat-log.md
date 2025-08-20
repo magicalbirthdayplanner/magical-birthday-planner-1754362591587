@@ -1,3 +1,14 @@
+## [usr-1755650018706]
+**User Request:** remove the venue functionality all together
+**Response Summary:** Successfully removed all venue functionality from the application, including the VenuesTab component, venues API route, venue-related database models (VenueFavorite, VenueFeedback), venue references from subscription plans, party plan tabs, and documentation. The application now focuses on other party planning features without venue discovery capabilities.
+**Files Modified:** 
+- Deleted: components/VenuesTab.tsx
+- Deleted: app/api/venues/route.ts  
+- Modified: app/party-plan/page.tsx (removed VenuesTab import and venues tab content)
+- Modified: contexts/SubscriptionContext.tsx (removed venues from Pro plan tabs)
+- Modified: prisma/schema.prisma (removed VenueFavorite and VenueFeedback models)
+- Modified: README.md (removed venue feature descriptions and references)
+
 ## [usr-1755649077906]
 **User Request:** Take their location input (ZIP/City) from the wizard.
 

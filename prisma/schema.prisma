@@ -31,8 +31,6 @@ model User {
   emailLogs      EmailLog[]
   themePreferences ThemePreference[]
   customThemes   CustomTheme[]
-  venueFavorites VenueFavorite[]
-  venueFeedbacks VenueFeedback[]
 
   @@map("users")
 }
@@ -523,52 +521,5 @@ enum ThemeType {
   AI_GENERATED
 }
 
-model VenueFavorite {
-  id              String   @id @default(cuid())
-  userId          String
-  partyId         String?
-  venueId         String   // External venue ID from Apify
-  venueName       String
-  venueLocation   String?
-  venueAddress    String?
-  venueRating     Float?
-  venuePrice      String?
-  venueType       String?
-  venueWebsite    String?
-  venuePhone      String?
-  matchScore      Int?
-  aiNote          String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, venueId])
-  @@map("venue_favorites")
-}
-
-model VenueFeedback {
-  id         String        @id @default(cuid())
-  userId     String
-  partyId    String?
-  venueId    String        // External venue ID from Apify
-  venueName  String
-  feedback   VenueFeedbackType
-  rating     Int?          // 1-5 star rating
-  notes      String?       // Optional user notes
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, venueId])
-  @@map("venue_feedback")
-}
-
-enum VenueFeedbackType {
-  THUMBS_UP
-  THUMBS_DOWN
-  NOT_INTERESTED
-  CONTACTED
-  VISITED
-}
 
 
