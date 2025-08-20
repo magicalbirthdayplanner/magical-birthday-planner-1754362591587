@@ -1,3 +1,13 @@
+## [usr-1755718358871]
+**User Request:** Error when creating a new party
+
+Attachments: @.ideavo-attachments/image_21.png
+
+**Response Summary:** Successfully resolved the "prepared statement 's12' already exists" PostgreSQL error that was preventing party creation. The issue was caused by PGBouncer connection pooling in session mode, which reuses database connections and causes conflicts when Prisma tries to create prepared statements on connections that already have existing prepared statements from previous queries. Fixed by changing the DATABASE_URL pool mode from `pool_mode=session` to `pool_mode=transaction`, which ensures prepared statements are properly cleaned up between transactions. This eliminates the 42P05 error code and allows party creation to work correctly. Build passes successfully with the database connection pooling fix implemented.
+
+**Files Modified:** 
+- .env (updated DATABASE_URL to use transaction pool mode instead of session mode to prevent prepared statement conflicts)
+
 ## [usr-1755660430790]
 **User Request:** STILL SAME ISSUE WHEN TRYING TO CREATE PARTY
 
