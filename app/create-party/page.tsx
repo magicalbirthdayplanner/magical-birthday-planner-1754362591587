@@ -521,21 +521,19 @@ export default function CreatePartyPage() {
               )}
             </div>
             
-            {/* Enhanced Error Message Display */}
+            {/* Error Message Display */}
             {submitError && (
               <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
                 <div className="flex items-center mb-3">
                   <AlertTriangle className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
-                  <p className="text-sm text-red-700 dark:text-red-300 font-medium">{submitError}</p>
+                  <p className="text-sm text-red-700 dark:text-red-300">{submitError}</p>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  {(submitError.includes('session') || submitError.includes('Authentication') || submitError.includes('sign in')) ? (
+                <div className="flex gap-3">
+                  {submitError.includes('Authentication session issue') ? (
                     <>
                       <Button 
                         onClick={async () => {
                           try {
-                            setSubmitError(null);
-                            console.log('Signing out user due to authentication error...');
                             await signOut();
                             // Redirect to signin page after signout
                             setTimeout(() => {
@@ -543,35 +541,12 @@ export default function CreatePartyPage() {
                             }, 100);
                           } catch (error) {
                             console.error('Sign out error:', error);
-                            setSubmitError('Unable to sign out. Please refresh the page and try again.');
                           }
                         }}
                         size="sm"
                         className="bg-blue-600 hover:bg-blue-700 text-white"
                       >
                         Sign Out & Sign In Again
-                      </Button>
-                      <Button 
-                        onClick={() => window.location.reload()}
-                        size="sm"
-                        variant="outline"
-                        className="text-red-700 border-red-300 hover:bg-red-100"
-                      >
-                        Refresh Page
-                      </Button>
-                    </>
-                  ) : submitError.includes('connectivity') || submitError.includes('timeout') || submitError.includes('network') ? (
-                    <>
-                      <Button 
-                        onClick={() => {
-                          setSubmitError(null);
-                          // Retry the operation
-                          handleSubmit();
-                        }}
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        Retry Now
                       </Button>
                       <Button 
                         onClick={() => window.location.reload()}
