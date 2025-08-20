@@ -18,22 +18,29 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Check if tables already exist first
-    const { data: existingTables, error: checkError } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-
-    if (checkError) {
-      console.error('Error checking existing tables:', checkError)
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Failed to check existing tables',
-        details: checkError 
-      }, { status: 500 })
+    // Check if tables already exist by trying to select from them
+    let existingTableNames: string[] = []
+    const tablesToCheck = ['users', 'parties', 'guests', 'invitations']
+    
+    for (const tableName of tablesToCheck) {
+      try {
+        const { error } = await supabase
+          .from(tableName)
+          .select('id')
+          .limit(1)
+        
+        if (!error) {
+          existingTableNames.push(tableName)
+        }
+      } catch (e) {
+        // Table doesn't exist or permission issue
+        console.log(`Table ${tableName} check failed:`, e)
+      }
     }
 
-    const tableNames = existingTables?.map(t => t.table_name) || []
+    // Continue with table checking logic
+
+    const tableNames = existingTableNames || []
     const requiredTables = ['users', 'parties', 'guests', 'invitations']
     const missingTables = requiredTables.filter(table => !tableNames.includes(table))
 
@@ -290,22 +297,25 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Check if tables exist by querying table information
-    const { data: tables, error } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .in('table_name', ['users', 'parties', 'guests', 'invitations'])
-
-    if (error) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Failed to check table existence',
-        details: error 
-      }, { status: 500 })
+    // Check if tables exist by trying to query them directly
+    let existingTables: string[] = []
+    const tablesToCheck = ['users', 'parties', 'guests', 'invitations']
+    
+    for (const tableName of tablesToCheck) {
+      try {
+        const { error } = await supabase
+          .from(tableName)
+          .select('id')
+          .limit(1)
+        
+        if (!error) {
+          existingTables.push(tableName)
+        }
+      } catch (e) {
+        // Table doesn't exist or permission issue
+        console.log(`Table ${tableName} check failed in GET:`, e)
+      }
     }
-
-    const existingTables = tables?.map(t => t.table_name) || []
     const requiredTables = ['users', 'parties', 'guests', 'invitations']
     const missingTables = requiredTables.filter(table => !existingTables.includes(table))
 
