@@ -11,11 +11,31 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
       url: process.env.DATABASE_URL,
     },
   },
-  // Optimized configuration for Vercel serverless deployment
+  // Enhanced connection pooling for Supabase
   transactionOptions: {
-    timeout: 20000, // 20 seconds - increased for cold starts and serverless environments
-    maxWait: 10000, // 10 seconds max wait for connection pool to accommodate cold starts
-  }
+    timeout: 15000, // 15 seconds for complex operations
+    maxWait: 8000, // 8 seconds max wait for connection pool
+  },
 })
+
+// Enhanced connection management for serverless
+export async function connectToPrisma() {
+  try {
+    await prisma.$connect();
+    return true;
+  } catch (error) {
+    console.error('Prisma connection failed:', error);
+    return false;
+  }
+}
+
+// Graceful disconnect helper
+export async function disconnectFromPrisma() {
+  try {
+    await prisma.$disconnect();
+  } catch (error) {
+    console.error('Prisma disconnect error:', error);
+  }
+}
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
