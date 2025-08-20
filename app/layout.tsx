@@ -7,6 +7,8 @@ import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import DomainRedirect from '@/components/DomainRedirect';
+import SessionSync from '@/components/SessionSync';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -32,6 +34,8 @@ export default function RootLayout({
           <ThemeProvider>
             <AuthProvider>
               <SubscriptionProvider>
+                <DomainRedirect />
+                <SessionSync />
                 <Header />
                 <main className="pt-14 sm:pt-16 min-h-screen">
                   <ErrorBoundary>

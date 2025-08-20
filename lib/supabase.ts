@@ -20,7 +20,14 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
       },
       set(name: string, value: string, options: any) {
         try {
-          cookies().set({ name, value, ...options })
+          // Set cookies with domain configuration for cross-domain compatibility
+          const cookieOptions = {
+            ...options,
+            domain: process.env.NODE_ENV === 'production' ? '.magicalbirthdayplanner.com' : undefined,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+          }
+          cookies().set({ name, value, ...cookieOptions })
         } catch (error) {
           // The `set` method was called from a Server Component.
           // This can be ignored if you have middleware refreshing
@@ -29,7 +36,13 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
       },
       remove(name: string, options: any) {
         try {
-          cookies().set({ name, value: '', ...options })
+          const cookieOptions = {
+            ...options,
+            domain: process.env.NODE_ENV === 'production' ? '.magicalbirthdayplanner.com' : undefined,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+          }
+          cookies().set({ name, value: '', ...cookieOptions })
         } catch (error) {
           // The `delete` method was called from a Server Component.
           // This can be ignored if you have middleware refreshing
