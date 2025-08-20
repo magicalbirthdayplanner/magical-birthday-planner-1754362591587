@@ -1,3 +1,13 @@
+## [usr-1755656288268]
+**User Request:** Can you install n8n 
+**Response Summary:** Successfully installed and integrated n8n workflow automation platform into the Next.js project. Added n8n package to dependencies, created webhook API endpoint for receiving n8n triggers, implemented utility functions for triggering n8n workflows from the application, added environment variables for n8n webhook URLs, and created a reusable WorkflowTrigger component for testing and managing n8n integrations. The integration supports party creation events, RSVP tracking, guest management, and invitation sending workflows. Resolved jsonwebtoken dependency issue that was blocking the build. Build now passes successfully with all n8n components properly integrated.
+**Files Modified:** 
+- package.json (added n8n dependency, removed unused jsonwebtoken)
+- app/api/n8n/webhook/route.ts (new webhook endpoint for n8n integration)
+- lib/n8n.ts (new utility functions for n8n workflow management)
+- lib/env-config.ts (added n8n webhook environment variables)
+- components/n8n/WorkflowTrigger.tsx (new component for testing workflows)
+
 ## [usr-1755655692131]
 **User Request:** i am not able to save party in vercel deployed apps and custom domain. 
 

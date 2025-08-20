@@ -90,6 +90,30 @@ export const ENV_VARIABLES: EnvVariable[] = [
     required: false,
     instructions: "Go to [Positionstack](https://positionstack.com/) → Sign up → Dashboard → Copy your API access key (free tier: 25,000 requests/month)"
   },
+  {
+    name: "N8N_PARTY_WEBHOOK_URL",
+    description: "n8n webhook URL for party creation events",
+    required: false,
+    instructions: "Create a workflow in n8n with a Webhook trigger → Copy the Production webhook URL"
+  },
+  {
+    name: "N8N_RSVP_WEBHOOK_URL",
+    description: "n8n webhook URL for RSVP events",
+    required: false,
+    instructions: "Create a workflow in n8n with a Webhook trigger → Copy the Production webhook URL"
+  },
+  {
+    name: "N8N_GUEST_WEBHOOK_URL",
+    description: "n8n webhook URL for guest management events",
+    required: false,
+    instructions: "Create a workflow in n8n with a Webhook trigger → Copy the Production webhook URL"
+  },
+  {
+    name: "N8N_INVITATION_WEBHOOK_URL",
+    description: "n8n webhook URL for invitation sending events",
+    required: false,
+    instructions: "Create a workflow in n8n with a Webhook trigger → Copy the Production webhook URL"
+  },
 ];
 
 export interface EnvVariable {
