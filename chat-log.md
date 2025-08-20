@@ -1,3 +1,91 @@
+## [usr-1755667231423]
+**User Request:** 2025-08-20T05:19:47.488Z [info] 🔍 Testing database connection (attempt 1/3)...
+2025-08-20T05:19:47.507Z [info] prisma:error 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`
+
+Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.
+2025-08-20T05:19:47.507Z [error] ❌ Database connection failed (attempt 1/3): {
+  error: '\n' +
+    'Invalid `prisma.$queryRaw()` invocation:\n' +
+    '\n' +
+    '\n' +
+    "Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`\n" +
+    '\n' +
+    'Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.',
+  code: undefined,
+  meta: undefined
+}
+2025-08-20T05:19:47.507Z [info] ⏳ Retrying in 1000ms...
+2025-08-20T05:19:48.508Z [info] 🔍 Testing database connection (attempt 2/3)...
+2025-08-20T05:19:48.527Z [info] prisma:error 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`
+
+Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.
+2025-08-20T05:19:48.528Z [error] ❌ Database connection failed (attempt 2/3): {
+  error: '\n' +
+    'Invalid `prisma.$queryRaw()` invocation:\n' +
+    '\n' +
+    '\n' +
+    "Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`\n" +
+    '\n' +
+    'Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.',
+  code: undefined,
+  meta: undefined
+}
+2025-08-20T05:19:48.528Z [info] ⏳ Retrying in 2000ms...
+2025-08-20T05:19:50.528Z [info] 🔍 Testing database connection (attempt 3/3)...
+2025-08-20T05:19:50.547Z [info] prisma:error 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`
+
+Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.
+2025-08-20T05:19:50.547Z [error] ❌ Database connection failed (attempt 3/3): {
+  error: '\n' +
+    'Invalid `prisma.$queryRaw()` invocation:\n' +
+    '\n' +
+    '\n' +
+    "Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`\n" +
+    '\n' +
+    'Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.',
+  code: undefined,
+  meta: undefined
+}
+2025-08-20T05:19:50.547Z [error] 💥 All database connection attempts failed: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`
+
+Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.
+2025-08-20T05:19:50.547Z [error] Prisma connection failed: Error: Database connection failed after 3 attempts: 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Can't reach database server at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`
+
+Please make sure your database server is running at `db.nwgqmsuaoflklrgrxfwy.supabase.co:5432`.
+    at o (/var/task/.next/server/app/api/user/theme/route.js:1:3524)
+    at async n (/var/task/.next/server/app/api/user/theme/route.js:1:3625)
+    at async t (/var/task/.next/server/app/api/user/subscription/route.js:1:1432)
+    at async p (/var/task/.next/server/app/api/user/subscription/route.js:1:1955)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25561)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+2025-08-20T05:19:50.547Z [error] Failed to connect to database for subscription fetch
+**Response Summary:** Successfully resolved comprehensive Prisma P1001 database connectivity issues for Supabase deployment. Fixed missing DIRECT_URL configuration, enhanced SSL security, updated database testing endpoint to use Prisma client, and verified full connectivity. Build now passes with successful database connection during static generation: "✅ Database connection successful: [ { ok: 1 } ]"
+**Files Modified:** .env (added DIRECT_URL with SSL, enhanced DATABASE_URL with SSL), app/api/db-ping/route.ts (migrated from raw pg client to enhanced Prisma client with comprehensive testing)
+
 ## [usr-1755666741044]
 **User Request:** 2025-08-20T05:10:56.509Z [info] 🎉 Starting party creation process with data: {
   childName: 'd',
