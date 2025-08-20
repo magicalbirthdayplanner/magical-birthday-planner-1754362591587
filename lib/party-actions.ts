@@ -5,251 +5,132 @@ import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 
-// Enhanced database connection health check for Vercel serverless
+// Simplified database connection check for serverless environments
 async function ensureDbConnection() {
   try {
     console.log('Testing database connection...')
     
-    // Set connection timeout to prevent hanging - optimized for production
+    // Single, fast database connectivity test
     const connectionPromise = prisma.$queryRaw`SELECT 1 as health_check`
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Database connection timeout')), 10000) // Increased to 10s for stability
+      setTimeout(() => reject(new Error('Database connection timeout')), 3000) // Reduced to 3s for faster feedback
     })
     
     await Promise.race([connectionPromise, timeoutPromise])
     console.log('✓ Database connection verified successfully')
     return true
   } catch (error) {
-    console.error('❌ Database connection failed, attempting recovery:', error)
-    
-    // Enhanced recovery strategy for serverless environments
-    try {
-      // Graceful disconnect first
-      await prisma.$disconnect()
-      console.log('Disconnected from database, waiting for reconnection...')
-      
-      // Reduced wait time for better user experience
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Test connection again with timeout protection
-      const reconnectPromise = prisma.$queryRaw`SELECT CURRENT_TIMESTAMP as reconnect_test`
-      const reconnectTimeout = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Reconnection timeout')), 3000)
-      })
-      
-      await Promise.race([reconnectPromise, reconnectTimeout])
-      console.log('✓ Database reconnection successful')
-      return true
-    } catch (retryError) {
-      console.error('❌ Database reconnection failed:', retryError)
-      
-      // Final attempt with minimal timeout to fail fast
-      try {
-        await new Promise(resolve => setTimeout(resolve, 500))
-        const finalPromise = prisma.$queryRaw`SELECT 'final_attempt' as test`
-        const finalTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Final connection attempt timeout')), 2000)
-        })
-        
-        await Promise.race([finalPromise, finalTimeout])
-        console.log('✓ Database connection restored on final attempt')
-        return true
-      } catch (finalError) {
-        console.error('❌ All database connection attempts failed:', finalError)
-        throw new Error(`Database connectivity issues detected. Please try again in a few moments.`)
-      }
-    }
+    console.error('❌ Database connection failed:', error)
+    throw new Error('Database connection failed. Please try again.')
   }
 }
 
-// Enhanced retry mechanism specifically optimized for Vercel serverless deployment
+// Simplified retry mechanism for serverless environments
 async function retryWithExponentialBackoff<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 2, // Reduced retries to prevent long hanging
-  baseDelay: number = 1000 // Reduced base delay for faster feedback
+  maxRetries: number = 1 // Single retry only for fast feedback
 ): Promise<T> {
-  let lastError: Error | null = null
-  
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      console.log(`🔄 Database operation attempt ${attempt + 1}/${maxRetries + 1}`)
-      
-      // Pre-operation connection health check for critical operations
-      if (attempt > 0) {
-        await ensureDbConnection()
-      }
-      
-      const result = await operation()
-      console.log(`✅ Database operation succeeded on attempt ${attempt + 1}`)
-      return result
-    } catch (error) {
-      lastError = error as Error
-      console.error(`❌ Database operation attempt ${attempt + 1} failed:`, {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        attempt: attempt + 1,
-        maxRetries: maxRetries + 1
-      })
-      
-      // Don't retry on the last attempt
-      if (attempt === maxRetries) {
-        console.error('🚫 All retry attempts exhausted')
-        break
-      }
-      
-      // Enhanced error detection and recovery for serverless environments
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      if (
+  try {
+    console.log(`🔄 Database operation attempt 1/${maxRetries + 1}`)
+    const result = await operation()
+    console.log('✅ Database operation succeeded')
+    return result
+  } catch (error) {
+    console.error('❌ Database operation failed:', error instanceof Error ? error.message : 'Unknown error')
+    
+    // Single retry for connection issues only
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (
+      maxRetries > 0 && (
         errorMessage.includes("Can't reach database server") ||
         errorMessage.includes("connection terminated") ||
         errorMessage.includes("Connection terminated") ||
         errorMessage.includes("ETIMEDOUT") ||
-        errorMessage.includes("ECONNRESET") ||
-        errorMessage.includes("ENOTFOUND")
-      ) {
-        console.log('🔧 Connection error detected, performing enhanced recovery...')
-        try {
-          // Aggressive disconnection and reconnection
-          await prisma.$disconnect()
-          console.log('Disconnected from database for clean reconnection')
-          
-          // Reduced wait time for faster user feedback
-          const recoveryDelay = 500 + (attempt * 250)
-          await new Promise(resolve => setTimeout(resolve, recoveryDelay))
-          
-          // Test connection before next attempt
-          await ensureDbConnection()
-        } catch (recoveryError) {
-          console.error('Recovery attempt failed:', recoveryError)
-        }
+        errorMessage.includes("ECONNRESET")
+      )
+    ) {
+      console.log('🔧 Connection error detected, attempting single retry...')
+      try {
+        await prisma.$disconnect()
+        await new Promise(resolve => setTimeout(resolve, 500)) // Short delay
+        
+        console.log('🔄 Database operation retry attempt')
+        const result = await operation()
+        console.log('✅ Database operation succeeded on retry')
+        return result
+      } catch (retryError) {
+        console.error('❌ Retry attempt failed:', retryError instanceof Error ? retryError.message : 'Unknown error')
+        throw new Error(`Database operation failed after retry: ${retryError instanceof Error ? retryError.message : 'Unknown error'}`)
       }
-      
-      // Reduced exponential backoff with jitter for faster feedback
-      const jitter = Math.random() * 200 // Reduced jitter
-      const delay = Math.min((baseDelay * Math.pow(1.5, attempt)) + jitter, 3000) // Cap max delay at 3s
-      console.log(`⏳ Retrying in ${Math.round(delay)}ms... (attempt ${attempt + 2}/${maxRetries + 1})`)
-      await new Promise(resolve => setTimeout(resolve, delay))
     }
+    
+    // No retry for other types of errors
+    throw error
   }
-  
-  const finalError = new Error(
-    `Database operation failed after ${maxRetries + 1} attempts. Last error: ${lastError?.message || 'Unknown error'}`
-  )
-  console.error('💥 Final error:', finalError.message)
-  throw finalError
 }
 
 export async function getCurrentUser() {
   try {
     const supabase = createServerComponentClient({ cookies })
     
-    // Enhanced session validation with retry mechanism for production environment
-    let authAttempts = 0
-    const maxAttempts = 5 // Increased for better reliability
-    let lastError: Error | null = null
+    // Simplified authentication with fast fail for serverless environments
+    console.log('🔐 Validating user authentication...')
     
-    while (authAttempts < maxAttempts) {
-      try {
-        console.log(`🔐 Auth attempt ${authAttempts + 1}/${maxAttempts}`)
-        
-        // First, check session validity
-        const sessionPromise = supabase.auth.getSession()
-        const sessionTimeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Session check timeout')), 3000)
-        })
-        
-        const { data: sessionData, error: sessionError } = await Promise.race([
-          sessionPromise, 
-          sessionTimeoutPromise
-        ])
-        
-        if (sessionError || !sessionData.session) {
-          throw new Error(`Session invalid: ${sessionError?.message || 'No active session'}`)
-        }
-        
-        // If session is valid, get user with timeout protection
-        const getUserPromise = supabase.auth.getUser()
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('User fetch timeout')), 8000) // Increased timeout
-        })
-        
-        const { data, error } = await Promise.race([getUserPromise, timeoutPromise])
-        
-        if (error) {
-          throw new Error(`Authentication error: ${error.message}`)
-        }
-        
-        if (!data.user) {
-          throw new Error('No authenticated user found')
-        }
-        
-        // Validate user has required properties
-        if (!data.user.id || !data.user.email) {
-          throw new Error('Invalid user data: missing id or email')
-        }
-        
-        // Cross-validate session and user consistency
-        if (sessionData.session.user.id !== data.user.id) {
-          throw new Error('Session-user mismatch detected')
-        }
-        
-        console.log('✅ User authentication successful:', { 
-          id: data.user.id, 
-          email: data.user.email,
-          sessionValid: !!sessionData.session,
-          attempt: authAttempts + 1 
-        })
-        
-        return data.user
-        
-      } catch (error) {
-        lastError = error as Error
-        authAttempts++
-        
-        console.warn(`❌ Auth attempt ${authAttempts} failed:`, lastError.message)
-        
-        // Don't retry on the last attempt
-        if (authAttempts === maxAttempts) {
-          break
-        }
-        
-        // Enhanced error-specific retry logic
-        const errorMessage = lastError.message.toLowerCase()
-        if (errorMessage.includes('timeout') || errorMessage.includes('connection')) {
-          // Connection issues - progressive delay
-          const delay = 1000 + (500 * authAttempts) // 1.5s, 2s, 2.5s, 3s
-          console.log(`⏳ Connection issue detected, retrying in ${delay}ms...`)
-          await new Promise(resolve => setTimeout(resolve, delay))
-        } else if (errorMessage.includes('session')) {
-          // Session issues - shorter delay
-          const delay = 300 * authAttempts // 300ms, 600ms, 900ms, 1.2s
-          console.log(`🔄 Session issue detected, retrying in ${delay}ms...`)
-          await new Promise(resolve => setTimeout(resolve, delay))
-        } else {
-          // Other errors - standard delay
-          const delay = 500 * authAttempts
-          await new Promise(resolve => setTimeout(resolve, delay))
-        }
-      }
+    // Single, fast authentication check with shorter timeout
+    const authPromise = Promise.all([
+      supabase.auth.getSession(),
+      supabase.auth.getUser()
+    ])
+    
+    // Reduced timeout for faster feedback in serverless environment
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Authentication timeout')), 5000) // Reduced to 5s
+    })
+    
+    const [sessionResult, userResult] = await Promise.race([authPromise, timeoutPromise])
+    
+    // Check session
+    const { data: sessionData, error: sessionError } = sessionResult
+    if (sessionError || !sessionData.session) {
+      throw new Error('No valid session found. Please sign in again.')
     }
     
-    // All attempts failed - provide specific error categorization
-    const errorMessage = lastError?.message || 'Authentication failed'
-    console.error('❌ All authentication attempts failed:', errorMessage)
-    
-    // Categorize the final error for better user guidance
-    if (errorMessage.includes('timeout')) {
-      throw new Error('Authentication service is taking too long to respond. Please check your internet connection and try again.')
-    } else if (errorMessage.includes('session') || errorMessage.includes('No authenticated user')) {
-      throw new Error('Your session has expired or is invalid. Please sign in again to continue.')
-    } else if (errorMessage.includes('connection') || errorMessage.includes('network')) {
-      throw new Error('Network connectivity issues detected. Please check your internet connection and try again.')
-    } else {
-      throw new Error(`Authentication failed after ${maxAttempts} attempts: ${errorMessage}`)
+    // Check user
+    const { data: userData, error: userError } = userResult
+    if (userError || !userData.user) {
+      throw new Error('User authentication failed. Please sign in again.')
     }
+    
+    // Validate user has required properties
+    if (!userData.user.id || !userData.user.email) {
+      throw new Error('Invalid user data. Please sign out and sign in again.')
+    }
+    
+    // Cross-validate session and user consistency
+    if (sessionData.session.user.id !== userData.user.id) {
+      throw new Error('Session mismatch detected. Please sign in again.')
+    }
+    
+    console.log('✅ User authentication successful:', { 
+      id: userData.user.id, 
+      email: userData.user.email
+    })
+    
+    return userData.user
     
   } catch (error) {
     console.error('getCurrentUser error:', error)
-    throw error
+    
+    // Simplified error categorization
+    const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
+    
+    if (errorMessage.includes('timeout')) {
+      throw new Error('Authentication taking too long. Please check your connection and try again.')
+    } else if (errorMessage.includes('session') || errorMessage.includes('sign in')) {
+      throw new Error('Please sign in again to continue.')
+    } else {
+      throw new Error(`Authentication failed: ${errorMessage}`)
+    }
   }
 }
 
@@ -266,16 +147,18 @@ export async function createParty(partyData: {
   kidCount?: number
   budget?: number
   location?: string
+  venue?: 'indoor' | 'outdoor' | 'mixed'
+  duration?: string
   status?: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELED'
 }) {
   try {
     console.log('🎉 Starting party creation process with data:', partyData)
     
-    // Set overall timeout for the entire function to prevent hanging
+    // Reduced overall timeout for faster feedback
     const operationTimeout = new Promise<never>((_, reject) => {
       setTimeout(() => {
-        reject(new Error('Operation timeout: Party creation took too long. This might be due to database connectivity issues.'))
-      }, 15000) // 15 second timeout - increased for better reliability on production
+        reject(new Error('Operation timeout: Party creation is taking too long. Please try again.'))
+      }, 8000) // Reduced to 8 seconds for faster feedback
     })
     
     const createPartyOperation = async () => {
@@ -287,11 +170,11 @@ export async function createParty(partyData: {
       
       console.log('✅ Authenticated user:', { id: user.id, email: user.email })
 
-      // Enhanced pre-operation database health check
-      console.log('🔍 Performing comprehensive database health check...')
+      // Quick database health check
+      console.log('🔍 Testing database connection...')
       await ensureDbConnection()
       
-      // Create user in database if doesn't exist with enhanced retry mechanism
+      // Create user in database if doesn't exist
       console.log('👤 Creating/updating user in database...')
       const dbUser = await retryWithExponentialBackoff(async () => {
         return await prisma.user.upsert({
@@ -307,7 +190,7 @@ export async function createParty(partyData: {
       
       console.log('✅ Database user created/updated:', { id: dbUser.id, email: dbUser.email })
 
-      // Create party with enhanced retry mechanism
+      // Create party
       console.log('🎊 Creating party in database...')
       const party = await retryWithExponentialBackoff(async () => {
         return await prisma.party.create({
@@ -348,26 +231,22 @@ export async function createParty(partyData: {
   } catch (error) {
     console.error('💥 Error creating party:', error)
     
-    // Enhanced error categorization and user-friendly messages
+    // Simplified error categorization for better user experience
     let errorMessage: string
     if (error instanceof Error) {
-      if (error.message.includes('timeout') || error.message.includes('took too long')) {
-        errorMessage = 'The server is taking longer than expected to respond. This might be due to high traffic or network issues. Please try again in a moment.'
-      } else if (error.message.includes('Authentication failed') || error.message.includes('Auth timeout') || error.message.includes('No authenticated user') || error.message.includes('Invalid user data')) {
-        errorMessage = 'Authentication issue detected. Please sign out and sign back in, then try creating your party again.'
-      } else if (error.message.includes('Authentication required') || error.message.includes('not authenticated')) {
-        errorMessage = 'Please sign in again to continue creating your party.'
-      } else if (error.message.includes('Database connectivity') || error.message.includes('connection')) {
-        errorMessage = 'We\'re experiencing temporary connectivity issues. Please wait a moment and try again.'
+      if (error.message.includes('timeout') || error.message.includes('taking too long')) {
+        errorMessage = 'Request is taking too long. Please check your internet connection and try again.'
+      } else if (error.message.includes('sign in') || error.message.includes('Authentication')) {
+        errorMessage = 'Please sign in again to continue.'
+      } else if (error.message.includes('Database connection failed')) {
+        errorMessage = 'Unable to connect to database. Please try again in a moment.'
       } else if (error.message.includes('UNIQUE constraint') || error.message.includes('duplicate')) {
-        errorMessage = 'It looks like this party already exists. Please check your party list or try with different details.'
-      } else if (error.message.includes('after') && error.message.includes('attempts')) {
-        errorMessage = 'Multiple connection attempts failed. Please check your internet connection and try again, or try refreshing the page.'
+        errorMessage = 'This party already exists. Please check your party list.'
       } else {
         errorMessage = `Unable to create party: ${error.message}`
       }
     } else {
-      errorMessage = 'An unexpected error occurred while creating your party. Please try again.'
+      errorMessage = 'An unexpected error occurred. Please try again.'
     }
     
     return { 
