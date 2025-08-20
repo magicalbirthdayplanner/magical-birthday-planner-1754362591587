@@ -180,6 +180,7 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [customKeywords, setCustomKeywords] = useState(""); // New state for custom venue search
   const [filterType, setFilterType] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("match-score");
   const [currentPage, setCurrentPage] = useState(1);
@@ -206,7 +207,7 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
     }
   }, []);
 
-  const loadVenues = async (page = 1) => {
+  const loadVenues = async (page = 1, searchKeywords?: string) => {
     try {
       setLoading(page === 1);
       setLoadingMore(page > 1);
@@ -217,6 +218,10 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
       if (partyData.childAge) searchParams.set('age', partyData.childAge);
       if (partyData.selectedTheme || partyData.theme) {
         searchParams.set('theme', partyData.selectedTheme || partyData.theme || '');
+      }
+      // Add custom keywords for enhanced venue search
+      if (searchKeywords || customKeywords) {
+        searchParams.set('customKeywords', searchKeywords || customKeywords);
       }
       if (partyData.guestCount) searchParams.set('capacity', partyData.guestCount.toString());
       if (partyData.budget) searchParams.set('budget', partyData.budget.toString());
@@ -602,16 +607,72 @@ export default function VenuesTab({ partyData, onUpdateParty }: VenuesTabProps) 
         </TabsList>
 
         <TabsContent value="browse" className="space-y-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search venues by name or location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+          {/* Enhanced Search Section */}
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-700">
+            <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-200 mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Find Your Perfect Venue
+            </h3>
+            
+            <div className="space-y-4">
+              {/* Custom Keywords Search */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                  🎯 Search by Theme or Type (e.g., "unicorn birthday venue", "indoor play center")
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Try: princess party hall, trampoline park, bowling alley..."
+                    value={customKeywords}
+                    onChange={(e) => setCustomKeywords(e.target.value)}
+                    className="pl-10 h-12 text-base"
+                  />
+                </div>
+              </div>
+              
+              {/* Regular Search */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                  📍 Filter Results by Name or Location
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Filter by venue name or neighborhood..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              {/* Search Button */}
+              <Button 
+                onClick={() => {
+                  setCurrentPage(1);
+                  setHasMore(true);
+                  loadVenues(1, customKeywords);
+                }}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 h-12"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="mr-2 h-4 w-4" />
+                    Search Venues
+                  </>
+                )}
+              </Button>
             </div>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-4 items-center">
             
             <div className="flex gap-2">
               <Select value={filterType} onValueChange={setFilterType}>

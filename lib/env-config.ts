@@ -78,6 +78,18 @@ export const ENV_VARIABLES: EnvVariable[] = [
     required: false,
     instructions: "Go to [Apify Console](https://console.apify.com) → Settings → Account → Copy your User ID"
   },
+  {
+    name: "GEOAPIFY_API_KEY",
+    description: "Geoapify API key for location geocoding (ZIP/City to coordinates)",
+    required: false,
+    instructions: "Go to [Geoapify](https://www.geoapify.com/) → Create account → MyProjects → Create new project → Copy API key (free tier: 3,000 requests/day)"
+  },
+  {
+    name: "POSITIONSTACK_API_KEY",
+    description: "Positionstack API key for backup geocoding service",
+    required: false,
+    instructions: "Go to [Positionstack](https://positionstack.com/) → Sign up → Dashboard → Copy your API access key (free tier: 25,000 requests/month)"
+  },
 ];
 
 export interface EnvVariable {

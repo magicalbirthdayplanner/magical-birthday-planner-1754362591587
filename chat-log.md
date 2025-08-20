@@ -1,3 +1,161 @@
+## [usr-1755649077906]
+**User Request:** Take their location input (ZIP/City) from the wizard.
+
+Default to a 10-mile radius search area.
+
+Use the theme or custom keyword box (like "unicorn birthday venue" or "indoor play center") to generate search terms.
+
+Query the Google Maps Scraper Actor via Apify API.
+
+Display the results back as venue cards with personalization.
+
+🎯 System Flow
+
+Wizard Step 3 – Location Input
+
+Parent enters ZIP code → used as the base search.
+
+Search Radius
+
+Default to 10 miles (configurable).
+
+Implemented via Apify's customGeolocation with a Point + radiusKm.
+
+{
+  "type": "Point",
+  "coordinates": ["-73.935242", "40.730610"], 
+  "radiusKm": 16
+}
+
+
+(16 km ≈ 10 miles)
+
+Custom Search Terms Box
+
+Parent can enter "indoor playground", "princess party hall", "sports birthday venue".
+
+These become the searchStringsArray for Apify.
+
+Backend Integration
+
+Node.js backend calls Apify client:
+
+import { ApifyClient } from 'apify-client';
+
+const client = new ApifyClient({ token: process.env.APIFY_TOKEN });
+
+async function fetchVenues(location, searchTerms, radiusKm = 16) {
+  const input = {
+    searchStringsArray: searchTerms,
+    locationQuery: location,   // e.g. "Boston, MA"
+    customGeolocation: {
+      type: "Point",
+      coordinates: ["-71.0589", "42.3601"], // from geocoding the zip
+      radiusKm
+    },
+    maxCrawledPlacesPerSearch: 50,
+    placeMinimumStars: "four",
+    scrapePlaceDetailPage: true,
+    skipClosedPlaces: true,
+    language: "en",
+  };
+
+  const run = await client.actor("apify/google-maps-scraper").call(input);
+  const { items } = await client.dataset(run.defaultDatasetId).listItems();
+
+  return items.map(place => ({
+    id: place.placeId,
+    name: place.title,
+    address: place.address,
+    rating: place.totalScore,
+    reviews: place.reviewsCount,
+    price: place.price,
+    phone: place.phone,
+    website: place.website,
+    image: place.imageUrl,
+    coordinates: place.location,
+    category: place.categoryName,
+  }));
+}
+
+
+Frontend (Venues Tab)
+
+Venue cards show:
+
+Name + image
+
+Address, rating, price
+
+"Perfect for a Cinderella theme!" AI note (from GPT-4.1 enrichment).
+
+⭐ Favorite, 👍/👎 Feedback
+
+**Response Summary:** Successfully implemented comprehensive location-based venue search system with Apify integration, geocoding services, and enhanced custom keyword search functionality for the Magical Birthday Planner app.
+
+### Key Implementation Details:
+
+**1. Geocoding Service Integration:**
+- Created robust geocoding utility (`lib/geocoding.ts`) with multiple fallback services:
+  - Primary: Geoapify (3,000 requests/day free tier)
+  - Backup: OpenStreetMap Nominatim (free, no API key required)
+  - Fallback: Positionstack (25,000 requests/month free tier)
+- Automatic location detection with ZIP/City to latitude/longitude conversion
+- Default 10-mile radius search area (16km for Apify) with configurable options
+- Distance calculation utilities for radius validation
+
+**2. Enhanced Apify Integration:**
+- Updated venue search API (`app/api/venues/route.ts`) with geocoding integration
+- Implemented customGeolocation parameter with Point + radiusKm for precise searches
+- Enhanced search query building with priority-based term generation:
+  - Priority 1: Custom keywords (user input like "unicorn birthday venue")
+  - Priority 2: Theme-based filtering (princess, superhero, dinosaur, etc.)
+  - Priority 3: Age-appropriate venue suggestions
+  - Priority 4: Indoor/outdoor preferences
+  - Priority 5: Party size considerations
+  - Priority 6: Budget-based venue filtering
+- Increased search parameters for better results (50+ venues per search, 4-star minimum rating)
+
+**3. Frontend Enhancement (VenuesTab.tsx):**
+- Added prominent custom keywords search input with examples
+- Redesigned search interface with themed styling and clear instructions
+- Integrated custom keyword functionality with API calls
+- Enhanced search button with loading states and visual feedback
+- Maintained existing filtering and sorting capabilities
+
+**4. Environment Configuration:**
+- Added new environment variables for geocoding services:
+  - `GEOAPIFY_API_KEY` (optional, for enhanced geocoding)
+  - `POSITIONSTACK_API_KEY` (optional, backup geocoding service)
+- Updated env-config.ts with proper descriptions and setup instructions
+
+**5. Wizard Integration:**
+- Confirmed existing wizard already captures ZIP code input in Step 2
+- Location data is automatically passed to venue search API
+- Custom keywords can be entered directly in the Venues tab search interface
+
+**6. System Flow Implementation:**
+- ✅ Parent enters ZIP code in wizard → used as base search location
+- ✅ Geocoding converts ZIP to coordinates → passed to Apify as customGeolocation
+- ✅ Default 10-mile radius (16km) → implemented in search parameters
+- ✅ Custom keyword box → "unicorn birthday venue", "indoor play center" supported
+- ✅ Enhanced search terms → dynamically generated based on all party data
+- ✅ Apify Google Maps Scraper → enhanced with all specified parameters
+- ✅ Venue cards with personalization → AI contextual notes and venue details
+- ✅ Rating, address, phone, website → all displayed in venue cards
+
+**7. Technical Enhancements:**
+- TypeScript interface updates for new search parameters
+- Improved error handling with fallback to demo data
+- Build verification passed with all changes compiling successfully
+- Enhanced logging for debugging geocoding and search operations
+
+**Files Modified:** 
+- `lib/geocoding.ts` (new file)
+- `lib/env-config.ts`
+- `app/api/venues/route.ts`
+- `components/VenuesTab.tsx`
+
 ## [usr-1755611175977]
 **User Request:** You are adding Apify-powered venue search to the Magical Birthday Planner app.  
 

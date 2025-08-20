@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { geocodeLocation, DEFAULT_SEARCH_RADIUS_KM } from "@/lib/geocoding";
 
 export interface VenueSearchParams {
   location?: string;
   zipCode?: string;
   radius?: number;
   theme?: string;
+  customKeywords?: string; // New field for theme or custom keyword searches
   age?: number;
   budget?: number;
   capacity?: number;
@@ -369,22 +371,50 @@ async function fetchVenuesFromApify(searchParams: VenueSearchParams): Promise<Ve
     const searchTerms = buildSearchQueries(searchParams);
     const locationQuery = searchParams.location || searchParams.zipCode || "New York, NY";
     
+    // Try to geocode the location for enhanced precision
+    let customGeolocation: any = null;
+    const radiusKm = searchParams.radius ? searchParams.radius * 1.60934 : DEFAULT_SEARCH_RADIUS_KM; // Convert miles to km or use default
+    
+    try {
+      console.log(`Attempting to geocode location: ${locationQuery}`);
+      const geocodeResult = await geocodeLocation(locationQuery);
+      
+      if (geocodeResult.success && geocodeResult.latitude && geocodeResult.longitude) {
+        customGeolocation = {
+          type: "Point",
+          coordinates: [geocodeResult.longitude.toString(), geocodeResult.latitude.toString()],
+          radiusKm: Math.round(radiusKm)
+        };
+        console.log(`Successfully geocoded to coordinates: ${geocodeResult.latitude}, ${geocodeResult.longitude} with ${radiusKm}km radius`);
+      }
+    } catch (geocodeError) {
+      console.warn("Geocoding failed, proceeding with location query only:", geocodeError);
+    }
+    
     const input = {
       searchStringsArray: searchTerms,
       locationQuery: locationQuery,
-      maxCrawledPlacesPerSearch: 20,
+      ...(customGeolocation && { customGeolocation }), // Add geolocation if available
+      maxCrawledPlacesPerSearch: 50, // Increased for better results
+      placeMinimumStars: "four", // Focus on highly rated venues
+      scrapePlaceDetailPage: true, // Get detailed venue information
+      skipClosedPlaces: true, // Only include open venues
       language: "en",
       countryCode: "US",
       exportPlaceUrls: false,
       additionalInfo: true,
-      maxImages: 1,
-      maxReviews: 5,
+      maxImages: 3, // Get more images for venue cards
+      maxReviews: 10, // Get more reviews for AI context
       reviewsSort: "newest",
       onlyDataFromSearchPage: false,
-      maxCrawledPlaces: 50
+      maxCrawledPlaces: 100 // Increase total crawling limit
     };
 
-    console.log("Calling Apify Google Maps Scraper with input:", input);
+    console.log("Calling Apify Google Maps Scraper with enhanced input:", {
+      ...input,
+      searchTermsCount: searchTerms.length,
+      hasGeolocation: !!customGeolocation
+    });
     
     // Run the Google Maps Scraper actor
     const run = await client.actor("apify/google-maps-scraper").call(input, {
@@ -439,10 +469,60 @@ function buildSearchQueries(params: VenueSearchParams): string[] {
   // Base query with location
   const baseLocation = params.location || params.zipCode || "";
   
-  // Age-based venue filtering
+  // Priority 1: Custom keywords (if provided)
+  if (params.customKeywords && params.customKeywords.trim()) {
+    const customTerms = params.customKeywords.trim();
+    queries.push(`${customTerms} birthday party venue ${baseLocation}`);
+    queries.push(`${customTerms} party venue ${baseLocation}`);
+    queries.push(`${customTerms} ${baseLocation}`);
+    
+    // Add variations with common party venue terms
+    queries.push(`${customTerms} party halls ${baseLocation}`);
+    queries.push(`${customTerms} event venues ${baseLocation}`);
+  }
+  
+  // Priority 2: Theme-based venue filtering
+  if (params.theme) {
+    const theme = params.theme.toLowerCase();
+    if (theme.includes('princess')) {
+      queries.push(`princess party venues ${baseLocation}`);
+      queries.push(`elegant party halls ${baseLocation}`);
+      queries.push(`princess theme birthday venue ${baseLocation}`);
+    } else if (theme.includes('superhero')) {
+      queries.push(`superhero party venues ${baseLocation}`);
+      queries.push(`arcade birthday parties ${baseLocation}`);
+      queries.push(`superhero theme party venue ${baseLocation}`);
+    } else if (theme.includes('dinosaur')) {
+      queries.push(`dinosaur theme parties ${baseLocation}`);
+      queries.push(`museum birthday parties ${baseLocation}`);
+      queries.push(`dinosaur party venue ${baseLocation}`);
+    } else if (theme.includes('space')) {
+      queries.push(`space theme birthday parties ${baseLocation}`);
+      queries.push(`planetarium parties ${baseLocation}`);
+      queries.push(`science center events ${baseLocation}`);
+    } else if (theme.includes('safari') || theme.includes('animal')) {
+      queries.push(`zoo birthday parties ${baseLocation}`);
+      queries.push(`animal encounters parties ${baseLocation}`);
+      queries.push(`petting zoo events ${baseLocation}`);
+    } else if (theme.includes('ocean') || theme.includes('mermaid')) {
+      queries.push(`aquarium birthday parties ${baseLocation}`);
+      queries.push(`water park parties ${baseLocation}`);
+      queries.push(`swimming pool parties ${baseLocation}`);
+    } else if (theme.includes('pirate')) {
+      queries.push(`pirate theme parties ${baseLocation}`);
+      queries.push(`adventure party venues ${baseLocation}`);
+      queries.push(`pirate ship party venue ${baseLocation}`);
+    } else if (theme.includes('unicorn')) {
+      queries.push(`unicorn birthday parties ${baseLocation}`);
+      queries.push(`magical party venues ${baseLocation}`);
+      queries.push(`unicorn theme party venue ${baseLocation}`);
+    }
+  }
+  
+  // Priority 3: Age-based venue filtering
   if (params.age) {
     if (params.age <= 3) {
-      queries.push(`toddler birthday party venues near ${baseLocation}`);
+      queries.push(`toddler birthday party venues ${baseLocation}`);
       queries.push(`indoor play spaces for toddlers ${baseLocation}`);
     } else if (params.age <= 6) {
       queries.push(`kids birthday party venues ${baseLocation}`);
@@ -459,40 +539,7 @@ function buildSearchQueries(params: VenueSearchParams): string[] {
     }
   }
   
-  // Theme-based venue filtering
-  if (params.theme) {
-    const theme = params.theme.toLowerCase();
-    if (theme.includes('princess')) {
-      queries.push(`princess party venues ${baseLocation}`);
-      queries.push(`elegant party halls ${baseLocation}`);
-    } else if (theme.includes('superhero')) {
-      queries.push(`superhero party venues ${baseLocation}`);
-      queries.push(`arcade birthday parties ${baseLocation}`);
-    } else if (theme.includes('dinosaur')) {
-      queries.push(`dinosaur theme parties ${baseLocation}`);
-      queries.push(`museum birthday parties ${baseLocation}`);
-    } else if (theme.includes('space')) {
-      queries.push(`space theme birthday parties ${baseLocation}`);
-      queries.push(`planetarium parties ${baseLocation}`);
-      queries.push(`science center events ${baseLocation}`);
-    } else if (theme.includes('safari') || theme.includes('animal')) {
-      queries.push(`zoo birthday parties ${baseLocation}`);
-      queries.push(`animal encounters parties ${baseLocation}`);
-      queries.push(`petting zoo events ${baseLocation}`);
-    } else if (theme.includes('ocean') || theme.includes('mermaid')) {
-      queries.push(`aquarium birthday parties ${baseLocation}`);
-      queries.push(`water park parties ${baseLocation}`);
-      queries.push(`swimming pool parties ${baseLocation}`);
-    } else if (theme.includes('pirate')) {
-      queries.push(`pirate theme parties ${baseLocation}`);
-      queries.push(`adventure party venues ${baseLocation}`);
-    } else if (theme.includes('unicorn')) {
-      queries.push(`unicorn birthday parties ${baseLocation}`);
-      queries.push(`magical party venues ${baseLocation}`);
-    }
-  }
-  
-  // Indoor/Outdoor preference
+  // Priority 4: Indoor/Outdoor preference
   if (params.venueType) {
     if (params.venueType === 'indoor') {
       queries.push(`indoor birthday party venues ${baseLocation}`);
@@ -504,7 +551,7 @@ function buildSearchQueries(params: VenueSearchParams): string[] {
     }
   }
   
-  // Party size consideration
+  // Priority 5: Party size consideration
   if (params.capacity) {
     if (params.capacity > 50) {
       queries.push(`large party venues ${baseLocation}`);
@@ -518,7 +565,7 @@ function buildSearchQueries(params: VenueSearchParams): string[] {
     }
   }
   
-  // Budget consideration
+  // Priority 6: Budget consideration
   if (params.budget) {
     if (params.budget < 200) {
       queries.push(`affordable birthday party venues ${baseLocation}`);
@@ -534,10 +581,13 @@ function buildSearchQueries(params: VenueSearchParams): string[] {
     queries.push(`kids birthday party venues ${baseLocation}`);
     queries.push(`children's party halls ${baseLocation}`);
     queries.push(`birthday party venues ${baseLocation}`);
+    queries.push(`indoor play center ${baseLocation}`);
+    queries.push(`party venue ${baseLocation}`);
   }
   
-  // Limit to maximum 10 queries to avoid rate limits
-  return queries.slice(0, 10);
+  // Remove duplicates and limit to maximum 15 queries for better coverage
+  const uniqueQueries = Array.from(new Set(queries));
+  return uniqueQueries.slice(0, 15);
 }
 
 export async function GET(request: NextRequest) {
@@ -549,6 +599,7 @@ export async function GET(request: NextRequest) {
       zipCode: searchParams.get('zipCode') || undefined,
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : undefined,
       theme: searchParams.get('theme') || undefined,
+      customKeywords: searchParams.get('customKeywords') || undefined,
       age: searchParams.get('age') ? parseInt(searchParams.get('age')!) : undefined,
       budget: searchParams.get('budget') ? parseInt(searchParams.get('budget')!) : undefined,
       capacity: searchParams.get('capacity') ? parseInt(searchParams.get('capacity')!) : undefined,
