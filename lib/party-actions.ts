@@ -99,44 +99,21 @@ async function retryWithExponentialBackoff<T>(
       
       // Enhanced error detection and recovery for serverless environments
       const errorMessage = error instanceof Error ? error.message : String(error)
-      if (
-        errorMessage.includes("Can't reach database server") ||
-        errorMessage.includes("connection terminated") ||
-        errorMessage.includes("Connection terminated") ||
-        errorMessage.includes("ETIMEDOUT") ||
-        errorMessage.includes("ECONNRESET") ||
-        errorMessage.includes("ENOTFOUND")
-      ) {
-        console.log('🔧 Connection error detected, performing enhanced recovery...')
-        try {
-          // Aggressive disconnection and reconnection
-          await prisma.$disconnect()
-          console.log('Disconnected from database for clean reconnection')
-          
-          // Reduced wait time for faster user feedback
-          const recoveryDelay = 500 + (attempt * 250)
-          await new Promise(resolve => setTimeout(resolve, recoveryDelay))
-          
-          // Test connection before next attempt
-          await ensureDbConnection()
-        } catch (recoveryError) {
-          console.error('Recovery attempt failed:', recoveryError)
-        }
+      
+      // Don't retry on certain types of errors
+      if (errorMessage.includes('P1001') || errorMessage.includes('P1002') || errorMessage.includes('P1003')) {
+        console.error('🚫 Database connection error detected, skipping retry')
+        break
       }
       
-      // Reduced exponential backoff with jitter for faster feedback
-      const jitter = Math.random() * 200 // Reduced jitter
-      const delay = Math.min((baseDelay * Math.pow(1.5, attempt)) + jitter, 3000) // Cap max delay at 3s
-      console.log(`⏳ Retrying in ${Math.round(delay)}ms... (attempt ${attempt + 2}/${maxRetries + 1})`)
+      // Exponential backoff with jitter
+      const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000
+      console.log(`⏳ Waiting ${Math.round(delay)}ms before retry...`)
       await new Promise(resolve => setTimeout(resolve, delay))
     }
   }
   
-  const finalError = new Error(
-    `Database operation failed after ${maxRetries + 1} attempts. Last error: ${lastError?.message || 'Unknown error'}`
-  )
-  console.error('💥 Final error:', finalError.message)
-  throw finalError
+  throw lastError || new Error('Operation failed after all retry attempts')
 }
 
 export async function getCurrentUser() {

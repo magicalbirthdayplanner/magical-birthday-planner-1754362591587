@@ -299,132 +299,111 @@ export default function CreatePartyPage() {
   };
 
   const handleSubmit = async () => {
-    if (!user) {
-      setShowAuthModal(true);
+    if (!partyData.childName || !partyData.childAge || !partyData.partyDate) {
+      setSubmitError("Please fill in all required fields");
       return;
     }
 
-    // Validate session before proceeding
-    console.log('Validating user session before party creation...')
-    const supabase = createClientComponentClient()
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      if (error || !session) {
-        console.error('Session validation failed:', error)
-        setSubmitError('Session expired. Please sign in again to create your party.')
-        setShowAuthModal(true)
-        return
-      }
-      console.log('✅ Session validated successfully')
-    } catch (sessionError) {
-      console.error('Session check failed:', sessionError)
-      setSubmitError('Unable to validate your session. Please try refreshing the page or signing in again.')
-      return
-    }
-
-    console.log('Starting party creation with user:', { id: user.id, email: user.email })
-    console.log('Party data:', partyData)
-
     setIsSubmitting(true);
     setSubmitError(null);
-    setSubmissionStep('Validating party details...');
-    
-    // Client-side timeout to prevent infinite loading (30 seconds)
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('Request timed out. This might be due to network issues. Please try again.'));
-      }, 30000);
-    });
-    
+    setSubmissionStep('Creating your party...');
+
     try {
-      // Validate required fields
-      if (!partyData.childName || !partyData.partyDate) {
-        throw new Error('Missing required fields: child name or party date');
-      }
+      const partyDataToSubmit = {
+        childName: partyData.childName,
+        childAge: partyData.childAge,
+        childGender: partyData.childGender,
+        partyDate: partyData.partyDate,
+        theme: partyData.selectedTheme || "Superhero",
+        interests: partyData.childInterests,
+        favoriteColors: partyData.favoriteColors,
+        guestCount: partyData.guestCount,
+        adultCount: partyData.adultCount,
+        kidCount: partyData.kidCount,
+        budget: partyData.budget,
+        location: partyData.zipCode,
+      };
 
-      let partyId = partyData.partyId;
+      console.log('Submitting party data:', partyDataToSubmit);
 
-      // If we don't have a party ID from auto-save, create the party
-      if (!partyId) {
-        setSubmissionStep('Preparing party data...');
+      const result = await createParty(partyDataToSubmit);
+
+      if (result.success && result.party) {
+        setSubmissionStep('Party created successfully!');
         
-        const createPayload = {
-          childName: partyData.childName,
-          childAge: partyData.childAge,
-          childGender: partyData.childGender,
-          partyDate: partyData.partyDate!,
-          theme: "", // No default theme - user can select in themes tab
-          interests: partyData.childInterests,
-          favoriteColors: partyData.favoriteColors,
-          guestCount: partyData.guestCount,
-          adultCount: partyData.adultCount,
-          kidCount: partyData.kidCount,
-          budget: partyData.budget || undefined,
-          location: partyData.zipCode,
-          venue: partyData.venue,
-          duration: partyData.duration,
-          status: 'PLANNING' as const,
-        };
-
-        console.log('Creating party with payload:', createPayload)
-        setSubmissionStep('Creating your magical party plan...');
-
-        // Create party in database using server action with timeout protection
-        const result = await Promise.race([
-          createParty(createPayload),
-          timeoutPromise
-        ]);
-
-        console.log('Party creation result:', result)
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to create party');
-        }
-
-        if (!result.party?.id) {
-          throw new Error('Party created but no ID returned');
-        }
-
-        partyId = result.party.id;
-      }
-
-      setSubmissionStep('Finalizing your party plan...');
-      
-      // Show sparkling effect
-      setShowSparklingEffect(true);
-      
-      // Wait for sparkling effect to show before navigation
-      setTimeout(() => {
-        // Clear the form data from localStorage after successful creation
+        // Store party data locally as backup
+        localStorage.setItem('lastCreatedParty', JSON.stringify({
+          ...partyDataToSubmit,
+          id: result.party.id,
+          createdAt: new Date().toISOString()
+        }));
+        
+        // Clear form data
         localStorage.removeItem('partyData');
         
-        // Navigate to the party dashboard
-        console.log('Redirecting to party:', partyId);
-        router.push(`/party-plan?id=${partyId}`);
-      }, 2000); // 2 second delay for sparkling effect
-
-    } catch (error) {
-      console.error('Party creation error:', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      
-      // Show user-friendly error messages with specific actions
-      if (errorMessage.includes('Authentication issue detected') || errorMessage.includes('sign out and sign back in')) {
-        setSubmitError('Authentication session issue detected. Please sign out and sign back in to resolve this issue.');
-      } else if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
-        setSubmitError('The request is taking longer than expected. Please check your internet connection and try again.');
-      } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-        setSubmitError('Network error occurred. Please check your internet connection and try again.');
-      } else if (errorMessage.includes('validation') || errorMessage.includes('required')) {
-        setSubmitError('Please fill in all required fields and try again.');
-      } else if (errorMessage.includes('Multiple connection attempts failed')) {
-        setSubmitError('Multiple connection attempts failed. Please try refreshing the page or check your internet connection.');
+        // Show success and redirect
+        setTimeout(() => {
+          router.push(`/party-plan?id=${result.party.id}`);
+        }, 1000);
       } else {
-        setSubmitError(`Failed to create party: ${errorMessage}`);
+        // If database creation fails, store locally as fallback
+        console.warn('Database creation failed, storing party locally as fallback');
+        const fallbackParty = {
+          ...partyDataToSubmit,
+          id: `local_${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          isLocalBackup: true
+        };
+        
+        localStorage.setItem('lastCreatedParty', JSON.stringify(fallbackParty));
+        localStorage.setItem('localParties', JSON.stringify([
+          ...JSON.parse(localStorage.getItem('localParties') || '[]'),
+          fallbackParty
+        ]));
+        
+        setSubmissionStep('Party saved locally (database connection issue)');
+        
+        // Still redirect to party plan with local data
+        setTimeout(() => {
+          router.push(`/party-plan?id=${fallbackParty.id}&local=true`);
+        }, 1000);
       }
+    } catch (error: any) {
+      console.error('Error creating party:', error);
       
+      // Fallback: store party data locally
+      const fallbackParty = {
+        childName: partyData.childName,
+        childAge: partyData.childAge,
+        childGender: partyData.childGender,
+        partyDate: partyData.partyDate,
+        theme: partyData.selectedTheme || "Superhero",
+        interests: partyData.childInterests,
+        favoriteColors: partyData.favoriteColors,
+        guestCount: partyData.guestCount,
+        adultCount: partyData.adultCount,
+        kidCount: partyData.kidCount,
+        budget: partyData.budget,
+        location: partyData.zipCode,
+        id: `local_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        isLocalBackup: true
+      };
+      
+      localStorage.setItem('lastCreatedParty', JSON.stringify(fallbackParty));
+      localStorage.setItem('localParties', JSON.stringify([
+        ...JSON.parse(localStorage.getItem('localParties') || '[]'),
+        fallbackParty
+      ]));
+      
+      setSubmitError(`Party saved locally due to connection issues. You can continue planning, and we'll sync with the database when connection is restored.`);
+      
+      // Redirect to party plan with local data
+      setTimeout(() => {
+        router.push(`/party-plan?id=${fallbackParty.id}&local=true`);
+      }, 2000);
+    } finally {
       setIsSubmitting(false);
-      setSubmissionStep('');
     }
   };
 
