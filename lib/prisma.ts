@@ -19,13 +19,6 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
     timeout: 20000, // 20 seconds - increased for cold starts and serverless environments
     maxWait: 10000, // 10 seconds max wait for connection pool to accommodate cold starts
   },
-  // Enhanced connection pooling for Supabase + Vercel
-  connection: {
-    pool: {
-      min: 0,
-      max: 1, // Limit to 1 connection for serverless
-    },
-  },
 })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
