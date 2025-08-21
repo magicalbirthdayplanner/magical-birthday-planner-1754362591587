@@ -711,10 +711,10 @@ export default function CreatePartyPage() {
         }
       } else {
         // For classic themes without child details, proceed directly to step 3 
-        if (step < 5) setStep(step + 1);
+        if (step < 3) setStep(step + 1);
       }
     } else {
-      if (step < 5) setStep(step + 1);
+      if (step < 3) setStep(step + 1);
     }
   };
 
@@ -895,11 +895,7 @@ export default function CreatePartyPage() {
         }
         return false; // Neither theme type selected - navigation disabled
       case 3:
-        return partyData.selectedTheme !== "";
-      case 4:
-        return partyData.currency && partyData.currency !== "" && partyData.budget !== undefined && partyData.country && partyData.zipCode !== "" && !partyData.zipCodeError && partyData.guestCount !== undefined; // Step 4 requires currency, budget, country, valid postal code, and guest count
-      case 5:
-        return true; // Step 5 is always valid since it's just the summary/creation step
+        return true; // Step 3 is always valid since it's just the summary/creation step
       default:
         return false;
     }
@@ -918,13 +914,13 @@ export default function CreatePartyPage() {
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-2 leading-tight">
             Plan your Magical Birthday Party
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 px-2">Plan your child's dream birthday in just 5 simple steps!</p>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 px-2">Plan your child's dream birthday in just 3 simple steps!</p>
         </div>
 
         {/* Progress Indicator */}
         <div className="flex items-center justify-center mb-6 sm:mb-8 overflow-x-auto">
           <div className="flex items-center space-x-2 sm:space-x-4 px-4">
-            {[1, 2, 3, 4, 5].map((stepNumber) => (
+            {[1, 2, 3].map((stepNumber) => (
               <div key={stepNumber} className="flex items-center flex-shrink-0">
                 <div
                   className={cn(
@@ -936,7 +932,7 @@ export default function CreatePartyPage() {
                 >
                     {stepNumber}
                   </div>
-                {stepNumber < 5 && (
+                {stepNumber < 3 && (
                   <div
                     className={cn(
                       "w-8 sm:w-16 h-0.5 sm:h-1 mx-1 sm:mx-2 transition-colors",
@@ -955,16 +951,12 @@ export default function CreatePartyPage() {
             <CardTitle className="text-xl sm:text-2xl">
               {step === 1 && "Tell us about your child"}
               {step === 2 && "What does your child love?"}
-              {step === 3 && "Choose a theme"}
-              {step === 4 && "Party details"}
-              {step === 5 && "Create your party plan"}
+              {step === 3 && "Create your party plan"}
             </CardTitle>
             <CardDescription className="text-sm sm:text-base px-2">
               {step === 1 && "Basic information about your child and when the party will be"}
               {step === 2 && "Help us personalize themes based on your child's interests and favorite colors"}
-              {step === 3 && "Select a theme that your child will absolutely love"}
-              {step === 4 && "Budget, location, and guest count information"}
-              {step === 5 && "Ready to create your magical party plan?"}
+              {step === 3 && "Ready to create your magical party plan?"}
             </CardDescription>
             
             {/* Navigation Buttons at Top */}
@@ -979,7 +971,7 @@ export default function CreatePartyPage() {
                 Back
               </Button>
               
-              {step < 5 ? (
+              {step < 3 ? (
                 <Button
                   onClick={handleNext}
                   disabled={!isStepValid() || isNavigating}

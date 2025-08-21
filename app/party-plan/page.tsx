@@ -144,49 +144,7 @@ const themeData = {
   // Add more themes as needed
 };
 
-// Restricted Tab Message Component
-const RestrictedTabMessage = ({ tabName, requiredPlan }: { tabName: string; requiredPlan: string }) => {
-  const getPlanDisplayName = (plan: string) => {
-    switch (plan) {
-      case 'FREE': return 'Starter';
-      case 'STARTER': return 'Plus';
-      case 'PROFESSIONAL': return 'Pro';
-      default: return plan;
-    }
-  };
 
-  return (
-    <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50">
-      <CardContent className="text-center py-12">
-        <div className="space-y-4">
-          <Crown className="h-16 w-16 mx-auto text-yellow-500 opacity-60" />
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {tabName} Feature Locked
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              This feature is only available on the {getPlanDisplayName(requiredPlan)} plan and above.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                <Link href="/pricing">
-                  <Crown className="h-4 w-4 mr-2" />
-                  View Plans
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/dashboard">
-                  <Home className="h-4 w-4 mr-2" />
-                  Go to Dashboard
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 export default function PartyPlanPage() {
   const { user } = useAuth();
@@ -326,8 +284,8 @@ export default function PartyPlanPage() {
     return currentPlanLevel >= requiredPlanLevel;
   });
 
-  // Get all tabs for display (including restricted ones)
-  const allTabs = tabConfigs;
+  // Get all tabs for display (only allowed tabs, restricted ones disappear)
+  const allTabs = allowedTabs;
 
   // Helper function to check if a tab is restricted for current plan
   const isTabRestricted = (tabId: string): boolean => {
@@ -1609,10 +1567,7 @@ export default function PartyPlanPage() {
             </div>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
-            {isTabRestricted('overview') ? (
-              <RestrictedTabMessage tabName="Overview" requiredPlan={getRequiredPlanForTab('overview')} />
-            ) : (
+                      <TabsContent value="overview" className="space-y-4 sm:space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Theme Card */}
                 <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
