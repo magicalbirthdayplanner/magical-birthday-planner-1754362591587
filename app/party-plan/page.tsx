@@ -560,8 +560,8 @@ export default function PartyPlanPage() {
               return;
             }
             
-            console.log('Party loaded successfully:', { partyId: result.party.data.id, childName: result.party.data.childName });
-            loadPartyDetails(result.party.data);
+                    console.log('Party loaded successfully:', { partyId: result.party.id, childName: result.party.childName });
+        loadPartyDetails(result.party);
             
           } catch (getPartyError) {
             console.error('Error loading party:', getPartyError);
@@ -808,7 +808,7 @@ export default function PartyPlanPage() {
         throw new Error('Failed to fetch party data for sync');
       }
       
-      const dbGuests = partyResult.party.data.guests || [];
+              const dbGuests = partyResult.party.guests || [];
       const localGuests = guestData;
       
       // Handle new guests (those with temporary IDs)
@@ -1029,7 +1029,7 @@ export default function PartyPlanPage() {
         const result = await getParty(currentPartyId);
         if (result.success && result.party?.data) {
           // Update local state with database invitations
-          const dbInvitations = result.party.data.invitations?.map((inv: any) => ({
+          const dbInvitations = result.party.invitations?.map((inv: any) => ({
             id: inv.id,
             guestId: inv.guestId,
             guestName: inv.guest?.name || '',

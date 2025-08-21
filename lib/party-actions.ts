@@ -198,125 +198,48 @@ export async function createParty(partyData: {
   interests: string[]
   favoriteColors: string[]
   guestCount?: number
-  adultCount?: number
-  kidCount?: number
   budget?: number
   location?: string
-  status?: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELED'
+  venue?: string
+  duration?: string
+  status?: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
 }) {
-  try {
-    console.log('🎉 Starting party creation process with data:', partyData)
-    
-    // Set overall timeout for the entire function to prevent hanging
-    const operationTimeout = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('Operation timeout: Party creation took too long. This might be due to database connectivity issues.'))
-      }, 15000) // 15 second timeout - increased for better reliability on production
+  const user = await getCurrentUser()
+  if (!user) throw new Error('Authentication required')
+
+  const supabase = createServerComponentClient({ cookies })
+  
+  const { data, error } = await supabase
+    .from('parties')
+    .insert({
+      user_id: user.id,
+      child_name: partyData.childName,
+      child_age: partyData.childAge,
+      child_gender: partyData.childGender,
+      party_date: partyData.partyDate,
+      theme: partyData.theme,
+      guest_count: partyData.guestCount,
+      budget: partyData.budget,
+      zip_code: partyData.location,
+      venue_type: partyData.venue,
+      status: partyData.status || 'PLANNING'
     })
-    
-    const createPartyOperation = async () => {
-      const user = await getCurrentUser()
-      if (!user) {
-        console.error('❌ No authenticated user found')
-        throw new Error('Authentication required: Please sign in to create a party')
-      }
-      
-      console.log('✅ Authenticated user:', { id: user.id, email: user.email })
+    .select()
+    .single()
 
-      // Enhanced pre-operation database health check
-      console.log('🔍 Performing comprehensive database health check...')
-      const dbConnectionOk = await ensureDbConnection()
-      
-      if (!dbConnectionOk) {
-        console.warn('⚠️ Database connection check failed, but proceeding with operation...')
-      }
-      
-      // Create user in database if doesn't exist with enhanced retry mechanism
-      console.log('👤 Creating/updating user in database...')
-      const dbUser = await retryWithExponentialBackoff(async () => {
-        return await createAdminClient().auth.admin.updateUserById(user.id, {
-          user_metadata: {
-            id: user.id,
-            email: user.email!,
-            name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
-          },
-        })
-      })
-      
-      if (dbUser.data?.user) {
-        console.log('✅ Database user created/updated:', { id: dbUser.data.user.id, email: dbUser.data.user.email })
-      }
-
-      // Create party with enhanced retry mechanism
-      console.log('🎊 Creating party in database...')
-      const party = await retryWithExponentialBackoff(async () => {
-        return await createAdminClient().from('parties').insert({
-          childName: partyData.childName,
-          childAge: partyData.childAge,
-          childGender: partyData.childGender || null,
-          partyDate: partyData.partyDate,
-          theme: partyData.theme,
-          interests: partyData.interests,
-          favoriteColors: partyData.favoriteColors,
-          guestCount: partyData.guestCount || null,
-          adultCount: partyData.adultCount || null,
-          kidCount: partyData.kidCount || null,
-          budget: partyData.budget || null,
-          status: partyData.status || 'PLANNING',
-          userId: user.id,
-        }).select().single()
-      })
-
-      console.log('🎉 Party created successfully:', { 
-        id: party.data?.id, 
-        childName: party.data?.childName, 
-        theme: party.data?.theme,
-        date: party.data?.partyDate 
-      })
-
-      return party
-    }
-
-    // Execute with timeout protection
-    const party = await Promise.race([createPartyOperation(), operationTimeout])
-
-    revalidatePath('/dashboard')
-    revalidatePath('/party-plan')
-    return { success: true, party }
-  } catch (error) {
-    console.error('💥 Error creating party:', error)
-    
-    // Enhanced error categorization and user-friendly messages
-    let errorMessage: string
-    if (error instanceof Error) {
-      if (error.message.includes('timeout') || error.message.includes('took too long')) {
-        errorMessage = 'The server is taking longer than expected to respond. This might be due to high traffic or network issues. Please try again in a moment.'
-      } else if (error.message.includes('Authentication failed') || error.message.includes('Auth timeout') || error.message.includes('No authenticated user') || error.message.includes('Invalid user data')) {
-        errorMessage = 'Authentication issue detected. Please sign out and sign back in, then try creating your party again.'
-      } else if (error.message.includes('Authentication required') || error.message.includes('not authenticated')) {
-        errorMessage = 'Please sign in again to continue creating your party.'
-      } else if (error.message.includes('Database connectivity') || error.message.includes('connection') || error.message.includes('P1001') || error.message.includes('P1002') || error.message.includes('P1003')) {
-        errorMessage = 'We\'re experiencing temporary connectivity issues with our database. Please wait a moment and try again. If the problem persists, please refresh the page.'
-      } else if (error.message.includes('UNIQUE constraint') || error.message.includes('duplicate')) {
-        errorMessage = 'It looks like this party already exists. Please check your party list or try with different details.'
-      } else if (error.message.includes('after') && error.message.includes('attempts')) {
-        errorMessage = 'Multiple connection attempts failed. Please check your internet connection and try again, or try refreshing the page.'
-      } else if (error.message.includes('P2002') || error.message.includes('Unique constraint')) {
-        errorMessage = 'A party with these details already exists. Please try with different information.'
-      } else if (error.message.includes('P2003') || error.message.includes('Foreign key constraint')) {
-        errorMessage = 'There was an issue with the party data. Please try again with different details.'
-      } else {
-        errorMessage = `Unable to create party: ${error.message}`
-      }
-    } else {
-      errorMessage = 'An unexpected error occurred while creating your party. Please try again.'
-    }
-    
-    return { 
-      success: false, 
-      error: errorMessage
-    }
+  if (error) {
+    console.error('Party creation error:', error)
+    throw new Error(error.message)
   }
+
+  if (!data.id) {
+    throw new Error('Party created but no ID returned from database')
+  }
+
+  revalidatePath('/dashboard')
+  revalidatePath('/party-plan')
+
+  return { success: true, party: data }
 }
 
 export async function updateParty(partyId: string, updates: Partial<{
@@ -330,66 +253,44 @@ export async function updateParty(partyId: string, updates: Partial<{
   guestCount: number
   budget: number
   location: string
+  venue: string
+  duration: string
   checklistData: any
-  status: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELED'
+  status: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
 }>) {
-  try {
-    // Set timeout for update operation
-    const operationTimeout = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('Update timeout: Operation took too long. Please try again.'))
-      }, 7000) // 7 second timeout for updates - Vercel compatible
+  const user = await getCurrentUser()
+  if (!user) throw new Error('Authentication required')
+
+  const supabase = createServerComponentClient({ cookies })
+  
+  const { data, error } = await supabase
+    .from('parties')
+    .update({
+      child_name: updates.childName,
+      child_age: updates.childAge,
+      child_gender: updates.childGender,
+      party_date: updates.partyDate,
+      theme: updates.theme,
+      guest_count: updates.guestCount,
+      budget: updates.budget,
+      zip_code: updates.location,
+      venue_type: updates.venue,
+      status: updates.status
     })
+    .eq('id', partyId)
+    .eq('user_id', user.id)
+    .select()
+    .single()
 
-    const updatePartyOperation = async () => {
-      const user = await getCurrentUser()
-      if (!user) {
-        throw new Error('Authentication required: Please sign in to update the party')
-      }
-
-      // Ensure database connection
-      await ensureDbConnection()
-
-      // Update with retry mechanism
-      const party = await retryWithExponentialBackoff(async () => {
-        return await createAdminClient().from('parties').update(updates).eq('id', partyId).eq('userId', user.id).select().single()
-      })
-
-      if (!party.data) {
-        throw new Error('Party not found or you don\'t have permission to update it')
-      }
-
-      return party
-    }
-
-    // Execute with timeout protection
-    await Promise.race([updatePartyOperation(), operationTimeout])
-
-    revalidatePath('/party-plan')
-    revalidatePath('/dashboard')
-    return { success: true }
-  } catch (error) {
-    console.error('Error updating party:', error)
-    
-    let errorMessage: string
-    if (error instanceof Error) {
-      if (error.message.includes('timeout') || error.message.includes('took too long')) {
-        errorMessage = 'The update is taking longer than expected. Please try again in a moment.'
-      } else if (error.message.includes('Authentication required') || error.message.includes('not authenticated')) {
-        errorMessage = 'Please sign in again to continue updating your party.'
-      } else if (error.message.includes('not found') || error.message.includes('permission')) {
-        errorMessage = 'Party not found or you don\'t have permission to update it.'
-      } else if (error.message.includes('Database connectivity') || error.message.includes('connection')) {
-        errorMessage = 'We\'re experiencing temporary connectivity issues. Please try again.'
-      } else {
-        errorMessage = error.message
-      }
-    } else {
-      errorMessage = 'An unexpected error occurred while updating the party.'
-    }
-    
-    return { success: false, error: errorMessage }
+  if (error) {
+    console.error('Party update error:', error)
+    throw new Error(error.message)
   }
+
+  revalidatePath('/party-plan')
+  revalidatePath('/dashboard')
+  
+  return { success: true, party: data }
 }
 
 export async function getParty(partyId: string) {
@@ -399,9 +300,19 @@ export async function getParty(partyId: string) {
       throw new Error('User not authenticated')
     }
 
-    const party = await createAdminClient().from('parties').select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)').eq('id', partyId).eq('userId', user.id).single()
+    const supabase = createServerComponentClient({ cookies })
+    const { data, error } = await supabase
+      .from('parties')
+      .select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)')
+      .eq('id', partyId)
+      .eq('user_id', user.id)
+      .single()
 
-    return { success: true, party }
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { success: true, party: data }
   } catch (error) {
     console.error('Error getting party:', error)
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
@@ -415,18 +326,20 @@ export async function getUserParties() {
       throw new Error('User not authenticated')
     }
 
-    // Ensure user exists in database
-    await createAdminClient().auth.admin.updateUserById(user.id, {
-      user_metadata: {
-        id: user.id,
-        email: user.email!,
-        name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
-      },
-    })
+    const supabase = createServerComponentClient({ cookies })
+    const { data, error } = await supabase
+      .from('parties')
+      .select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)')
+      .eq('user_id', user.id)
+      .eq('status', 'PLANNING')
+      .or(`status.eq.ACTIVE,status.eq.COMPLETED`)
+      .order('party_date', { ascending: true })
 
-    const parties = await createAdminClient().from('parties').select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)').eq('userId', user.id).eq('status', 'PLANNING').or(`status.eq.ACTIVE,status.eq.COMPLETED`).order('party_date', { ascending: true })
+    if (error) {
+      throw new Error(error.message)
+    }
 
-    return { success: true, parties }
+    return { success: true, parties: data }
   } catch (error) {
     console.error('Error getting user parties:', error)
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }

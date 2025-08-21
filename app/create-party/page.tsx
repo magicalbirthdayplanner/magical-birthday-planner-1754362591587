@@ -782,14 +782,14 @@ export default function CreatePartyPage() {
         console.log('Party creation result:', result)
 
         if (!result.success) {
-          throw new Error(result.error || 'Failed to create party');
+          throw new Error('Failed to create party');
         }
 
-        if (!result.party?.data?.id) {
+        if (!result.party?.id) {
           throw new Error('Party created but no ID returned');
         }
 
-        partyId = result.party.data.id;
+        partyId = result.party.id;
       } else {
         setSubmissionStep('Updating party details...');
         
@@ -818,7 +818,7 @@ export default function CreatePartyPage() {
         ]);
 
         if (!result.success) {
-          throw new Error(result.error || 'Failed to update party');
+          throw new Error('Failed to update party');
         }
       }
 

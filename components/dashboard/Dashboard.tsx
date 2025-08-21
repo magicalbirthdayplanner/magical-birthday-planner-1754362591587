@@ -111,8 +111,8 @@ export default function Dashboard() {
           // Load from database using Prisma server actions
           const result = await getUserParties()
           
-          if (result.success && result.parties?.data) {
-            const formattedParties = result.parties.data.map((party: any) => {
+          if (result.success && result.parties) {
+            const formattedParties = result.parties.map((party: any) => {
               const checklistData = party.checklistData || []
               const checkedTasks = Array.isArray(checklistData) ? checklistData.filter((task: any) => task.completed).length : 0
               const totalTasks = Array.isArray(checklistData) && checklistData.length > 0 ? checklistData.length : 15
