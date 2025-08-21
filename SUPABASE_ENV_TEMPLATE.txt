@@ -1,0 +1,28 @@
+# Supabase Configuration Template
+# Copy these to your .env file and replace the placeholder values
+
+# Supabase Configuration
+# Replace [YOUR-PROJECT-ID] with your actual Supabase project ID
+NEXT_PUBLIC_SUPABASE_URL=https://[YOUR-PROJECT-ID].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR-ANON-KEY]
+SUPABASE_SERVICE_ROLE_KEY=[YOUR-SERVICE-ROLE-KEY]
+
+# Database URLs
+# Replace [YOUR-PROJECT-REF] and [YOUR-PASSWORD] with actual values
+DATABASE_URL=postgres://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true
+DIRECT_URL=postgres://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres
+
+# Optional: OpenAI for AI features (if you want to test them)
+OPENAI_API_KEY=[YOUR-OPENAI-API-KEY]
+
+# Application Configuration
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+NODE_ENV=development
+
+# Instructions:
+# 1. Go to your Supabase project dashboard
+# 2. Navigate to Settings → API
+# 3. Copy the Project URL and API keys
+# 4. Go to Settings → Database to get connection strings
+# 5. Replace all [PLACEHOLDER] values with actual values
+# 6. Save as .env file in your project root

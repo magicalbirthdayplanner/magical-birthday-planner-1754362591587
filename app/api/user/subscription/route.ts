@@ -1,25 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerComponentClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
-import { prisma } from '@/lib/prisma';
+import { createServerComponentClient, handleSupabaseResponse } from '@/lib/supabase-client';
 
 export async function GET() {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createServerComponentClient();
+    
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-
+    
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's current subscription plan
-    const dbUser = await prisma.user.findUnique({
-      where: { email: user.email! },
-      select: { currentPlan: true }
-    });
+    // Get user's current subscription plan from Supabase
+    const { data: dbUser, error: dbError } = await supabase
+      .from('users')
+      .select('current_plan')
+      .eq('id', user.id)
+      .single();
+
+    if (dbError && dbError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      console.error('Database error:', dbError);
+    }
 
     return NextResponse.json({
-      currentPlan: dbUser?.currentPlan || 'FREE'
+      currentPlan: dbUser?.current_plan || 'FREE'
     });
   } catch (error) {
     console.error('Error fetching user subscription:', error);
@@ -32,9 +37,11 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createServerComponentClient();
+    
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-
+    
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -50,15 +57,24 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Update user's current plan
-    const updatedUser = await prisma.user.update({
-      where: { email: user.email! },
-      data: { currentPlan },
-      select: { currentPlan: true }
-    });
+    // Update user's current plan in Supabase
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({ current_plan: currentPlan })
+      .eq('id', user.id)
+      .select('current_plan')
+      .single();
+
+    if (updateError) {
+      console.error('Update error:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update subscription' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
-      currentPlan: updatedUser.currentPlan,
+      currentPlan: updatedUser.current_plan,
       success: true
     });
   } catch (error) {

@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { createServerComponentClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
-
-const prisma = new PrismaClient();
+import { createServerComponentClient, handleSupabaseResponse } from '@/lib/supabase-client';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createServerComponentClient();
+    
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -17,26 +15,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userRecord = await prisma.user.findUnique({
-      where: { email: user.email },
-      include: {
-        activityFavorites: {
-          include: {
-            // You might want to include activity details here
-          }
-        }
-      }
-    });
+    // Get user's favorite activities
+    const { data: favorites, error: favoritesError } = await supabase
+      .from('activity_favorites')
+      .select(`
+        *,
+        activities (*)
+      `)
+      .eq('user_id', user.id);
 
-    if (!userRecord) {
+    if (favoritesError) {
+      console.error('Error fetching favorites:', favoritesError);
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'Failed to fetch favorites' },
+        { status: 500 }
       );
     }
 
     return NextResponse.json({
-      favorites: userRecord.activityFavorites
+      favorites: favorites || []
     });
   } catch (error) {
     console.error('Error fetching favorites:', error);
@@ -49,7 +46,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createServerComponentClient();
+    
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -67,36 +66,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userRecord = await prisma.user.findUnique({
-      where: { email: user.email }
-    });
-
-    if (!userRecord) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
     // Check if activity exists
-    const activity = await prisma.birthdayActivity.findUnique({
-      where: { id: activityId }
-    });
+    const { data: activity, error: activityError } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('id', activityId)
+      .single();
 
-    if (!activity) {
+    if (activityError || !activity) {
       return NextResponse.json(
         { error: 'Activity not found' },
-        { status: 404 }
+        { status: 400 }
       );
     }
 
     // Create favorite
-    const favorite = await prisma.activityFavorite.create({
-      data: {
-        userId: userRecord.id,
-        activityId: activityId
-      }
-    });
+    const { data: favorite, error: favoriteError } = await supabase
+      .from('activity_favorites')
+      .insert({
+        user_id: user.id,
+        activity_id: activityId
+      })
+      .select()
+      .single();
+
+    if (favoriteError) {
+      console.error('Error creating favorite:', favoriteError);
+      return NextResponse.json(
+        { error: 'Failed to create favorite' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       message: 'Activity added to favorites',
@@ -113,7 +113,9 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createServerComponentClient();
+    
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -131,24 +133,20 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const userRecord = await prisma.user.findUnique({
-      where: { email: user.email }
-    });
+    // Delete favorite
+    const { error: deleteError } = await supabase
+      .from('activity_favorites')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('activity_id', activityId);
 
-    if (!userRecord) {
+    if (deleteError) {
+      console.error('Error deleting favorite:', deleteError);
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'Failed to remove favorite' },
+        { status: 500 }
       );
     }
-
-    // Delete favorite
-    await prisma.activityFavorite.deleteMany({
-      where: {
-        userId: userRecord.id,
-        activityId: activityId
-      }
-    });
 
     return NextResponse.json({
       message: 'Activity removed from favorites'

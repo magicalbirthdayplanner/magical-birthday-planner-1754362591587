@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { createClient } from '@supabase/supabase-js';
-
-const prisma = new PrismaClient();
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -39,23 +36,24 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const favorites = await prisma.themePreference.findMany({
-      where: {
-        userId: user.id,
-        isFavorite: true
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true
-          }
-        }
-      }
-    });
+    const { data: favorites, error: fetchError } = await supabase
+      .from('theme_preferences')
+      .select(`
+        *,
+        user:users(id, email, name)
+      `)
+      .eq('userId', user.id)
+      .eq('isFavorite', true);
 
-    return NextResponse.json({ favorites });
+    if (fetchError) {
+      console.error('Error fetching theme favorites:', fetchError);
+      return NextResponse.json(
+        { error: 'Failed to fetch theme favorites' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ favorites: favorites || [] });
   } catch (error) {
     console.error('Error fetching theme favorites:', error);
     return NextResponse.json(
@@ -82,25 +80,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const favorite = await prisma.themePreference.upsert({
-      where: {
-        userId_themeId: {
-          userId: user.id,
-          themeId: themeId
-        }
-      },
-      update: {
-        isFavorite: true,
-        themeType: themeType,
-        updatedAt: new Date()
-      },
-      create: {
+    const { data: favorite, error: upsertError } = await supabase
+      .from('theme_preferences')
+      .upsert({
         userId: user.id,
         themeId: themeId,
         themeType: themeType,
-        isFavorite: true
-      }
-    });
+        isFavorite: true,
+        updatedAt: new Date().toISOString()
+      }, {
+        onConflict: 'userId,themeId'
+      })
+      .select()
+      .single();
+
+    if (upsertError) {
+      console.error('Error upserting theme favorite:', upsertError);
+      return NextResponse.json(
+        { error: 'Failed to add theme favorite' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ favorite });
   } catch (error) {
@@ -130,12 +130,19 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    await prisma.themePreference.deleteMany({
-      where: {
-        userId: user.id,
-        themeId: themeId
-      }
-    });
+    const { error: deleteError } = await supabase
+      .from('theme_preferences')
+      .delete()
+      .eq('userId', user.id)
+      .eq('themeId', themeId);
+
+    if (deleteError) {
+      console.error('Error removing theme favorite:', deleteError);
+      return NextResponse.json(
+        { error: 'Failed to remove theme favorite' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

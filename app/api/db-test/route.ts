@@ -1,30 +1,46 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase-client';
 
 export async function GET() {
   try {
-    console.log('🔍 Testing database connection...')
+    const supabase = createAdminClient();
     
-    // Simple connection test
-    const result = await prisma.$queryRaw`SELECT NOW() as current_time, 1 as test_value`
+    // Test basic database operations
+    const { data: activities, error: activitiesError } = await supabase
+      .from('activities')
+      .select('count')
+      .limit(1);
     
-    console.log('✅ Database connection successful:', result)
+    if (activitiesError) {
+      throw new Error(`Activities query failed: ${activitiesError.message}`);
+    }
+
+    // Test parties table
+    const { data: parties, error: partiesError } = await supabase
+      .from('parties')
+      .select('count')
+      .limit(1);
     
+    if (partiesError) {
+      throw new Error(`Parties query failed: ${partiesError.message}`);
+    }
+
     return NextResponse.json({
-      status: 'success',
-      message: 'Database connection is working',
-      data: result,
+      success: true,
+      message: 'Database test successful',
+      tables: {
+        activities: 'OK',
+        parties: 'OK'
+      },
       timestamp: new Date().toISOString()
-    })
-  } catch (error: any) {
-    console.error('❌ Database connection failed:', error)
-    
+    });
+
+  } catch (error) {
     return NextResponse.json({
-      status: 'error',
-      message: 'Database connection failed',
-      error: error.message,
-      code: error.code,
+      success: false,
+      message: 'Database test failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString()
-    }, { status: 500 })
+    }, { status: 500 });
   }
 }

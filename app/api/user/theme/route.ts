@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
-import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -12,11 +11,16 @@ export async function GET() {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    // Get user from database
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { theme: true }
-    })
+    // Get user from Supabase
+    const { data: dbUser, error: dbError } = await supabase
+      .from('users')
+      .select('theme')
+      .eq('id', user.id)
+      .single()
+
+    if (dbError && dbError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      console.error('Database error:', dbError)
+    }
 
     return NextResponse.json({ 
       theme: dbUser?.theme || 'light' 
@@ -48,17 +52,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create or update user with theme preference
-    await prisma.user.upsert({
-      where: { id: user.id },
-      update: { theme },
-      create: {
+    // Create or update user with theme preference in Supabase
+    const { error: upsertError } = await supabase
+      .from('users')
+      .upsert({
         id: user.id,
         email: user.email!,
         name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
         theme,
-      },
-    })
+        currentPlan: 'FREE', // Default plan
+        emailNotifications: true, // Default settings
+        partyReminders: true,
+        marketingEmails: false,
+        emailVerified: false,
+        passwordResetRequested: false
+      }, {
+        onConflict: 'id'
+      })
+
+    if (upsertError) {
+      console.error('Error upserting user theme:', upsertError)
+      return NextResponse.json(
+        { error: 'Failed to save theme preference' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

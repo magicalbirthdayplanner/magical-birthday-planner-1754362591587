@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 
@@ -27,10 +26,15 @@ export async function POST(request: NextRequest) {
 
     const dbOperation = async () => {
       // Check if party already exists for this user
-      const existingParty = await prisma.party.findFirst({
-        where: { userId: user.id },
-        select: { id: true }
-      })
+      const { data: existingParty, error: findError } = await supabase
+        .from('parties')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+
+      if (findError && findError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        console.error('Error finding existing party:', findError)
+      }
 
       // Prepare party data for database
       const partyRecord = {
@@ -40,26 +44,40 @@ export async function POST(request: NextRequest) {
         childGender: partyData.childGender || '',
         interests: partyData.childInterests || [],
         favoriteColors: partyData.favoriteColors || [],
-        partyDate: new Date(partyData.partyDate || new Date()),
+        partyDate: new Date(partyData.partyDate || new Date()).toISOString(),
         theme: partyData.selectedTheme || partyData.classicTheme || 'Superhero',
         guestCount: partyData.guestCount || 0,
         budget: partyData.budget || null,
-        location: partyData.zipCode || '',
+        partyLocation: partyData.zipCode || '',
         checklistData: partyData.checklistData || []
       }
 
       let party;
       if (existingParty) {
         // Update existing party
-        party = await prisma.party.update({
-          where: { id: existingParty.id },
-          data: partyRecord
-        })
+        const { data: updatedParty, error: updateError } = await supabase
+          .from('parties')
+          .update(partyRecord)
+          .eq('id', existingParty.id)
+          .select()
+          .single()
+
+        if (updateError) {
+          throw new Error(`Failed to update party: ${updateError.message}`)
+        }
+        party = updatedParty
       } else {
         // Create new party
-        party = await prisma.party.create({
-          data: partyRecord
-        })
+        const { data: newParty, error: createError } = await supabase
+          .from('parties')
+          .insert(partyRecord)
+          .select()
+          .single()
+
+        if (createError) {
+          throw new Error(`Failed to create party: ${createError.message}`)
+        }
+        party = newParty
       }
 
       return party
@@ -102,10 +120,16 @@ export async function GET(request: NextRequest) {
     })
 
     const fetchOperation = async () => {
-      const parties = await prisma.party.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'desc' }
-      })
+      const { data: parties, error: fetchError } = await supabase
+        .from('parties')
+        .select('*')
+        .eq('userId', user.id)
+        .order('createdAt', { ascending: false })
+
+      if (fetchError) {
+        throw new Error(`Failed to fetch parties: ${fetchError.message}`)
+      }
+
       return parties
     }
 

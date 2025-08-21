@@ -785,11 +785,11 @@ export default function CreatePartyPage() {
           throw new Error(result.error || 'Failed to create party');
         }
 
-        if (!result.party?.id) {
+        if (!result.party?.data?.id) {
           throw new Error('Party created but no ID returned');
         }
 
-        partyId = result.party.id;
+        partyId = result.party.data.id;
       } else {
         setSubmissionStep('Updating party details...');
         

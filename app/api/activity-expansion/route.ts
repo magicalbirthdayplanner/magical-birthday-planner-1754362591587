@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { createClient } from '@supabase/supabase-js';
+import { createServerComponentClient } from '@/lib/supabase';
+import { cookies } from 'next/headers';
 import OpenAI from 'openai';
 
-const prisma = new PrismaClient();
-
 // Initialize Supabase client for authentication
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createServerComponentClient({ cookies });
 
 // Environment validation
 function validateEnvironment() {
@@ -239,14 +234,14 @@ export async function POST(request: NextRequest) {
 
     // Verify party ownership if userId is available
     if (userId) {
-      const party = await prisma.party.findFirst({
-        where: {
-          id: partyId,
-          userId: userId
-        }
-      });
+      const { data: party, error: partyError } = await supabase
+        .from('parties')
+        .select('id')
+        .eq('id', partyId)
+        .eq('userId', userId)
+        .single();
 
-      if (!party) {
+      if (partyError || !party) {
         return NextResponse.json({ error: 'Party not found or access denied' }, { status: 404 });
       }
     }
@@ -286,7 +281,7 @@ export async function POST(request: NextRequest) {
                 supplies: Array.isArray(activity.supplies) ? activity.supplies : [],
                 estimatedTime: typeof activity.estimatedTime === 'number' ? activity.estimatedTime : 30,
                 timeUnit: activity.timeUnit === 'hours' ? 'hours' : 'minutes',
-                peopleRequired: typeof activity.peopleRequired === 'number' ? activity.peopleRequired : 1,
+                peopleRequired: typeof activity.estimatedTime === 'number' ? activity.estimatedTime : 1,
                 groupInstructions: activity.groupInstructions || '',
                 hostScript: activity.hostScript || '',
                 tips: Array.isArray(activity.tips) ? activity.tips : [],
@@ -317,18 +312,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Clear existing AI-generated activities for this party
-    await prisma.partyActivity.deleteMany({
-      where: {
-        partyId: partyId,
-        source: 'AI_GENERATED'
-      }
-    });
+    await supabase
+      .from('party_activities')
+      .delete()
+      .eq('partyId', partyId)
+      .eq('source', 'AI_GENERATED');
 
     // Save the new activities to database
     const savedActivities: any[] = [];
     for (const activity of processedActivities) {
-      const savedActivity = await prisma.partyActivity.create({
-        data: {
+      const { data: savedActivity, error: createError } = await supabase
+        .from('party_activities')
+        .insert({
           partyId: partyId,
           name: activity.name,
           description: activity.description,
@@ -342,8 +337,14 @@ export async function POST(request: NextRequest) {
           sortOrder: activity.sortOrder,
           isCustom: activity.isCustom,
           source: activity.source
-        }
-      });
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating activity:', createError);
+        continue;
+      }
 
       savedActivities.push({
         id: savedActivity.id,

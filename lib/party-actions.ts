@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
-import { prisma } from '@/lib/prisma'
+import { createAdminClient } from '@/lib/supabase-integration'
 
 // Enhanced database connection health check for Vercel serverless
 async function ensureDbConnection() {
@@ -11,7 +11,8 @@ async function ensureDbConnection() {
     console.log('Testing database connection...')
     
     // Set connection timeout to prevent hanging - optimized for production
-    const connectionPromise = prisma.$queryRaw`SELECT 1 as health_check`
+    const supabase = createAdminClient()
+    const connectionPromise = supabase.from('health_check').select('*', { count: 'exact' })
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Database connection timeout')), 5000) // Reduced to 5s for faster feedback
     })
@@ -25,14 +26,15 @@ async function ensureDbConnection() {
     // Enhanced recovery strategy for serverless environments
     try {
       // Graceful disconnect first
-      await prisma.$disconnect()
+      const supabase = createAdminClient()
+      await supabase.auth.signOut()
       console.log('Disconnected from database, waiting for reconnection...')
       
       // Reduced wait time for better user experience
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // Test connection again with timeout protection
-      const reconnectPromise = prisma.$queryRaw`SELECT CURRENT_TIMESTAMP as reconnect_test`
+      const reconnectPromise = supabase.from('reconnect_test').select('*', { count: 'exact' })
       const reconnectTimeout = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Reconnection timeout')), 3000)
       })
@@ -46,7 +48,8 @@ async function ensureDbConnection() {
       // Final attempt with minimal timeout to fail fast
       try {
         await new Promise(resolve => setTimeout(resolve, 200))
-        const finalPromise = prisma.$queryRaw`SELECT 'final_attempt' as test`
+        const supabase = createAdminClient()
+        const finalPromise = supabase.from('test').select('*', { count: 'exact' })
         const finalTimeout = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Final connection attempt timeout')), 2000)
         })
@@ -231,10 +234,8 @@ export async function createParty(partyData: {
       // Create user in database if doesn't exist with enhanced retry mechanism
       console.log('👤 Creating/updating user in database...')
       const dbUser = await retryWithExponentialBackoff(async () => {
-        return await prisma.user.upsert({
-          where: { email: user.email! },
-          update: {},
-          create: {
+        return await createAdminClient().auth.admin.updateUserById(user.id, {
+          user_metadata: {
             id: user.id,
             email: user.email!,
             name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
@@ -242,35 +243,35 @@ export async function createParty(partyData: {
         })
       })
       
-      console.log('✅ Database user created/updated:', { id: dbUser.id, email: dbUser.email })
+      if (dbUser.data?.user) {
+        console.log('✅ Database user created/updated:', { id: dbUser.data.user.id, email: dbUser.data.user.email })
+      }
 
       // Create party with enhanced retry mechanism
       console.log('🎊 Creating party in database...')
       const party = await retryWithExponentialBackoff(async () => {
-        return await prisma.party.create({
-          data: {
-            childName: partyData.childName,
-            childAge: partyData.childAge,
-            childGender: partyData.childGender || null,
-            partyDate: partyData.partyDate,
-            theme: partyData.theme,
-            interests: partyData.interests,
-            favoriteColors: partyData.favoriteColors,
-            guestCount: partyData.guestCount || null,
-            adultCount: partyData.adultCount || null,
-            kidCount: partyData.kidCount || null,
-            budget: partyData.budget || null,
-            status: partyData.status || 'PLANNING',
-            userId: user.id,
-          },
-        })
+        return await createAdminClient().from('parties').insert({
+          childName: partyData.childName,
+          childAge: partyData.childAge,
+          childGender: partyData.childGender || null,
+          partyDate: partyData.partyDate,
+          theme: partyData.theme,
+          interests: partyData.interests,
+          favoriteColors: partyData.favoriteColors,
+          guestCount: partyData.guestCount || null,
+          adultCount: partyData.adultCount || null,
+          kidCount: partyData.kidCount || null,
+          budget: partyData.budget || null,
+          status: partyData.status || 'PLANNING',
+          userId: user.id,
+        }).select().single()
       })
 
       console.log('🎉 Party created successfully:', { 
-        id: party.id, 
-        childName: party.childName, 
-        theme: party.theme,
-        date: party.partyDate 
+        id: party.data?.id, 
+        childName: party.data?.childName, 
+        theme: party.data?.theme,
+        date: party.data?.partyDate 
       })
 
       return party
@@ -351,16 +352,10 @@ export async function updateParty(partyId: string, updates: Partial<{
 
       // Update with retry mechanism
       const party = await retryWithExponentialBackoff(async () => {
-        return await prisma.party.updateMany({
-          where: {
-            id: partyId,
-            userId: user.id,
-          },
-          data: updates,
-        })
+        return await createAdminClient().from('parties').update(updates).eq('id', partyId).eq('userId', user.id).select().single()
       })
 
-      if (party.count === 0) {
+      if (!party.data) {
         throw new Error('Party not found or you don\'t have permission to update it')
       }
 
@@ -404,20 +399,7 @@ export async function getParty(partyId: string) {
       throw new Error('User not authenticated')
     }
 
-    const party = await prisma.party.findFirst({
-      where: {
-        id: partyId,
-        userId: user.id,
-      },
-      include: {
-        guests: true,
-        invitations: {
-          include: {
-            guest: true,
-          },
-        },
-      },
-    })
+    const party = await createAdminClient().from('parties').select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)').eq('id', partyId).eq('userId', user.id).single()
 
     return { success: true, party }
   } catch (error) {
@@ -434,31 +416,15 @@ export async function getUserParties() {
     }
 
     // Ensure user exists in database
-    await prisma.user.upsert({
-      where: { email: user.email! },
-      update: {},
-      create: {
+    await createAdminClient().auth.admin.updateUserById(user.id, {
+      user_metadata: {
         id: user.id,
         email: user.email!,
         name: user.user_metadata?.display_name || user.user_metadata?.full_name || null,
       },
     })
 
-    const parties = await prisma.party.findMany({
-      where: {
-        userId: user.id,
-        status: {
-          in: ['PLANNING', 'ACTIVE', 'COMPLETED']
-        }
-      },
-      include: {
-        guests: true,
-        invitations: true,
-      },
-      orderBy: {
-        partyDate: 'asc',
-      },
-    })
+    const parties = await createAdminClient().from('parties').select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)').eq('userId', user.id).eq('status', 'PLANNING').or(`status.eq.ACTIVE,status.eq.COMPLETED`).order('party_date', { ascending: true })
 
     return { success: true, parties }
   } catch (error) {
@@ -474,12 +440,7 @@ export async function deleteParty(partyId: string) {
       throw new Error('User not authenticated')
     }
 
-    const party = await prisma.party.deleteMany({
-      where: {
-        id: partyId,
-        userId: user.id,
-      },
-    })
+    const party = await createAdminClient().from('parties').delete().eq('id', partyId).eq('userId', user.id)
 
     if (party.count === 0) {
       throw new Error('Party not found or access denied')
@@ -509,32 +470,23 @@ export async function addGuest(partyId: string, guestData: {
     }
 
     // Verify party ownership
-    const party = await prisma.party.findFirst({
-      where: {
-        id: partyId,
-        userId: user.id,
-      },
-    })
+    const party = await createAdminClient().from('parties').select('*').eq('id', partyId).eq('userId', user.id).single()
 
-    if (!party) {
+    if (!party.data) {
       throw new Error('Party not found or access denied')
     }
 
-    const guest = await prisma.guest.create({
-      data: {
-        ...guestData,
-        partyId,
-      },
-    })
+    const guest = await createAdminClient().from('guests').insert({
+      ...guestData,
+      partyId,
+    }).select().single()
 
     // Create invitation record
-    await prisma.invitation.create({
-      data: {
-        partyId,
-        guestId: guest.id,
-        status: 'PENDING',
-      },
-    })
+    await createAdminClient().from('invitations').insert({
+      partyId,
+      guestId: guest.data?.id,
+      status: 'PENDING',
+    }).select().single()
 
     revalidatePath('/party-plan')
     return { success: true, guest }
@@ -559,23 +511,13 @@ export async function updateGuest(guestId: string, updates: Partial<{
     }
 
     // Verify party ownership through guest
-    const guest = await prisma.guest.findFirst({
-      where: {
-        id: guestId,
-        party: {
-          userId: user.id,
-        },
-      },
-    })
+    const guest = await createAdminClient().from('guests').select('*').eq('id', guestId).eq('party.userId', user.id).single()
 
-    if (!guest) {
+    if (!guest.data) {
       throw new Error('Guest not found or access denied')
     }
 
-    await prisma.guest.update({
-      where: { id: guestId },
-      data: updates,
-    })
+    await createAdminClient().from('guests').update(updates).eq('id', guestId)
 
     revalidatePath('/party-plan')
     return { success: true }
@@ -593,22 +535,13 @@ export async function deleteGuest(guestId: string) {
     }
 
     // Verify party ownership through guest
-    const guest = await prisma.guest.findFirst({
-      where: {
-        id: guestId,
-        party: {
-          userId: user.id,
-        },
-      },
-    })
+    const guest = await createAdminClient().from('guests').select('*').eq('id', guestId).eq('party.userId', user.id).single()
 
-    if (!guest) {
+    if (!guest.data) {
       throw new Error('Guest not found or access denied')
     }
 
-    await prisma.guest.delete({
-      where: { id: guestId },
-    })
+    await createAdminClient().from('guests').delete().eq('id', guestId)
 
     revalidatePath('/party-plan')
     return { success: true }
@@ -626,28 +559,18 @@ export async function updateInvitationStatus(invitationId: string, status: 'PEND
     }
 
     // Verify party ownership through invitation
-    const invitation = await prisma.invitation.findFirst({
-      where: {
-        id: invitationId,
-        party: {
-          userId: user.id,
-        },
-      },
-    })
+    const invitation = await createAdminClient().from('invitations').select('*').eq('id', invitationId).eq('party.userId', user.id).single()
 
-    if (!invitation) {
+    if (!invitation.data) {
       throw new Error('Invitation not found or access denied')
     }
 
-    await prisma.invitation.update({
-      where: { id: invitationId },
-      data: {
-        status,
-        notes,
-        respondedAt: ['ACCEPTED', 'DECLINED', 'MAYBE'].includes(status) ? new Date() : null,
-        sentAt: status === 'SENT' ? new Date() : invitation.sentAt,
-      },
-    })
+    await createAdminClient().from('invitations').update({
+      status,
+      notes,
+      responded_at: ['ACCEPTED', 'DECLINED', 'MAYBE'].includes(status) ? new Date() : null,
+      sent_at: status === 'SENT' ? new Date() : invitation.data.sent_at,
+    }).eq('id', invitationId)
 
     revalidatePath('/party-plan')
     return { success: true }

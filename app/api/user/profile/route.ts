@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerComponentClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
-import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
@@ -12,23 +11,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's profile data from database
-    const dbUser = await prisma.user.findUnique({
-      where: { email: user.email! },
-      select: { 
-        id: true,
-        email: true,
-        name: true,
-        displayName: true,
-        currentPlan: true,
-        emailNotifications: true,
-        partyReminders: true,
-        marketingEmails: true,
-        createdAt: true
-      }
-    });
+    // Get user's profile data from Supabase
+    const { data: dbUser, error: dbError } = await supabase
+      .from('users')
+      .select('id, email, name, displayName, currentPlan, emailNotifications, partyReminders, marketingEmails, createdAt')
+      .eq('email', user.email)
+      .single();
 
-    if (!dbUser) {
+    if (dbError) {
+      console.error('Database error:', dbError);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -37,33 +28,36 @@ export async function GET() {
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     
     // Get parties created this month
-    const partiesThisMonth = await prisma.party.count({
-      where: {
-        userId: dbUser.id,
-        createdAt: {
-          gte: startOfMonth
-        }
-      }
-    });
+    const { count: partiesThisMonth, error: partiesError } = await supabase
+      .from('parties')
+      .select('*', { count: 'exact', head: true })
+      .eq('userId', dbUser.id)
+      .gte('createdAt', startOfMonth.toISOString());
+
+    if (partiesError) {
+      console.error('Error counting parties this month:', partiesError);
+    }
 
     // Get total parties created
-    const totalParties = await prisma.party.count({
-      where: {
-        userId: dbUser.id
-      }
-    });
+    const { count: totalParties, error: totalPartiesError } = await supabase
+      .from('parties')
+      .select('*', { count: 'exact', head: true })
+      .eq('userId', dbUser.id);
+
+    if (totalPartiesError) {
+      console.error('Error counting total parties:', totalPartiesError);
+    }
 
     // Get total guests this month
-    const guestsThisMonth = await prisma.guest.count({
-      where: {
-        party: {
-          userId: dbUser.id,
-          createdAt: {
-            gte: startOfMonth
-          }
-        }
-      }
-    });
+    const { count: guestsThisMonth, error: guestsError } = await supabase
+      .from('guests')
+      .select('*', { count: 'exact', head: true })
+      .eq('party.userId', dbUser.id)
+      .gte('party.createdAt', startOfMonth.toISOString());
+
+    if (guestsError) {
+      console.error('Error counting guests this month:', guestsError);
+    }
 
     // Combine database data with Supabase user metadata
     const profile = {
@@ -75,11 +69,11 @@ export async function GET() {
       emailNotifications: dbUser.emailNotifications,
       partyReminders: dbUser.partyReminders,
       marketingEmails: dbUser.marketingEmails,
-      createdAt: dbUser.createdAt.toISOString(),
+      createdAt: dbUser.createdAt,
       usageStats: {
-        partiesThisMonth,
-        totalParties,
-        guestsThisMonth,
+        partiesThisMonth: partiesThisMonth || 0,
+        totalParties: totalParties || 0,
+        guestsThisMonth: guestsThisMonth || 0,
         aiRequestsThisMonth: 0 // We'll implement AI request tracking later if needed
       }
     };
@@ -135,22 +129,21 @@ export async function PATCH(request: NextRequest) {
 
     console.log('PATCH /api/user/profile - Update data:', updateData);
 
-    // Update user's profile in database
-    const updatedDbUser = await prisma.user.update({
-      where: { email: user.email! },
-      data: updateData,
-      select: { 
-        id: true,
-        email: true,
-        name: true,
-        displayName: true,
-        currentPlan: true,
-        emailNotifications: true,
-        partyReminders: true,
-        marketingEmails: true,
-        createdAt: true
-      }
-    });
+    // Update user's profile in Supabase
+    const { data: updatedDbUser, error: updateError } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('email', user.email)
+      .select('id, email, name, displayName, currentPlan, emailNotifications, partyReminders, marketingEmails, createdAt')
+      .single();
+
+    if (updateError) {
+      console.error('Error updating user profile:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update profile' },
+        { status: 500 }
+      );
+    }
 
     console.log('PATCH /api/user/profile - Updated user:', updatedDbUser);
 
@@ -180,7 +173,7 @@ export async function PATCH(request: NextRequest) {
       emailNotifications: updatedDbUser.emailNotifications,
       partyReminders: updatedDbUser.partyReminders,
       marketingEmails: updatedDbUser.marketingEmails,
-      createdAt: updatedDbUser.createdAt.toISOString()
+      createdAt: updatedDbUser.createdAt
     };
 
     return NextResponse.json({

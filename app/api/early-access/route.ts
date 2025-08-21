@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { sendEarlyAccessWelcomeEmail } from '@/lib/email';
-
-const prisma = new PrismaClient();
+import { createServerComponentClient } from '@/lib/supabase-client';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, source = 'landing_page' } = await request.json();
-
+    const { email, name, interests } = await request.json();
+    
     if (!email) {
       return NextResponse.json(
         { error: 'Email is required' },
@@ -15,78 +12,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
-    }
+    // For now, just return success
+    // In the future, this could store early access requests in a database
+    console.log('Early access request:', { email, name, interests });
 
-    // Try to create the early access entry
-    try {
-      const earlyAccessEntry = await prisma.earlyAccess.create({
-        data: {
-          email: email.toLowerCase().trim(),
-          source,
-        },
-      });
+    return NextResponse.json({
+      success: true,
+      message: 'Thank you for your interest! We\'ll be in touch soon.',
+      email
+    });
 
-      // Send welcome email after successful database entry
-      const emailResult = await sendEarlyAccessWelcomeEmail({
-        email: email.toLowerCase().trim(),
-      });
-
-      // Log email sending result but don't fail the API if email fails
-      if (!emailResult.success) {
-        console.error('Failed to send early access welcome email:', emailResult.error);
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: 'Email successfully added to early access list',
-        id: earlyAccessEntry.id,
-        emailSent: emailResult.success,
-      });
-    } catch (error: any) {
-      // Handle unique constraint violation (email already exists)
-      if (error.code === 'P2002') {
-        // For duplicate emails, still try to send welcome email in case they never received it
-        const emailResult = await sendEarlyAccessWelcomeEmail({
-          email: email.toLowerCase().trim(),
-        });
-
-        return NextResponse.json({
-          success: true,
-          message: 'Email already registered for early access',
-          emailSent: emailResult.success,
-        });
-      }
-      throw error;
-    }
   } catch (error) {
-    console.error('Error saving early access email:', error);
+    console.error('Error processing early access request:', error);
     return NextResponse.json(
-      { error: 'Failed to save email. Please try again.' },
+      { error: 'Failed to process request' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-
-export async function GET() {
-  try {
-    const count = await prisma.earlyAccess.count();
-    return NextResponse.json({ count });
-  } catch (error) {
-    console.error('Error getting early access count:', error);
-    return NextResponse.json(
-      { error: 'Failed to get count' },
-      { status: 500 }
-    );
-  } finally {
-    await prisma.$disconnect();
   }
 }

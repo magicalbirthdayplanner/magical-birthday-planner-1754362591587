@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { createServerComponentClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
-
-const prisma = new PrismaClient();
+import { createServerComponentClient, handleSupabaseResponse } from '@/lib/supabase-client';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createServerComponentClient();
+    
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -27,45 +25,42 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userRecord = await prisma.user.findUnique({
-      where: { email: user.email }
-    });
-
-    if (!userRecord) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
     // Verify user has access to this party
-    const party = await prisma.party.findFirst({
-      where: {
-        id: partyId,
-        userId: userRecord.id
-      }
-    });
+    const { data: party, error: partyError } = await supabase
+      .from('parties')
+      .select('*')
+      .eq('id', partyId)
+      .eq('user_id', user.id)
+      .single();
 
-    if (!party) {
+    if (partyError || !party) {
       return NextResponse.json(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
     }
 
-    const selectedActivities = await prisma.selectedActivity.findMany({
-      where: {
-        userId: userRecord.id,
-        partyId: partyId,
-        isSelected: true
-      },
-      include: {
-        // You might want to include activity details here
-      }
-    });
+    // Get selected activities for this party
+    const { data: selectedActivities, error: activitiesError } = await supabase
+      .from('party_activities')
+      .select(`
+        *,
+        activities (*)
+      `)
+      .eq('user_id', user.id)
+      .eq('party_id', partyId)
+      .eq('is_selected', true);
+
+    if (activitiesError) {
+      console.error('Error fetching selected activities:', activitiesError);
+      return NextResponse.json(
+        { error: 'Failed to fetch selected activities' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
-      selectedActivities
+      selectedActivities: selectedActivities || []
     });
   } catch (error) {
     console.error('Error fetching selected activities:', error);
@@ -78,7 +73,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createServerComponentClient();
+    
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -96,26 +93,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userRecord = await prisma.user.findUnique({
-      where: { email: user.email }
-    });
-
-    if (!userRecord) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
     // Verify user has access to this party
-    const party = await prisma.party.findFirst({
-      where: {
-        id: partyId,
-        userId: userRecord.id
-      }
-    });
+    const { data: party, error: partyError } = await supabase
+      .from('parties')
+      .select('*')
+      .eq('id', partyId)
+      .eq('user_id', user.id)
+      .single();
 
-    if (!party) {
+    if (partyError || !party) {
       return NextResponse.json(
         { error: 'Party not found or access denied' },
         { status: 404 }
@@ -123,36 +109,40 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if activity exists
-    const activity = await prisma.birthdayActivity.findUnique({
-      where: { id: activityId }
-    });
+    const { data: activity, error: activityError } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('id', activityId)
+      .single();
 
-    if (!activity) {
+    if (activityError || !activity) {
       return NextResponse.json(
         { error: 'Activity not found' },
-        { status: 404 }
+        { status: 400 }
       );
     }
 
-    // Create or update selected activity
-    const selectedActivity = await prisma.selectedActivity.upsert({
-      where: {
-        userId_partyId_activityId: {
-          userId: userRecord.id,
-          partyId: partyId,
-          activityId: activityId
-        }
-      },
-      update: {
-        isSelected: true
-      },
-      create: {
-        userId: userRecord.id,
-        partyId: partyId,
-        activityId: activityId,
-        isSelected: true
-      }
-    });
+    // Create or update party activity
+    const { data: selectedActivity, error: upsertError } = await supabase
+      .from('party_activities')
+      .upsert({
+        user_id: user.id,
+        party_id: partyId,
+        activity_id: activityId,
+        is_selected: true
+      }, {
+        onConflict: 'user_id,party_id,activity_id'
+      })
+      .select()
+      .single();
+
+    if (upsertError) {
+      console.error('Error upserting party activity:', upsertError);
+      return NextResponse.json(
+        { error: 'Failed to add activity to party plan' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       message: 'Activity added to party plan',
@@ -169,7 +159,9 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createServerComponentClient();
+    
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -187,40 +179,36 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const userRecord = await prisma.user.findUnique({
-      where: { email: user.email }
-    });
-
-    if (!userRecord) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
     // Verify user has access to this party
-    const party = await prisma.party.findFirst({
-      where: {
-        id: partyId,
-        userId: userRecord.id
-      }
-    });
+    const { data: party, error: partyError } = await supabase
+      .from('parties')
+      .select('*')
+      .eq('id', partyId)
+      .eq('user_id', user.id)
+      .single();
 
-    if (!party) {
+    if (partyError || !party) {
       return NextResponse.json(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
     }
 
-    // Delete selected activity
-    await prisma.selectedActivity.deleteMany({
-      where: {
-        userId: userRecord.id,
-        partyId: partyId,
-        activityId: activityId
-      }
-    });
+    // Delete party activity
+    const { error: deleteError } = await supabase
+      .from('party_activities')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('party_id', partyId)
+      .eq('activity_id', activityId);
+
+    if (deleteError) {
+      console.error('Error deleting party activity:', deleteError);
+      return NextResponse.json(
+        { error: 'Failed to remove activity from party plan' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       message: 'Activity removed from party plan'

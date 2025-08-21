@@ -560,8 +560,8 @@ export default function PartyPlanPage() {
               return;
             }
             
-            console.log('Party loaded successfully:', { partyId: result.party.id, childName: result.party.childName });
-            loadPartyDetails(result.party);
+            console.log('Party loaded successfully:', { partyId: result.party.data.id, childName: result.party.data.childName });
+            loadPartyDetails(result.party.data);
             
           } catch (getPartyError) {
             console.error('Error loading party:', getPartyError);
@@ -804,11 +804,11 @@ export default function PartyPlanPage() {
       
       // Get current database guests for this party
       const partyResult = await getParty(currentPartyId);
-      if (!partyResult.success || !partyResult.party) {
+      if (!partyResult.success || !partyResult.party?.data) {
         throw new Error('Failed to fetch party data for sync');
       }
       
-      const dbGuests = partyResult.party.guests || [];
+      const dbGuests = partyResult.party.data.guests || [];
       const localGuests = guestData;
       
       // Handle new guests (those with temporary IDs)
@@ -825,10 +825,10 @@ export default function PartyPlanPage() {
             notes: localGuest.notes
           });
           
-          if (result.success && result.guest) {
+          if (result.success && result.guest?.data) {
             // Update local guest with real database ID
-            localGuest.id = result.guest.id;
-            console.log(`Guest created with database ID: ${result.guest.id}`);
+            localGuest.id = result.guest.data.id;
+            console.log(`Guest created with database ID: ${result.guest.data.id}`);
           } else {
             console.error(`Failed to create guest: ${result.error}`);
           }
@@ -906,16 +906,16 @@ export default function PartyPlanPage() {
         notes: guestData.notes
       });
 
-      if (result.success && result.guest) {
+      if (result.success && result.guest?.data) {
         // Add to local state with real database ID
         const newGuest: Guest = {
-          id: result.guest.id,
-          name: result.guest.name,
-          email: result.guest.email || undefined,
-          phone: result.guest.phone || undefined,
-          type: result.guest.type,
-          age: result.guest.age || undefined,
-          notes: result.guest.notes || undefined,
+          id: result.guest.data.id,
+          name: result.guest.data.name,
+          email: result.guest.data.email || undefined,
+          phone: result.guest.data.phone || undefined,
+          type: result.guest.data.type,
+          age: result.guest.data.age || undefined,
+          notes: result.guest.data.notes || undefined,
         };
 
         const updatedGuests = [...guests, newGuest];
@@ -1027,9 +1027,9 @@ export default function PartyPlanPage() {
     if (currentPartyId) {
       try {
         const result = await getParty(currentPartyId);
-        if (result.success && result.party) {
+        if (result.success && result.party?.data) {
           // Update local state with database invitations
-          const dbInvitations = result.party.invitations?.map((inv: any) => ({
+          const dbInvitations = result.party.data.invitations?.map((inv: any) => ({
             id: inv.id,
             guestId: inv.guestId,
             guestName: inv.guest?.name || '',

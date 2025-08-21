@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
 
@@ -47,14 +46,14 @@ export async function POST(request: NextRequest) {
     const userId = user.id;
 
     // Verify the party belongs to the user
-    const party = await prisma.party.findFirst({
-      where: {
-        id: partyId,
-        userId: userId,
-      },
-    });
+    const { data: party, error: partyError } = await supabase
+      .from('parties')
+      .select('*')
+      .eq('id', partyId)
+      .eq('userId', userId)
+      .single();
 
-    if (!party) {
+    if (partyError || !party) {
       return NextResponse.json(
         { error: 'Party not found or access denied' },
         { status: 404 }
@@ -65,14 +64,22 @@ export async function POST(request: NextRequest) {
     const shareToken = crypto.randomBytes(32).toString('hex');
 
     // Update the party with the share token
-    await prisma.party.update({
-      where: { id: partyId },
-      data: {
+    const { error: updateError } = await supabase
+      .from('parties')
+      .update({
         shareToken: shareToken,
         isShared: true,
-        sharedAt: new Date(),
-      },
-    });
+        sharedAt: new Date().toISOString(),
+      })
+      .eq('id', partyId);
+
+    if (updateError) {
+      console.error('Error updating party with share token:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to generate share token' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -100,18 +107,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Find the party by share token
-    const party = await prisma.party.findFirst({
-      where: {
-        shareToken: token,
-        isShared: true,
-      },
-      include: {
-        guests: true,
-      },
-    });
+    // Create Supabase client for this request
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            // No-op since we're only reading
+          },
+          remove(name: string, options: CookieOptions) {
+            // No-op since we're only reading
+          },
+        },
+      }
+    );
 
-    if (!party) {
+    // Find the party by share token
+    const { data: party, error: partyError } = await supabase
+      .from('parties')
+      .select('*, guests(*)')
+      .eq('shareToken', token)
+      .eq('isShared', true)
+      .single();
+
+    if (partyError || !party) {
       return NextResponse.json(
         { error: 'Shared party not found or no longer available' },
         { status: 404 }
@@ -138,9 +162,9 @@ export async function GET(request: NextRequest) {
       activities: [],
       food: [],
       guestSummary: {
-        total: party.guests.length,
-        adults: party.guests.filter(g => g.type === 'ADULT').length,
-        children: party.guests.filter(g => g.type === 'CHILD').length,
+        total: party.guests?.length || 0,
+        adults: party.guests?.filter((g: any) => g.type === 'ADULT').length || 0,
+        children: party.guests?.filter((g: any) => g.type === 'CHILD').length || 0,
       },
       completedTasks: 0, // Default since checklist is in separate structure
       totalTasks: 15, // Default number of tasks

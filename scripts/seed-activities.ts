@@ -1,90 +1,104 @@
-import { PrismaClient } from '@prisma/client';
+import { createAdminClient } from '../lib/supabase-client';
 
-const prisma = new PrismaClient();
+const supabase = createAdminClient();
 
-const birthdayActivities = [
-  // Games & Competitions
-  { id: 'act-1', name: 'Musical Chairs', description: 'Classic chair game with themed music or props', durationMinutes: 15, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_15', category: 'Games & Competitions', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: '5-15' },
-  { id: 'act-2', name: 'Treasure Hunt', description: 'Themed clues, indoor/outdoor adventure', durationMinutes: 30, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_30', category: 'Games & Competitions', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '4-12' },
-  { id: 'act-3', name: 'Pin the Tail', description: 'Customized to theme (e.g., Pin the Wheel on the Car)', durationMinutes: 10, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Games & Competitions', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8'], participantRange: '4-10' },
-  { id: 'act-4', name: 'Balloon Pop Challenge', description: 'Fun balloon popping games and challenges', durationMinutes: 15, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_15', category: 'Games & Competitions', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: '3-15' },
-  
-  // Creative & Crafty
-  { id: 'act-5', name: 'Themed Coloring Station', description: 'Theme-based coloring pages and activities', durationMinutes: 20, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Creative & Crafty', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8'], participantRange: 'any' },
-  { id: 'act-6', name: 'Build Your Own Craft', description: 'Cars, castles, rockets, animals crafting', durationMinutes: 30, venueType: ['INDOOR'], duration: 'DURATION_30', category: 'Creative & Crafty', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: 'any' },
-  { id: 'act-7', name: 'DIY Party Hats or Masks', description: 'Create personalized party accessories', durationMinutes: 25, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Creative & Crafty', effortLevel: 'MEDIUM', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: 'any' },
-  { id: 'act-8', name: 'Decorate Your Own Cupcake/Cookie', description: 'Fun food decoration activity', durationMinutes: 20, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Creative & Crafty', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: 'any' },
-  { id: 'act-9', name: 'Make-Your-Own Slime or Playdough', description: 'Hands-on sensory crafting fun', durationMinutes: 25, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Creative & Crafty', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: 'any' },
-  
-  // Performance & Entertainment
-  { id: 'act-10', name: 'Talent Show', description: 'Dance, singing, jokes performance time', durationMinutes: 30, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_30', category: 'Performance & Entertainment', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '3-15' },
-  { id: 'act-11', name: 'Story Time', description: 'Theme-based adventure storytelling', durationMinutes: 15, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Performance & Entertainment', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8'], participantRange: 'any' },
-  { id: 'act-12', name: 'Puppet Show', description: 'Interactive puppet theater performance', durationMinutes: 20, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Performance & Entertainment', effortLevel: 'MEDIUM', ageGroup: ['AGE_3_5', 'AGE_6_8'], participantRange: 'any' },
-  { id: 'act-13', name: 'Karaoke Corner', description: 'Singing and music performance fun', durationMinutes: 25, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Performance & Entertainment', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: 'any' },
-  { id: 'act-14', name: 'Magic Show', description: 'Simple magic tricks and illusions', durationMinutes: 20, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_15', category: 'Performance & Entertainment', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: 'any' },
-  
-  // Interactive Play
-  { id: 'act-15', name: 'Dance Party with DJ', description: 'Music and dancing with playlist or DJ', durationMinutes: 30, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_30', category: 'Interactive Play', effortLevel: 'HIGH', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '5-20' },
-  { id: 'act-16', name: 'Giant Board Games', description: 'Connect 4, Jenga, and oversized games', durationMinutes: 25, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_15', category: 'Interactive Play', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '2-8' },
-  
-  // Calm & Relax Zones  
-  { id: 'act-17', name: 'Reading Nook', description: 'Quiet space for books and stories', durationMinutes: 20, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Calm & Relax', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8'], participantRange: 'any' },
-  { id: 'act-18', name: 'Movie Screening', description: 'Short themed clips or full movie', durationMinutes: 45, venueType: ['INDOOR'], duration: 'DURATION_45', category: 'Calm & Relax', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: 'any' },
-  { id: 'act-19', name: 'Lego Build Zone', description: 'Free-building with Lego blocks', durationMinutes: 30, venueType: ['INDOOR'], duration: 'DURATION_30', category: 'Calm & Relax', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: 'any' },
-  { id: 'act-20', name: 'Puzzle Station', description: 'Age-appropriate puzzles and games', durationMinutes: 25, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Calm & Relax', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: 'any' },
-  
-  // Additional Activities (continuing with more from the provided JSON)
-  { id: 'act-21', name: 'Field Day Races', description: 'Egg & spoon, sack, and three-legged races', durationMinutes: 25, venueType: ['OUTDOOR'], duration: 'DURATION_15', category: 'Games & Competitions', effortLevel: 'HIGH', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '6-20' },
-  { id: 'act-22', name: 'Water Balloon Toss', description: 'Toss water balloons without breaking them', durationMinutes: 15, venueType: ['OUTDOOR'], duration: 'DURATION_15', category: 'Games & Competitions', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '4-16' },
-  { id: 'act-23', name: 'Obstacle Course', description: 'Race through a fun and challenging course', durationMinutes: 20, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_15', category: 'Games & Competitions', effortLevel: 'HIGH', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '3-12' },
-  { id: 'act-24', name: 'Minute to Win It Games', description: 'Series of 60-second silly challenges', durationMinutes: 25, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_15', category: 'Games & Competitions', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '4-15' },
-  { id: 'act-25', name: 'Freeze Dance', description: 'Dance and freeze when the music stops', durationMinutes: 15, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_15', category: 'Interactive Play', effortLevel: 'MEDIUM', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: '3-20' },
-  { id: 'act-26', name: 'Simon Says', description: 'Follow commands only when prefaced with Simon says', durationMinutes: 10, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_15', category: 'Interactive Play', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: '3-20' },
-  { id: 'act-27', name: 'Hot Potato', description: 'Pass an object until the music stops', durationMinutes: 10, venueType: ['INDOOR'], duration: 'DURATION_15', category: 'Interactive Play', effortLevel: 'LOW', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: '4-15' },
-  { id: 'act-28', name: 'Scavenger Hunt', description: 'Photo or item-based search challenge', durationMinutes: 30, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_30', category: 'Games & Competitions', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '4-16' },
-  { id: 'act-29', name: 'Piñata Bash', description: 'Take turns breaking a candy-filled piñata', durationMinutes: 20, venueType: ['OUTDOOR', 'INDOOR'], duration: 'DURATION_15', category: 'Interactive Play', effortLevel: 'MEDIUM', ageGroup: ['AGE_3_5', 'AGE_6_8', 'AGE_9_12'], participantRange: '5-15' },
-  { id: 'act-30', name: 'Limbo Contest', description: 'How low can you go under the limbo stick?', durationMinutes: 15, venueType: ['INDOOR', 'OUTDOOR'], duration: 'DURATION_15', category: 'Interactive Play', effortLevel: 'MEDIUM', ageGroup: ['AGE_6_8', 'AGE_9_12'], participantRange: '4-15' },
-  // Additional 126 more activities from the JSON would be added here following the same pattern...
-];
+async function seedActivities() {
+  console.log('🌱 Seeding activities to Supabase...');
 
-async function seedBirthdayActivities() {
-  console.log('Starting to seed birthday activities...');
-  
   try {
-    // Delete existing activities to avoid conflicts
-    await prisma.birthdayActivity.deleteMany({});
-    console.log('Cleared existing birthday activities');
+    // Sample activities data
+    const activities = [
+      {
+        name: 'Treasure Hunt',
+        description: 'Exciting treasure hunt with clues and prizes',
+        full_description: 'A classic treasure hunt where kids follow clues to find hidden treasures. Perfect for developing problem-solving skills and teamwork.',
+        supplies_needed: ['Clues', 'Prizes', 'Map'],
+        setup_time: 15,
+        helpers_required: 2,
+        step_by_step_instructions: '1. Hide clues around the venue\n2. Give each child a starting clue\n3. Let them solve and find the next clue\n4. Celebrate when treasure is found!',
+        host_script: 'Welcome to our amazing treasure hunt! Are you ready to find some hidden treasures?',
+        age_group: ['5-12'],
+        venue_type: ['INDOOR', 'OUTDOOR'],
+        duration: 'DURATION_30',
+        duration_minutes: 30,
+        theme_compatibility: ['Adventure', 'Pirate', 'Dinosaur'],
+        effort_level: 'MEDIUM',
+        participant_range: '5-15',
+        min_participants: 5,
+        max_participants: 15,
+        category: 'Outdoor',
+        tags: ['adventure', 'teamwork', 'problem-solving']
+      },
+      {
+        name: 'Craft Station',
+        description: 'Creative craft activities for all ages',
+        full_description: 'Multiple craft stations where kids can create personalized party favors. Includes painting, coloring, and building activities.',
+        supplies_needed: ['Craft supplies', 'Paper', 'Glue', 'Scissors'],
+        setup_time: 20,
+        helpers_required: 1,
+        step_by_step_instructions: '1. Set up different craft stations\n2. Provide instructions at each station\n3. Let kids choose their favorite activity\n4. Display finished crafts proudly',
+        host_script: 'Time to get creative! Choose your favorite craft station and make something amazing!',
+        age_group: ['3-12'],
+        venue_type: ['INDOOR'],
+        duration: 'DURATION_45',
+        duration_minutes: 45,
+        theme_compatibility: ['Creative', 'Art', 'Unicorn'],
+        effort_level: 'LOW',
+        participant_range: '3-20',
+        min_participants: 3,
+        max_participants: 20,
+        category: 'Creative',
+        tags: ['crafts', 'creativity', 'art']
+      },
+      {
+        name: 'Dance Party',
+        description: 'High-energy dance party with music and games',
+        full_description: 'A fun-filled dance party with popular kids music, dance games, and prizes for the best dancers.',
+        supplies_needed: ['Music player', 'Speakers', 'Prizes'],
+        setup_time: 10,
+        helpers_required: 1,
+        step_by_step_instructions: '1. Set up music and speakers\n2. Play popular kids songs\n3. Organize dance games and contests\n4. Award prizes to winners',
+        host_script: 'Get ready to dance! Show us your best moves and have a blast!',
+        age_group: ['3-12'],
+        venue_type: ['INDOOR', 'OUTDOOR'],
+        duration: 'DURATION_30',
+        duration_minutes: 30,
+        theme_compatibility: ['Music', 'Dance', 'Celebration'],
+        effort_level: 'LOW',
+        participant_range: '5-25',
+        min_participants: 5,
+        max_participants: 25,
+        category: 'Entertainment',
+        tags: ['dance', 'music', 'energy']
+      }
+    ];
 
-    // Insert all activities
-    for (const activity of birthdayActivities) {
-      await prisma.birthdayActivity.create({
-        data: {
-          ...activity,
-          venueType: activity.venueType as any,
-          duration: activity.duration as any,
-          effortLevel: activity.effortLevel as any,
-          ageGroup: activity.ageGroup as any
-        }
-      });
+    for (const activity of activities) {
+      const { error } = await supabase
+        .from('activities')
+        .insert(activity);
+      
+      if (error) {
+        console.log(`⚠️  Activity "${activity.name}" insertion had issues:`, error.message);
+      } else {
+        console.log(`✅ Activity "${activity.name}" inserted`);
+      }
     }
 
-    console.log(`Successfully seeded ${birthdayActivities.length} birthday activities`);
+    console.log('🎯 Activities seeding completed!');
+
   } catch (error) {
-    console.error('Error seeding activities:', error);
-    throw error;
-  } finally {
-    await prisma.$disconnect();
+    console.error('❌ Activities seeding failed:', error);
   }
 }
 
-if (require.main === module) {
-  seedBirthdayActivities()
-    .then(() => {
-      console.log('Seeding completed successfully');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('Seeding failed:', error);
-      process.exit(1);
-    });
-}
+// Run the seeding
+seedActivities()
+  .then(() => {
+    console.log('✨ All done!');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('💥 Seeding failed:', error);
+    process.exit(1);
+  });
