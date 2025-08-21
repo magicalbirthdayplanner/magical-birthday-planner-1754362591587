@@ -885,17 +885,9 @@ export default function CreatePartyPage() {
       case 1:
         return partyData.childName.trim() !== "" && partyData.childAge > 0 && partyData.childGender !== "" && partyData.partyDate !== undefined;
       case 2:
-        // For classic themes, just require theme selection
-        // For custom themes, require interests
-        if (partyData.classicTheme !== "") {
-          return true; // Classic theme selected is sufficient
-        }
-        if (customThemeMode) {
-          return partyData.childInterests.length > 0; // Custom theme requires interests
-        }
-        return false; // Neither theme type selected - navigation disabled
+        return partyData.childInterests.length > 0; // Require at least one interest
       case 3:
-        return true; // Step 3 is always valid since it's just the summary/creation step
+        return partyData.zipCode && !partyData.zipCodeError && partyData.guestCount && partyData.guestCount > 0; // Require zip code and guest count
       default:
         return false;
     }
@@ -950,13 +942,13 @@ export default function CreatePartyPage() {
           <CardHeader className="text-center px-4 sm:px-6 py-4 sm:py-6">
             <CardTitle className="text-xl sm:text-2xl">
               {step === 1 && "Tell us about your child"}
-              {step === 2 && "What does your child love?"}
-              {step === 3 && "Create your party plan"}
+              {step === 2 && "What are your child's interests?"}
+              {step === 3 && "Party details"}
             </CardTitle>
             <CardDescription className="text-sm sm:text-base px-2">
-              {step === 1 && "Basic information about your child and when the party will be"}
-              {step === 2 && "Help us personalize themes based on your child's interests and favorite colors"}
-              {step === 3 && "Ready to create your magical party plan?"}
+              {step === 1 && "Name, gender, and date of birth"}
+              {step === 2 && "Tell us about your child's interests, hobbies, and favorite activities"}
+              {step === 3 && "Location details, budget, venue preference, and number of guests"}
             </CardDescription>
             
             {/* Navigation Buttons at Top */}
@@ -1294,430 +1286,253 @@ export default function CreatePartyPage() {
               </div>
             )}
 
-            {/* Step 2: Theme Selection Options */}
+            {/* Step 2: Child Interests */}
             {step === 2 && (
               <div className="space-y-6">
-                {/* Theme Selection Header */}
-                <div className="text-center">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                    Choose Your Theme Style
-                  </h3>
-                  <p className="text-gray-600">
-                    Select Classic Themes for quick setup or Custom Themes for personalized recommendations
-                  </p>
-                </div>
-
-                {/* Main Theme Selection Boxes - Show when no specific option is selected */}
-                {!showClassicThemes && !showCustomOptions && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                    {/* Classic Themes Card */}
-                    <div 
-                      className="relative group h-80 w-full [perspective:1000px] cursor-pointer"
-                      onClick={() => {
-                        setShowClassicThemes(true);
-                        setShowCustomOptions(false);
-                        setCustomThemeMode(false);
-                        setPartyData({ 
-                          ...partyData, 
-                          childInterests: [],
-                          favoriteColors: [],
-                          selectedTheme: "",
-                          classicTheme: ""
-                        });
-                      }}
-                    >
-                      <div className="relative h-full w-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(10deg)]">
-                        <div className="absolute inset-0 h-full w-full rounded-xl [backface-visibility:hidden] bg-gradient-to-br from-purple-600 to-pink-600 p-8 text-white shadow-2xl">
-                          <div className="flex h-full flex-col justify-center text-center space-y-4">
-                            <div className="text-6xl animate-bounce">
-                              {(() => {
-                                const allEmojis = Object.values(themeEmojiVariations).flat();
-                                return allEmojis[currentEmojiIndex % allEmojis.length];
-                              })()}
-                            </div>
-                            <h4 className="text-2xl font-bold">Classic Themes</h4>
-                            <p className="text-purple-100">
-                              Choose from our popular pre-designed themes. Perfect for quick party planning!
-                            </p>
-                            <div className="pt-4">
-                              <div className="inline-block bg-white/20 backdrop-blur-sm rounded-lg px-6 py-3 text-white font-semibold hover:bg-white/30 transition-all">
-                                Select Classic Themes →
-                              </div>
-                            </div>
-                          </div>
-                          <div className="absolute top-4 right-4 text-white/60">
-                            <Sparkles className="h-6 w-6" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Custom Themes Card */}
-                    <div 
-                      className="relative group h-80 w-full [perspective:1000px] cursor-pointer"
-                      onClick={() => {
-                        setShowCustomOptions(true);
-                        setShowClassicThemes(false);
-                        setCustomThemeMode(true);
-                        setPartyData({ 
-                          ...partyData, 
-                          classicTheme: "",
-                          selectedTheme: ""
-                        });
-                      }}
-                    >
-                      <div className="relative h-full w-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(-10deg)]">
-                        <div className="absolute inset-0 h-full w-full rounded-xl [backface-visibility:hidden] bg-gradient-to-br from-green-600 to-blue-600 p-8 text-white shadow-2xl">
-                          <div className="flex h-full flex-col justify-center text-center space-y-4">
-                            <div className="text-6xl animate-pulse">🎨</div>
-                            <h4 className="text-2xl font-bold">Custom Themes</h4>
-                            <p className="text-green-100">
-                              Tell us about your child's interests and get AI-powered personalized recommendations!
-                            </p>
-                            <div className="pt-4">
-                              <div className="inline-block bg-white/20 backdrop-blur-sm rounded-lg px-6 py-3 text-white font-semibold hover:bg-white/30 transition-all">
-                                Select Custom Themes →
-                              </div>
-                            </div>
-                          </div>
-                          <div className="absolute top-4 right-4 text-white/60">
-                            <Heart className="h-6 w-6" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                {/* Interests Selection */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">What does {partyData.childName || 'your child'} love? 💫</h3>
+                    <p className="text-sm text-gray-600">
+                      Select the interests, hobbies, and activities your child enjoys most
+                    </p>
                   </div>
-                )}
-
-                {/* Classic Themes Section - Show when classic theme card is flipped */}
-                {showClassicThemes && (
-                  <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                    {/* Back to selection button */}
-                    <div className="flex items-center justify-between mb-6">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setShowClassicThemes(false);
-                          setShowCustomOptions(false);
-                          setCustomThemeMode(false);
-                          setPartyData({ 
-                            ...partyData, 
-                            classicTheme: "",
-                            selectedTheme: "",
-                            childInterests: [],
-                            favoriteColors: []
-                          });
-                        }}
-                        className="flex items-center space-x-2 hover:bg-purple-50"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                        <span>Back to Theme Selection</span>
-                      </Button>
-                      <div className="text-sm text-gray-500">Step 2 of 4</div>
-                    </div>
-
-                    <div className="text-center mb-8">
-                      <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                        🎭 Classic Themes
-                      </h3>
-                      <p className="text-gray-600">
-                        Choose from our popular pre-designed themes and make them uniquely yours
-                      </p>
-                    </div>
-                    
-                    {/* Theme Cards with uniform styling */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                      {classicThemes.map((theme) => (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-3 justify-center">
+                      {interestOptions.map((interest) => (
                         <div
-                          key={theme.id}
+                          key={interest}
                           onClick={() => {
-                            setPartyData({ 
-                              ...partyData, 
-                              classicTheme: theme.id,
-                              selectedTheme: theme.id
-                            });
+                            // Allow multiple selections
+                            const newInterests = partyData.childInterests.includes(interest)
+                              ? partyData.childInterests.filter(i => i !== interest)
+                              : [...partyData.childInterests, interest];
+                            setPartyData({ ...partyData, childInterests: newInterests });
                           }}
                           className={cn(
-                            "relative group p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl",
-                            partyData.classicTheme === theme.id
-                              ? "border-purple-500 ring-2 ring-purple-200 shadow-lg bg-purple-50"
-                              : "border-gray-200 hover:border-purple-300 hover:shadow-md bg-white"
+                            "relative group px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-md text-sm font-medium",
+                            partyData.childInterests.includes(interest)
+                              ? "border-purple-500 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg ring-2 ring-purple-200"
+                              : "border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50 text-gray-700"
                           )}
                         >
-                          <div className={cn(
-                            "absolute inset-0 rounded-xl opacity-10 transition-opacity group-hover:opacity-20",
-                            theme.color.replace('bg-gradient-to-r', 'bg-gradient-to-br')
-                          )}></div>
-                          <div className="relative text-center space-y-3">
-                            <div className="text-4xl group-hover:scale-110 transition-transform duration-200">{theme.emoji}</div>
-                            <div className="text-sm font-semibold text-gray-800">
-                              {theme.name}
-                            </div>
-                            {partyData.classicTheme === theme.id && (
-                              <div className="inline-flex items-center space-x-1 text-xs text-purple-600 font-medium bg-purple-100 rounded-full px-2 py-1">
-                                <Sparkles className="h-3 w-3" />
-                                <span>Selected</span>
-                              </div>
-                            )}
-                          </div>
+                          <span>{interest}</span>
+                          {partyData.childInterests.includes(interest) && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+                          )}
                         </div>
                       ))}
                     </div>
-
-                    {/* Tell us more section for classic themes */}
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 space-y-4">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-2">Make It Extra Special! ✨</h4>
-                        <p className="text-sm text-gray-600">
-                          Tell us more about your child to get personalized theme variations (max 3 words)
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">
-                          What are your child's current favorites, movies, shows, or hobbies? (Max 3 words)
-                        </Label>
-                        <Textarea
-                          placeholder={currentPlaceholder}
-                          value={partyData.childDetails || ''}
-                          onChange={(e) => {
-                            const input = e.target.value;
-                            const words = input.trim().split(/\s+/).filter(word => word.length > 0);
-                            
-                            let finalText = input;
-                            
-                            // Limit to maximum 3 words
-                            if (words.length > 3) {
-                              // Take only first 3 words
-                              finalText = words.slice(0, 3).join(' ');
-                            }
-                            
-                            // Check for profanity
-                            handleTextInputChange(finalText);
-                            
-                            setPartyData({ ...partyData, childDetails: finalText });
-                          }}
-                          className={cn(
-                            "min-h-[100px] text-sm resize-none bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm transition-colors dark:text-gray-200",
-                            profanityState.hasProfanity 
-                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50 dark:bg-red-900/30 dark:ring-red-800 dark:border-red-400" 
-                              : "border-purple-200 focus:border-purple-400 dark:border-slate-600 dark:focus:border-purple-500"
-                          )}
-                        />
-                        {/* Profanity warning message */}
-                        {profanityState.hasProfanity && (
-                          <div className="flex items-center space-x-2 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
-                            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                            <p className="text-sm text-red-700 font-medium">
-                              {profanityState.warningMessage}
-                            </p>
-                          </div>
-                        )}
-                        <div className="flex justify-between items-center">
-                          <p className="text-xs text-gray-500">
-                            This helps us create magical theme variations just for {partyData.childName || 'your child'}!
-                          </p>
-                          <p className="text-xs text-purple-600 font-medium">
-                            {partyData.childDetails ? 
-                              `${partyData.childDetails.trim().split(/\s+/).filter(word => word.length > 0).length}/3 words` : 
-                              '0/3 words'
-                            }
-                          </p>
+                    {partyData.childInterests.length > 0 && (
+                      <div className="space-y-2 pt-4">
+                        <div className="text-center">
+                          <span className="text-sm text-gray-600 font-medium">Selected interests ({partyData.childInterests.length}):</span>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Custom Theme Selection - Show when custom theme card is flipped */}
-                {showCustomOptions && (
-                  <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                    {/* Back to selection button */}
-                    <div className="flex items-center justify-between mb-6">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setShowCustomOptions(false);
-                          setShowClassicThemes(false);
-                          setCustomThemeMode(false);
-                          setPartyData({ 
-                            ...partyData, 
-                            selectedTheme: "",
-                            childInterests: [],
-                            favoriteColors: []
-                          });
-                        }}
-                        className="flex items-center space-x-2 hover:bg-green-50"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                        <span>Back to Theme Selection</span>
-                      </Button>
-                      <div className="text-sm text-gray-500">Step 2 of 4</div>
-                    </div>
-
-                    <div className="text-center mb-8">
-                      <h3 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                        🎨 Custom Themes
-                      </h3>
-                      <p className="text-gray-600">
-                        Tell us about your child's interests and we'll create personalized theme recommendations!
-                      </p>
-                    </div>
-
-                    {/* Interests Selection - Card Style (Single Select) */}
-                    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 space-y-4">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-2">What Does Your Child Love? 💫</h4>
-                        <p className="text-sm text-gray-600">
-                          Choose one main interest for your child
-                        </p>
-                      </div>
-                      <div className="space-y-4">
-                        <div className="flex flex-wrap gap-3 justify-center">
-                          {interestOptions.map((interest) => (
-                            <div
-                              key={interest}
-                              onClick={() => {
-                                // Single select - replace the current selection with new one
-                                setPartyData({ ...partyData, childInterests: [interest] });
-                              }}
-                              className={cn(
-                                "relative group px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-md text-sm font-medium",
-                                partyData.childInterests.includes(interest)
-                                  ? "border-green-500 bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg ring-2 ring-green-200"
-                                  : "border-gray-200 bg-white hover:border-green-300 hover:bg-green-50 text-gray-700"
-                              )}
-                            >
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {partyData.childInterests.map((interest) => (
+                            <div key={interest} className="inline-flex items-center space-x-1 bg-purple-100 text-purple-800 rounded-full px-3 py-1 text-xs font-medium">
                               <span>{interest}</span>
-                              {partyData.childInterests.includes(interest) && (
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-                              )}
+                              <X 
+                                className="h-3 w-3 cursor-pointer hover:text-purple-600" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPartyData({ 
+                                    ...partyData, 
+                                    childInterests: partyData.childInterests.filter(i => i !== interest) 
+                                  });
+                                }}
+                              />
                             </div>
                           ))}
                         </div>
-                        {partyData.childInterests.length > 0 && (
-                          <div className="flex flex-wrap gap-2 pt-4 justify-center">
-                            <span className="text-sm text-gray-600 font-medium">Selected:</span>
-                            <div className="inline-flex items-center space-x-1 bg-green-100 text-green-800 rounded-full px-3 py-1 text-xs font-medium">
-                              <span>{partyData.childInterests[0]}</span>
-                            </div>
-                          </div>
-                        )}
                       </div>
-                    </div>
-
-                    {/* Favorite Colors - Card Style */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 space-y-4">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-2">Favorite Colors 🌈</h4>
-                        <p className="text-sm text-gray-600">
-                          Optional - helps personalize your themes
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-3 justify-center">
-                        {colorOptions.map((color) => (
-                          <div
-                            key={color.value}
-                            className={cn(
-                              "relative group flex items-center space-x-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 bg-white",
-                              partyData.favoriteColors.includes(color.value)
-                                ? "border-purple-500 ring-2 ring-purple-200 shadow-lg"
-                                : "border-gray-200 hover:border-purple-300 hover:shadow-md"
-                            )}
-                            onClick={() => {
-                              const newColors = partyData.favoriteColors.includes(color.value)
-                                ? partyData.favoriteColors.filter(c => c !== color.value)
-                                : [...partyData.favoriteColors, color.value];
-                              setPartyData({ ...partyData, favoriteColors: newColors });
-                            }}
-                          >
-                            <div
-                              className="w-6 h-6 rounded-full border-2 border-gray-300 group-hover:scale-110 transition-transform"
-                              style={{
-                                background: color.value === 'rainbow' 
-                                  ? 'linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7, #DDA0DD)'
-                                  : color.color
-                              }}
-                            />
-                            <span className="text-sm font-medium text-gray-700">{color.name}</span>
-                            {partyData.favoriteColors.includes(color.value) && (
-                              <Heart className="h-4 w-4 text-red-600 fill-current animate-pulse" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Tell us more section */}
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 space-y-4">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-2">Tell Us More! ✨</h4>
-                        <p className="text-sm text-gray-600">
-                          Share more details to get even more personalized recommendations (max 3 words)
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">
-                          What are your child's current favorites, movies, shows, or hobbies? (Max 3 words)
-                        </Label>
-                        <Textarea
-                          placeholder={currentPlaceholder}
-                          value={partyData.childDetails || ''}
-                          onChange={(e) => {
-                            const input = e.target.value;
-                            const words = input.trim().split(/\s+/).filter(word => word.length > 0);
-                            
-                            let finalText = input;
-                            
-                            // Limit to maximum 3 words
-                            if (words.length > 3) {
-                              // Take only first 3 words
-                              finalText = words.slice(0, 3).join(' ');
-                            }
-                            
-                            // Check for profanity
-                            handleTextInputChange(finalText);
-                            
-                            setPartyData({ ...partyData, childDetails: finalText });
-                          }}
-                          className={cn(
-                            "min-h-[100px] text-sm resize-none bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm transition-colors dark:text-gray-200",
-                            profanityState.hasProfanity 
-                              ? "border-red-500 focus:border-red-600 ring-2 ring-red-200 bg-red-50 dark:bg-red-900/30 dark:ring-red-800 dark:border-red-400" 
-                              : "border-purple-200 focus:border-purple-400 dark:border-slate-600 dark:focus:border-purple-500"
-                          )}
-                        />
-                        {/* Profanity warning message */}
-                        {profanityState.hasProfanity && (
-                          <div className="flex items-center space-x-2 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
-                            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                            <p className="text-sm text-red-700 font-medium">
-                              {profanityState.warningMessage}
-                            </p>
-                          </div>
-                        )}
-                        <div className="flex justify-between items-center">
-                          <p className="text-xs text-gray-500">
-                            This helps us create magical theme variations just for {partyData.childName || 'your child'}!
-                          </p>
-                          <p className="text-xs text-purple-600 font-medium">
-                            {partyData.childDetails ? 
-                              `${partyData.childDetails.trim().split(/\s+/).filter(word => word.length > 0).length}/3 words` : 
-                              '0/3 words'
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
+
+                {/* Additional Details (Optional) */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 space-y-4">
+                  <div className="text-center">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Tell us more (Optional) ✨</h4>
+                    <p className="text-sm text-gray-600">
+                      Any specific hobbies, favorite shows, characters, or activities?
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Textarea
+                      placeholder="e.g., loves unicorns, plays soccer, watches Paw Patrol..."
+                      value={partyData.childDetails || ''}
+                      onChange={(e) => {
+                        setPartyData({ ...partyData, childDetails: e.target.value });
+                      }}
+                      className="min-h-[80px] text-sm resize-none bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm transition-colors dark:text-gray-200 border-blue-200 focus:border-blue-400 dark:border-slate-600 dark:focus:border-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 text-center">
+                      This helps us create the perfect party theme for {partyData.childName || 'your child'}!
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Step 3: Theme Selection */}
+            {/* Step 3: Party Details */}
             {step === 3 && (
               <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Zip Code Input with Auto Country Detection */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <MapPin className="h-4 w-4 text-blue-600" />
+                      Zip Code
+                    </Label>
+                    <div className="relative">
+                      {/* Country Flag Display (Auto-detected) */}
+                      {partyData.country && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-lg">
+                          {countryOptions.find(c => c.code === partyData.country)?.flag}
+                        </div>
+                      )}
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder="Enter zip code (any country)"
+                        value={partyData.zipCode || ''}
+                        onChange={(e) => handleZipCodeChange(e.target.value)}
+                        className={cn(
+                          "pl-10 pr-12 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200",
+                          partyData.zipCodeError && "border-red-500 focus:border-red-500 focus:ring-red-500",
+                          partyData.country && !partyData.zipCodeError && "border-green-500 focus:border-green-500"
+                        )}
+                        maxLength={15}
+                      />
+                    </div>
+                    {partyData.zipCodeError && (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {partyData.zipCodeError}
+                      </p>
+                    )}
+                    {partyData.country && !partyData.zipCodeError && partyData.zipCode && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Valid {countryOptions.find(c => c.code === partyData.country)?.name} zip code detected
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-500">
+                      Country auto-detected from format • Helps us suggest local vendors
+                    </p>
+                  </div>
 
-                {/* Loading State for Custom Themes */}
+                  {/* Guest Count Input */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <Users className="h-4 w-4 text-purple-600" />
+                      Number of Guests
+                    </Label>
+                    <div className="relative">
+                      <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="number"
+                        placeholder="Expected guests (adults + children)"
+                        value={partyData.guestCount || ''}
+                        onChange={(e) => setPartyData({ ...partyData, guestCount: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                        min="1"
+                        max="200"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Include both adults and children in the total count
+                    </p>
+                  </div>
+                </div>
+
+                {/* Budget Input (Optional) */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                    Party Budget (Optional)
+                  </Label>
+                  <div className="flex gap-2 max-w-md">
+                    {/* Currency Selector Button */}
+                    <Select value={partyData.currency || 'USD'} onValueChange={handleCurrencyChange}>
+                      <SelectTrigger className="w-20 h-12 text-lg font-semibold dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
+                        <SelectValue>
+                          {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.symbol || '$' : '$'}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {currencyOptions.map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg font-semibold">{currency.symbol}</span>
+                              <span className="text-sm">{currency.code}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* Budget Input */}
+                    <Input
+                      type="number"
+                      placeholder="Enter budget amount"
+                      value={partyData.budget || ''}
+                      onChange={(e) => setPartyData({ ...partyData, budget: e.target.value ? parseFloat(e.target.value) : undefined })}
+                      className="flex-1 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                      min="0"
+                      step="10"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Budget helps us recommend the right options for your party
+                  </p>
+                </div>
+
+                {/* Venue Preference */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                    <Home className="h-4 w-4 text-indigo-600" />
+                    Venue Preference
+                  </Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { value: 'indoor', label: 'Indoor', icon: Home, desc: 'Home, community center, indoor venue' },
+                      { value: 'outdoor', label: 'Outdoor', icon: Globe, desc: 'Backyard, park, outdoor space' },
+                      { value: 'mixed', label: 'Mixed', icon: Clock, desc: 'Both indoor and outdoor activities' }
+                    ].map((option) => (
+                      <div
+                        key={option.value}
+                        onClick={() => setPartyData({ ...partyData, venue: option.value as 'indoor' | 'outdoor' | 'mixed' })}
+                        className={cn(
+                          "relative group p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-md text-center",
+                          partyData.venue === option.value
+                            ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200 shadow-lg"
+                            : "border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50"
+                        )}
+                      >
+                        <option.icon className={cn(
+                          "h-6 w-6 mx-auto mb-2 transition-transform duration-200",
+                          partyData.venue === option.value ? "text-indigo-600 scale-110" : "text-gray-400 group-hover:text-indigo-500 group-hover:scale-110"
+                        )} />
+                        <div className={cn(
+                          "text-sm font-semibold",
+                          partyData.venue === option.value ? "text-indigo-700" : "text-gray-700"
+                        )}>
+                          {option.label}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {option.desc}
+                        </div>
+                        {partyData.venue === option.value && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Keep original AI theme content for now */}
                 {!partyData.classicTheme && partyData.isLoadingAI && (
                   <div className="flex flex-col items-center justify-center py-12 relative">
                     <div className="animate-bounce mb-4">
