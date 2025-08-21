@@ -1,134 +1,173 @@
-// IMPORTANT: When adding new env variables to the codebase, update this array
-export const ENV_VARIABLES: EnvVariable[] = [
-  {
-    name: "DATABASE_URL",
-    description: "Supabase PostgreSQL pooled connection string for runtime operations (port 6543)",
-    required: true,
-    instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → Database → Connection string → Session pooling.\n Format: postgres://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:6543/postgres?pgbouncer=true&connection_limit=1&connect_timeout=15"
-  },
-  {
-    name: "DIRECT_URL",
-    description: "Supabase PostgreSQL direct connection string for migrations (port 5432)",
-    required: false,
-    instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → Database → Connection string → Direct connection.\n Format: postgres://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require"
-  },
-  {
-    name: "NEXT_PUBLIC_SUPABASE_URL",
-    description: "Supabase project URL for client-side authentication and API calls",
-    required: true,
-    instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → Data API → Copy the 'Project URL -> URL' field (format: https://[project-id].supabase.co)"
-  },
-  {
-    name: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    description: "Supabase anonymous/publishable key for client-side authentication",
-    required: true,
-    instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → API Keys → Copy 'Legacy API keys → anon public' key"
-  },
-  {
-    name: "AZURE_OPENAI_API_KEY",
-    description: "Azure OpenAI API key for AI-powered theme recommendations using GPT-4.1",
-    required: false,
-    instructions: "Go to Azure Portal → Your OpenAI Resource → Keys and Endpoint → Copy 'Key 1' or 'Key 2'"
-  },
-  {
-    name: "AZURE_OPENAI_ENDPOINT",
-    description: "Azure OpenAI service endpoint URL",
-    required: false,
-    instructions: "Format: https://[resource-name].openai.azure.com/ (from Azure Portal → Your OpenAI Resource → Keys and Endpoint)"
-  },
-  {
-    name: "AZURE_OPENAI_DEPLOYMENT_NAME",
-    description: "Azure OpenAI deployment name for GPT-4.1 model",
-    required: false,
-    instructions: "The deployment name you created in Azure OpenAI Studio (e.g., 'gpt-4.1')"
-  },
-  {
-    name: "AZURE_OPENAI_API_VERSION",
-    description: "Azure OpenAI API version",
-    required: false,
-    instructions: "Use '2025-01-01-preview' or latest available API version from Azure OpenAI documentation"
-  },
-  {
-    name: "DODO_PAYMENTS_API_KEY",
-    description: "DoDo Payments API key for subscription handling and payment processing",
-    required: false,
-    instructions: "Go to [DoDo Payments Dashboard](https://app.dodopayments.com) → Settings → API Keys → Copy your Live or Test API key"
-  },
-  {
-    name: "DODO_PAYMENTS_WEBHOOK_SECRET",
-    description: "DoDo Payments webhook secret for secure webhook verification",
-    required: false,
-    instructions: "Go to [DoDo Payments Dashboard](https://app.dodopayments.com) → Webhooks → Copy the webhook secret"
-  },
-  {
-    name: "RESEND_API_KEY",
-    description: "Resend API key for transactional email sending (invitations, notifications, etc.)",
-    required: false,
-    instructions: "Go to [Resend Dashboard](https://resend.com/api-keys) → Create new API key → Copy the generated API key (starts with 're_')"
-  },
-  {
-    name: "GOOGLE_PLACES_API_KEY",
-    description: "Google Places API key for real venue recommendations and search functionality",
-    required: false,
-    instructions: "Go to [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → Create API key → Enable Places API (New) → Copy the API key"
-  },
-  {
-    name: "APIFY_API_TOKEN",
-    description: "Apify API token for venue scraping using Google Maps Scraper Actor",
-    required: false,
-    instructions: "Go to [Apify Console](https://console.apify.com) → Settings → Integrations → API tokens → Create new token → Copy the API token (starts with 'apify_api_')"
-  },
-  {
-    name: "APIFY_USER_ID",
-    description: "Apify user ID for API authentication",
-    required: false,
-    instructions: "Go to [Apify Console](https://console.apify.com) → Settings → Account → Copy your User ID"
-  },
-  {
-    name: "GEOAPIFY_API_KEY",
-    description: "Geoapify API key for location geocoding (ZIP/City to coordinates)",
-    required: false,
-    instructions: "Go to [Geoapify](https://www.geoapify.com/) → Create account → MyProjects → Create new project → Copy API key (free tier: 3,000 requests/day)"
-  },
-  {
-    name: "POSITIONSTACK_API_KEY",
-    description: "Positionstack API key for backup geocoding service",
-    required: false,
-    instructions: "Go to [Positionstack](https://positionstack.com/) → Sign up → Dashboard → Copy your API access key (free tier: 25,000 requests/month)"
-  },
-  {
-    name: "N8N_PARTY_WEBHOOK_URL",
-    description: "n8n webhook URL for party creation events",
-    required: false,
-    instructions: "Create a workflow in n8n with a Webhook trigger → Copy the Production webhook URL"
-  },
-  {
-    name: "N8N_RSVP_WEBHOOK_URL",
-    description: "n8n webhook URL for RSVP events",
-    required: false,
-    instructions: "Create a workflow in n8n with a Webhook trigger → Copy the Production webhook URL"
-  },
-  {
-    name: "N8N_GUEST_WEBHOOK_URL",
-    description: "n8n webhook URL for guest management events",
-    required: false,
-    instructions: "Create a workflow in n8n with a Webhook trigger → Copy the Production webhook URL"
-  },
-  {
-    name: "N8N_INVITATION_WEBHOOK_URL",
-    description: "n8n webhook URL for invitation sending events",
-    required: false,
-    instructions: "Create a workflow in n8n with a Webhook trigger → Copy the Production webhook URL"
-  },
-];
+// Environment configuration for the application
+export const env = {
+  // Supabase Configuration
+  SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  
+  // Database Configuration
+  DATABASE_URL: process.env.DATABASE_URL!,
+  
+  // OpenAI Configuration
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  
+  // Application Configuration
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || 'localhost:3000',
+  
+  // Email Configuration
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  
+  // Payment Configuration
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+  STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  
+  // N8N Configuration
+  N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL,
+  
+  // Dodo Payments Configuration
+  DODO_API_KEY: process.env.DODO_API_KEY,
+  DODO_WEBHOOK_SECRET: process.env.DODO_WEBHOOK_SECRET,
+};
 
-export interface EnvVariable {
-  name: string
-  description: string
-  instructions: string
-  required: boolean
+// Validate required environment variables
+export function validateEnv() {
+  const requiredVars = [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'DATABASE_URL'
+  ];
+
+  const missingVars = requiredVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  }
+
+  return true;
 }
 
-export function checkMissingEnvVars(): string[] {
-  return ENV_VARIABLES.filter(envVar => envVar.required && !process.env[envVar.name]).map(envVar => envVar.name)
+// Check if we're in production
+export const isProduction = env.NODE_ENV === 'production';
+
+// Check if we're in development
+export const isDevelopment = env.NODE_ENV === 'development';
+
+// Check if we're in test mode
+export const isTest = env.NODE_ENV === 'test';
+
+// Supabase configuration validation
+export function validateSupabaseConfig() {
+  if (!env.SUPABASE_URL) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is required');
+  }
+  
+  if (!env.SUPABASE_ANON_KEY) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
+  }
+
+  // Validate URL format
+  try {
+    new URL(env.SUPABASE_URL);
+  } catch {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL must be a valid URL');
+  }
+
+  return true;
 }
+
+// Database configuration validation
+export function validateDatabaseConfig() {
+  if (!env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required');
+  }
+
+  // Check if it's a Supabase URL
+  if (env.DATABASE_URL.includes('supabase.co')) {
+    console.log('✅ Using Supabase database');
+  } else {
+    console.log('⚠️  Using custom database (not Supabase)');
+  }
+
+  return true;
+}
+
+// OpenAI configuration validation
+export function validateOpenAIConfig() {
+  if (!env.OPENAI_API_KEY) {
+    console.warn('⚠️  OPENAI_API_KEY not set - AI features will be disabled');
+    return false;
+  }
+
+  return true;
+}
+
+// Payment configuration validation
+export function validatePaymentConfig() {
+  if (!env.STRIPE_SECRET_KEY || !env.STRIPE_PUBLISHABLE_KEY) {
+    console.warn('⚠️  Stripe keys not set - payment features will be disabled');
+    return false;
+  }
+
+  return true;
+}
+
+// Email configuration validation
+export function validateEmailConfig() {
+  if (!env.RESEND_API_KEY) {
+    console.warn('⚠️  RESEND_API_KEY not set - email features will be disabled');
+    return false;
+  }
+
+  return true;
+}
+
+// Comprehensive environment validation
+export function validateAllConfig() {
+  try {
+    validateEnv();
+    validateSupabaseConfig();
+    validateDatabaseConfig();
+    
+    // Optional validations
+    validateOpenAIConfig();
+    validatePaymentConfig();
+    validateEmailConfig();
+    
+    console.log('✅ All environment configuration validated successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Environment configuration validation failed:', error);
+    throw error;
+  }
+}
+
+// Get configuration summary
+export function getConfigSummary() {
+  return {
+    environment: env.NODE_ENV,
+    supabase: {
+      url: env.SUPABASE_URL ? '✅ Configured' : '❌ Missing',
+      anonKey: env.SUPABASE_ANON_KEY ? '✅ Configured' : '❌ Missing',
+      serviceKey: env.SUPABASE_SERVICE_ROLE_KEY ? '✅ Configured' : '⚠️  Optional',
+    },
+    database: {
+      url: env.DATABASE_URL ? '✅ Configured' : '❌ Missing',
+      type: env.DATABASE_URL?.includes('supabase.co') ? 'Supabase' : 'Custom',
+    },
+    openai: {
+      apiKey: env.OPENAI_API_KEY ? '✅ Configured' : '⚠️  Missing',
+    },
+    stripe: {
+      secretKey: env.STRIPE_SECRET_KEY ? '✅ Configured' : '⚠️  Missing',
+      publishableKey: env.STRIPE_PUBLISHABLE_KEY ? '✅ Configured' : '⚠️  Missing',
+    },
+    email: {
+      resendKey: env.RESEND_API_KEY ? '✅ Configured' : '⚠️  Missing',
+    },
+    baseUrl: env.NEXT_PUBLIC_BASE_URL,
+  };
+}
+
+// Export default configuration
+export default env;

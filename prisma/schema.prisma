@@ -369,6 +369,35 @@ model CustomTheme {
   @@map("custom_themes")
 }
 
+model Activity {
+  id                   String           @id @default(cuid())
+  name                 String
+  description          String
+  fullDescription      String?
+  suppliesNeeded       String[]
+  setupTime            Int
+  helpersRequired      Int
+  stepByStepInstructions String
+  hostScript           String
+  ageGroup             AgeGroup[]
+  venueType            VenueType[]
+  duration             ActivityDuration
+  durationMinutes      Int
+  themeCompatibility   String[]
+  effortLevel          EffortLevel
+  participantRange     String
+  minParticipants      Int
+  maxParticipants      Int
+  category             String
+  tags                 String[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  activityFavorites    ActivityFavorite[]
+  selectedActivities   SelectedActivity[]
+
+  @@map("activities")
+}
+
 model ActivityFavorite {
   id         String   @id @default(cuid())
   userId     String
@@ -376,6 +405,7 @@ model ActivityFavorite {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
   @@unique([userId, activityId])
   @@map("activity_favorites")
@@ -391,6 +421,7 @@ model SelectedActivity {
   updatedAt  DateTime @updatedAt
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   party      Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
   @@unique([userId, partyId, activityId])
   @@map("selected_activities")
