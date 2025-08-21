@@ -144,6 +144,50 @@ const themeData = {
   // Add more themes as needed
 };
 
+// Restricted Tab Message Component
+const RestrictedTabMessage = ({ tabName, requiredPlan }: { tabName: string; requiredPlan: string }) => {
+  const getPlanDisplayName = (plan: string) => {
+    switch (plan) {
+      case 'FREE': return 'Starter';
+      case 'STARTER': return 'Plus';
+      case 'PROFESSIONAL': return 'Pro';
+      default: return plan;
+    }
+  };
+
+  return (
+    <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50">
+      <CardContent className="text-center py-12">
+        <div className="space-y-4">
+          <Crown className="h-16 w-16 mx-auto text-yellow-500 opacity-60" />
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              {tabName} Feature Locked
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              This feature is only available on the {getPlanDisplayName(requiredPlan)} plan and above.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button asChild className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                <Link href="/pricing">
+                  <Crown className="h-4 w-4 mr-2" />
+                  View Plans
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/dashboard">
+                  <Home className="h-4 w-4 mr-2" />
+                  Go to Dashboard
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default function PartyPlanPage() {
   const { user } = useAuth();
   const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();
@@ -172,7 +216,7 @@ export default function PartyPlanPage() {
       icon: PartyPopper,
       gradient: 'from-purple-500 to-pink-500',
       hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
-      allowedPlans: ['overview'] // Always allowed (included in all plans)
+      requiredPlan: 'FREE' // Always allowed (included in all plans)
     },
     {
       id: 'themes',
@@ -180,7 +224,7 @@ export default function PartyPlanPage() {
       icon: Palette,
       gradient: 'from-purple-500 to-pink-500',
       hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
-      allowedPlans: ['themes'] // Always allowed (included in all plans)
+      requiredPlan: 'FREE' // Always allowed (included in all plans)
     },
     {
       id: 'budget',
@@ -188,7 +232,7 @@ export default function PartyPlanPage() {
       icon: DollarSign,
       gradient: 'from-green-500 to-emerald-500',
       hoverColor: 'bg-green-50 dark:bg-green-900/20',
-      allowedPlans: ['budget'] // Plus and Pro plans
+      requiredPlan: 'STARTER' // Plus and Pro plans
     },
     {
       id: 'activities',
@@ -196,7 +240,7 @@ export default function PartyPlanPage() {
       icon: Sparkles,
       gradient: 'from-violet-500 to-purple-500',
       hoverColor: 'bg-violet-50 dark:bg-violet-900/20',
-      allowedPlans: ['activities'] // Plus and Pro plans
+      requiredPlan: 'STARTER' // Plus and Pro plans
     },
     {
       id: 'host-mode',
@@ -204,7 +248,7 @@ export default function PartyPlanPage() {
       icon: Crown,
       gradient: 'from-purple-600 to-pink-600',
       hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
-      allowedPlans: ['activities'] // Plus and Pro plans (same as Activities)
+      requiredPlan: 'STARTER' // Plus and Pro plans
     },
     {
       id: 'shopping',
@@ -212,7 +256,7 @@ export default function PartyPlanPage() {
       icon: ShoppingBag,
       gradient: 'from-orange-500 to-red-500',
       hoverColor: 'bg-orange-50 dark:bg-orange-900/20',
-      allowedPlans: ['shopping'] // Pro plan only
+      requiredPlan: 'PROFESSIONAL' // Pro plan only
     },
     {
       id: 'food',
@@ -220,7 +264,7 @@ export default function PartyPlanPage() {
       icon: UtensilsCrossed,
       gradient: 'from-red-500 to-pink-500',
       hoverColor: 'bg-red-50 dark:bg-red-900/20',
-      allowedPlans: ['food'] // Pro plan only
+      requiredPlan: 'PROFESSIONAL' // Pro plan only
     },
     {
       id: 'cake',
@@ -228,7 +272,7 @@ export default function PartyPlanPage() {
       icon: Cake,
       gradient: 'from-pink-500 to-rose-500',
       hoverColor: 'bg-pink-50 dark:bg-pink-900/20',
-      allowedPlans: ['cake'] // Pro plan only
+      requiredPlan: 'PROFESSIONAL' // Pro plan only
     },
     {
       id: 'guests',
@@ -236,7 +280,7 @@ export default function PartyPlanPage() {
       icon: Users,
       gradient: 'from-teal-500 to-cyan-500',
       hoverColor: 'bg-teal-50 dark:bg-teal-900/20',
-      allowedPlans: ['guests'] // Always allowed (included in all plans)
+      requiredPlan: 'FREE' // Always allowed (included in all plans)
     },
     {
       id: 'timeline',
@@ -244,7 +288,7 @@ export default function PartyPlanPage() {
       icon: Clock,
       gradient: 'from-indigo-500 to-purple-500',
       hoverColor: 'bg-indigo-50 dark:bg-indigo-900/20',
-      allowedPlans: ['timeline'] // Always allowed (included in all plans)
+      requiredPlan: 'FREE' // Always allowed (included in all plans)
     },
     {
       id: 'ideas',
@@ -252,7 +296,7 @@ export default function PartyPlanPage() {
       icon: Lightbulb,
       gradient: 'from-yellow-500 to-amber-500',
       hoverColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-      allowedPlans: ['activities'] // Plus and Pro plans (same as Activities)
+      requiredPlan: 'STARTER' // Plus and Pro plans
     },
     {
       id: 'checklist',
@@ -260,12 +304,46 @@ export default function PartyPlanPage() {
       icon: CheckCircle2,
       gradient: 'from-blue-500 to-cyan-500',
       hoverColor: 'bg-blue-50 dark:bg-blue-900/20',
-      allowedPlans: ['checklist'] // Always allowed (included in all plans)
+      requiredPlan: 'FREE' // Always allowed (included in all plans)
     },
   ];
 
+  // Helper function to get plan level for comparison
+  const getPlanLevel = (plan: string): number => {
+    switch (plan) {
+      case 'FREE': return 0;
+      case 'STARTER': return 1;
+      case 'PROFESSIONAL': return 2;
+      default: return 0;
+    }
+  };
+
   // Get tabs allowed for current subscription plan
-  const allowedTabs = tabConfigs.filter(tab => isTabAllowed(tab.id));
+  const allowedTabs = tabConfigs.filter(tab => {
+    // Check if the current plan has access to this tab
+    const currentPlanLevel = getPlanLevel(currentPlan);
+    const requiredPlanLevel = getPlanLevel(tab.requiredPlan);
+    return currentPlanLevel >= requiredPlanLevel;
+  });
+
+  // Get all tabs for display (including restricted ones)
+  const allTabs = tabConfigs;
+
+  // Helper function to check if a tab is restricted for current plan
+  const isTabRestricted = (tabId: string): boolean => {
+    const tab = tabConfigs.find(t => t.id === tabId);
+    if (!tab) return true;
+    
+    const currentPlanLevel = getPlanLevel(currentPlan);
+    const requiredPlanLevel = getPlanLevel(tab.requiredPlan);
+    return currentPlanLevel < requiredPlanLevel;
+  };
+
+  // Helper function to get the required plan for a tab
+  const getRequiredPlanForTab = (tabId: string): string => {
+    const tab = tabConfigs.find(t => t.id === tabId);
+    return tab?.requiredPlan || 'FREE';
+  };
 
   // Handle PDF download functionality
   const handleDownloadPDF = async () => {
@@ -405,8 +483,50 @@ export default function PartyPlanPage() {
         // Get party ID from URL query parameter
         const urlParams = new URLSearchParams(window.location.search);
         const partyId = urlParams.get('id');
+        const isLocal = urlParams.get('local') === 'true';
         
-        console.log('Debug - Party loading:', { partyId, currentPath: window.location.pathname + window.location.search });
+        console.log('Debug - Party loading:', { partyId, isLocal, currentPath: window.location.pathname + window.location.search });
+        
+        // Handle local party data first
+        if (isLocal && partyId && partyId.startsWith('local_')) {
+          console.log('Loading local party data for ID:', partyId);
+          
+          try {
+            // Try to load from localStorage
+            const localPartyData = localStorage.getItem('lastCreatedParty');
+            const localParties = localStorage.getItem('localParties');
+            
+            if (localPartyData) {
+              const parsedLocalParty = JSON.parse(localPartyData);
+              if (parsedLocalParty.id === partyId) {
+                console.log('Found local party data:', parsedLocalParty);
+                loadPartyDetails(parsedLocalParty);
+                return;
+              }
+            }
+            
+            if (localParties) {
+              const parsedLocalParties = JSON.parse(localParties);
+              const foundLocalParty = parsedLocalParties.find((p: any) => p.id === partyId);
+              if (foundLocalParty) {
+                console.log('Found local party in localParties:', foundLocalParty);
+                loadPartyDetails(foundLocalParty);
+                return;
+              }
+            }
+            
+            // If local party not found, show error
+            setError(`Local party not found (Party ID: ${partyId}). The party data may have been cleared from your browser.`);
+            setLoading(false);
+            return;
+            
+          } catch (localError) {
+            console.error('Error loading local party data:', localError);
+            setError('Error loading local party data. Please try creating a new party.');
+            setLoading(false);
+            return;
+          }
+        }
         
         if (!partyId || partyId === 'current') {
           // If no specific party ID or using 'current', get the user's most recent party
@@ -460,7 +580,7 @@ export default function PartyPlanPage() {
             return;
           }
         } else {
-          // Load specific party by ID
+          // Load specific party by ID from database
           console.log(`Loading specific party with ID: ${partyId}`);
           
           try {
@@ -1167,31 +1287,88 @@ export default function PartyPlanPage() {
   }, [partyData]);
 
   if (error) {
+    // Check if this is a local party error
+    const isLocalPartyError = error.includes('Local party not found') || error.includes('local party data');
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="text-center max-w-lg">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-6">
             <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Unable to Load Party</h3>
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+              {isLocalPartyError ? 'Local Party Data Lost' : 'Unable to Load Party'}
+            </h3>
             <p className="text-red-600 dark:text-red-300 mb-4 text-sm">{error}</p>
             <div className="text-xs text-red-500 dark:text-red-400 bg-red-100 dark:bg-red-900/30 p-2 rounded border text-left">
-              <p className="font-medium mb-1">Possible causes:</p>
+              <p className="font-medium mb-1">
+                {isLocalPartyError ? 'What happened:' : 'Possible causes:'}
+              </p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Party was not saved to database properly</li>
-                <li>You don't have permission to access this party</li>
-                <li>The party ID in the URL is invalid</li>
-                <li>Authentication session expired</li>
+                {isLocalPartyError ? (
+                  <>
+                    <li>Your browser's local storage was cleared</li>
+                    <li>You're using a different browser or device</li>
+                    <li>The party data wasn't properly saved locally</li>
+                    <li>Database connection failed during creation</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Party was not saved to database properly</li>
+                    <li>You don't have permission to access this party</li>
+                    <li>The party ID in the URL is invalid</li>
+                    <li>Authentication session expired</li>
+                  </>
+                )}
               </ul>
             </div>
           </div>
           <div className="space-x-3">
             <Button onClick={() => window.location.href = '/create-party'} className="bg-gradient-to-r from-purple-600 to-pink-600">
-              Create New Party
+              {isLocalPartyError ? 'Create New Party' : 'Create New Party'}
             </Button>
             <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>
               Go to Dashboard
             </Button>
+            {isLocalPartyError && (
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.href = '/create-party'} 
+                className="mt-2 w-full"
+              >
+                Try Again
+              </Button>
+            )}
           </div>
+          {isLocalPartyError && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
+              💡 Tip: Make sure you're using the same browser and haven't cleared your data. 
+              If the problem persists, try creating a new party.
+            </p>
+          )}
+          {isLocalPartyError && (
+            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+              <details className="text-xs text-gray-600 dark:text-gray-400">
+                <summary className="cursor-pointer font-medium mb-2">🔍 Debug Information</summary>
+                <div className="text-left space-y-2">
+                  <div>
+                    <strong>Available Local Data:</strong>
+                    <div className="ml-2">
+                      <div>• lastCreatedParty: {localStorage.getItem('lastCreatedParty') ? '✅ Found' : '❌ Not found'}</div>
+                      <div>• localParties: {localStorage.getItem('localParties') ? '✅ Found' : '❌ Not found'}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <strong>Current URL:</strong>
+                    <div className="ml-2 break-all">{window.location.href}</div>
+                  </div>
+                  <div>
+                    <strong>Party ID from URL:</strong>
+                    <div className="ml-2">{new URLSearchParams(window.location.search).get('id')}</div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1382,32 +1559,49 @@ export default function PartyPlanPage() {
           <Tabs defaultValue="overview" className="w-full">
             <div className="overflow-x-auto mb-6">
               <TabsList className="flex w-full h-auto p-1.5 gap-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-md rounded-xl">
-                {allowedTabs.map((tab) => {
+                {allTabs.map((tab) => {
                   const Icon = tab.icon;
+                  const isRestricted = isTabRestricted(tab.id);
+                  const isActive = allowedTabs.some(allowedTab => allowedTab.id === tab.id);
+                  
                   return (
                     <TabsTrigger
                       key={tab.id}
                       value={tab.id}
-                      className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg transition-all duration-200 text-gray-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-gray-100 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold data-[state=active]:border-none data-[state=active]:transform data-[state=active]:scale-[1.02]"
+                      disabled={isRestricted}
+                      className={`flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg transition-all duration-200 ${
+                        isRestricted 
+                          ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-60' 
+                          : 'text-gray-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-gray-100'
+                      } ${
+                        isActive 
+                          ? 'data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold data-[state=active]:border-none data-[state=active]:transform data-[state=active]:scale-[1.02]' 
+                          : ''
+                      }`}
                       style={{
-                        backgroundImage: tab.id === 'overview' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' : 
-                                        tab.id === 'themes' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
-                                        tab.id === 'budget' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
-                                        tab.id === 'activities' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)' :
-                                        tab.id === 'host-mode' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
-                                        tab.id === 'shopping' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
-                                        tab.id === 'venue' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' :
-                                        tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
-                                        tab.id === 'cake' ? 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f472b6 100%)' :
-                                        tab.id === 'guests' ? 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #2dd4bf 100%)' :
-                                        tab.id === 'timeline' ? 'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)' :
-                                        tab.id === 'checklist' ? 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%)' :
- 
-                                        'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)'
+                        backgroundImage: isActive ? (
+                          tab.id === 'overview' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' : 
+                          tab.id === 'themes' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
+                          tab.id === 'budget' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
+                          tab.id === 'activities' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)' :
+                          tab.id === 'host-mode' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
+                          tab.id === 'shopping' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
+                          tab.id === 'venue' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' :
+                          tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
+                          tab.id === 'cake' ? 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f472b6 100%)' :
+                          tab.id === 'guests' ? 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #2dd4bf 100%)' :
+                          tab.id === 'timeline' ? 'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)' :
+                          tab.id === 'checklist' ? 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%)' :
+                          'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)'
+                        ) : 'none'
                       } as any}
+                      title={isRestricted ? `Upgrade to ${getRequiredPlanForTab(tab.id)} plan to access ${tab.label}` : tab.label}
                     >
                       <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                       <span className="truncate font-semibold">{tab.label}</span>
+                      {isRestricted && (
+                        <Crown className="h-3 w-3 ml-1 text-yellow-500" />
+                      )}
                     </TabsTrigger>
                   );
                 })}
@@ -1416,36 +1610,104 @@ export default function PartyPlanPage() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4 sm:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {/* Theme Card */}
-              <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <span className="text-2xl">{themeDetails?.emoji || "🎉"}</span>
-                    <div className="flex-1">
-                      {themeDetails?.name || "No Theme Selected"} 
-                      {themeDetails ? " Theme" : ""}
-                    </div>
-                    {themeDetails && (
-                      <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                        <Star className="w-3 h-3 mr-1" />
-                        Selected
-                      </Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {themeDetails ? (
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="font-semibold mb-2">Color Palette:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {themeDetails?.colors.map((color, index) => (
-                            <Badge key={index} variant="secondary">{color}</Badge>
-                          ))}
+            {isTabRestricted('overview') ? (
+              <RestrictedTabMessage tabName="Overview" requiredPlan={getRequiredPlanForTab('overview')} />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {/* Theme Card */}
+                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <span className="text-2xl">{themeDetails?.emoji || "🎉"}</span>
+                      <div className="flex-1">
+                        {themeDetails?.name || "No Theme Selected"} 
+                        {themeDetails ? " Theme" : ""}
+                      </div>
+                      {themeDetails && (
+                        <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                          <Star className="w-3 h-3 mr-1" />
+                          Selected
+                        </Badge>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {themeDetails ? (
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-semibold mb-2">Color Palette:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {themeDetails?.colors.map((color, index) => (
+                              <Badge key={index} variant="secondary">{color}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // Enhanced navigation with multiple robust fallback methods
+                              let success = false;
+                              
+                              // Method 1: Direct value selector
+                              const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
+                              if (themesTab && !success) {
+                                themesTab.click();
+                                success = true;
+                              }
+                              
+                              // Method 2: Find by role="tab" and text content
+                              if (!success) {
+                                const tabButtons = document.querySelectorAll('[role="tab"]');
+                                for (const button of Array.from(tabButtons)) {
+                                  if (button.textContent?.trim().toLowerCase().includes('themes')) {
+                                    (button as HTMLButtonElement).click();
+                                    success = true;
+                                    break;
+                                  }
+                                }
+                              }
+                              
+                              // Method 3: Find by data-state attribute and text content
+                              if (!success) {
+                                const allButtons = document.querySelectorAll('button');
+                                for (const button of Array.from(allButtons)) {
+                                  if (button.textContent?.trim().toLowerCase() === 'themes' && 
+                                      button.getAttribute('data-state') !== null) {
+                                    button.click();
+                                    success = true;
+                                    break;
+                                  }
+                                }
+                              }
+                              
+                              // Method 4: Direct class-based search for TabsTrigger
+                              if (!success) {
+                                const triggers = document.querySelectorAll('[class*="TabsTrigger"], [class*="tabs-trigger"]');
+                                for (const trigger of Array.from(triggers)) {
+                                  if (trigger.textContent?.trim().toLowerCase().includes('themes')) {
+                                    (trigger as HTMLButtonElement).click();
+                                    success = true;
+                                    break;
+                                  }
+                                }
+                              }
+                              
+                              console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
+                            }}
+                            className="w-full"
+                          >
+                            <Palette className="w-4 h-4 mr-2" />
+                            Change Theme
+                          </Button>
                         </div>
                       </div>
-                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-600 dark:text-gray-400 mb-3">
+                          No theme selected yet
+                        </p>
                         <Button
                           variant="outline"
                           size="sm"
@@ -1501,195 +1763,131 @@ export default function PartyPlanPage() {
                           }}
                           className="w-full"
                         >
-                          <Palette className="w-4 h-4 mr-2" />
-                          Change Theme
+                          <Plus className="w-4 h-4 mr-2" />
+                          Select Theme
                         </Button>
                       </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Guest Stats */}
+                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Guest Overview
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Total Guests</span>
+                      <Badge variant="secondary">{guests.length}</Badge>
                     </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-gray-600 dark:text-gray-400 mb-3">
-                        No theme selected yet
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
+                    
+                    {/* Adults/Kids Breakdown */}
+                    {(partyData?.adultCount || partyData?.kidCount) && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            Adults
+                          </span>
+                          <Badge variant="outline">{partyData.adultCount || 0}</Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm flex items-center gap-1">
+                            <Baby className="h-3 w-3" />
+                            Kids
+                          </span>
+                          <Badge variant="outline">{partyData.kidCount || 0}</Badge>
+                        </div>
+                      </>
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Invitations Sent</span>
+                      <Badge variant="outline">
+                        {invitations.filter(inv => inv.status === 'SENT' || inv.status === 'ACCEPTED' || inv.status === 'DECLINED' || inv.status === 'MAYBE').length}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">RSVPs Received</span>
+                      <Badge variant="default">
+                        {invitations.filter(inv => inv.status === 'ACCEPTED' || inv.status === 'DECLINED' || inv.status === 'MAYBE').length}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Confirmed Attendees</span>
+                      <Badge className="bg-green-600">
+                        {invitations.filter(inv => inv.status === 'ACCEPTED').length}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Actions Card - Dynamic content based on available tabs */}
+                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={() => setShareModalOpen(true)}
+                    >
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share Plan
+                    </Button>
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={handleDownloadPDF}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download PDF
+                    </Button>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                      onClick={() => {
+                        const guestsTab = document.querySelector('[value="guests"]') as HTMLButtonElement;
+                        if (guestsTab) guestsTab.click();
+                      }}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Manage Guests ({guests.length})
+                    </Button>
+                    {/* Budget Quick Action - Only show if budget tab is available */}
+                    {isTabAllowed('budget') && (
+                      <Button 
+                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white"
                         onClick={() => {
-                          // Enhanced navigation with multiple robust fallback methods
-                          let success = false;
-                          
-                          // Method 1: Direct value selector
-                          const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
-                          if (themesTab && !success) {
-                            themesTab.click();
-                            success = true;
-                          }
-                          
-                          // Method 2: Find by role="tab" and text content
-                          if (!success) {
-                            const tabButtons = document.querySelectorAll('[role="tab"]');
-                            for (const button of Array.from(tabButtons)) {
-                              if (button.textContent?.trim().toLowerCase().includes('themes')) {
-                                (button as HTMLButtonElement).click();
-                                success = true;
-                                break;
-                              }
-                            }
-                          }
-                          
-                          // Method 3: Find by data-state attribute and text content
-                          if (!success) {
-                            const allButtons = document.querySelectorAll('button');
-                            for (const button of Array.from(allButtons)) {
-                              if (button.textContent?.trim().toLowerCase() === 'themes' && 
-                                  button.getAttribute('data-state') !== null) {
-                                button.click();
-                                success = true;
-                                break;
-                              }
-                            }
-                          }
-                          
-                          // Method 4: Direct class-based search for TabsTrigger
-                          if (!success) {
-                            const triggers = document.querySelectorAll('[class*="TabsTrigger"], [class*="tabs-trigger"]');
-                            for (const trigger of Array.from(triggers)) {
-                              if (trigger.textContent?.trim().toLowerCase().includes('themes')) {
-                                (trigger as HTMLButtonElement).click();
-                                success = true;
-                                break;
-                              }
-                            }
-                          }
-                          
-                          console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
+                          const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
+                          if (budgetTab) budgetTab.click();
                         }}
-                        className="w-full"
                       >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Select Theme
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Manage Budget
                       </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Guest Stats */}
-              <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Guest Overview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Total Guests</span>
-                    <Badge variant="secondary">{guests.length}</Badge>
-                  </div>
-                  
-                  {/* Adults/Kids Breakdown */}
-                  {(partyData?.adultCount || partyData?.kidCount) && (
-                    <>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          Adults
-                        </span>
-                        <Badge variant="outline">{partyData.adultCount || 0}</Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm flex items-center gap-1">
-                          <Baby className="h-3 w-3" />
-                          Kids
-                        </span>
-                        <Badge variant="outline">{partyData.kidCount || 0}</Badge>
-                      </div>
-                    </>
-                  )}
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Invitations Sent</span>
-                    <Badge variant="outline">
-                      {invitations.filter(inv => inv.status === 'SENT' || inv.status === 'ACCEPTED' || inv.status === 'DECLINED' || inv.status === 'MAYBE').length}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">RSVPs Received</span>
-                    <Badge variant="default">
-                      {invitations.filter(inv => inv.status === 'ACCEPTED' || inv.status === 'DECLINED' || inv.status === 'MAYBE').length}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Confirmed Attendees</span>
-                    <Badge className="bg-green-600">
-                      {invitations.filter(inv => inv.status === 'ACCEPTED').length}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Actions Card - Dynamic content based on available tabs */}
-              <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button 
-                    className="w-full" 
-                    variant="outline"
-                    onClick={() => setShareModalOpen(true)}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share Plan
-                  </Button>
-                  <Button 
-                    className="w-full" 
-                    variant="outline"
-                    onClick={handleDownloadPDF}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download PDF
-                  </Button>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                    onClick={() => {
-                      const guestsTab = document.querySelector('[value="guests"]') as HTMLButtonElement;
-                      if (guestsTab) guestsTab.click();
-                    }}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Manage Guests ({guests.length})
-                  </Button>
-                  {/* Budget Quick Action - Only show if budget tab is available */}
-                  {isTabAllowed('budget') && (
-                    <Button 
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white"
-                      onClick={() => {
-                        const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
-                        if (budgetTab) budgetTab.click();
-                      }}
-                    >
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      Manage Budget
-                    </Button>
-                  )}
-                  {/* Shopping Quick Action - Only show if shopping tab is available */}
-                  {isTabAllowed('shopping') && (
-                    <Button 
-                      className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white"
-                      onClick={() => {
-                        const shoppingTab = document.querySelector('[value="shopping"]') as HTMLButtonElement;
-                        if (shoppingTab) shoppingTab.click();
-                      }}
-                    >
-                      <ShoppingBag className="h-4 w-4 mr-2" />
-                      Party Shopping
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                    )}
+                    {/* Shopping Quick Action - Only show if shopping tab is available */}
+                    {isTabAllowed('shopping') && (
+                      <Button 
+                        className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white"
+                        onClick={() => {
+                          const shoppingTab = document.querySelector('[value="shopping"]') as HTMLButtonElement;
+                          if (shoppingTab) shoppingTab.click();
+                        }}
+                      >
+                        <ShoppingBag className="h-4 w-4 mr-2" />
+                        Party Shopping
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
 
           {/* Budget Tab */}

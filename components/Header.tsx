@@ -128,6 +128,15 @@ export function Header() {
                   <span className="hidden md:inline text-sm">Dashboard</span>
                 </Link>
 
+                {/* Activities Link */}
+                <Link 
+                  href="/activities"
+                  className="flex items-center space-x-1 sm:space-x-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200"
+                >
+                  <Star className="h-4 w-4" />
+                  <span className="hidden md:inline text-sm">Activities</span>
+                </Link>
+
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -143,6 +152,12 @@ export function Header() {
                       <Link href="/dashboard" className="flex items-center">
                         <Calendar className="mr-2 h-4 w-4" />
                         Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/activities" className="flex items-center">
+                        <Star className="mr-2 h-4 w-4" />
+                        Activities
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>

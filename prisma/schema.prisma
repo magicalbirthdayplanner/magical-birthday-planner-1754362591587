@@ -31,6 +31,8 @@ model User {
   paymentMethods         PaymentMethod[]
   subscription           Subscription?
   themePreferences       ThemePreference[]
+  activityFavorites      ActivityFavorite[]
+  selectedActivities     SelectedActivity[]
 
   @@map("users")
 }
@@ -72,6 +74,7 @@ model Party {
   eventPurchase      EventPurchase?       @relation(fields: [eventPurchaseId], references: [id])
   user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   activities         PartyActivity[]
+  selectedActivities SelectedActivity[]
 
   @@map("parties")
 }
@@ -364,6 +367,33 @@ model CustomTheme {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("custom_themes")
+}
+
+model ActivityFavorite {
+  id         String   @id @default(cuid())
+  userId     String
+  activityId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityId])
+  @@map("activity_favorites")
+}
+
+model SelectedActivity {
+  id         String   @id @default(cuid())
+  userId     String
+  partyId    String
+  activityId String
+  isSelected Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  party      Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, partyId, activityId])
+  @@map("selected_activities")
 }
 
 enum EmailType {
