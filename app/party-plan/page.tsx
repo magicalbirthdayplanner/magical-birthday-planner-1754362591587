@@ -1842,8 +1842,7 @@ export default function PartyPlanPage() {
                   </CardContent>
                 </Card>
               </div>
-            )}
-          </TabsContent>
+            </TabsContent>
 
           {/* Budget Tab */}
           <ProtectedTabContent tabName="budget" className="space-y-6">
