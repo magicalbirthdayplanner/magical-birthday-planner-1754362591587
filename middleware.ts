@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { checkMissingEnvVars } from '@/lib/env-config'
+import { validateAllConfig } from '@/lib/env-config'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
@@ -18,11 +18,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check if any required environment variables are missing
-  const missingEnvVars = checkMissingEnvVars()
-
-  // If any env variables are missing, redirect to env-check page
-  if (missingEnvVars.length > 0) {
+  // Check if required environment variables are configured
+  try {
+    validateAllConfig()
+  } catch (error) {
+    // If validation fails, redirect to env-check page
+    console.warn('Environment validation failed:', error)
     return NextResponse.redirect(new URL('/env-check', request.url))
   }
 

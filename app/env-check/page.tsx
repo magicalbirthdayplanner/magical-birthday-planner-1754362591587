@@ -11,57 +11,46 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Code, Settings, Save, ArrowRight } from 'lucide-react';
-import { ENV_VARIABLES } from '@/lib/env-config';
+import { getConfigSummary, validateAllConfig } from '@/lib/env-config';
 import Link from 'next/link';
 
 export default function EnvCheckPage() {
-  // Check environment variables on server side
-  const envStatus: { [key: string]: boolean } = {};
-  ENV_VARIABLES.forEach((envVar) => {
-    envStatus[envVar.name] = !!process.env[envVar.name];
-  });
+  // Get configuration summary
+  const configSummary = getConfigSummary();
+  
+  // Count missing and optional configurations
+  const missingCount = Object.values(configSummary.supabase).filter(status => status.includes('❌')).length;
+  const optionalCount = Object.values(configSummary).filter(config => 
+    typeof config === 'object' && Object.values(config).some(status => status.includes('⚠️'))
+  ).length;
 
-  const getStatusIcon = (isSet: boolean) => {
-    if (isSet) {
+  const getStatusIcon = (status: string) => {
+    if (status.includes('✅')) {
       return <CheckCircle className="h-5 w-5 text-green-500" />;
-    } else {
+    } else if (status.includes('❌')) {
       return <XCircle className="h-5 w-5 text-red-500" />;
+    } else {
+      return <XCircle className="h-5 w-5 text-yellow-500" />;
     }
   };
 
-  const getStatusBadge = (isSet: boolean, required: boolean) => {
-    if (isSet) {
-      return <Badge variant="default" className="bg-green-500">Set</Badge>;
-    } else if (required) {
+  const getStatusBadge = (status: string) => {
+    if (status.includes('✅')) {
+      return <Badge variant="default" className="bg-green-500">Configured</Badge>;
+    } else if (status.includes('❌')) {
       return <Badge variant="destructive">Missing</Badge>;
     } else {
       return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Optional</Badge>;
     }
   };
 
-  const missingCount = ENV_VARIABLES.filter(env => env.required && !envStatus[env.name]).length;
-  const optionalCount = ENV_VARIABLES.filter(env => !env.required && !envStatus[env.name]).length;
-
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Environment Variables Status</h1>
         <p className="text-base mt-2 text-muted-foreground flex items-center flex-wrap gap-1">
-          <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-md font-semibold">Steps</span> Switch to{' '}
-          <span className="text-purple-600 dark:text-purple-400 font-medium inline-flex items-center gap-1">
-            <Code className="h-4 w-4" />
-            Code
-          </span>
-          {' '}tab → Select{' '}
-          <span className="text-purple-600 dark:text-purple-400 font-medium inline-flex items-center gap-1">
-            <Settings className="h-4 w-4" />
-            .env
-          </span>
-          {' '}file → Add/Update the missing variables →{' '}
-          <span className="text-purple-600 dark:text-purple-400 font-medium inline-flex items-center gap-1">
-            <Save className="h-4 w-4" />
-            Save
-          </span>
+          <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-md font-semibold">Configuration Status</span>
+          This page shows the current status of your application configuration. Required configurations must be set for the app to function properly.
         </p>
       </div>
 
@@ -106,46 +95,119 @@ export default function EnvCheckPage() {
       )}
 
       <div className="grid gap-4">
-        {ENV_VARIABLES.map((envVar) => {
-          const isSet = envStatus[envVar.name];
-          return (
-            <Card key={envVar.name} className="relative">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
+        {/* Supabase Configuration */}
+        <Card className="relative">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">Supabase Configuration</CardTitle>
+                <Badge variant="destructive" className="text-xs">Required</Badge>
+              </div>
+            </div>
+            <CardDescription>Database and authentication configuration</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {Object.entries(configSummary.supabase).map(([key, status]) => (
+                <div key={key} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg font-mono">{envVar.name}</CardTitle>
-                    <Badge variant={envVar.required ? "destructive" : "secondary"} className={envVar.required ? "text-xs" : "text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"}>
-                      {envVar.required ? "Required" : "Optional"}
-                    </Badge>
+                    <span className="font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {getStatusIcon(isSet)}
-                    {getStatusBadge(isSet, envVar.required)}
+                    {getStatusIcon(status)}
+                    {getStatusBadge(status)}
                   </div>
                 </div>
-                <CardDescription>{envVar.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1">How to get this variable:</h4>
-                    <div 
-                      className="text-sm text-muted-foreground prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{
-                        __html: envVar.instructions
-                          .replace(/\n/g, '<br>')
-                          .replace(
-                            /\[([^\]]+)\]\(([^)]+)\)/g,
-                            '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">$1</a>'
-                          )
-                      }}
-                    />
-                  </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Database Configuration */}
+        <Card className="relative">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">Database Configuration</CardTitle>
+                <Badge variant="destructive" className="text-xs">Required</Badge>
+              </div>
+            </div>
+            <CardDescription>Database connection settings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="font-medium">Database URL</span>
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(configSummary.database.url)}
+                  {getStatusBadge(configSummary.database.url)}
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+              <div className="flex items-center gap-2 p-3 border rounded-lg">
+                <span className="font-medium">Database Type:</span>
+                <Badge variant="outline">{configSummary.database.type}</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Optional Configurations */}
+        <Card className="relative">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">Enhanced Features</CardTitle>
+                <Badge variant="secondary" className="text-xs">Optional</Badge>
+              </div>
+            </div>
+            <CardDescription>Additional features and integrations</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="font-medium">OpenAI API</span>
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(configSummary.openai.apiKey)}
+                  {getStatusBadge(configSummary.openai.apiKey)}
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="font-medium">Stripe Payments</span>
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(configSummary.stripe.secretKey)}
+                  {getStatusBadge(configSummary.stripe.secretKey)}
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="font-medium">Email Service</span>
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(configSummary.email.resendKey)}
+                  {getStatusBadge(configSummary.email.resendKey)}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Environment Info */}
+        <Card className="relative">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Environment Information</CardTitle>
+            <CardDescription>Current application configuration</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="font-medium">Environment</span>
+                <Badge variant="outline">{configSummary.environment}</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="font-medium">Base URL</span>
+                <Badge variant="outline">{configSummary.baseUrl}</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
     </div>
