@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "db:setup": "node scripts/simple-db-setup.js",
-    "db:verify": "node -e \"const { verifySetup } = require('./scripts/simple-db-setup.js'); verifySetup();\""
+    "db:setup": "node database/simple-db-setup.js",
+    "db:verify": "node database/test-database.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.2",
