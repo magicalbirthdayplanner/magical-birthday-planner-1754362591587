@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from 'next/cache'
-import { createServerComponentClient } from '@/lib/supabase-client'
+import { createServerComponentClient } from '@/lib/supabase'
 
 async function getCurrentUser() {
   try {
