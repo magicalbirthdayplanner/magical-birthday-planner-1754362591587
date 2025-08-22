@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST() {
@@ -16,7 +16,7 @@ export async function POST() {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const results = [];
+    const results: { operation: string; status: string; error?: string }[] = [];
 
     // 1. Add missing columns to activities table
     try {
@@ -86,7 +86,7 @@ export async function POST() {
       else results.push({ operation: 'Add tags', status: 'Success' });
 
     } catch (error) {
-      results.push({ operation: 'Add columns to activities', status: 'Failed', error: error.message });
+      results.push({ operation: 'Add columns to activities', status: 'Failed', error: error instanceof Error ? error.message : 'Unknown error' });
     }
 
     // 2. Create missing tables
@@ -151,7 +151,7 @@ export async function POST() {
       else results.push({ operation: 'Create activity_favorites table', status: 'Success' });
 
     } catch (error) {
-      results.push({ operation: 'Create missing tables', status: 'Failed', error: error.message });
+      results.push({ operation: 'Create missing tables', status: 'Failed', error: error instanceof Error ? error.message : 'Unknown error' });
     }
 
     // 3. Update existing activity with proper data
@@ -177,7 +177,7 @@ export async function POST() {
       else results.push({ operation: 'Update existing activity', status: 'Success' });
 
     } catch (error) {
-      results.push({ operation: 'Update existing activity', status: 'Failed', error: error.message });
+      results.push({ operation: 'Update existing activity', status: 'Failed', error: error instanceof Error ? error.message : 'Unknown error' });
     }
 
     return NextResponse.json({
@@ -200,12 +200,17 @@ export async function POST() {
 
 export async function GET(request: NextRequest) {
   try {
-    if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json({ 
         success: false, 
         error: 'Supabase not configured' 
       }, { status: 500 })
     }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Check if tables exist by trying to query them directly
     let existingTables: string[] = []
