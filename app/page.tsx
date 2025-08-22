@@ -7,13 +7,40 @@ import { Input } from "@/components/ui/input";
 import { PartyPopper, Sparkles, Users, Calendar, CheckCircle2, Star, Calendar as CalendarIcon, User, Crown, Zap, ArrowRight, Mail, Gift } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function Home() {
   const { user, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Refs for pricing card hover effects
+  const starterCardRef = useRef<HTMLDivElement>(null);
+  const plusCardRef = useRef<HTMLDivElement>(null);
+  const proCardRef = useRef<HTMLDivElement>(null);
+
+  // Animated border effect handler
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, cardRef: React.RefObject<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    cardRef.current.style.setProperty('--mouse-x', `${x}px`);
+    cardRef.current.style.setProperty('--mouse-y', `${y}px`);
+  };
+
+  const handleMouseEnter = (cardRef: React.RefObject<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    cardRef.current.style.setProperty('--opacity', '1');
+  };
+
+  const handleMouseLeave = (cardRef: React.RefObject<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    cardRef.current.style.setProperty('--opacity', '0');
+  };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +112,51 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <style jsx>{`
+        .pricing-card {
+          --mouse-x: 0px;
+          --mouse-y: 0px;
+          --opacity: 0;
+          position: relative;
+        }
+        .pricing-card::before {
+          content: '';
+          position: absolute;
+          top: -2px;
+          left: -2px;
+          right: -2px;
+          bottom: -2px;
+          border-radius: 12px;
+          background: radial-gradient(
+            600px circle at var(--mouse-x) var(--mouse-y),
+            rgba(29, 209, 161, 0.4),
+            rgba(56, 189, 248, 0.4),
+            rgba(147, 51, 234, 0.4),
+            transparent 40%
+          );
+          opacity: var(--opacity);
+          transition: opacity 0.3s ease;
+          z-index: -1;
+        }
+        .pricing-card-plus::before {
+          background: radial-gradient(
+            600px circle at var(--mouse-x) var(--mouse-y),
+            rgba(59, 130, 246, 0.5),
+            rgba(34, 197, 94, 0.5),
+            rgba(168, 85, 247, 0.5),
+            transparent 40%
+          );
+        }
+        .pricing-card-pro::before {
+          background: radial-gradient(
+            600px circle at var(--mouse-x) var(--mouse-y),
+            rgba(34, 197, 94, 0.5),
+            rgba(251, 191, 36, 0.5),
+            rgba(239, 68, 68, 0.5),
+            transparent 40%
+          );
+        }
+      `}</style>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-yellow-600/10 dark:from-purple-400/20 dark:via-pink-400/20 dark:to-yellow-400/20"></div>
@@ -403,7 +475,14 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Essential Party (Free) */}
-            <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105">
+            <div
+              ref={starterCardRef}
+              className="pricing-card"
+              onMouseMove={(e) => handleMouseMove(e, starterCardRef)}
+              onMouseEnter={() => handleMouseEnter(starterCardRef)}
+              onMouseLeave={() => handleMouseLeave(starterCardRef)}
+            >
+            <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105 bg-white dark:bg-slate-900 z-10">
               <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
@@ -441,9 +520,17 @@ export default function Home() {
                 </Button>
               </CardContent>
             </Card>
+            </div>
 
             {/* Magical Party - Most Popular */}
-            <Card className="relative border-2 border-blue-500 shadow-lg scale-105">
+            <div
+              ref={plusCardRef}
+              className="pricing-card pricing-card-plus"
+              onMouseMove={(e) => handleMouseMove(e, plusCardRef)}
+              onMouseEnter={() => handleMouseEnter(plusCardRef)}
+              onMouseLeave={() => handleMouseLeave(plusCardRef)}
+            >
+            <Card className="relative border-2 border-blue-500 shadow-lg scale-105 bg-white dark:bg-slate-900 z-10">
               <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-center py-2 text-sm font-medium">
                 🌟 Most Popular
               </div>
@@ -489,9 +576,17 @@ export default function Home() {
                 </Button>
               </CardContent>
             </Card>
+            </div>
 
             {/* Ultimate Party */}
-            <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105">
+            <div
+              ref={proCardRef}
+              className="pricing-card pricing-card-pro"
+              onMouseMove={(e) => handleMouseMove(e, proCardRef)}
+              onMouseEnter={() => handleMouseEnter(proCardRef)}
+              onMouseLeave={() => handleMouseLeave(proCardRef)}
+            >
+            <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105 bg-white dark:bg-slate-900 z-10">
               <CardHeader className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500">
@@ -530,6 +625,7 @@ export default function Home() {
                 </Button>
               </CardContent>
             </Card>
+            </div>
           </div>
 
           <div className="text-center mt-12">

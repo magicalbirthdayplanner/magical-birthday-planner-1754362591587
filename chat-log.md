@@ -1,3 +1,35 @@
+## [usr-1755864850051]
+**User Request:** bring this type of effect when moving cursor around the boundaries for the 3 pricing cards in the home page
+
+Attachments: @.ideavo-attachments/image_31.png
+
+**Response Summary:** Successfully implemented an animated gradient border effect on the three pricing cards in the home page that follows cursor movement around the card boundaries. The effect creates a beautiful radial gradient that tracks the mouse position, similar to the modern UI pattern shown in the attachment image.
+
+**Enhanced Features Implemented:**
+1. **Cursor-Tracking Animation**: Added mouse event handlers that track cursor position relative to each pricing card
+2. **Dynamic Gradient Borders**: Implemented CSS custom properties (--mouse-x, --mouse-y) to create radial gradients that follow cursor movement
+3. **Unique Color Schemes**: Each pricing card has its own distinct gradient color palette:
+   - Starter Card: Teal, blue, and purple gradients
+   - Plus Card: Blue, green, and purple gradients  
+   - Pro Card: Green, yellow, and red gradients
+4. **Smooth Transitions**: Added opacity transitions for smooth hover enter/leave effects
+5. **Proper Z-indexing**: Ensured the gradient effect appears behind the card content
+
+**Technical Implementation:**
+- Added React refs for each pricing card (starterCardRef, plusCardRef, proCardRef)
+- Created mouse event handlers (handleMouseMove, handleMouseEnter, handleMouseLeave)
+- Implemented CSS-in-JS with styled-jsx for gradient animations
+- Used CSS custom properties for dynamic positioning
+- Added proper z-index layering to maintain card content visibility
+
+**User Experience Improvements:**
+- Creates an engaging, modern interactive effect that draws attention to pricing cards
+- Provides visual feedback as users explore pricing options
+- Maintains accessibility and performance while adding visual appeal
+- Effect works seamlessly across all three pricing tiers
+
+**Files Modified:** app/page.tsx
+
 ## [usr-1755841668299]
 **User Request:** In step 3 of the wizard, can you make a summary card style with proper emoji of all the details entered in step 1,2
 **Response Summary:** Successfully enhanced Step 3 of the party creation wizard with beautiful summary cards featuring proper emojis for all details entered in steps 1 and 2. The enhanced summary provides a comprehensive and visually appealing overview of all party information before creating the final party plan.
