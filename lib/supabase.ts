@@ -8,7 +8,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Client-side Supabase client (for components)
 export const createClientComponentClient = () => {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  })
 }
 
 // Server-side Supabase client (for server actions and API routes)
@@ -20,14 +26,10 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
       },
       set(name: string, value: string, options: any) {
         try {
-          // Set cookies with domain configuration for cross-domain compatibility
+          // Simplified cookie handling for production
           const isProduction = process.env.NODE_ENV === 'production'
-          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'localhost:3000'
-          const domain = isProduction && baseUrl.includes('.') ? `.${baseUrl.replace(/^https?:\/\/(www\.)?/, '')}` : undefined
-          
           const cookieOptions = {
             ...options,
-            domain,
             secure: isProduction,
             sameSite: isProduction ? 'none' : 'lax'
           }
@@ -41,12 +43,8 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
       remove(name: string, options: any) {
         try {
           const isProduction = process.env.NODE_ENV === 'production'
-          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'localhost:3000'
-          const domain = isProduction && baseUrl.includes('.') ? `.${baseUrl.replace(/^https?:\/\/(www\.)?/, '')}` : undefined
-          
           const cookieOptions = {
             ...options,
-            domain,
             secure: isProduction,
             sameSite: isProduction ? 'none' : 'lax'
           }
