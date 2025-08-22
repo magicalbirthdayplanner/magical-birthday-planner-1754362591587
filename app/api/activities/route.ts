@@ -60,23 +60,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Transform to match expected interface
+    // Transform to match expected interface with safe defaults for missing columns
     const transformedActivities = activities?.map(activity => ({
       id: activity.id,
       name: activity.name,
       description: activity.description,
-      estimatedTime: activity.duration_minutes,
+      estimatedTime: activity.duration_minutes || 30, // Default to 30 minutes
       timeUnit: 'minutes',
-      category: activity.category,
-      venue: transformVenueType(activity.venue_type),
-      suppliesNeeded: activity.supplies_needed,
-      participantRange: activity.participant_range,
-      minParticipants: activity.min_participants,
-      maxParticipants: activity.max_participants,
-      effortLevel: activity.effort_level,
-      ageGroup: activity.age_group,
-      themeCompatibility: activity.theme_compatibility,
-      tags: activity.tags,
+      category: activity.category || 'General',
+      venue: transformVenueType(activity.venue_type || ['INDOOR']), // Default to indoor
+      suppliesNeeded: activity.supplies_needed || ['Basic supplies'], // Default supplies
+      participantRange: activity.participant_range || '2-10',
+      minParticipants: activity.min_participants || 2,
+      maxParticipants: activity.max_participants || 10,
+      effortLevel: activity.effort_level || 'Medium',
+      ageGroup: activity.age_group || ['5-12'],
+      themeCompatibility: activity.theme_compatibility || ['General'],
+      tags: activity.tags || [],
       isSelected: false,
       isRecommended: false,
       source: 'THEME_DEFAULT' as const
@@ -105,6 +105,11 @@ export async function GET(request: NextRequest) {
 }
 
 function transformVenueType(venueTypes: string[]): 'indoor' | 'outdoor' | 'both' {
+  // Handle undefined or null venueTypes
+  if (!venueTypes || !Array.isArray(venueTypes)) {
+    return 'indoor'; // Default to indoor
+  }
+  
   if (venueTypes.includes('INDOOR') && venueTypes.includes('OUTDOOR')) {
     return 'both';
   } else if (venueTypes.includes('OUTDOOR')) {

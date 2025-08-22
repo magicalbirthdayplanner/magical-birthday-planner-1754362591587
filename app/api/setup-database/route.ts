@@ -1,290 +1,200 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null
-
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    if (!supabase) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Supabase not configured - check environment variables' 
-      }, { status: 500 })
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use service role for admin operations
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({
+        success: false,
+        message: 'Missing environment variables',
+        error: `URL: ${supabaseUrl ? 'Present' : 'Missing'}, Service Key: ${supabaseKey ? 'Present' : 'Missing'}`
+      }, { status: 500 });
     }
 
-    // Check if tables already exist by trying to select from them
-    let existingTableNames: string[] = []
-    const tablesToCheck = ['users', 'parties', 'guests', 'invitations']
-    
-    for (const tableName of tablesToCheck) {
-      try {
-        const { error } = await supabase
-          .from(tableName)
-          .select('id')
-          .limit(1)
-        
-        if (!error) {
-          existingTableNames.push(tableName)
-        }
-      } catch (e) {
-        // Table doesn't exist or permission issue
-        console.log(`Table ${tableName} check failed:`, e)
-      }
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const results = [];
+
+    // 1. Add missing columns to activities table
+    try {
+      console.log('Adding missing columns to activities table...');
+      
+      // Add duration_minutes column
+      const { error: durationError } = await supabase.rpc('exec_sql', {
+        sql: `ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS duration_minutes INTEGER DEFAULT 30;`
+      });
+      if (durationError) results.push({ operation: 'Add duration_minutes', status: 'Failed', error: durationError.message });
+      else results.push({ operation: 'Add duration_minutes', status: 'Success' });
+
+      // Add venue_type column
+      const { error: venueError } = await supabase.rpc('exec_sql', {
+        sql: `ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS venue_type TEXT[] DEFAULT ARRAY['INDOOR'];`
+      });
+      if (venueError) results.push({ operation: 'Add venue_type', status: 'Failed', error: venueError.message });
+      else results.push({ operation: 'Add venue_type', status: 'Success' });
+
+      // Add supplies_needed column
+      const { error: suppliesError } = await supabase.rpc('exec_sql', {
+        sql: `ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS supplies_needed TEXT[] DEFAULT ARRAY['Basic supplies'];`
+      });
+      if (suppliesError) results.push({ operation: 'Add supplies_needed', status: 'Failed', error: suppliesError.message });
+      else results.push({ operation: 'Add supplies_needed', status: 'Success' });
+
+      // Add participant_range column
+      const { error: participantError } = await supabase.rpc('exec_sql', {
+        sql: `ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS participant_range TEXT DEFAULT '2-10';`
+      });
+      if (participantError) results.push({ operation: 'Add participant_range', status: 'Failed', error: participantError.message });
+      else results.push({ operation: 'Add participant_range', status: 'Success' });
+
+      // Add min_participants column
+      const { error: minError } = await supabase.rpc('exec_sql', {
+        sql: `ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS min_participants INTEGER DEFAULT 2;`
+      });
+      if (minError) results.push({ operation: 'Add min_participants', status: 'Failed', error: minError.message });
+      else results.push({ operation: 'Add min_participants', status: 'Success' });
+
+      // Add max_participants column
+      const { error: maxError } = await supabase.rpc('exec_sql', {
+        sql: `ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS max_participants INTEGER DEFAULT 10;`
+      });
+      if (maxError) results.push({ operation: 'Add max_participants', status: 'Failed', error: maxError.message });
+      else results.push({ operation: 'Add max_participants', status: 'Success' });
+
+      // Add age_group column
+      const { error: ageError } = await supabase.rpc('exec_sql', {
+        sql: `ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS age_group TEXT[] DEFAULT ARRAY['5-12'];`
+      });
+      if (ageError) results.push({ operation: 'Add age_group', status: 'Failed', error: ageError.message });
+      else results.push({ operation: 'Add age_group', status: 'Success' });
+
+      // Add theme_compatibility column
+      const { error: themeError } = await supabase.rpc('exec_sql', {
+        sql: `ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS theme_compatibility TEXT[] DEFAULT ARRAY['General'];`
+      });
+      if (themeError) results.push({ operation: 'Add theme_compatibility', status: 'Failed', error: themeError.message });
+      else results.push({ operation: 'Add theme_compatibility', status: 'Success' });
+
+      // Add tags column
+      const { error: tagsError } = await supabase.rpc('exec_sql', {
+        sql: `ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT ARRAY[];`
+      });
+      if (tagsError) results.push({ operation: 'Add tags', status: 'Failed', error: tagsError.message });
+      else results.push({ operation: 'Add tags', status: 'Success' });
+
+    } catch (error) {
+      results.push({ operation: 'Add columns to activities', status: 'Failed', error: error.message });
     }
 
-    // Continue with table checking logic
+    // 2. Create missing tables
+    try {
+      console.log('Creating missing tables...');
+      
+      // Create guests table
+      const { error: guestsError } = await supabase.rpc('exec_sql', {
+        sql: `
+          CREATE TABLE IF NOT EXISTS public.guests (
+            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+            party_id UUID REFERENCES public.parties(id) ON DELETE CASCADE NOT NULL,
+            user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+            name TEXT NOT NULL,
+            email TEXT,
+            phone TEXT,
+            type TEXT DEFAULT 'GUEST' CHECK (type IN ('GUEST', 'HELPER', 'HOST')),
+            age INTEGER,
+            notes TEXT,
+            rsvp_status TEXT DEFAULT 'PENDING' CHECK (rsvp_status IN ('PENDING', 'CONFIRMED', 'DECLINED', 'MAYBE')),
+            dietary_restrictions TEXT[],
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          );
+        `
+      });
+      if (guestsError) results.push({ operation: 'Create guests table', status: 'Failed', error: guestsError.message });
+      else results.push({ operation: 'Create guests table', status: 'Success' });
 
-    const tableNames = existingTableNames || []
-    const requiredTables = ['users', 'parties', 'guests', 'invitations']
-    const missingTables = requiredTables.filter(table => !tableNames.includes(table))
+      // Create party_activities table
+      const { error: partyActivitiesError } = await supabase.rpc('exec_sql', {
+        sql: `
+          CREATE TABLE IF NOT EXISTS public.party_activities (
+            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+            party_id UUID REFERENCES public.parties(id) ON DELETE CASCADE NOT NULL,
+            activity_id UUID REFERENCES public.activities(id) ON DELETE CASCADE NOT NULL,
+            user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+            status TEXT DEFAULT 'SELECTED' CHECK (status IN ('SELECTED', 'COMPLETED', 'SKIPPED')),
+            notes TEXT,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            UNIQUE(party_id, activity_id)
+          );
+        `
+      });
+      if (partyActivitiesError) results.push({ operation: 'Create party_activities table', status: 'Failed', error: partyActivitiesError.message });
+      else results.push({ operation: 'Create party_activities table', status: 'Success' });
 
-    if (missingTables.length === 0) {
-      return NextResponse.json({ 
-        success: true, 
-        message: 'All required tables already exist',
-        existingTables: tableNames.filter(name => requiredTables.includes(name))
-      })
+      // Create activity_favorites table
+      const { error: favoritesError } = await supabase.rpc('exec_sql', {
+        sql: `
+          CREATE TABLE IF NOT EXISTS public.activity_favorites (
+            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+            user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+            activity_id UUID REFERENCES public.activities(id) ON DELETE CASCADE NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            UNIQUE(user_id, activity_id)
+          );
+        `
+      });
+      if (favoritesError) results.push({ operation: 'Create activity_favorites table', status: 'Failed', error: favoritesError.message });
+      else results.push({ operation: 'Create activity_favorites table', status: 'Success' });
+
+    } catch (error) {
+      results.push({ operation: 'Create missing tables', status: 'Failed', error: error.message });
     }
 
-    // Provide comprehensive SQL instructions for fresh database setup
-    const instructions = `
-🎉 MAGICAL BIRTHDAY PLANNER - FRESH DATABASE SETUP
+    // 3. Update existing activity with proper data
+    try {
+      console.log('Updating existing activity with proper data...');
+      
+      const { error: updateError } = await supabase
+        .from('activities')
+        .update({
+          duration_minutes: 30,
+          venue_type: ['INDOOR', 'OUTDOOR'],
+          supplies_needed: ['Treasure chest', 'Small toys', 'Clue cards', 'Map'],
+          participant_range: '4-8',
+          min_participants: 4,
+          max_participants: 8,
+          age_group: ['5-10'],
+          theme_compatibility: ['Adventure', 'Pirate', 'Explorer'],
+          tags: ['treasure', 'adventure', 'search', 'teamwork']
+        })
+        .eq('id', '35d96825-8fb5-43cc-99a3-a408134ff479');
 
-As requested, please FIRST DELETE any existing tables if they exist, then create fresh ones.
+      if (updateError) results.push({ operation: 'Update existing activity', status: 'Failed', error: updateError.message });
+      else results.push({ operation: 'Update existing activity', status: 'Success' });
 
-1. Go to your Supabase dashboard SQL Editor: 
-   https://supabase.com/dashboard/project/${supabaseUrl?.split('//')[1]?.split('.')[0]}/editor
+    } catch (error) {
+      results.push({ operation: 'Update existing activity', status: 'Failed', error: error.message });
+    }
 
-2. FIRST - Drop existing tables and types if they exist (run this first):
-
--- Drop existing tables in correct order (foreign keys first)
-DROP TABLE IF EXISTS invitations CASCADE;
-DROP TABLE IF EXISTS guests CASCADE; 
-DROP TABLE IF EXISTS parties CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-
--- Drop existing types
-DROP TYPE IF EXISTS "InvitationStatus" CASCADE;
-DROP TYPE IF EXISTS "GuestType" CASCADE;
-
-3. NOW - Create fresh database schema:
-
--- Step 1: Create enums
-CREATE TYPE "GuestType" AS ENUM ('ADULT', 'CHILD');
-CREATE TYPE "InvitationStatus" AS ENUM ('PENDING', 'SENT', 'ACCEPTED', 'DECLINED', 'MAYBE');
-
--- Step 2: Create users table  
-CREATE TABLE "users" (
-    "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "name" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
-);
-
--- Step 3: Create parties table
-CREATE TABLE "parties" (
-    "id" TEXT NOT NULL,
-    "childName" TEXT NOT NULL,
-    "childAge" INTEGER NOT NULL,
-    "childGender" TEXT,
-    "partyDate" TIMESTAMP(3) NOT NULL,
-    "theme" TEXT NOT NULL,
-    "interests" TEXT[],
-    "favoriteColors" TEXT[],
-    "guestCount" INTEGER,
-    "budget" DOUBLE PRECISION,
-    "location" TEXT,
-    "checklistData" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "userId" TEXT NOT NULL,
-    CONSTRAINT "parties_pkey" PRIMARY KEY ("id")
-);
-
--- Step 4: Create guests table
-CREATE TABLE "guests" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "email" TEXT,
-    "phone" TEXT,
-    "type" "GuestType" NOT NULL DEFAULT 'ADULT',
-    "age" INTEGER,
-    "notes" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "partyId" TEXT NOT NULL,
-    CONSTRAINT "guests_pkey" PRIMARY KEY ("id")
-);
-
--- Step 5: Create invitations table
-CREATE TABLE "invitations" (
-    "id" TEXT NOT NULL,
-    "status" "InvitationStatus" NOT NULL DEFAULT 'PENDING',
-    "sentAt" TIMESTAMP(3),
-    "respondedAt" TIMESTAMP(3),
-    "message" TEXT,
-    "notes" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "partyId" TEXT NOT NULL,
-    "guestId" TEXT NOT NULL,
-    CONSTRAINT "invitations_pkey" PRIMARY KEY ("id")
-);
-
--- Step 6: Create indexes
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
-CREATE UNIQUE INDEX "invitations_partyId_guestId_key" ON "invitations"("partyId", "guestId");
-
--- Step 7: Add foreign key constraints
-ALTER TABLE "parties" ADD CONSTRAINT "parties_userId_fkey" 
-    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE "guests" ADD CONSTRAINT "guests_partyId_fkey" 
-    FOREIGN KEY ("partyId") REFERENCES "parties"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE "invitations" ADD CONSTRAINT "invitations_partyId_fkey" 
-    FOREIGN KEY ("partyId") REFERENCES "parties"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE "invitations" ADD CONSTRAINT "invitations_guestId_fkey" 
-    FOREIGN KEY ("guestId") REFERENCES "guests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- Step 8: Enable Row Level Security
-ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "parties" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "guests" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "invitations" ENABLE ROW LEVEL SECURITY;
-
--- Step 9: Create RLS policies for users
-CREATE POLICY "Users can view own profile" ON "users"
-    FOR SELECT USING (auth.uid()::text = id);
-CREATE POLICY "Users can update own profile" ON "users"
-    FOR UPDATE USING (auth.uid()::text = id);
-CREATE POLICY "Users can insert own profile" ON "users"
-    FOR INSERT WITH CHECK (auth.uid()::text = id);
-
--- Step 10: Create RLS policies for parties
-CREATE POLICY "Users can view own parties" ON "parties"
-    FOR SELECT USING (auth.uid()::text = "userId");
-CREATE POLICY "Users can create own parties" ON "parties"
-    FOR INSERT WITH CHECK (auth.uid()::text = "userId");
-CREATE POLICY "Users can update own parties" ON "parties"
-    FOR UPDATE USING (auth.uid()::text = "userId");
-CREATE POLICY "Users can delete own parties" ON "parties"
-    FOR DELETE USING (auth.uid()::text = "userId");
-
--- Step 11: Create RLS policies for guests
-CREATE POLICY "Users can view guests of own parties" ON "guests"
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM "parties" 
-            WHERE "parties"."id" = "guests"."partyId" 
-            AND "parties"."userId" = auth.uid()::text
-        )
-    );
-CREATE POLICY "Users can create guests for own parties" ON "guests"
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM "parties" 
-            WHERE "parties"."id" = "guests"."partyId" 
-            AND "parties"."userId" = auth.uid()::text
-        )
-    );
-CREATE POLICY "Users can update guests of own parties" ON "guests"
-    FOR UPDATE USING (
-        EXISTS (
-            SELECT 1 FROM "parties" 
-            WHERE "parties"."id" = "guests"."partyId" 
-            AND "parties"."userId" = auth.uid()::text
-        )
-    );
-CREATE POLICY "Users can delete guests of own parties" ON "guests"
-    FOR DELETE USING (
-        EXISTS (
-            SELECT 1 FROM "parties" 
-            WHERE "parties"."id" = "guests"."partyId" 
-            AND "parties"."userId" = auth.uid()::text
-        )
-    );
-
--- Step 12: Create RLS policies for invitations
-CREATE POLICY "Users can view invitations for own parties" ON "invitations"
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM "parties" 
-            WHERE "parties"."id" = "invitations"."partyId" 
-            AND "parties"."userId" = auth.uid()::text
-        )
-    );
-CREATE POLICY "Users can create invitations for own parties" ON "invitations"
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM "parties" 
-            WHERE "parties"."id" = "invitations"."partyId" 
-            AND "parties"."userId" = auth.uid()::text
-        )
-    );
-CREATE POLICY "Users can update invitations for own parties" ON "invitations"
-    FOR UPDATE USING (
-        EXISTS (
-            SELECT 1 FROM "parties" 
-            WHERE "parties"."id" = "invitations"."partyId" 
-            AND "parties"."userId" = auth.uid()::text
-        )
-    );
-CREATE POLICY "Users can delete invitations for own parties" ON "invitations"
-    FOR DELETE USING (
-        EXISTS (
-            SELECT 1 FROM "parties" 
-            WHERE "parties"."id" = "invitations"."partyId" 
-            AND "parties"."userId" = auth.uid()::text
-        )
-    );
-
--- Step 13: Create triggers for automatic timestamp updates
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW."updatedAt" = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON "users"
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_parties_updated_at BEFORE UPDATE ON "parties"
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_guests_updated_at BEFORE UPDATE ON "guests"
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_invitations_updated_at BEFORE UPDATE ON "invitations"
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-🎊 DATABASE SETUP COMPLETE! Your fresh database is ready for the birthday planner app.
-
-4. After running all SQL commands, visit your dashboard to confirm the tables exist.
-    `
-
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Database tables need to be created manually',
-      instructions,
-      missingTables 
-    })
+    return NextResponse.json({
+      success: true,
+      message: 'Database setup completed',
+      results,
+      timestamp: new Date().toISOString()
+    });
 
   } catch (error) {
-    console.error('Error setting up database:', error)
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Database setup failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    console.error('Database setup error:', error);
+    return NextResponse.json({
+      success: false,
+      message: 'Database setup failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }
 

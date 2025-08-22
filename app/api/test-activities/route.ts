@@ -5,44 +5,55 @@ export async function GET() {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
+
     if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json({
         success: false,
-        message: 'Missing environment variables',
-        error: `URL: ${supabaseUrl ? 'Present' : 'Missing'}, Key: ${supabaseKey ? 'Present' : 'Missing'}`
+        message: 'Missing environment variables'
       }, { status: 500 });
     }
 
-    console.log('Testing connection with:', { url: supabaseUrl, keyPresent: !!supabaseKey });
-    
     const supabase = createClient(supabaseUrl, supabaseKey);
-    
-    // Try to access a simple table
-    const { data, error } = await supabase
+
+    // Try to get all activities with detailed error logging
+    const { data, error, count } = await supabase
       .from('activities')
-      .select('id')
-      .limit(1);
-    
+      .select('*')
+      .limit(5);
+
     if (error) {
-      console.error('Supabase error:', error);
+      console.error('Supabase error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+      
       return NextResponse.json({
         success: false,
-        message: 'Database connection failed',
+        message: 'Failed to fetch activities',
         error: error.message,
         code: error.code,
         details: error.details,
         hint: error.hint
       }, { status: 500 });
     }
-    
+
+    // Log the data structure
+    console.log('Activities data structure:', {
+      count: data?.length || 0,
+      firstRecord: data?.[0] ? Object.keys(data[0]) : 'No data',
+      sampleData: data?.[0] || null
+    });
+
     return NextResponse.json({
       success: true,
-      message: 'Database connection successful',
+      message: 'Activities fetched successfully',
+      count: data?.length || 0,
       data: data,
       timestamp: new Date().toISOString()
     });
-    
+
   } catch (error) {
     console.error('Unexpected error:', error);
     return NextResponse.json({
