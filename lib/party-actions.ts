@@ -4,11 +4,21 @@ import { revalidatePath } from 'next/cache'
 import { createServerComponentClient } from '@/lib/supabase-client'
 
 async function getCurrentUser() {
-  // This is a placeholder - you'll need to implement proper user authentication
-  // For now, return a mock user for testing
-  return {
-    id: 'test-user-id',
-    email: 'test@example.com'
+  try {
+    const supabase = createServerComponentClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      return null
+    }
+    
+    return {
+      id: user.id,
+      email: user.email || 'unknown@example.com'
+    }
+  } catch (error) {
+    console.error('Error getting current user:', error)
+    return null
   }
 }
 
@@ -39,13 +49,13 @@ export async function createParty(partyData: {
         user_id: user.id,
         child_name: partyData.childName,
         child_age: partyData.childAge,
-        child_gender: partyData.childGender,
-        party_date: partyData.partyDate,
-        theme: partyData.theme,
-        guest_count: partyData.guestCount,
-        budget: partyData.budget,
-        zip_code: partyData.location,
-        venue_type: partyData.venue,
+        child_gender: partyData.childGender || null,
+        party_date: partyData.partyDate.toISOString(),
+        theme: partyData.theme || null,
+        guest_count: partyData.guestCount || 0,
+        budget: partyData.budget || null,
+        zip_code: partyData.location || null,
+        venue_type: partyData.venue || null,
         status: partyData.status || 'PLANNING'
       })
       .select()
@@ -95,20 +105,21 @@ export async function updateParty(partyId: string, updates: Partial<{
 
     const supabase = createServerComponentClient()
     
+    const updateData: any = {}
+    if (updates.childName !== undefined) updateData.child_name = updates.childName
+    if (updates.childAge !== undefined) updateData.child_age = updates.childAge
+    if (updates.childGender !== undefined) updateData.child_gender = updates.childGender
+    if (updates.partyDate !== undefined) updateData.party_date = updates.partyDate.toISOString()
+    if (updates.theme !== undefined) updateData.theme = updates.theme
+    if (updates.guestCount !== undefined) updateData.guest_count = updates.guestCount
+    if (updates.budget !== undefined) updateData.budget = updates.budget
+    if (updates.location !== undefined) updateData.zip_code = updates.location
+    if (updates.venue !== undefined) updateData.venue_type = updates.venue
+    if (updates.status !== undefined) updateData.status = updates.status
+
     const { data, error } = await supabase
       .from('parties')
-      .update({
-        child_name: updates.childName,
-        child_age: updates.childAge,
-        child_gender: updates.childGender,
-        party_date: updates.partyDate,
-        theme: updates.theme,
-        guest_count: updates.guestCount,
-        budget: updates.budget,
-        zip_code: updates.location,
-        venue_type: updates.venue,
-        status: updates.status
-      })
+      .update(updateData)
       .eq('id', partyId)
       .eq('user_id', user.id)
       .select()

@@ -29,27 +29,26 @@ export async function POST(request: NextRequest) {
       const { data: existingParty, error: findError } = await supabase
         .from('parties')
         .select('id')
-        .eq('userId', user.id)
+        .eq('user_id', user.id)
         .single()
 
       if (findError && findError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
         console.error('Error finding existing party:', findError)
       }
 
-      // Prepare party data for database
+      // Prepare party data for database with correct field mapping
       const partyRecord = {
-        userId: user.id,
-        childName: partyData.childName || 'Your Child',
-        childAge: partyData.childAge || 5,
-        childGender: partyData.childGender || '',
-        interests: partyData.childInterests || [],
-        favoriteColors: partyData.favoriteColors || [],
-        partyDate: new Date(partyData.partyDate || new Date()).toISOString(),
+        user_id: user.id,
+        child_name: partyData.childName || 'Your Child',
+        child_age: partyData.childAge || 5,
+        child_gender: partyData.childGender || null,
+        party_date: new Date(partyData.partyDate || new Date()).toISOString(),
         theme: partyData.selectedTheme || partyData.classicTheme || 'Superhero',
-        guestCount: partyData.guestCount || 0,
+        guest_count: partyData.guestCount || 0,
         budget: partyData.budget || null,
-        partyLocation: partyData.zipCode || '',
-        checklistData: partyData.checklistData || []
+        zip_code: partyData.zipCode || null,
+        venue_type: null,
+        status: 'PLANNING' as const
       }
 
       let party;
@@ -123,8 +122,8 @@ export async function GET(request: NextRequest) {
       const { data: parties, error: fetchError } = await supabase
         .from('parties')
         .select('*')
-        .eq('userId', user.id)
-        .order('createdAt', { ascending: false })
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
 
       if (fetchError) {
         throw new Error(`Failed to fetch parties: ${fetchError.message}`)
