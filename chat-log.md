@@ -1,3 +1,11 @@
+## [usr-1755830160851]
+**User Request:** erroe - invalid API key
+
+Attachments: @.ideavo-attachments/image_23.png
+
+**Response Summary:** Identified and resolved the "Invalid API key" authentication error. The issue was caused by a conflicting environment file at `app/.env` that was interfering with the root `.env` file loading. Validated that the Supabase API key is correctly formatted as a valid JWT token with proper structure. Removed the conflicting `app/.env` file to ensure environment variables load correctly. The API key is valid and Supabase client creation now works properly.
+**Files Modified:** app/.env (deleted)
+
 ## [usr-1755828918066]
 **User Request:** The .env file is still not fixed! The NEXT_PUBLIC_SUPABASE_ANON_KEY is still split across multiple lines. I can see from your terminal that the server keeps reloading the .env file but it's still getting the same broken format.
 You absolutely must manually fix this file. The API key is currently broken across 3 lines:
