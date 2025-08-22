@@ -19,9 +19,12 @@ export default function EnvCheckPage() {
   const configSummary = getConfigSummary();
   
   // Count missing and optional configurations
-  const missingCount = Object.values(configSummary.supabase).filter(status => status.includes('❌')).length;
+  const missingCount = Object.values(configSummary.supabase).filter(status => 
+    typeof status === 'string' && status.includes('❌')
+  ).length;
   const optionalCount = Object.values(configSummary).filter(config => 
-    typeof config === 'object' && Object.values(config).some(status => status.includes('⚠️'))
+    typeof config === 'object' && config !== null && 
+    Object.values(config).some(status => typeof status === 'string' && status.includes('⚠️'))
   ).length;
 
   const getStatusIcon = (status: string) => {
