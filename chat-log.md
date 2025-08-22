@@ -1,3 +1,21 @@
+## [usr-1755837839616]
+**User Request:** still exists
+
+Attachments: @.ideavo-attachments/image_29.png
+
+**Response Summary:** Diagnosed that the "Invalid API key" error persists due to the Supabase ANON API key being invalid/expired. Through direct API testing, confirmed that the JWT token format is correct but the API key itself has been invalidated by Supabase (likely regenerated in dashboard). The environment file format is correct and properly loaded, but the API key needs to be updated with the current valid key from the Supabase project dashboard.
+
+**Technical Findings:**
+- Environment file (.env) is properly formatted with JWT token on single line
+- Direct API test to Supabase returns: "Invalid API key" error message
+- Supabase project (nwgqmsuaoflklrgrxfwy.supabase.co) is accessible
+- JWT token structure is valid but token itself has been invalidated
+- This is the same recurring issue from previous sessions
+
+**Root Cause:** The NEXT_PUBLIC_SUPABASE_ANON_KEY in .env file contains an outdated/invalid API key that has been regenerated or revoked in the Supabase dashboard.
+
+**Files Modified:** None
+
 ## [usr-1755837534731]
 **User Request:** invalid API key at login
 
