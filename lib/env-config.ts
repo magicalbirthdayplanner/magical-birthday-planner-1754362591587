@@ -7,13 +7,15 @@ export const env = {
   
   // Database Configuration
   DATABASE_URL: process.env.DATABASE_URL!,
+  DIRECT_URL: process.env.DIRECT_URL || process.env.DATABASE_URL!,
   
   // OpenAI Configuration
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   
   // Application Configuration
   NODE_ENV: process.env.NODE_ENV || 'development',
-  NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || 'localhost:3000',
+  NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || 
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
   
   // Email Configuration
   RESEND_API_KEY: process.env.RESEND_API_KEY,
@@ -28,6 +30,10 @@ export const env = {
   // Dodo Payments Configuration
   DODO_API_KEY: process.env.DODO_API_KEY,
   DODO_WEBHOOK_SECRET: process.env.DODO_WEBHOOK_SECRET,
+  
+  // Vercel-specific
+  VERCEL_ENV: process.env.VERCEL_ENV || process.env.NODE_ENV || 'development',
+  VERCEL_URL: process.env.VERCEL_URL,
 };
 
 // Validate required environment variables
@@ -50,8 +56,8 @@ export function validateEnv() {
 // Check if we're in production
 export const isProduction = env.NODE_ENV === 'production';
 
-// Check if we're in development
-export const isDevelopment = env.NODE_ENV === 'development';
+// Check if we're in Vercel
+export const isVercel = !!env.VERCEL_URL;
 
 // Check if we're in test mode
 export const isTest = env.NODE_ENV === 'test';
@@ -82,11 +88,11 @@ export function validateDatabaseConfig() {
     throw new Error('DATABASE_URL is required');
   }
 
-  // Check if it's a Supabase URL
-  if (env.DATABASE_URL.includes('supabase.co')) {
-    console.log('✅ Using Supabase database');
-  } else {
-    console.log('⚠️  Using custom database (not Supabase)');
+  // Validate database URL format
+  try {
+    new URL(env.DATABASE_URL);
+  } catch {
+    throw new Error('DATABASE_URL must be a valid URL');
   }
 
   return true;
@@ -98,7 +104,6 @@ export function validateOpenAIConfig() {
     console.warn('⚠️  OPENAI_API_KEY not set - AI features will be disabled');
     return false;
   }
-
   return true;
 }
 
@@ -108,7 +113,6 @@ export function validatePaymentConfig() {
     console.warn('⚠️  Stripe keys not set - payment features will be disabled');
     return false;
   }
-
   return true;
 }
 
@@ -118,7 +122,6 @@ export function validateEmailConfig() {
     console.warn('⚠️  RESEND_API_KEY not set - email features will be disabled');
     return false;
   }
-
   return true;
 }
 
@@ -146,6 +149,11 @@ export function validateAllConfig() {
 export function getConfigSummary() {
   return {
     environment: env.NODE_ENV,
+    vercel: {
+      isVercel: isVercel,
+      url: env.VERCEL_URL || 'Not deployed',
+      env: env.VERCEL_ENV,
+    },
     supabase: {
       url: env.SUPABASE_URL ? '✅ Configured' : '❌ Missing',
       anonKey: env.SUPABASE_ANON_KEY ? '✅ Configured' : '❌ Missing',
@@ -153,6 +161,7 @@ export function getConfigSummary() {
     },
     database: {
       url: env.DATABASE_URL ? '✅ Configured' : '❌ Missing',
+      directUrl: env.DIRECT_URL ? '✅ Configured' : '⚠️  Missing',
       type: env.DATABASE_URL?.includes('supabase.co') ? 'Supabase' : 'Custom',
     },
     openai: {

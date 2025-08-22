@@ -1,0 +1,32 @@
+# Vercel Environment Variables Template
+# Copy these to your Vercel project dashboard under Settings → Environment Variables
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://nwgqmsuaoflklrgrxfwy.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_iIt7SvwainnqP3GnsZxp2w_1StIzQ9R
+SUPABASE_SERVICE_ROLE_KEY=sbp_a389e618b0b361314c5422c7959c4737ca19f9d9
+
+# Database URLs (optimized for Vercel serverless)
+DATABASE_URL=postgresql://postgres:MagicalBirthdayPlanner@db.nwgqmsuaoflklrgrxfwy.supabase.co:5432/postgres?sslmode=require&connect_timeout=10&pool_timeout=10&statement_timeout=30000
+DIRECT_URL=postgresql://postgres:MagicalBirthdayPlanner@db.nwgqmsuaoflklrgrxfwy.supabase.co:5432/postgres?sslmode=require&connect_timeout=10&pool_timeout=10&statement_timeout=30000
+
+# Application Configuration
+NODE_ENV=production
+NEXT_PUBLIC_BASE_URL=https://your-vercel-domain.vercel.app
+
+# Vercel-specific
+VERCEL_ENV=production
+
+# Instructions:
+# 1. Go to your Vercel project dashboard
+# 2. Navigate to Settings → Environment Variables
+# 3. Add each variable above (one per line)
+# 4. Make sure to set NODE_ENV=production for production deployments
+# 5. Update NEXT_PUBLIC_BASE_URL to match your actual Vercel domain
+# 6. Redeploy your project after adding these variables
+
+# Common Vercel deployment issues this fixes:
+# - Database connection timeouts
+# - Missing environment variables
+# - Base URL configuration errors
+# - Serverless function execution limits
