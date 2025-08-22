@@ -1360,8 +1360,9 @@ export default function CreatePartyPage() {
             {step === 3 && (
               <div className="space-y-6">
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 text-center">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">🎉 Party Summary for {partyData.childName}</h3>
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 text-center border-2 border-purple-200 shadow-lg">
+                  <div className="text-4xl mb-3">🎉</div>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Party Summary for {partyData.childName}</h3>
                   <p className="text-sm text-gray-600">
                     Review all the details before creating your magical party plan
                   </p>
@@ -1370,28 +1371,43 @@ export default function CreatePartyPage() {
                 {/* Summary Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Child Information Card */}
-                  <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2">
+                  <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg hover:shadow-xl transition-shadow">
+                    <CardHeader className="pb-3 text-center">
+                      <div className="text-3xl mb-2">
+                        {partyData.childGender === 'boy' ? '👦' : partyData.childGender === 'girl' ? '👧' : '🧒'}
+                      </div>
+                      <CardTitle className="text-lg flex items-center justify-center gap-2">
                         <User className="h-5 w-5 text-purple-600" />
                         Child Information
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-gray-600">Name:</span>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                        <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <span className="text-lg">👶</span>
+                          Name:
+                        </span>
                         <span className="text-sm font-semibold text-gray-800">{partyData.childName}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-gray-600">Age:</span>
+                      <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                        <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <span className="text-lg">🎂</span>
+                          Age:
+                        </span>
                         <span className="text-sm font-semibold text-gray-800">{partyData.childAge} years old</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-gray-600">Gender:</span>
+                      <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                        <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <span className="text-lg">{partyData.childGender === 'boy' ? '♂️' : '♀️'}</span>
+                          Gender:
+                        </span>
                         <span className="text-sm font-semibold text-gray-800 capitalize">{partyData.childGender}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-gray-600">Party Date:</span>
+                      <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                        <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <span className="text-lg">📅</span>
+                          Party Date:
+                        </span>
                         <span className="text-sm font-semibold text-gray-800">
                           {partyData.partyDate ? format(partyData.partyDate, "PPP") : "Not selected"}
                         </span>
@@ -1400,16 +1416,20 @@ export default function CreatePartyPage() {
                   </Card>
 
                   {/* Party Details Card */}
-                  <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2">
+                  <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg hover:shadow-xl transition-shadow">
+                    <CardHeader className="pb-3 text-center">
+                      <div className="text-3xl mb-2">🏠</div>
+                      <CardTitle className="text-lg flex items-center justify-center gap-2">
                         <MapPin className="h-5 w-5 text-blue-600" />
                         Party Details
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-gray-600">Location:</span>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                        <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <span className="text-lg">📍</span>
+                          Location:
+                        </span>
                         <span className="text-sm font-semibold text-gray-800 flex items-center gap-1">
                           {partyData.zipCode}
                           {partyData.country && (
@@ -1419,12 +1439,18 @@ export default function CreatePartyPage() {
                           )}
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-gray-600">Guests:</span>
+                      <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                        <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <span className="text-lg">👥</span>
+                          Guests:
+                        </span>
                         <span className="text-sm font-semibold text-gray-800">{partyData.guestCount || 0} expected</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-gray-600">Budget:</span>
+                      <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                        <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <span className="text-lg">💰</span>
+                          Budget:
+                        </span>
                         <span className="text-sm font-semibold text-gray-800">
                           {partyData.budget ? (
                             <>
@@ -1437,8 +1463,11 @@ export default function CreatePartyPage() {
                         </span>
                       </div>
                       {partyData.country && (
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium text-gray-600">Country:</span>
+                        <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                          <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                            <span className="text-lg">🌍</span>
+                            Country:
+                          </span>
                           <span className="text-sm font-semibold text-gray-800">
                             {countryOptions.find(c => c.code === partyData.country)?.name}
                           </span>
@@ -1448,26 +1477,27 @@ export default function CreatePartyPage() {
                   </Card>
                 </div>
 
-                {/* Next Steps Info */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+                {/* Enhanced Summary Overview Card */}
+                <div className="bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 rounded-xl p-6 border-2 border-orange-200 shadow-lg">
                   <div className="text-center">
-                    <h4 className="text-lg font-semibold text-green-800 mb-2">🎨 Ready to Create Your Party Plan!</h4>
-                    <p className="text-sm text-green-700 mb-4">
+                    <div className="text-4xl mb-3">🎨</div>
+                    <h4 className="text-lg font-semibold text-orange-800 mb-2">Ready to Create Your Party Plan!</h4>
+                    <p className="text-sm text-orange-700 mb-4">
                       All theme creation and AI recommendations will happen in the party management section. 
                       Click "Create My Party Plan" to continue and start customizing your magical celebration!
                     </p>
-                    <div className="flex items-center justify-center space-x-4 text-xs text-green-600">
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4" />
-                        <span>Child details saved</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                      <div className="flex items-center justify-center gap-2 p-3 bg-white/60 rounded-lg">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-xs font-medium text-green-700">✨ Child details saved</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4" />
-                        <span>Party location set</span>
+                      <div className="flex items-center justify-center gap-2 p-3 bg-white/60 rounded-lg">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-xs font-medium text-green-700">📍 Party location set</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4" />
-                        <span>Guest count confirmed</span>
+                      <div className="flex items-center justify-center gap-2 p-3 bg-white/60 rounded-lg">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-xs font-medium text-green-700">👥 Guest count confirmed</span>
                       </div>
                     </div>
                   </div>
