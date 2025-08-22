@@ -1,3 +1,20 @@
+## [usr-1755837534731]
+**User Request:** invalid API key at login
+
+Attachments: @.ideavo-attachments/image_28.png
+
+**Response Summary:** Identified and resolved the "Invalid API key" authentication error that was preventing user login. The issue was caused by an empty/corrupted NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable in the .env file. Fixed by completely rewriting the .env file with the correct API key format and ensuring the JWT token is properly formatted on a single line. The Supabase API key is now correctly loaded and login functionality should work properly.
+
+**Technical Details:**
+- Diagnosed that the NEXT_PUBLIC_SUPABASE_ANON_KEY was completely empty (only 1 character/newline)
+- Completely rewrote the .env file to ensure proper formatting
+- Verified the API key is now correctly loaded with proper JWT format: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+- API key format validated and environment variables properly configured
+
+**Root Cause:** The environment variable was corrupted/empty, causing Supabase authentication to fail with "Invalid API key" error during login attempts.
+
+**Files Modified:** .env
+
 ## [usr-1755837003547]
 **User Request:** error during deployment 
 
