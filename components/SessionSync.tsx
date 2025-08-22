@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@/lib/supabase-client'
+import { createClientComponentClient } from '@/lib/supabase'
 
 export default function SessionSync() {
   const router = useRouter()

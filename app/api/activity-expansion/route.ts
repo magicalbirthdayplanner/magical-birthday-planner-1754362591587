@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerComponentClient } from '@/lib/supabase-client';
+import { createServerComponentClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 import OpenAI from 'openai';
 
