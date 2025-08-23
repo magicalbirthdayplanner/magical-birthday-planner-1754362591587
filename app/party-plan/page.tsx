@@ -22,12 +22,12 @@ import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { 
-  getPartyDirect, 
-  updatePartyDirect, 
-  addGuestDirect, 
-  updateGuestDirect, 
-  deleteGuestDirect 
-} from "@/lib/party-actions-direct";
+  getParty, 
+  updateParty, 
+  addGuest, 
+  updateGuest, 
+  deleteGuest 
+} from "@/lib/party-actions";
 import { generatePartyPlanPDF } from "@/lib/pdf-generator";
 import { 
   PartyPopper, 
@@ -413,8 +413,8 @@ export default function PartyPlanPage() {
     if (!user || !currentPartyId) return;
     
     try {
-      // Use direct Supabase client
-      const result = await updatePartyDirect(currentPartyId, {
+      // Use party actions
+      const result = await updateParty(currentPartyId, {
         checklistData: checklistData
       });
       
@@ -553,8 +553,8 @@ export default function PartyPlanPage() {
           console.log(`Loading specific party with ID: ${partyId}`);
           
           try {
-            // Use direct Supabase client
-            const result = await getPartyDirect(partyId);
+            // Use party actions
+            const result = await getParty(partyId);
             
             console.log('Party fetch result:', { success: result.success, hasParty: !!result.party, error: result.error });
             
@@ -816,7 +816,7 @@ export default function PartyPlanPage() {
       console.log('Syncing guests to database...');
       
       // Get current database guests for this party
-      const partyResult = await getPartyDirect(currentPartyId);
+      const partyResult = await getParty(currentPartyId);
       
       if (!partyResult.success || !partyResult.party) {
         throw new Error('Failed to fetch party data for sync');
@@ -832,7 +832,7 @@ export default function PartyPlanPage() {
           console.log(`Creating new guest in database: ${localGuest.name}`);
           
           try {
-            const result = await addGuestDirect(currentPartyId, {
+            const result = await addGuest(currentPartyId, {
               name: localGuest.name,
               email: localGuest.email,
               phone: localGuest.phone,
@@ -866,7 +866,7 @@ export default function PartyPlanPage() {
             ) {
               // Update existing guest
               console.log(`Updating existing guest: ${localGuest.name}`);
-              const result = await updateGuestDirect(localGuest.id, {
+              const result = await updateGuest(localGuest.id, {
                 name: localGuest.name,
                 email: localGuest.email || '',
                 phone: localGuest.phone || '',
@@ -889,7 +889,7 @@ export default function PartyPlanPage() {
         if (!localGuest) {
           // Guest was deleted locally, delete from database
           console.log(`Deleting guest from database: ${dbGuest.name}`);
-          const result = await deleteGuestDirect(dbGuest.id);
+          const result = await deleteGuest(dbGuest.id);
           
           if (!result.success) {
             console.error(`Failed to delete guest: ${result.error}`);
@@ -915,8 +915,8 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // Create guest in database using direct client
-      const result = await addGuestDirect(currentPartyId, {
+      // Create guest in database using party actions
+      const result = await addGuest(currentPartyId, {
         name: guestData.name,
         email: guestData.email,
         phone: guestData.phone,
@@ -957,9 +957,9 @@ export default function PartyPlanPage() {
     }
 
     try {
-                // Update guest in database using direct client
+                // Update guest in database using party actions
           if (!id.startsWith('guest_')) {
-            const result = await updateGuestDirect(id, {
+            const result = await updateGuest(id, {
               name: guestData.name || '',
               email: guestData.email || '',
               phone: guestData.phone || '',
@@ -994,9 +994,9 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // Delete guest from database using direct client
+      // Delete guest from database using party actions
       if (!id.startsWith('guest_')) {
-        const result = await deleteGuestDirect(id);
+        const result = await deleteGuest(id);
         
         if (result.success) {
           console.log('Guest deleted successfully from database');
@@ -1045,7 +1045,7 @@ export default function PartyPlanPage() {
     // Re-fetch party data to get updated invitations from database
     if (currentPartyId) {
       try {
-        const result = await getPartyDirect(currentPartyId);
+        const result = await getParty(currentPartyId);
         
         if (result.success && result.party) {
           // Update local state with database invitations
@@ -2036,8 +2036,8 @@ export default function PartyPlanPage() {
               }}
               onThemeSelect={(themeId) => {
                 if (partyData?.id) {
-                  // Use direct Supabase client
-                  updatePartyDirect(partyData.id, { theme: themeId || '' })
+                  // Use party actions
+                  updateParty(partyData.id, { theme: themeId || '' })
                     .then(async (result) => {
                       if (!result.success) {
                         throw new Error('Failed to update theme');

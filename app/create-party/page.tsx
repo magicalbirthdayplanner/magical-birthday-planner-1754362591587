@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
 import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
 import { useAuth } from "@/contexts/AuthContext";
-import { createPartyDirect, updatePartyDirect } from "@/lib/party-actions-direct";
+import { createParty, updateParty } from "@/lib/party-actions";
 import AuthModal from "@/components/AuthModal";
 
 const interestOptions = [
@@ -719,8 +719,8 @@ export default function CreatePartyPage() {
         console.log('Creating party with payload:', createPayload)
         setSubmissionStep('Creating your magical party plan...');
 
-        // Create party using direct Supabase client
-        const result = await createPartyDirect(createPayload);
+        // Create party using party actions
+        const result = await createParty(createPayload);
 
         console.log('Party creation result:', result)
 
@@ -754,8 +754,8 @@ export default function CreatePartyPage() {
 
         console.log('Updating existing party:', partyId, updatePayload)
 
-                // Update party using direct Supabase client
-        const result = await updatePartyDirect(partyId, updatePayload);
+                // Update party using party actions
+        const result = await updateParty(partyId, updatePayload);
 
         if (!result.success) {
           throw new Error('Failed to update party');

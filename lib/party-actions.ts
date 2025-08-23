@@ -1,76 +1,41 @@
-"use server"
+import { supabase, getCurrentUser } from './supabase-client'
 
-import { revalidatePath } from 'next/cache'
-import { supabase } from '@/lib/supabase'
-
-async function getCurrentUser() {
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser()
-    
-    if (error || !user) {
-      return null
-    }
-    
-    return {
-      id: user.id,
-      email: user.email || 'unknown@example.com'
-    }
-  } catch (error) {
-    console.error('Error getting current user:', error)
-    return null
-  }
-}
-
-export async function createParty(partyData: {
-  childName: string
-  childAge: number
-  childGender?: string
-  partyDate: Date
-  theme: string
-  interests: string[]
-  favoriteColors: string[]
-  guestCount?: number
-  budget?: number
-  location?: string
-  venue?: string
-  duration?: string
-  status?: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
-}) {
+// Create a new party
+export const createParty = async (partyData: any) => {
   try {
     const user = await getCurrentUser()
-    if (!user) throw new Error('Authentication required')
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
 
-    const { data, error } = await supabase
+    const partyRecord = {
+      user_id: user.id,
+      child_name: partyData.childName || 'Your Child',
+      child_age: partyData.childAge || 5,
+      child_gender: partyData.childGender || null,
+      party_date: new Date(partyData.partyDate || new Date()).toISOString().split('T')[0],
+      theme: partyData.theme || 'Superhero',
+      guest_count: partyData.guestCount || 0,
+      budget: partyData.budget || null,
+      zip_code: partyData.location || null,
+      venue_type: partyData.venue || null,
+      status: partyData.status || 'PLANNING' as const
+    }
+
+    console.log('Creating party record:', partyRecord)
+
+    const { data: newParty, error } = await supabase
       .from('parties')
-      .insert({
-        user_id: user.id,
-        child_name: partyData.childName,
-        child_age: partyData.childAge,
-        child_gender: partyData.childGender || null,
-        party_date: partyData.partyDate.toISOString(),
-        theme: partyData.theme || null,
-        guest_count: partyData.guestCount || 0,
-        budget: partyData.budget || null,
-        zip_code: partyData.location || null,
-        venue_type: partyData.venue || null,
-        status: partyData.status || 'PLANNING'
-      })
+      .insert(partyRecord)
       .select()
       .single()
 
     if (error) {
-      console.error('Party creation error:', error)
+      console.error('Supabase error creating party:', error)
       throw new Error(error.message)
     }
 
-    if (!data.id) {
-      throw new Error('Party created but no ID returned from database')
-    }
-
-    revalidatePath('/dashboard')
-    revalidatePath('/party-plan')
-
-    return { success: true, party: data }
+    return { success: true, party: newParty }
   } catch (error) {
     console.error('Error creating party:', error)
     return { 
@@ -80,55 +45,60 @@ export async function createParty(partyData: {
   }
 }
 
-export async function updateParty(partyId: string, updates: Partial<{
-  childName: string
-  childAge: number
-  childGender: string
-  partyDate: Date
-  theme: string
-  interests: string[]
-  favoriteColors: string[]
-  guestCount: number
-  budget: number
-  location: string
-  venue: string
-  duration: string
-  checklistData: any
-  status: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
-}>) {
+// Get a party by ID
+export const getParty = async (partyId: string) => {
   try {
     const user = await getCurrentUser()
-    if (!user) throw new Error('Authentication required')
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
 
-    const updateData: any = {}
-    if (updates.childName !== undefined) updateData.child_name = updates.childName
-    if (updates.childAge !== undefined) updateData.child_age = updates.childAge
-    if (updates.childGender !== undefined) updateData.child_gender = updates.childGender
-    if (updates.partyDate !== undefined) updateData.party_date = updates.partyDate.toISOString()
-    if (updates.theme !== undefined) updateData.theme = updates.theme
-    if (updates.guestCount !== undefined) updateData.guest_count = updates.guestCount
-    if (updates.budget !== undefined) updateData.budget = updates.budget
-    if (updates.location !== undefined) updateData.zip_code = updates.location
-    if (updates.venue !== undefined) updateData.venue_type = updates.venue
-    if (updates.status !== undefined) updateData.status = updates.status
-
-    const { data, error } = await supabase
+    const { data: party, error } = await supabase
       .from('parties')
-      .update(updateData)
+      .select(`
+        *,
+        guests(id, name, email, phone, type, age, notes),
+        invitations(id, status, responded_at, sent_at)
+      `)
+      .eq('id', partyId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { success: true, party }
+  } catch (error) {
+    console.error('Error getting party:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    }
+  }
+}
+
+// Update a party
+export const updateParty = async (partyId: string, updates: any) => {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
+
+    const { data: updatedParty, error } = await supabase
+      .from('parties')
+      .update(updates)
       .eq('id', partyId)
       .eq('user_id', user.id)
       .select()
       .single()
 
     if (error) {
-      console.error('Party update error:', error)
       throw new Error(error.message)
     }
 
-    revalidatePath('/party-plan')
-    revalidatePath('/dashboard')
-    
-    return { success: true, party: data }
+    return { success: true, party: updatedParty }
   } catch (error) {
     console.error('Error updating party:', error)
     return { 
@@ -138,91 +108,8 @@ export async function updateParty(partyId: string, updates: Partial<{
   }
 }
 
-export async function getParty(partyId: string) {
-  try {
-    const user = await getCurrentUser()
-    if (!user) {
-      throw new Error('User not authenticated')
-    }
-
-    const { data, error } = await supabase
-      .from('parties')
-      .select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)')
-      .eq('id', partyId)
-      .eq('user_id', user.id)
-      .single()
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    return { success: true, party: data }
-  } catch (error) {
-    console.error('Error getting party:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
-}
-
-export async function getUserParties() {
-  try {
-    const user = await getCurrentUser()
-    if (!user) {
-      throw new Error('User not authenticated')
-    }
-
-    const { data, error } = await supabase
-      .from('parties')
-      .select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)')
-      .eq('user_id', user.id)
-      .eq('status', 'PLANNING')
-      .or(`status.eq.ACTIVE,status.eq.COMPLETED`)
-      .order('party_date', { ascending: true })
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    return { success: true, parties: data }
-  } catch (error) {
-    console.error('Error getting user parties:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
-}
-
-export async function deleteParty(partyId: string) {
-  try {
-    const user = await getCurrentUser()
-    if (!user) {
-      throw new Error('User not authenticated')
-    }
-
-    const { error } = await supabase
-      .from('parties')
-      .delete()
-      .eq('id', partyId)
-      .eq('user_id', user.id)
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    revalidatePath('/dashboard')
-    return { success: true }
-  } catch (error) {
-    console.error('Error deleting party:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
-}
-
-// Guest management actions
-export async function addGuest(partyId: string, guestData: {
-  name: string
-  email?: string
-  phone?: string
-  type: 'ADULT' | 'CHILD' | 'FAMILY' | 'COUPLE'
-  age?: number
-  notes?: string
-}) {
+// Add a guest
+export const addGuest = async (partyId: string, guestData: any) => {
   try {
     const user = await getCurrentUser()
     if (!user) {
@@ -241,11 +128,13 @@ export async function addGuest(partyId: string, guestData: {
       throw new Error('Party not found or access denied')
     }
 
+    // Create guest
     const { data: guest, error: guestError } = await supabase
       .from('guests')
       .insert({
         ...guestData,
         party_id: partyId,
+        user_id: user.id,
       })
       .select()
       .single()
@@ -260,35 +149,33 @@ export async function addGuest(partyId: string, guestData: {
       .insert({
         party_id: partyId,
         guest_id: guest.id,
+        user_id: user.id,
+        token: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         status: 'PENDING',
       })
 
-    revalidatePath('/party-plan')
     return { success: true, guest }
   } catch (error) {
     console.error('Error adding guest:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    }
   }
 }
 
-export async function updateGuest(guestId: string, updates: Partial<{
-  name: string
-  email: string
-  phone: string
-  type: 'ADULT' | 'CHILD' | 'FAMILY' | 'COUPLE'
-  age: number
-  notes: string
-}>) {
+// Update a guest
+export const updateGuest = async (guestId: string, updates: any) => {
   try {
     const user = await getCurrentUser()
     if (!user) {
       throw new Error('User not authenticated')
     }
 
-    // Verify party ownership through guest
+    // Verify guest ownership through party
     const { data: guest, error: guestError } = await supabase
       .from('guests')
-      .select('*, parties!inner(user_id)')
+      .select('parties!inner(user_id)')
       .eq('id', guestId)
       .eq('parties.user_id', user.id)
       .single()
@@ -297,34 +184,40 @@ export async function updateGuest(guestId: string, updates: Partial<{
       throw new Error('Guest not found or access denied')
     }
 
-    const { error: updateError } = await supabase
+    // Update guest
+    const { data: updatedGuest, error: updateError } = await supabase
       .from('guests')
       .update(updates)
       .eq('id', guestId)
+      .select()
+      .single()
 
     if (updateError) {
       throw new Error(updateError.message)
     }
 
-    revalidatePath('/party-plan')
-    return { success: true }
+    return { success: true, guest: updatedGuest }
   } catch (error) {
     console.error('Error updating guest:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    }
   }
 }
 
-export async function deleteGuest(guestId: string) {
+// Delete a guest
+export const deleteGuest = async (guestId: string) => {
   try {
     const user = await getCurrentUser()
     if (!user) {
       throw new Error('User not authenticated')
     }
 
-    // Verify party ownership through guest
+    // Verify guest ownership through party
     const { data: guest, error: guestError } = await supabase
       .from('guests')
-      .select('*, parties!inner(user_id)')
+      .select('parties!inner(user_id)')
       .eq('id', guestId)
       .eq('parties.user_id', user.id)
       .single()
@@ -333,6 +226,7 @@ export async function deleteGuest(guestId: string) {
       throw new Error('Guest not found or access denied')
     }
 
+    // Delete guest
     const { error: deleteError } = await supabase
       .from('guests')
       .delete()
@@ -342,51 +236,40 @@ export async function deleteGuest(guestId: string) {
       throw new Error(deleteError.message)
     }
 
-    revalidatePath('/party-plan')
     return { success: true }
   } catch (error) {
     console.error('Error deleting guest:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    }
   }
 }
 
-export async function updateInvitationStatus(invitationId: string, status: 'PENDING' | 'SENT' | 'ACCEPTED' | 'DECLINED' | 'MAYBE', notes?: string) {
+// Get user's parties
+export const getUserParties = async () => {
   try {
     const user = await getCurrentUser()
     if (!user) {
       throw new Error('User not authenticated')
     }
 
-    // Verify party ownership through invitation
-    const { data: invitation, error: invitationError } = await supabase
-      .from('invitations')
-      .select('*, parties!inner(user_id)')
-      .eq('id', invitationId)
-      .eq('parties.user_id', user.id)
-      .single()
+    const { data: parties, error } = await supabase
+      .from('parties')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
 
-    if (invitationError || !invitation) {
-      throw new Error('Invitation not found or access denied')
+    if (error) {
+      throw new Error(error.message)
     }
 
-    const { error: updateError } = await supabase
-      .from('invitations')
-      .update({
-        status,
-        notes,
-        responded_at: ['ACCEPTED', 'DECLINED', 'MAYBE'].includes(status) ? new Date().toISOString() : null,
-        sent_at: status === 'SENT' ? new Date().toISOString() : invitation.sent_at,
-      })
-      .eq('id', invitationId)
-
-    if (updateError) {
-      throw new Error(updateError.message)
-    }
-
-    revalidatePath('/party-plan')
-    return { success: true }
+    return { success: true, parties: parties || [] }
   } catch (error) {
-    console.error('Error updating invitation status:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    console.error('Error getting user parties:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    }
   }
 }

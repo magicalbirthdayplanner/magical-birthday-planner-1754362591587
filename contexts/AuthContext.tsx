@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { createClientComponentClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-client'
 
 interface AuthContextType {
   user: User | null
@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const supabase = createClientComponentClient()
+  // Use the single Supabase client instance
 
   useEffect(() => {
     // Get initial session
