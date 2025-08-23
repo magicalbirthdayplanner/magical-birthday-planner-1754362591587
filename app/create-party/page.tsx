@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
 import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
 import { useAuth } from "@/contexts/AuthContext";
-import { createParty, updateParty } from "@/lib/party-actions";
+// Removed server action imports - now using API routes
 import AuthModal from "@/components/AuthModal";
 
 const interestOptions = [
@@ -719,9 +719,23 @@ export default function CreatePartyPage() {
         console.log('Creating party with payload:', createPayload)
         setSubmissionStep('Creating your magical party plan...');
 
-        // Create party in database using server action with timeout protection
+        // Create party using API route with timeout protection
+        const apiCall = fetch('/api/party/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(createPayload),
+        }).then(async (response) => {
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || `HTTP error! status: ${response.status}`);
+          }
+          return data;
+        });
+
         const result = await Promise.race([
-          createParty(createPayload),
+          apiCall,
           timeoutPromise
         ]);
 
@@ -757,9 +771,23 @@ export default function CreatePartyPage() {
 
         console.log('Updating existing party:', partyId, updatePayload)
 
-        // Update party with timeout protection
+        // Update party using API route with timeout protection
+        const apiCall = fetch('/api/party/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ partyId, ...updatePayload }),
+        }).then(async (response) => {
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || `HTTP error! status: ${response.status}`);
+          }
+          return data;
+        });
+
         const result = await Promise.race([
-          updateParty(partyId, updatePayload),
+          apiCall,
           timeoutPromise
         ]);
 
