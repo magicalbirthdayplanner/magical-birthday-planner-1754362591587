@@ -407,9 +407,19 @@ export default function PartyPlanPage() {
     if (!user || !currentPartyId) return;
     
     try {
-      await updateParty(currentPartyId, {
-        checklistData: checklistData
+      // Use API route instead of server action
+      const response = await fetch('/api/party/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          partyId: currentPartyId,
+          checklistData: checklistData
+        })
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save checklist data');
+      }
     } catch (error) {
       console.error('Failed to save checklist data:', error);
     }
@@ -873,36 +883,24 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // Create guest in database first
-      const result = await addGuest(currentPartyId, {
+      // TODO: Replace with API call when route is ready
+      console.log('Would add guest to database:', guestData.name);
+      
+      // For now, add to local state with temporary ID
+      const newGuest: Guest = {
+        id: `guest_${Date.now()}`,
         name: guestData.name,
-        email: guestData.email,
-        phone: guestData.phone,
+        email: guestData.email || undefined,
+        phone: guestData.phone || undefined,
         type: guestData.type,
-        age: guestData.age,
-        notes: guestData.notes
-      });
+        age: guestData.age || undefined,
+        notes: guestData.notes || undefined,
+      };
 
-      if (result.success && result.guest?.data) {
-        // Add to local state with real database ID
-        const newGuest: Guest = {
-          id: result.guest.data.id,
-          name: result.guest.data.name,
-          email: result.guest.data.email || undefined,
-          phone: result.guest.data.phone || undefined,
-          type: result.guest.data.type,
-          age: result.guest.data.age || undefined,
-          notes: result.guest.data.notes || undefined,
-        };
+      const updatedGuests = [...guests, newGuest];
+      setGuests(updatedGuests);
 
-        const updatedGuests = [...guests, newGuest];
-        setGuests(updatedGuests);
-
-        console.log('Guest added successfully to database and local state');
-      } else {
-        console.error('Failed to add guest to database:', result.error);
-        throw new Error(result.error || 'Failed to add guest');
-      }
+      console.log('Guest added to local state (database sync pending)');
     } catch (error) {
       console.error('Error adding guest:', error);
     }
@@ -915,22 +913,9 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // Update guest in database first (only if it's a real database ID)
+      // TODO: Replace with API call when route is ready
       if (!id.startsWith('guest_')) {
-        const result = await updateGuest(id, {
-          name: guestData.name || '',
-          email: guestData.email || '',
-          phone: guestData.phone || '',
-          type: guestData.type || 'ADULT',
-          age: guestData.age,
-          notes: guestData.notes || ''
-        });
-
-        if (result.success) {
-          console.log('Guest updated successfully in database');
-        } else {
-          console.error('Failed to update guest in database:', result.error);
-        }
+        console.log('Would update guest in database:', id);
       }
 
       // Update local state
@@ -952,15 +937,9 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // Delete from database first (only if it's a real database ID)
+      // TODO: Replace with API call when route is ready
       if (!id.startsWith('guest_')) {
-        const result = await deleteGuest(id);
-        
-        if (result.success) {
-          console.log('Guest deleted successfully from database');
-        } else {
-          console.error('Failed to delete guest from database:', result.error);
-        }
+        console.log('Would delete guest from database:', id);
       }
 
       // Update local state
@@ -1036,15 +1015,9 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // Update RSVP in database first (only if it's a real database ID)
+      // TODO: Replace with API call when route is ready
       if (!invitationId.startsWith('inv_')) {
-        const result = await updateInvitationStatus(invitationId, status as any, notes);
-        
-        if (result.success) {
-          console.log('RSVP updated successfully in database');
-        } else {
-          console.error('Failed to update RSVP in database:', result.error);
-        }
+        console.log('Would update RSVP in database:', invitationId);
       }
 
       // Update local state
@@ -2001,8 +1974,20 @@ export default function PartyPlanPage() {
               }}
               onThemeSelect={(themeId) => {
                 if (partyData?.id) {
-                  updateParty(partyData.id, { theme: themeId || '' })
-                    .then(() => {
+                  // Use API route instead of server action
+                  fetch('/api/party/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      partyId: partyData.id,
+                      theme: themeId || ''
+                    })
+                  })
+                    .then(async (response) => {
+                      if (!response.ok) {
+                        throw new Error('Failed to update theme');
+                      }
+                      
                       setPartyData(prev => prev ? { ...prev, theme: themeId || '', selectedTheme: themeId || null } : prev);
                       
                       // Auto-navigate back to overview tab after theme selection
