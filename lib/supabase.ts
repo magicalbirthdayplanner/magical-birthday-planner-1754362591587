@@ -26,14 +26,7 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
       },
       set(name: string, value: string, options: any) {
         try {
-          // Simplified cookie handling for production
-          const isProduction = process.env.NODE_ENV === 'production'
-          const cookieOptions = {
-            ...options,
-            secure: isProduction,
-            sameSite: isProduction ? 'none' : 'lax'
-          }
-          cookies().set({ name, value, ...cookieOptions })
+          cookies().set({ name, value, ...options })
         } catch (error) {
           // The `set` method was called from a Server Component.
           // This can be ignored if you have middleware refreshing
@@ -42,13 +35,7 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
       },
       remove(name: string, options: any) {
         try {
-          const isProduction = process.env.NODE_ENV === 'production'
-          const cookieOptions = {
-            ...options,
-            secure: isProduction,
-            sameSite: isProduction ? 'none' : 'lax'
-          }
-          cookies().set({ name, value: '', ...cookieOptions })
+          cookies().set({ name, value: '', ...options })
         } catch (error) {
           // The `delete` method was called from a Server Component.
           // This can be ignored if you have middleware refreshing

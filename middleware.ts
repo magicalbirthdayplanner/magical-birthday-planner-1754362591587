@@ -47,7 +47,6 @@ export async function middleware(request: NextRequest) {
           // Simplified cookie configuration for production
           const cookieOptions = {
             ...options,
-            domain: process.env.NODE_ENV === 'production' ? '.magicalbirthdayplanner.com' : undefined,
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const
           }
@@ -71,7 +70,6 @@ export async function middleware(request: NextRequest) {
         remove(name: string, options: CookieOptions) {
           const cookieOptions = {
             ...options,
-            domain: process.env.NODE_ENV === 'production' ? '.magicalbirthdayplanner.com' : undefined,
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const
           }
