@@ -22,11 +22,26 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
-        return cookies().get(name)?.value
+        try {
+          // Handle both function and object cookies
+          if (typeof cookies === 'function') {
+            return cookies().get(name)?.value
+          } else if (cookies && typeof cookies.get === 'function') {
+            return cookies.get(name)?.value
+          }
+          return undefined
+        } catch (error) {
+          return undefined
+        }
       },
       set(name: string, value: string, options: any) {
         try {
-          cookies().set({ name, value, ...options })
+          // Handle both function and object cookies
+          if (typeof cookies === 'function') {
+            cookies().set({ name, value, ...options })
+          } else if (cookies && typeof cookies.set === 'function') {
+            cookies.set({ name, value, ...options })
+          }
         } catch (error) {
           // The `set` method was called from a Server Component.
           // This can be ignored if you have middleware refreshing
@@ -35,7 +50,14 @@ export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
       },
       remove(name: string, options: any) {
         try {
-          cookies().set({ name, value: '', ...options })
+          // Handle both function and object cookies
+          if (typeof cookies === 'function') {
+            cookies().set({ name, value: '', ...options })
+          } else if (cookies && typeof cookies.remove === 'function') {
+            cookies.remove(name, options)
+          } else if (cookies && typeof cookies.set === 'function') {
+            cookies.set({ name, value: '', ...options })
+          }
         } catch (error) {
           // The `delete` method was called from a Server Component.
           // This can be ignored if you have middleware refreshing

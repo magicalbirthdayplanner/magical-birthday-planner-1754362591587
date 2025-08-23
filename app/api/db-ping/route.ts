@@ -3,7 +3,14 @@ import { createServerComponentClient } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const supabase = createServerComponentClient({ cookies: () => [] });
+    // Create a mock cookies object for this health check
+    const mockCookies = {
+      get: () => undefined,
+      set: () => {},
+      remove: () => {}
+    };
+    
+    const supabase = createServerComponentClient({ cookies: mockCookies });
     
     // Test database connection with a simple query
     const { data, error } = await supabase
