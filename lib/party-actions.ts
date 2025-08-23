@@ -273,3 +273,44 @@ export const getUserParties = async () => {
     }
   }
 }
+
+// Delete a party
+export const deleteParty = async (partyId: string) => {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
+
+    // Verify party ownership
+    const { data: party, error: partyError } = await supabase
+      .from('parties')
+      .select('*')
+      .eq('id', partyId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (partyError || !party) {
+      throw new Error('Party not found or access denied')
+    }
+
+    // Delete party (this will cascade delete guests and invitations due to foreign key constraints)
+    const { error: deleteError } = await supabase
+      .from('parties')
+      .delete()
+      .eq('id', partyId)
+      .eq('user_id', user.id)
+
+    if (deleteError) {
+      throw new Error(deleteError.message)
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting party:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    }
+  }
+}
