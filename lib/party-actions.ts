@@ -8,13 +8,37 @@ export const createParty = async (partyData: any) => {
       throw new Error('User not authenticated')
     }
 
+    // Ensure user exists in public.users table
+    const { data: userRecord, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+
+    if (userError || !userRecord) {
+      console.error('User not found in public.users table:', userError)
+      // Create user record if it doesn't exist
+      const { error: createUserError } = await supabase
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+        })
+
+      if (createUserError) {
+        console.error('Failed to create user record:', createUserError)
+        throw new Error('Failed to create user profile')
+      }
+    }
+
     const partyRecord = {
       user_id: user.id,
       child_name: partyData.childName || 'Your Child',
       child_age: partyData.childAge || 5,
       child_gender: partyData.childGender || null,
       party_date: new Date(partyData.partyDate || new Date()).toISOString().split('T')[0],
-      theme: partyData.theme || 'Superhero',
+      theme: partyData.theme || partyData.selectedTheme || partyData.classicTheme || 'Superhero',
       guest_count: partyData.guestCount || 0,
       budget: partyData.budget || null,
       zip_code: partyData.location || null,
@@ -32,6 +56,8 @@ export const createParty = async (partyData: any) => {
 
     if (error) {
       console.error('Supabase error creating party:', error)
+      console.error('Party record that failed:', partyRecord)
+      console.error('Original partyData:', partyData)
       throw new Error(error.message)
     }
 
