@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createServerComponentClient();
+    const supabase = createServerComponentClient({ cookies: () => [] });
     
     // Check if user exists
     const { data: user, error: userError } = await supabase

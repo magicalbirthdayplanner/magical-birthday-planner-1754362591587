@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const materials = searchParams.get('materials') || undefined;
     const search = searchParams.get('search') || undefined;
 
-    const supabase = createServerComponentClient();
+    const supabase = createServerComponentClient({ cookies: () => [] });
     
     // Build query
     let query = supabase

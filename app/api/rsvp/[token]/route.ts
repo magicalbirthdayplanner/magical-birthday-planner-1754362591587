@@ -15,7 +15,7 @@ export async function GET(
       );
     }
 
-    const supabase = createServerComponentClient();
+    const supabase = createServerComponentClient({ cookies: () => [] });
     
     // Get invitation details
     const { data: invitation, error: invitationError } = await supabase
@@ -89,7 +89,7 @@ export async function POST(
       );
     }
 
-    const supabase = createServerComponentClient();
+    const supabase = createServerComponentClient({ cookies: () => [] });
     
     // Get invitation details
     const { data: invitation, error: invitationError } = await supabase

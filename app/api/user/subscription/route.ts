@@ -3,7 +3,7 @@ import { createServerComponentClient } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const supabase = createServerComponentClient();
+    const supabase = createServerComponentClient({ cookies: () => [] });
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -37,7 +37,7 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient();
+    const supabase = createServerComponentClient({ cookies: () => [] });
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

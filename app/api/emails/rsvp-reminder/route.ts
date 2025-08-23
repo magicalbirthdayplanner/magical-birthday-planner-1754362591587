@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createServerComponentClient();
+    const supabase = createServerComponentClient({ cookies: () => [] });
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

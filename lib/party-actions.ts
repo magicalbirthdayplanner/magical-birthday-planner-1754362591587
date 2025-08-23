@@ -5,7 +5,7 @@ import { createServerComponentClient } from '@/lib/supabase'
 
 async function getCurrentUser() {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     const { data: { user }, error } = await supabase.auth.getUser()
     
     if (error || !user) {
@@ -41,7 +41,7 @@ export async function createParty(partyData: {
     const user = await getCurrentUser()
     if (!user) throw new Error('Authentication required')
 
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     
     const { data, error } = await supabase
       .from('parties')
@@ -103,7 +103,7 @@ export async function updateParty(partyId: string, updates: Partial<{
     const user = await getCurrentUser()
     if (!user) throw new Error('Authentication required')
 
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     
     const updateData: any = {}
     if (updates.childName !== undefined) updateData.child_name = updates.childName
@@ -150,7 +150,7 @@ export async function getParty(partyId: string) {
       throw new Error('User not authenticated')
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     const { data, error } = await supabase
       .from('parties')
       .select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)')
@@ -176,7 +176,7 @@ export async function getUserParties() {
       throw new Error('User not authenticated')
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     const { data, error } = await supabase
       .from('parties')
       .select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)')
@@ -203,7 +203,7 @@ export async function deleteParty(partyId: string) {
       throw new Error('User not authenticated')
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     const { error } = await supabase
       .from('parties')
       .delete()
@@ -237,7 +237,7 @@ export async function addGuest(partyId: string, guestData: {
       throw new Error('User not authenticated')
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     
     // Verify party ownership
     const { data: party, error: partyError } = await supabase
@@ -295,7 +295,7 @@ export async function updateGuest(guestId: string, updates: Partial<{
       throw new Error('User not authenticated')
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     
     // Verify party ownership through guest
     const { data: guest, error: guestError } = await supabase
@@ -333,7 +333,7 @@ export async function deleteGuest(guestId: string) {
       throw new Error('User not authenticated')
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     
     // Verify party ownership through guest
     const { data: guest, error: guestError } = await supabase
@@ -371,7 +371,7 @@ export async function updateInvitationStatus(invitationId: string, status: 'PEND
       throw new Error('User not authenticated')
     }
 
-    const supabase = createServerComponentClient()
+    const supabase = createServerComponentClient({ cookies: () => [] })
     
     // Verify party ownership through invitation
     const { data: invitation, error: invitationError } = await supabase
