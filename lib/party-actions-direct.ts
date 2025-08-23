@@ -13,7 +13,7 @@ export const createPartyDirect = async (partyData: any) => {
       child_name: partyData.childName || 'Your Child',
       child_age: partyData.childAge || 5,
       child_gender: partyData.childGender || null,
-      party_date: new Date(partyData.partyDate || new Date()).toISOString(),
+      party_date: new Date(partyData.partyDate || new Date()).toISOString().split('T')[0], // Convert to DATE format
       theme: partyData.theme || 'Superhero',
       guest_count: partyData.guestCount || 0,
       budget: partyData.budget || null,
@@ -22,6 +22,8 @@ export const createPartyDirect = async (partyData: any) => {
       status: partyData.status || 'PLANNING' as const
     }
 
+    console.log('Creating party record:', partyRecord)
+
     const { data: newParty, error } = await supabase
       .from('parties')
       .insert(partyRecord)
@@ -29,6 +31,8 @@ export const createPartyDirect = async (partyData: any) => {
       .single()
 
     if (error) {
+      console.error('Supabase error creating party:', error)
+      console.error('Party record that failed:', partyRecord)
       throw new Error(error.message)
     }
 
@@ -131,6 +135,7 @@ export const addGuestDirect = async (partyId: string, guestData: any) => {
       .insert({
         ...guestData,
         party_id: partyId,
+        user_id: user.id, // Add the required user_id field
       })
       .select()
       .single()
@@ -145,6 +150,8 @@ export const addGuestDirect = async (partyId: string, guestData: any) => {
       .insert({
         party_id: partyId,
         guest_id: guest.id,
+        user_id: user.id, // Add the required user_id field
+        token: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Generate a unique token
         status: 'PENDING',
       })
 
