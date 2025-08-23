@@ -21,7 +21,13 @@ import ThemesTab from "@/components/ThemesTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-// Removed server action imports - now using API routes
+import { 
+  getPartyDirect, 
+  updatePartyDirect, 
+  addGuestDirect, 
+  updateGuestDirect, 
+  deleteGuestDirect 
+} from "@/lib/party-actions-direct";
 import { generatePartyPlanPDF } from "@/lib/pdf-generator";
 import { 
   PartyPopper, 
@@ -407,17 +413,12 @@ export default function PartyPlanPage() {
     if (!user || !currentPartyId) return;
     
     try {
-      // Use API route instead of server action
-      const response = await fetch('/api/party/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          partyId: currentPartyId,
-          checklistData: checklistData
-        })
+      // Use direct Supabase client
+      const result = await updatePartyDirect(currentPartyId, {
+        checklistData: checklistData
       });
       
-      if (!response.ok) {
+      if (!result.success) {
         throw new Error('Failed to save checklist data');
       }
     } catch (error) {
@@ -552,9 +553,8 @@ export default function PartyPlanPage() {
           console.log(`Loading specific party with ID: ${partyId}`);
           
           try {
-            // Use API route instead of server action
-            const response = await fetch(`/api/party/get?id=${partyId}`);
-            const result = await response.json();
+            // Use direct Supabase client
+            const result = await getPartyDirect(partyId);
             
             console.log('Party fetch result:', { success: result.success, hasParty: !!result.party, error: result.error });
             
@@ -816,8 +816,7 @@ export default function PartyPlanPage() {
       console.log('Syncing guests to database...');
       
       // Get current database guests for this party
-      const response = await fetch(`/api/party/get?id=${currentPartyId}`);
-      const partyResult = await response.json();
+      const partyResult = await getPartyDirect(currentPartyId);
       
       if (!partyResult.success || !partyResult.party) {
         throw new Error('Failed to fetch party data for sync');
@@ -831,9 +830,27 @@ export default function PartyPlanPage() {
         if (localGuest.id.startsWith('guest_')) {
           // This is a temporary ID, create in database
           console.log(`Creating new guest in database: ${localGuest.name}`);
-          // TODO: Replace with API call when route is ready
-          console.log(`Would create guest in database: ${localGuest.name}`);
-          // For now, skip database creation to avoid errors
+          
+          try {
+            const result = await addGuestDirect(currentPartyId, {
+              name: localGuest.name,
+              email: localGuest.email,
+              phone: localGuest.phone,
+              type: localGuest.type,
+              age: localGuest.age,
+              notes: localGuest.notes
+            });
+
+            if (result.success && result.guest) {
+              // Update local guest with real database ID
+              localGuest.id = result.guest.id;
+              console.log(`Guest created with database ID: ${result.guest.id}`);
+            } else {
+              console.error(`Failed to create guest: ${result.error}`);
+            }
+          } catch (error) {
+            console.error(`Error creating guest: ${error}`);
+          }
         } else {
           // This is a real database ID, check if it needs updating
           const dbGuest = dbGuests.find(g => g.id === localGuest.id);
@@ -848,8 +865,19 @@ export default function PartyPlanPage() {
               dbGuest.notes !== (localGuest.notes || null)
             ) {
               // Update existing guest
-              console.log(`Would update existing guest: ${localGuest.name}`);
-              // TODO: Replace with API call when route is ready
+              console.log(`Updating existing guest: ${localGuest.name}`);
+              const result = await updateGuestDirect(localGuest.id, {
+                name: localGuest.name,
+                email: localGuest.email || '',
+                phone: localGuest.phone || '',
+                type: localGuest.type,
+                age: localGuest.age,
+                notes: localGuest.notes || ''
+              });
+              
+              if (!result.success) {
+                console.error(`Failed to update guest: ${result.error}`);
+              }
             }
           }
         }
@@ -860,8 +888,12 @@ export default function PartyPlanPage() {
         const localGuest = localGuests.find(g => g.id === dbGuest.id);
         if (!localGuest) {
           // Guest was deleted locally, delete from database
-          console.log(`Would delete guest from database: ${dbGuest.name}`);
-          // TODO: Replace with API call when route is ready
+          console.log(`Deleting guest from database: ${dbGuest.name}`);
+          const result = await deleteGuestDirect(dbGuest.id);
+          
+          if (!result.success) {
+            console.error(`Failed to delete guest: ${result.error}`);
+          }
         }
       }
       
@@ -883,24 +915,36 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // TODO: Replace with API call when route is ready
-      console.log('Would add guest to database:', guestData.name);
-      
-      // For now, add to local state with temporary ID
-      const newGuest: Guest = {
-        id: `guest_${Date.now()}`,
+      // Create guest in database using direct client
+      const result = await addGuestDirect(currentPartyId, {
         name: guestData.name,
-        email: guestData.email || undefined,
-        phone: guestData.phone || undefined,
+        email: guestData.email,
+        phone: guestData.phone,
         type: guestData.type,
-        age: guestData.age || undefined,
-        notes: guestData.notes || undefined,
-      };
+        age: guestData.age,
+        notes: guestData.notes
+      });
 
-      const updatedGuests = [...guests, newGuest];
-      setGuests(updatedGuests);
+      if (result.success && result.guest) {
+        // Add to local state with real database ID
+        const newGuest: Guest = {
+          id: result.guest.id,
+          name: result.guest.name,
+          email: result.guest.email || undefined,
+          phone: result.guest.phone || undefined,
+          type: result.guest.type,
+          age: result.guest.age || undefined,
+          notes: result.guest.notes || undefined,
+        };
 
-      console.log('Guest added to local state (database sync pending)');
+        const updatedGuests = [...guests, newGuest];
+        setGuests(updatedGuests);
+
+        console.log('Guest added successfully to database and local state');
+      } else {
+        console.error('Failed to add guest to database:', result.error);
+        throw new Error(result.error || 'Failed to add guest');
+      }
     } catch (error) {
       console.error('Error adding guest:', error);
     }
@@ -913,10 +957,23 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // TODO: Replace with API call when route is ready
-      if (!id.startsWith('guest_')) {
-        console.log('Would update guest in database:', id);
-      }
+                // Update guest in database using direct client
+          if (!id.startsWith('guest_')) {
+            const result = await updateGuestDirect(id, {
+              name: guestData.name || '',
+              email: guestData.email || '',
+              phone: guestData.phone || '',
+              type: guestData.type || 'ADULT',
+              age: guestData.age,
+              notes: guestData.notes || ''
+            });
+
+            if (result.success) {
+              console.log('Guest updated successfully in database');
+            } else {
+              console.error('Failed to update guest in database:', result.error);
+            }
+          }
 
       // Update local state
       const updatedGuests = guests.map(guest => 
@@ -937,9 +994,15 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // TODO: Replace with API call when route is ready
+      // Delete guest from database using direct client
       if (!id.startsWith('guest_')) {
-        console.log('Would delete guest from database:', id);
+        const result = await deleteGuestDirect(id);
+        
+        if (result.success) {
+          console.log('Guest deleted successfully from database');
+        } else {
+          console.error('Failed to delete guest from database:', result.error);
+        }
       }
 
       // Update local state
@@ -982,8 +1045,7 @@ export default function PartyPlanPage() {
     // Re-fetch party data to get updated invitations from database
     if (currentPartyId) {
       try {
-        const response = await fetch(`/api/party/get?id=${currentPartyId}`);
-        const result = await response.json();
+        const result = await getPartyDirect(currentPartyId);
         
         if (result.success && result.party) {
           // Update local state with database invitations
@@ -1974,17 +2036,10 @@ export default function PartyPlanPage() {
               }}
               onThemeSelect={(themeId) => {
                 if (partyData?.id) {
-                  // Use API route instead of server action
-                  fetch('/api/party/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      partyId: partyData.id,
-                      theme: themeId || ''
-                    })
-                  })
-                    .then(async (response) => {
-                      if (!response.ok) {
+                  // Use direct Supabase client
+                  updatePartyDirect(partyData.id, { theme: themeId || '' })
+                    .then(async (result) => {
+                      if (!result.success) {
                         throw new Error('Failed to update theme');
                       }
                       
