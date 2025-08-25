@@ -1,67 +1,118 @@
-import { supabase, getCurrentUser } from './supabase-client'
+"use server"
 
-// Create a new party
-export const createParty = async (partyData: any) => {
+import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
+import { createServerComponentClient } from '@/lib/supabase-client'
+
+async function getCurrentUser() {
   try {
-    const user = await getCurrentUser()
+    console.log('getCurrentUser: Starting authentication check...');
+    // Ensure cookies are available in server action context
+    const cookieStore = cookies();
+    console.log('getCurrentUser: Cookie store accessed successfully');
+    
+    const supabase = createServerComponentClient();
+    console.log('getCurrentUser: Supabase client created');
+    
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error('getCurrentUser: Auth error:', error.message, error.status);
+      return null;
+    }
+    
     if (!user) {
-      throw new Error('User not authenticated')
+      console.error('getCurrentUser: No user found in session');
+      return null;
     }
+    
+    console.log('getCurrentUser: User authenticated successfully:', {
+      id: user.id,
+      email: user.email,
+      hasSession: !!user
+    });
+    
+    return {
+      id: user.id,
+      email: user.email || 'unknown@example.com'
+    };
+  } catch (error) {
+    console.error('getCurrentUser: Exception occurred:', error);
+    return null;
+  }
+}
 
-    // Ensure user exists in public.users table
-    const { data: userRecord, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (userError || !userRecord) {
-      console.error('User not found in public.users table:', userError)
-      // Create user record if it doesn't exist
-      const { error: createUserError } = await supabase
-        .from('users')
-        .insert({
-          id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
-        })
-
-      if (createUserError) {
-        console.error('Failed to create user record:', createUserError)
-        throw new Error('Failed to create user profile')
-      }
+export async function createParty(partyData: {
+  childName: string
+  childAge: number
+  childGender?: string
+  partyDate: Date
+  theme: string
+  interests: string[]
+  favoriteColors: string[]
+  guestCount?: number
+  budget?: number
+  location?: string
+  venue?: string
+  duration?: string
+  status?: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
+}) {
+  try {
+    console.log('Creating party - Starting authentication check...')
+    const user = await getCurrentUser()
+    
+    if (!user) {
+      console.error('Authentication failed - no user found')
+      throw new Error('Authentication required')
     }
+    
+    console.log('User authenticated successfully:', user.id)
+    console.log('Party data received:', { 
+      childName: partyData.childName, 
+      childAge: partyData.childAge, 
+      theme: partyData.theme 
+    })
 
-    const partyRecord = {
+    const supabase = createServerComponentClient()
+    
+    const insertData = {
       user_id: user.id,
-      child_name: partyData.childName || 'Your Child',
-      child_age: partyData.childAge || 5,
+      child_name: partyData.childName,
+      child_age: partyData.childAge,
       child_gender: partyData.childGender || null,
-      party_date: new Date(partyData.partyDate || new Date()).toISOString().split('T')[0],
-      theme: partyData.theme || partyData.selectedTheme || partyData.classicTheme || 'Superhero',
+      party_date: partyData.partyDate.toISOString(),
+      theme: partyData.theme || null,
       guest_count: partyData.guestCount || 0,
       budget: partyData.budget || null,
       zip_code: partyData.location || null,
       venue_type: partyData.venue || null,
-      status: partyData.status || 'PLANNING' as const
+      status: partyData.status || 'PLANNING'
     }
-
-    console.log('Creating party record:', partyRecord)
-
-    const { data: newParty, error } = await supabase
+    
+    console.log('Attempting to insert party data:', insertData)
+    
+    const { data, error } = await supabase
       .from('parties')
-      .insert(partyRecord)
+      .insert(insertData)
       .select()
       .single()
 
     if (error) {
-      console.error('Supabase error creating party:', error)
-      console.error('Party record that failed:', partyRecord)
-      console.error('Original partyData:', partyData)
-      throw new Error(error.message)
+      console.error('Supabase error during party creation:', error)
+      throw new Error(`Database error: ${error.message}`)
     }
 
-    return { success: true, party: newParty }
+    if (!data || !data.id) {
+      console.error('Party created but no data returned:', data)
+      throw new Error('Party created but no ID returned from database')
+    }
+    
+    console.log('Party created successfully:', data.id)
+
+    revalidatePath('/dashboard')
+    revalidatePath('/party-plan')
+
+    return { success: true, party: data }
   } catch (error) {
     console.error('Error creating party:', error)
     return { 
@@ -71,60 +122,57 @@ export const createParty = async (partyData: any) => {
   }
 }
 
-// Get a party by ID
-export const getParty = async (partyId: string) => {
+export async function updateParty(partyId: string, updates: Partial<{
+  childName: string
+  childAge: number
+  childGender: string
+  partyDate: Date
+  theme: string
+  interests: string[]
+  favoriteColors: string[]
+  guestCount: number
+  budget: number
+  location: string
+  venue: string
+  duration: string
+  checklistData: any
+  status: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
+}>) {
   try {
     const user = await getCurrentUser()
-    if (!user) {
-      throw new Error('User not authenticated')
-    }
+    if (!user) throw new Error('Authentication required')
 
-    const { data: party, error } = await supabase
+    const supabase = createServerComponentClient()
+    
+    const updateData: any = {}
+    if (updates.childName !== undefined) updateData.child_name = updates.childName
+    if (updates.childAge !== undefined) updateData.child_age = updates.childAge
+    if (updates.childGender !== undefined) updateData.child_gender = updates.childGender
+    if (updates.partyDate !== undefined) updateData.party_date = updates.partyDate.toISOString()
+    if (updates.theme !== undefined) updateData.theme = updates.theme
+    if (updates.guestCount !== undefined) updateData.guest_count = updates.guestCount
+    if (updates.budget !== undefined) updateData.budget = updates.budget
+    if (updates.location !== undefined) updateData.zip_code = updates.location
+    if (updates.venue !== undefined) updateData.venue_type = updates.venue
+    if (updates.status !== undefined) updateData.status = updates.status
+
+    const { data, error } = await supabase
       .from('parties')
-      .select(`
-        *,
-        guests(id, name, email, phone, type, age, notes),
-        invitations(id, status, responded_at, sent_at)
-      `)
-      .eq('id', partyId)
-      .eq('user_id', user.id)
-      .single()
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    return { success: true, party }
-  } catch (error) {
-    console.error('Error getting party:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    }
-  }
-}
-
-// Update a party
-export const updateParty = async (partyId: string, updates: any) => {
-  try {
-    const user = await getCurrentUser()
-    if (!user) {
-      throw new Error('User not authenticated')
-    }
-
-    const { data: updatedParty, error } = await supabase
-      .from('parties')
-      .update(updates)
+      .update(updateData)
       .eq('id', partyId)
       .eq('user_id', user.id)
       .select()
       .single()
 
     if (error) {
+      console.error('Party update error:', error)
       throw new Error(error.message)
     }
 
-    return { success: true, party: updatedParty }
+    revalidatePath('/party-plan')
+    revalidatePath('/dashboard')
+    
+    return { success: true, party: data }
   } catch (error) {
     console.error('Error updating party:', error)
     return { 
@@ -134,14 +182,143 @@ export const updateParty = async (partyId: string, updates: any) => {
   }
 }
 
-// Add a guest
-export const addGuest = async (partyId: string, guestData: any) => {
+export async function getParty(partyId: string) {
+  try {
+    console.log(`getParty: Attempting to fetch party with ID: ${partyId}`)
+    
+    const user = await getCurrentUser()
+    if (!user) {
+      console.error('getParty: User authentication failed')
+      throw new Error('User not authenticated')
+    }
+    
+    console.log(`getParty: User authenticated successfully: ${user.id}`)
+
+    const supabase = createServerComponentClient()
+    
+    // First, check if party exists at all
+    const { data: partyExists, error: existsError } = await supabase
+      .from('parties')
+      .select('id, user_id, child_name')
+      .eq('id', partyId)
+      .single()
+    
+    if (existsError) {
+      console.error('getParty: Party lookup error:', existsError)
+      if (existsError.code === 'PGRST116') {
+        throw new Error(`Party not found: No party exists with ID ${partyId}`)
+      }
+      throw new Error(`Database error: ${existsError.message}`)
+    }
+    
+    if (!partyExists) {
+      console.error(`getParty: No party found with ID: ${partyId}`)
+      throw new Error(`Party not found: No party exists with ID ${partyId}`)
+    }
+    
+    console.log(`getParty: Party exists. Owner: ${partyExists.user_id}, Current user: ${user.id}`)
+    
+    // Check if user owns this party
+    if (partyExists.user_id !== user.id) {
+      console.error(`getParty: Access denied. Party belongs to user ${partyExists.user_id}, current user is ${user.id}`)
+      throw new Error(`Access denied: This party belongs to another user. You can only view parties you created.`)
+    }
+    
+    // Now fetch the full party data
+    const { data, error } = await supabase
+      .from('parties')
+      .select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)')
+      .eq('id', partyId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (error) {
+      console.error('getParty: Full party fetch error:', error)
+      throw new Error(`Failed to load party details: ${error.message}`)
+    }
+    
+    console.log(`getParty: Successfully fetched party: ${data.child_name}`)
+    return { success: true, party: data }
+  } catch (error) {
+    console.error('getParty: Final error:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      partyId: partyId
+    }
+  }
+}
+
+export async function getUserParties() {
   try {
     const user = await getCurrentUser()
     if (!user) {
       throw new Error('User not authenticated')
     }
 
+    const supabase = createServerComponentClient()
+    const { data, error } = await supabase
+      .from('parties')
+      .select('*, guests(id, name, email, phone, type, age, notes), invitations(id, status, responded_at, sent_at)')
+      .eq('user_id', user.id)
+      .eq('status', 'PLANNING')
+      .or(`status.eq.ACTIVE,status.eq.COMPLETED`)
+      .order('party_date', { ascending: true })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { success: true, parties: data }
+  } catch (error) {
+    console.error('Error getting user parties:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+}
+
+export async function deleteParty(partyId: string) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
+
+    const supabase = createServerComponentClient()
+    const { error } = await supabase
+      .from('parties')
+      .delete()
+      .eq('id', partyId)
+      .eq('user_id', user.id)
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    revalidatePath('/dashboard')
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting party:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+}
+
+// Guest management actions
+export async function addGuest(partyId: string, guestData: {
+  name: string
+  email?: string
+  phone?: string
+  type: 'ADULT' | 'CHILD' | 'FAMILY' | 'COUPLE'
+  age?: number
+  notes?: string
+}) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
+
+    const supabase = createServerComponentClient()
+    
     // Verify party ownership
     const { data: party, error: partyError } = await supabase
       .from('parties')
@@ -154,13 +331,11 @@ export const addGuest = async (partyId: string, guestData: any) => {
       throw new Error('Party not found or access denied')
     }
 
-    // Create guest
     const { data: guest, error: guestError } = await supabase
       .from('guests')
       .insert({
         ...guestData,
         party_id: partyId,
-        user_id: user.id,
       })
       .select()
       .single()
@@ -175,33 +350,37 @@ export const addGuest = async (partyId: string, guestData: any) => {
       .insert({
         party_id: partyId,
         guest_id: guest.id,
-        user_id: user.id,
-        token: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         status: 'PENDING',
       })
 
+    revalidatePath('/party-plan')
     return { success: true, guest }
   } catch (error) {
     console.error('Error adding guest:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 
-// Update a guest
-export const updateGuest = async (guestId: string, updates: any) => {
+export async function updateGuest(guestId: string, updates: Partial<{
+  name: string
+  email: string
+  phone: string
+  type: 'ADULT' | 'CHILD' | 'FAMILY' | 'COUPLE'
+  age: number
+  notes: string
+}>) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       throw new Error('User not authenticated')
     }
 
-    // Verify guest ownership through party
+    const supabase = createServerComponentClient()
+    
+    // Verify party ownership through guest
     const { data: guest, error: guestError } = await supabase
       .from('guests')
-      .select('parties!inner(user_id)')
+      .select('*, parties!inner(user_id)')
       .eq('id', guestId)
       .eq('parties.user_id', user.id)
       .single()
@@ -210,40 +389,36 @@ export const updateGuest = async (guestId: string, updates: any) => {
       throw new Error('Guest not found or access denied')
     }
 
-    // Update guest
-    const { data: updatedGuest, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from('guests')
       .update(updates)
       .eq('id', guestId)
-      .select()
-      .single()
 
     if (updateError) {
       throw new Error(updateError.message)
     }
 
-    return { success: true, guest: updatedGuest }
+    revalidatePath('/party-plan')
+    return { success: true }
   } catch (error) {
     console.error('Error updating guest:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 
-// Delete a guest
-export const deleteGuest = async (guestId: string) => {
+export async function deleteGuest(guestId: string) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       throw new Error('User not authenticated')
     }
 
-    // Verify guest ownership through party
+    const supabase = createServerComponentClient()
+    
+    // Verify party ownership through guest
     const { data: guest, error: guestError } = await supabase
       .from('guests')
-      .select('parties!inner(user_id)')
+      .select('*, parties!inner(user_id)')
       .eq('id', guestId)
       .eq('parties.user_id', user.id)
       .single()
@@ -252,7 +427,6 @@ export const deleteGuest = async (guestId: string) => {
       throw new Error('Guest not found or access denied')
     }
 
-    // Delete guest
     const { error: deleteError } = await supabase
       .from('guests')
       .delete()
@@ -262,81 +436,53 @@ export const deleteGuest = async (guestId: string) => {
       throw new Error(deleteError.message)
     }
 
+    revalidatePath('/party-plan')
     return { success: true }
   } catch (error) {
     console.error('Error deleting guest:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 
-// Get user's parties
-export const getUserParties = async () => {
+export async function updateInvitationStatus(invitationId: string, status: 'PENDING' | 'SENT' | 'ACCEPTED' | 'DECLINED' | 'MAYBE', notes?: string) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       throw new Error('User not authenticated')
     }
 
-    const { data: parties, error } = await supabase
-      .from('parties')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    return { success: true, parties: parties || [] }
-  } catch (error) {
-    console.error('Error getting user parties:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    }
-  }
-}
-
-// Delete a party
-export const deleteParty = async (partyId: string) => {
-  try {
-    const user = await getCurrentUser()
-    if (!user) {
-      throw new Error('User not authenticated')
-    }
-
-    // Verify party ownership
-    const { data: party, error: partyError } = await supabase
-      .from('parties')
-      .select('*')
-      .eq('id', partyId)
-      .eq('user_id', user.id)
+    const supabase = createServerComponentClient()
+    
+    // Verify party ownership through invitation
+    const { data: invitation, error: invitationError } = await supabase
+      .from('invitations')
+      .select('*, parties!inner(user_id)')
+      .eq('id', invitationId)
+      .eq('parties.user_id', user.id)
       .single()
 
-    if (partyError || !party) {
-      throw new Error('Party not found or access denied')
+    if (invitationError || !invitation) {
+      throw new Error('Invitation not found or access denied')
     }
 
-    // Delete party (this will cascade delete guests and invitations due to foreign key constraints)
-    const { error: deleteError } = await supabase
-      .from('parties')
-      .delete()
-      .eq('id', partyId)
-      .eq('user_id', user.id)
+    const { error: updateError } = await supabase
+      .from('invitations')
+      .update({
+        status,
+        notes,
+        responded_at: ['ACCEPTED', 'DECLINED', 'MAYBE'].includes(status) ? new Date().toISOString() : null,
+        sent_at: status === 'SENT' ? new Date().toISOString() : invitation.sent_at,
+      })
+      .eq('id', invitationId)
 
-    if (deleteError) {
-      throw new Error(deleteError.message)
+    if (updateError) {
+      throw new Error(updateError.message)
     }
 
+    revalidatePath('/party-plan')
     return { success: true }
   } catch (error) {
-    console.error('Error deleting party:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    }
+    console.error('Error updating invitation status:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }

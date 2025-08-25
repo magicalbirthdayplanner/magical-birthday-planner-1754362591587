@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { checkProfanity, getProfanityWarning, shouldBlockAISuggestions } from "@/lib/profanity-filter";
 import Fireworks from "react-canvas-confetti/dist/presets/fireworks";
 import { useAuth } from "@/contexts/AuthContext";
-import { createParty, updateParty } from "@/lib/party-actions";
 import AuthModal from "@/components/AuthModal";
 
 const interestOptions = [
@@ -382,7 +381,7 @@ const getFallbackRecommendations = (childName: string, age: number, interests: s
 };
 
 export default function CreatePartyPage() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
 
   // Clear demo data when user signs in
   useEffect(() => {
@@ -674,115 +673,85 @@ export default function CreatePartyPage() {
       return;
     }
 
-    console.log('Starting party creation with user:', { id: user.id, email: user.email })
-    console.log('Party data:', partyData)
-
     setIsSubmitting(true);
     setSubmitError(null);
-    setSubmissionStep('Validating party details...');
-    
-    // Client-side timeout to prevent infinite loading (30 seconds)
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('Request timed out. This might be due to network issues. Please try again.'));
-      }, 30000);
-    });
-    
+
     try {
-      // Validate required fields
-      if (!partyData.childName || !partyData.partyDate) {
-        throw new Error('Missing required fields: child name or party date');
+      // Validation checks
+      if (!partyData.childName?.trim()) {
+        throw new Error('Please enter your child\'s name');
+      }
+      if (!partyData.childAge || partyData.childAge < 1) {
+        throw new Error('Please select your child\'s age');
+      }
+      if (!partyData.partyDate) {
+        throw new Error('Please select a party date');
       }
 
-      let partyId = partyData.partyId;
-
-      // If we don't have a party ID from auto-save, create the party
-      if (!partyId) {
-        setSubmissionStep('Preparing party data...');
-        
-        const createPayload = {
+      // Create robust authentication and party creation system
+      setSubmissionStep('Preparing party data...');
+      
+      const createPayload = {
         childName: partyData.childName,
         childAge: partyData.childAge,
         childGender: partyData.childGender,
-          partyDate: partyData.partyDate!,
-          theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
+        partyDate: partyData.partyDate!,
+        theme: partyData.selectedTheme || partyData.classicTheme || null,
         interests: partyData.childInterests,
         favoriteColors: partyData.favoriteColors,
         guestCount: partyData.guestCount,
-          budget: partyData.budget || undefined,
+        budget: partyData.budget || undefined,
         location: partyData.zipCode,
-          venue: partyData.venue,
-          duration: partyData.duration,
-          status: 'PLANNING' as const,
-        };
+        venue: partyData.venue,
+        duration: partyData.duration,
+        status: 'PLANNING' as const,
+      };
 
-        console.log('Creating party with payload:', createPayload)
-        setSubmissionStep('Creating your magical party plan...');
+      console.log('Creating party with robust authentication...');
+      setSubmissionStep('Creating your magical party plan...');
 
-        // Create party using party actions
-        const result = await createParty(createPayload);
+      // Multi-layered authentication approach
+      const result = await createPartyWithRobustAuth(createPayload);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create party');
+      }
 
-        console.log('Party creation result:', result)
+      if (!result.party?.id) {
+        throw new Error('Party created but no ID returned');
+      }
 
-        if (!result.success) {
-          throw new Error('Failed to create party');
-        }
+      const partyId = result.party.id;
+      console.log('Party created successfully with ID:', partyId);
 
-        if (!result.party?.id) {
-          throw new Error('Party created but no ID returned');
-        }
+      // Save the party ID for continuity
+      setPartyData(prev => ({ ...prev, partyId }));
 
-        partyId = result.party.id;
-      } else {
-        setSubmissionStep('Updating party details...');
-        
-        // Update existing party with latest data
-        const updatePayload = {
+      // Store party data for continuity
+      const continuityData = {
+        partyId,
         childName: partyData.childName,
-        childAge: partyData.childAge,
-        childGender: partyData.childGender,
-          partyDate: partyData.partyDate!,
-          theme: partyData.selectedTheme || partyData.classicTheme || 'princess',
-        interests: partyData.childInterests,
-        favoriteColors: partyData.favoriteColors,
-        guestCount: partyData.guestCount,
-          budget: partyData.budget || undefined,
-        location: partyData.zipCode,
-          venue: partyData.venue,
-          duration: partyData.duration,
-        };
-
-        console.log('Updating existing party:', partyId, updatePayload)
-
-                // Update party using party actions
-        const result = await updateParty(partyId, updatePayload);
-
-        if (!result.success) {
-          throw new Error('Failed to update party');
+        theme: partyData.selectedTheme || partyData.classicTheme,
+        partyDate: partyData.partyDate?.toISOString(),
+        timestamp: Date.now()
+      };
+      
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('currentParty', JSON.stringify(continuityData));
+        } catch (error) {
+          console.warn('Failed to save party continuity data:', error);
         }
       }
 
-      setSubmissionStep('Finalizing your party plan...');
-      
-      // Clear localStorage after successful save
-      localStorage.removeItem('partyData');
-
-      setSubmissionStep('🎉 Success! Redirecting to your party plan...');
-      
-      // Show success feedback
+      // Show success state
+      setSubmissionStep('Party created successfully! 🎉');
       setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-
-      // Navigate to party plan with the party ID - with fallback mechanism
-      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      try {
+      // Navigate to the party plan page
+      setTimeout(() => {
         router.push(`/party-plan?id=${partyId}`);
-      } catch (navError) {
-        console.error('Navigation failed, attempting fallback:', navError);
-        // Fallback: Use window.location for more reliable navigation
-        window.location.href = `/party-plan?id=${partyId}`;
-      }
+      }, 2000);
 
     } catch (error) {
       console.error('Error creating party:', error);
@@ -817,6 +786,167 @@ export default function CreatePartyPage() {
     } finally {
       setIsSubmitting(false);
       setSubmissionStep('');
+    }
+  };
+
+  // Robust authentication and party creation system
+  const createPartyWithRobustAuth = async (partyData: any) => {
+    // Method 1: Try with current session from context
+    try {
+      console.log('Method 1: Using session from auth context');
+      if (session && user) {
+        const response = await fetch('/api/parties', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(partyData),
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Method 1 successful');
+          return result;
+        }
+        
+        console.log('Method 1 failed, trying method 2');
+      }
+    } catch (error) {
+      console.log('Method 1 error:', error);
+    }
+
+    // Method 2: Refresh session and retry
+    try {
+      console.log('Method 2: Refreshing session and retrying');
+      const { createClientComponentClient } = await import('@/lib/supabase');
+      const supabase = createClientComponentClient();
+      
+      const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw new Error('Session refresh failed: ' + sessionError.message);
+      }
+      
+      if (!freshSession) {
+        throw new Error('No session available after refresh');
+      }
+      
+      console.log('Fresh session obtained, making API call');
+      const response = await fetch('/api/parties', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${freshSession.access_token}`,
+          'X-Supabase-Auth': 'true',
+        },
+        body: JSON.stringify(partyData),
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Method 2 successful');
+        return result;
+      }
+      
+      console.log('Method 2 failed, trying method 3');
+    } catch (error) {
+      console.log('Method 2 error:', error);
+    }
+
+    // Method 3: Direct Supabase client call
+    try {
+      console.log('Method 3: Direct Supabase client call');
+      const { createClientComponentClient } = await import('@/lib/supabase');
+      const supabase = createClientComponentClient();
+      
+      // Verify user is authenticated
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !currentUser) {
+        throw new Error('User not authenticated: ' + (userError?.message || 'No user found'));
+      }
+      
+      console.log('Direct Supabase call - user verified:', currentUser.id);
+      
+      // Prepare insert data
+      const insertData = {
+        user_id: currentUser.id,
+        child_name: partyData.childName,
+        child_age: partyData.childAge,
+        child_gender: partyData.childGender || null,
+        party_date: new Date(partyData.partyDate).toISOString(),
+        theme: partyData.theme || null,
+        guest_count: partyData.guestCount || 0,
+        budget: partyData.budget || null,
+        zip_code: partyData.location || null,
+        venue_type: partyData.venue || null,
+        status: partyData.status || 'PLANNING'
+      };
+      
+      console.log('Inserting party data directly:', insertData);
+      
+      const { data: party, error: insertError } = await supabase
+        .from('parties')
+        .insert(insertData)
+        .select()
+        .single();
+      
+      if (insertError) {
+        throw new Error('Database insert failed: ' + insertError.message);
+      }
+      
+      if (!party) {
+        throw new Error('No data returned from insert');
+      }
+      
+      console.log('Method 3 successful - party created:', party.id);
+      return { success: true, party };
+      
+    } catch (error) {
+      console.log('Method 3 error:', error);
+    }
+
+    // Method 4: Force re-authentication
+    try {
+      console.log('Method 4: Force re-authentication');
+      const { createClientComponentClient } = await import('@/lib/supabase');
+      const supabase = createClientComponentClient();
+      
+      // Force a token refresh
+      const { data: { session: newSession }, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError || !newSession) {
+        throw new Error('Authentication required. Please sign out and sign in again.');
+      }
+      
+      console.log('Token refreshed, retrying API call');
+      const response = await fetch('/api/parties', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${newSession.access_token}`,
+          'X-Auth-Refresh': 'true',
+        },
+        body: JSON.stringify(partyData),
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Method 4 successful');
+        return result;
+      }
+      
+      // If we get here, extract error details
+      const errorData = await response.json().catch(() => ({ error: 'Unknown API error' }));
+      throw new Error('API call failed: ' + (errorData.error || response.statusText));
+      
+    } catch (error) {
+      console.log('Method 4 error:', error);
+      throw new Error('All authentication methods failed. Please sign out and sign in again.');
     }
   };
 
@@ -882,12 +1012,12 @@ export default function CreatePartyPage() {
           <CardHeader className="text-center px-4 sm:px-6 py-4 sm:py-6">
             <CardTitle className="text-xl sm:text-2xl">
               {step === 1 && "Tell us about your child"}
-              {step === 2 && "Personalized Themes"}
+              {step === 2 && "Optional Theme Selection"}
               {step === 3 && "Party Summary"}
             </CardTitle>
             <CardDescription className="text-sm sm:text-base px-2">
               {step === 1 && "Name, gender, and date of birth"}
-              {step === 2 && "Zip code, number of guests, and budget details"}
+              {step === 2 && "Zip code, guests, budget, and optional theme selection"}
               {step === 3 && "Review all your party details before creating your plan"}
             </CardDescription>
             
@@ -1231,9 +1361,9 @@ export default function CreatePartyPage() {
               <div className="space-y-6">
                 {/* Header Section */}
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 text-center">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">🎨 Personalized Themes for {partyData.childName || 'your child'}</h3>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">🎨 Party Details for {partyData.childName || 'your child'}</h3>
                   <p className="text-sm text-gray-600">
-                    Tell us a few details to help create the perfect party plan
+                    Tell us your location and guest details. Theme selection will be available in the party planning section.
                   </p>
                 </div>
 

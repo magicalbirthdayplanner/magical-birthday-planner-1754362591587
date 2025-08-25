@@ -14,7 +14,7 @@ interface Party {
   childName: string
   age: number
   date: Date
-  theme: string
+  theme: string | null
   guestCount: number
   checkedTasks: number
   totalTasks: number
@@ -27,7 +27,12 @@ interface PartyCardProps {
   onDelete?: (partyId: string) => void
 }
 
-const getThemeColors = (theme: string) => {
+const getThemeColors = (theme: string | null | undefined) => {
+  // Robust null/undefined/empty string handling
+  if (!theme || theme === null || theme === undefined || theme.trim() === '') {
+    return 'from-gray-400 to-gray-600';
+  }
+  
   const themeMap: Record<string, string> = {
     superhero: 'from-red-500 to-blue-500',
     princess: 'from-pink-500 to-purple-500',
@@ -38,7 +43,13 @@ const getThemeColors = (theme: string) => {
     pirate: 'from-amber-500 to-red-500',
     unicorn: 'from-pink-500 to-violet-500'
   }
-  return themeMap[theme.toLowerCase()] || 'from-gray-400 to-gray-600'
+  
+  try {
+    return themeMap[theme.toLowerCase()] || 'from-gray-400 to-gray-600'
+  } catch (error) {
+    console.warn('Error processing theme:', theme, error);
+    return 'from-gray-400 to-gray-600';
+  }
 }
 
 const getStatusColor = (status: string) => {
@@ -104,7 +115,7 @@ export default function PartyCard({ party, onEdit, onDelete }: PartyCardProps) {
               {party.childName}'s {party.age}th Birthday
             </CardTitle>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 capitalize mt-1">
-              {party.theme} Theme
+              {party.theme ? `${party.theme} Theme` : 'No Theme Selected'}
             </p>
           </div>
           <div className="flex items-center gap-2">

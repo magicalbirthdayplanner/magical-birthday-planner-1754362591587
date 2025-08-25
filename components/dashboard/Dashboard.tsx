@@ -9,14 +9,13 @@ import { Plus, PartyPopper, Calendar, Users, CheckCircle, Clock, Sparkles, Star,
 import { useAuth } from '@/contexts/AuthContext'
 import PartyCard from './PartyCard'
 import Link from 'next/link'
-import { getUserParties, deleteParty } from '@/lib/party-actions'
 
 interface Party {
   id: string
   childName: string
   age: number
   date: Date
-  theme: string
+  theme: string | null
   guestCount: number
   checkedTasks: number
   totalTasks: number
@@ -56,10 +55,59 @@ const planDetails = {
 type PlanType = 'FREE' | 'STARTER' | 'PROFESSIONAL';
 
 export default function Dashboard() {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const [parties, setParties] = useState<Party[]>([])
   const [loading, setLoading] = useState(true)
   const [userPlan, setUserPlan] = useState<PlanType>('FREE')
+
+  // API Helper Functions to replace server actions
+  const getUserPartiesAPI = async () => {
+    try {
+      const response = await fetch('/api/user-parties', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': session ? `Bearer ${session.access_token}` : '',
+        },
+        credentials: 'include',
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch parties');
+      }
+      
+      return { success: true, parties: result.parties };
+    } catch (error) {
+      console.error('Error fetching parties via API:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
+
+  const deletePartyAPI = async (partyId: string) => {
+    try {
+      const response = await fetch(`/api/parties?id=${partyId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': session ? `Bearer ${session.access_token}` : '',
+        },
+        credentials: 'include',
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete party');
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting party via API:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
 
   // Listen for plan changes from localStorage or account page
   useEffect(() => {
@@ -108,25 +156,25 @@ export default function Dashboard() {
             localStorage.removeItem('demoPartyData')
           }
           
-          // Load from database using Prisma server actions
-          const result = await getUserParties()
+          // Load from database using API routes
+          const result = await getUserPartiesAPI()
           
           if (result.success && result.parties) {
             const formattedParties = result.parties.map((party: any) => {
-              const checklistData = party.checklistData || []
+              const checklistData = party.checklist_data || []
               const checkedTasks = Array.isArray(checklistData) ? checklistData.filter((task: any) => task.completed).length : 0
               const totalTasks = Array.isArray(checklistData) && checklistData.length > 0 ? checklistData.length : 15
               
               return {
                 id: party.id,
-                childName: party.childName,
-                age: party.childAge,
-                date: new Date(party.partyDate),
-                theme: party.theme,
-                guestCount: party.guestCount || party.guests?.length || 0,
+                childName: party.child_name,
+                age: party.child_age,
+                date: new Date(party.party_date),
+                theme: party.theme || null,
+                guestCount: party.guest_count || party.guests?.length || 0,
                 checkedTasks,
                 totalTasks,
-                status: new Date(party.partyDate) > new Date() ? 'upcoming' as const : 'completed' as const
+                status: new Date(party.party_date) > new Date() ? 'upcoming' as const : 'completed' as const
               }
             })
             
@@ -211,7 +259,7 @@ export default function Dashboard() {
 
   const handleDeleteParty = async (partyId: string) => {
     try {
-      const result = await deleteParty(partyId)
+      const result = await deletePartyAPI(partyId)
       if (result.success) {
         // Remove the party from local state
         setParties(prevParties => prevParties.filter(party => party.id !== partyId))

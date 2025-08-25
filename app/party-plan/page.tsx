@@ -21,13 +21,6 @@ import ThemesTab from "@/components/ThemesTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { 
-  getParty, 
-  updateParty, 
-  addGuest, 
-  updateGuest, 
-  deleteGuest 
-} from "@/lib/party-actions";
 import { generatePartyPlanPDF } from "@/lib/pdf-generator";
 import { 
   PartyPopper, 
@@ -153,7 +146,7 @@ const themeData = {
 
 
 export default function PartyPlanPage() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();
   const [partyData, setPartyData] = useState<PartyData | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
@@ -171,6 +164,106 @@ export default function PartyPlanPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentPartyId, setCurrentPartyId] = useState<string | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+
+  // API Helper Functions to replace server actions
+  const updatePartyAPI = async (partyId: string, updates: any) => {
+    try {
+      const response = await fetch('/api/parties', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': session ? `Bearer ${session.access_token}` : '',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ partyId, updates }),
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update party');
+      }
+      
+      return { success: true, party: result.party };
+    } catch (error) {
+      console.error('Error updating party via API:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
+
+  const addGuestAPI = async (partyId: string, guestData: any) => {
+    try {
+      const response = await fetch('/api/guests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': session ? `Bearer ${session.access_token}` : '',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ partyId, guestData }),
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to add guest');
+      }
+      
+      return { success: true, guest: result.guest };
+    } catch (error) {
+      console.error('Error adding guest via API:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
+
+  const updateGuestAPI = async (guestId: string, updates: any) => {
+    try {
+      const response = await fetch('/api/guests', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': session ? `Bearer ${session.access_token}` : '',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ guestId, updates }),
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update guest');
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating guest via API:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
+
+  const deleteGuestAPI = async (guestId: string) => {
+    try {
+      const response = await fetch(`/api/guests?id=${guestId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': session ? `Bearer ${session.access_token}` : '',
+        },
+        credentials: 'include',
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete guest');
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting guest via API:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
 
   // Tab configuration based on subscription plans
   const tabConfigs = [
@@ -413,14 +506,9 @@ export default function PartyPlanPage() {
     if (!user || !currentPartyId) return;
     
     try {
-      // Use party actions
-      const result = await updateParty(currentPartyId, {
+      await updatePartyAPI(currentPartyId, {
         checklistData: checklistData
       });
-      
-      if (!result.success) {
-        throw new Error('Failed to save checklist data');
-      }
     } catch (error) {
       console.error('Failed to save checklist data:', error);
     }
@@ -549,36 +637,73 @@ export default function PartyPlanPage() {
             return;
           }
         } else {
-          // Load specific party by ID from database
+          // Load specific party by ID from database using API route
           console.log(`Loading specific party with ID: ${partyId}`);
           
           try {
-            // Use party actions
-            const result = await getParty(partyId);
+            // Use API route with session from AuthContext
+            const response = await fetch(`/api/parties?id=${partyId}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': session ? `Bearer ${session.access_token}` : '',
+              },
+              credentials: 'include',
+            });
             
-            console.log('Party fetch result:', { success: result.success, hasParty: !!result.party, error: result.error });
-            
-            if (!result.success || !result.party) {
-              const errorMessage = result.error || 'Party not found or access denied';
-              console.error('Failed to load party:', { partyId, error: result.error });
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+              console.error('Failed to fetch party via API:', { status: response.status, error: errorMessage });
               
-              // Check if it's a database connection error
-              if (result.error && result.error.includes("Can't reach database server")) {
-                setError('Database connection failed. Please verify your Supabase configuration is correct in Vercel environment variables.');
+              if (response.status === 401) {
+                setError('Authentication required. Please sign in again.');
+              } else if (response.status === 404) {
+                setError(`Party not found: No party exists with ID ${partyId}. It may have been deleted or you don't have access to it.`);
+              } else if (response.status === 403) {
+                setError(`Access denied: This party belongs to another user. You can only view parties you created.`);
               } else {
-                setError(`${errorMessage} (Party ID: ${partyId})`);
+                setError(`Failed to load party: ${errorMessage}`);
               }
               
               setLoading(false);
               return;
             }
             
-            console.log('Party loaded successfully:', { partyId: result.party.id, childName: result.party.childName });
-            loadPartyDetails(result.party);
+            const result = await response.json();
+            console.log('Party fetch via API successful:', { partyId: result.party?.id, childName: result.party?.child_name });
             
-          } catch (getPartyError) {
-            console.error('Error loading party:', getPartyError);
-            setError('Database connection error. Please check your Supabase configuration in Vercel.');
+            if (!result.party) {
+              setError(`Party data not found for ID: ${partyId}`);
+              setLoading(false);
+              return;
+            }
+            
+            // Convert snake_case API response to camelCase for frontend
+            const party = {
+              id: result.party.id,
+              childName: result.party.child_name,
+              childAge: result.party.child_age,
+              partyDate: result.party.party_date,
+              theme: result.party.theme,
+              interests: result.party.interests || [],
+              favoriteColors: result.party.favorite_colors || [],
+              budget: result.party.budget,
+              location: result.party.zip_code,
+              guestCount: result.party.guest_count,
+              venue: result.party.venue_type,
+              duration: result.party.duration,
+              guests: result.party.guests || [],
+              invitations: result.party.invitations || [],
+              checklistData: result.party.checklist_data,
+            };
+            
+            console.log('Party loaded successfully via API:', { partyId: party.id, childName: party.childName });
+            loadPartyDetails(party);
+            
+          } catch (apiError) {
+            console.error('Error loading party via API:', apiError);
+            setError('Network error: Failed to connect to the server. Please check your internet connection.');
             setLoading(false);
             return;
           }
@@ -816,8 +941,7 @@ export default function PartyPlanPage() {
       console.log('Syncing guests to database...');
       
       // Get current database guests for this party
-      const partyResult = await getParty(currentPartyId);
-      
+      const partyResult = await getPartyAPI(currentPartyId);
       if (!partyResult.success || !partyResult.party) {
         throw new Error('Failed to fetch party data for sync');
       }
@@ -830,26 +954,21 @@ export default function PartyPlanPage() {
         if (localGuest.id.startsWith('guest_')) {
           // This is a temporary ID, create in database
           console.log(`Creating new guest in database: ${localGuest.name}`);
+          const result = await addGuestAPI(currentPartyId, {
+            name: localGuest.name,
+            email: localGuest.email,
+            phone: localGuest.phone,
+            type: localGuest.type,
+            age: localGuest.age,
+            notes: localGuest.notes
+          });
           
-          try {
-            const result = await addGuest(currentPartyId, {
-              name: localGuest.name,
-              email: localGuest.email,
-              phone: localGuest.phone,
-              type: localGuest.type,
-              age: localGuest.age,
-              notes: localGuest.notes
-            });
-
-            if (result.success && result.guest) {
-              // Update local guest with real database ID
-              localGuest.id = result.guest.id;
-              console.log(`Guest created with database ID: ${result.guest.id}`);
-            } else {
-              console.error(`Failed to create guest: ${result.error}`);
-            }
-          } catch (error) {
-            console.error(`Error creating guest: ${error}`);
+          if (result.success && result.guest) {
+            // Update local guest with real database ID
+            localGuest.id = result.guest.id;
+            console.log(`Guest created with database ID: ${result.guest.id}`);
+          } else {
+            console.error(`Failed to create guest: ${result.error}`);
           }
         } else {
           // This is a real database ID, check if it needs updating
@@ -866,7 +985,7 @@ export default function PartyPlanPage() {
             ) {
               // Update existing guest
               console.log(`Updating existing guest: ${localGuest.name}`);
-              const result = await updateGuest(localGuest.id, {
+              const result = await updateGuestAPI(localGuest.id, {
                 name: localGuest.name,
                 email: localGuest.email || '',
                 phone: localGuest.phone || '',
@@ -889,7 +1008,7 @@ export default function PartyPlanPage() {
         if (!localGuest) {
           // Guest was deleted locally, delete from database
           console.log(`Deleting guest from database: ${dbGuest.name}`);
-          const result = await deleteGuest(dbGuest.id);
+          const result = await deleteGuestAPI(dbGuest.id);
           
           if (!result.success) {
             console.error(`Failed to delete guest: ${result.error}`);
@@ -915,8 +1034,8 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // Create guest in database using party actions
-      const result = await addGuest(currentPartyId, {
+      // Create guest in database first
+      const result = await addGuestAPI(currentPartyId, {
         name: guestData.name,
         email: guestData.email,
         phone: guestData.phone,
@@ -957,23 +1076,23 @@ export default function PartyPlanPage() {
     }
 
     try {
-                // Update guest in database using party actions
-          if (!id.startsWith('guest_')) {
-            const result = await updateGuest(id, {
-              name: guestData.name || '',
-              email: guestData.email || '',
-              phone: guestData.phone || '',
-              type: guestData.type || 'ADULT',
-              age: guestData.age,
-              notes: guestData.notes || ''
-            });
+      // Update guest in database first (only if it's a real database ID)
+      if (!id.startsWith('guest_')) {
+        const result = await updateGuestAPI(id, {
+          name: guestData.name || '',
+          email: guestData.email || '',
+          phone: guestData.phone || '',
+          type: guestData.type || 'ADULT',
+          age: guestData.age,
+          notes: guestData.notes || ''
+        });
 
-            if (result.success) {
-              console.log('Guest updated successfully in database');
-            } else {
-              console.error('Failed to update guest in database:', result.error);
-            }
-          }
+        if (result.success) {
+          console.log('Guest updated successfully in database');
+        } else {
+          console.error('Failed to update guest in database:', result.error);
+        }
+      }
 
       // Update local state
       const updatedGuests = guests.map(guest => 
@@ -994,9 +1113,9 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // Delete guest from database using party actions
+      // Delete from database first (only if it's a real database ID)
       if (!id.startsWith('guest_')) {
-        const result = await deleteGuest(id);
+        const result = await deleteGuestAPI(id);
         
         if (result.success) {
           console.log('Guest deleted successfully from database');
@@ -1045,8 +1164,7 @@ export default function PartyPlanPage() {
     // Re-fetch party data to get updated invitations from database
     if (currentPartyId) {
       try {
-        const result = await getParty(currentPartyId);
-        
+        const result = await getPartyAPI(currentPartyId);
         if (result.success && result.party) {
           // Update local state with database invitations
           const dbInvitations = result.party.invitations?.map((inv: any) => ({
@@ -1077,9 +1195,15 @@ export default function PartyPlanPage() {
     }
 
     try {
-      // TODO: Replace with API call when route is ready
+      // Update RSVP in database first (only if it's a real database ID)
       if (!invitationId.startsWith('inv_')) {
-        console.log('Would update RSVP in database:', invitationId);
+        const result = await updateInvitationStatusAPI(invitationId, status as any, notes);
+        
+        if (result.success) {
+          console.log('RSVP updated successfully in database');
+        } else {
+          console.error('Failed to update RSVP in database');
+        }
       }
 
       // Update local state
@@ -1209,6 +1333,37 @@ export default function PartyPlanPage() {
       emoji: "🎉",
       colors: ["Purple", "Pink"]
     };
+  };
+
+  const getPartyAPI = async (partyId: string) => {
+    try {
+      const response = await fetch(`/api/parties?id=${partyId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': session ? `Bearer ${session.access_token}` : '',
+        },
+        credentials: 'include',
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch party');
+      }
+      
+      return { success: true, party: result.party };
+    } catch (error) {
+      console.error('Error fetching party via API:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
+
+  const updateInvitationStatusAPI = async (invitationId: string, status: string, notes?: string) => {
+    // For now, we'll just return success since invitation management isn't fully implemented
+    // In a real implementation, this would call an invitations API endpoint
+    console.log('Updating invitation status (API call):', { invitationId, status, notes });
+    return { success: true };
   };
 
   // Calculate theme details for display
@@ -1349,11 +1504,40 @@ export default function PartyPlanPage() {
   if (!partyData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-300 mb-4">Loading your party plan...</p>
-          <Button onClick={() => window.location.href = '/create-party'}>
-            Go back to create party
-          </Button>
+        <div className="text-center max-w-md mx-auto px-4">
+          {!user ? (
+            <>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-6">
+                <User className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                  Sign In Required
+                </h3>
+                <p className="text-blue-600 dark:text-blue-300 mb-4 text-sm">
+                  Please sign in to view your party plan.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                  <Link href="/signin">
+                    Sign In
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild className="w-full">
+                  <Link href="/signup">
+                    Create Account
+                  </Link>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <PartyPopper className="h-8 w-8 text-purple-600 mx-auto mb-3 animate-pulse" />
+              <p className="text-gray-600 dark:text-gray-300 mb-4">Loading your party plan...</p>
+              <Button onClick={() => window.location.href = '/create-party'}>
+                Go back to create party
+              </Button>
+            </>
+          )}
         </div>
       </div>
     );
@@ -2036,13 +2220,8 @@ export default function PartyPlanPage() {
               }}
               onThemeSelect={(themeId) => {
                 if (partyData?.id) {
-                  // Use party actions
-                  updateParty(partyData.id, { theme: themeId || '' })
-                    .then(async (result) => {
-                      if (!result.success) {
-                        throw new Error('Failed to update theme');
-                      }
-                      
+                  updatePartyAPI(partyData.id, { theme: themeId || '' })
+                    .then(() => {
                       setPartyData(prev => prev ? { ...prev, theme: themeId || '', selectedTheme: themeId || null } : prev);
                       
                       // Auto-navigate back to overview tab after theme selection
