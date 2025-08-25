@@ -273,7 +273,7 @@ export default function PartyPlanPage() {
       icon: PartyPopper,
       gradient: 'from-purple-500 to-pink-500',
       hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
-      requiredPlan: 'FREE' // Always allowed (included in all plans)
+      requiredPlan: 'STARTER' // Included in all plans
     },
     {
       id: 'themes',
@@ -281,55 +281,7 @@ export default function PartyPlanPage() {
       icon: Palette,
       gradient: 'from-purple-500 to-pink-500',
       hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
-      requiredPlan: 'FREE' // Always allowed (included in all plans)
-    },
-    {
-      id: 'budget',
-      label: 'Budget',
-      icon: DollarSign,
-      gradient: 'from-green-500 to-emerald-500',
-      hoverColor: 'bg-green-50 dark:bg-green-900/20',
-      requiredPlan: 'STARTER' // Plus and Pro plans
-    },
-    {
-      id: 'activities',
-      label: 'Activities',
-      icon: Sparkles,
-      gradient: 'from-violet-500 to-purple-500',
-      hoverColor: 'bg-violet-50 dark:bg-violet-900/20',
-      requiredPlan: 'STARTER' // Plus and Pro plans
-    },
-    {
-      id: 'host-mode',
-      label: 'Host Mode',
-      icon: Crown,
-      gradient: 'from-purple-600 to-pink-600',
-      hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
-      requiredPlan: 'STARTER' // Plus and Pro plans
-    },
-    {
-      id: 'shopping',
-      label: 'Shopping',
-      icon: ShoppingBag,
-      gradient: 'from-orange-500 to-red-500',
-      hoverColor: 'bg-orange-50 dark:bg-orange-900/20',
-      requiredPlan: 'PROFESSIONAL' // Pro plan only
-    },
-    {
-      id: 'food',
-      label: 'Food',
-      icon: UtensilsCrossed,
-      gradient: 'from-red-500 to-pink-500',
-      hoverColor: 'bg-red-50 dark:bg-red-900/20',
-      requiredPlan: 'PROFESSIONAL' // Pro plan only
-    },
-    {
-      id: 'cake',
-      label: 'Cake',
-      icon: Cake,
-      gradient: 'from-pink-500 to-rose-500',
-      hoverColor: 'bg-pink-50 dark:bg-pink-900/20',
-      requiredPlan: 'PROFESSIONAL' // Pro plan only
+      requiredPlan: 'STARTER' // Included in all plans
     },
     {
       id: 'guests',
@@ -337,7 +289,7 @@ export default function PartyPlanPage() {
       icon: Users,
       gradient: 'from-teal-500 to-cyan-500',
       hoverColor: 'bg-teal-50 dark:bg-teal-900/20',
-      requiredPlan: 'FREE' // Always allowed (included in all plans)
+      requiredPlan: 'STARTER' // Included in all plans
     },
     {
       id: 'timeline',
@@ -345,15 +297,7 @@ export default function PartyPlanPage() {
       icon: Clock,
       gradient: 'from-indigo-500 to-purple-500',
       hoverColor: 'bg-indigo-50 dark:bg-indigo-900/20',
-      requiredPlan: 'FREE' // Always allowed (included in all plans)
-    },
-    {
-      id: 'ideas',
-      label: 'Ideas',
-      icon: Lightbulb,
-      gradient: 'from-yellow-500 to-amber-500',
-      hoverColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-      requiredPlan: 'STARTER' // Plus and Pro plans
+      requiredPlan: 'STARTER' // Included in all plans
     },
     {
       id: 'checklist',
@@ -361,21 +305,61 @@ export default function PartyPlanPage() {
       icon: CheckCircle2,
       gradient: 'from-blue-500 to-cyan-500',
       hoverColor: 'bg-blue-50 dark:bg-blue-900/20',
-      requiredPlan: 'FREE' // Always allowed (included in all plans)
+      requiredPlan: 'STARTER' // Included in all plans
+    },
+    {
+      id: 'activities',
+      label: 'Activities',
+      icon: Sparkles,
+      gradient: 'from-violet-500 to-purple-500',
+      hoverColor: 'bg-violet-50 dark:bg-violet-900/20',
+      requiredPlan: 'PLUS' // Plus and Pro plans
+    },
+    {
+      id: 'host-mode',
+      label: 'Host Mode',
+      icon: Crown,
+      gradient: 'from-purple-600 to-pink-600',
+      hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
+      requiredPlan: 'PLUS' // Plus and Pro plans
+    },
+    {
+      id: 'vendor-suggestions',
+      label: 'Vendor Suggestions',
+      icon: Building,
+      gradient: 'from-orange-500 to-red-500',
+      hoverColor: 'bg-orange-50 dark:bg-orange-900/20',
+      requiredPlan: 'PRO' // Pro plan only
+    },
+    {
+      id: 'venue',
+      label: 'Venue',
+      icon: MapPin,
+      gradient: 'from-green-500 to-emerald-500',
+      hoverColor: 'bg-green-50 dark:bg-green-900/20',
+      requiredPlan: 'PRO' // Pro plan only
+    },
+    {
+      id: 'food',
+      label: 'Food',
+      icon: UtensilsCrossed,
+      gradient: 'from-red-500 to-pink-500',
+      hoverColor: 'bg-red-50 dark:bg-red-900/20',
+      requiredPlan: 'PRO' // Pro plan only
     },
   ];
 
   // Helper function to get plan level for comparison
   const getPlanLevel = (plan: string): number => {
     switch (plan) {
-      case 'FREE': return 0;
-      case 'STARTER': return 1;
-      case 'PROFESSIONAL': return 2;
+      case 'STARTER': return 0;
+      case 'PLUS': return 1;
+      case 'PRO': return 2;
       default: return 0;
     }
   };
 
-  // Get tabs allowed for current subscription plan
+  // Get tabs allowed for current subscription plan - show only accessible tabs
   const allowedTabs = tabConfigs.filter(tab => {
     // Check if the current plan has access to this tab
     const currentPlanLevel = getPlanLevel(currentPlan);
@@ -383,23 +367,13 @@ export default function PartyPlanPage() {
     return currentPlanLevel >= requiredPlanLevel;
   });
 
-  // Get all tabs for display (only allowed tabs, restricted ones disappear)
-  const allTabs = allowedTabs;
-
-  // Helper function to check if a tab is restricted for current plan
-  const isTabRestricted = (tabId: string): boolean => {
-    const tab = tabConfigs.find(t => t.id === tabId);
-    if (!tab) return true;
-    
-    const currentPlanLevel = getPlanLevel(currentPlan);
-    const requiredPlanLevel = getPlanLevel(tab.requiredPlan);
-    return currentPlanLevel < requiredPlanLevel;
-  };
+  // Show only tabs that are accessible for current plan
+  const visibleTabs = allowedTabs;
 
   // Helper function to get the required plan for a tab
   const getRequiredPlanForTab = (tabId: string): string => {
     const tab = tabConfigs.find(t => t.id === tabId);
-    return tab?.requiredPlan || 'FREE';
+    return tab?.requiredPlan || 'STARTER';
   };
 
   // Handle PDF download functionality
@@ -1715,49 +1689,32 @@ export default function PartyPlanPage() {
           <Tabs defaultValue="overview" className="w-full">
             <div className="overflow-x-auto mb-6">
               <TabsList className="flex w-full h-auto p-1.5 gap-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-md rounded-xl">
-                {allTabs.map((tab) => {
+                {visibleTabs.map((tab) => {
                   const Icon = tab.icon;
-                  const isRestricted = isTabRestricted(tab.id);
-                  const isActive = allowedTabs.some(allowedTab => allowedTab.id === tab.id);
                   
                   return (
                     <TabsTrigger
                       key={tab.id}
                       value={tab.id}
-                      disabled={isRestricted}
-                      className={`flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg transition-all duration-200 ${
-                        isRestricted 
-                          ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-60' 
-                          : 'text-gray-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-gray-100'
-                      } ${
-                        isActive 
-                          ? 'data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold data-[state=active]:border-none data-[state=active]:transform data-[state=active]:scale-[1.02]' 
-                          : ''
-                      }`}
+                      className={`flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 flex-1 min-w-0 rounded-lg transition-all duration-200 text-gray-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-gray-100 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold data-[state=active]:border-none data-[state=active]:transform data-[state=active]:scale-[1.02]`}
                       style={{
-                        backgroundImage: isActive ? (
+                        backgroundImage: 
                           tab.id === 'overview' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' : 
                           tab.id === 'themes' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
-                          tab.id === 'budget' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
                           tab.id === 'activities' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)' :
                           tab.id === 'host-mode' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
-                          tab.id === 'shopping' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
-                          tab.id === 'venue' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' :
+                          tab.id === 'vendor-suggestions' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
+                          tab.id === 'venue' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
                           tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
-                          tab.id === 'cake' ? 'linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f472b6 100%)' :
                           tab.id === 'guests' ? 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #2dd4bf 100%)' :
                           tab.id === 'timeline' ? 'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)' :
                           tab.id === 'checklist' ? 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%)' :
                           'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)'
-                        ) : 'none'
                       } as any}
-                      title={isRestricted ? `Upgrade to ${getRequiredPlanForTab(tab.id)} plan to access ${tab.label}` : tab.label}
+                      title={tab.label}
                     >
                       <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                       <span className="truncate font-semibold">{tab.label}</span>
-                      {isRestricted && (
-                        <Crown className="h-3 w-3 ml-1 text-yellow-500" />
-                      )}
                     </TabsTrigger>
                   );
                 })}
@@ -2011,45 +1968,36 @@ export default function PartyPlanPage() {
                       <Users className="h-4 w-4 mr-2" />
                       Manage Guests ({guests.length})
                     </Button>
-                    {/* Budget Quick Action - Only show if budget tab is available */}
-                    {isTabAllowed('budget') && (
+                    {/* Activities Quick Action - Only show if activities tab is available */}
+                    {isTabAllowed('activities') && (
                       <Button 
-                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white"
+                        className="w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white"
                         onClick={() => {
-                          const budgetTab = document.querySelector('[value="budget"]') as HTMLButtonElement;
-                          if (budgetTab) budgetTab.click();
+                          const activitiesTab = document.querySelector('[value="activities"]') as HTMLButtonElement;
+                          if (activitiesTab) activitiesTab.click();
                         }}
                       >
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Manage Budget
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Plan Activities
                       </Button>
                     )}
-                    {/* Shopping Quick Action - Only show if shopping tab is available */}
-                    {isTabAllowed('shopping') && (
+                    {/* Vendor Suggestions Quick Action - Only show if vendor-suggestions tab is available */}
+                    {isTabAllowed('vendor-suggestions') && (
                       <Button 
                         className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white"
                         onClick={() => {
-                          const shoppingTab = document.querySelector('[value="shopping"]') as HTMLButtonElement;
-                          if (shoppingTab) shoppingTab.click();
+                          const vendorTab = document.querySelector('[value="vendor-suggestions"]') as HTMLButtonElement;
+                          if (vendorTab) vendorTab.click();
                         }}
                       >
-                        <ShoppingBag className="h-4 w-4 mr-2" />
-                        Party Shopping
+                        <Building className="h-4 w-4 mr-2" />
+                        Find Vendors
                       </Button>
                     )}
                   </CardContent>
                 </Card>
               </div>
             </TabsContent>
-
-          {/* Budget Tab */}
-          <ProtectedTabContent tabName="budget" className="space-y-6">
-            <SimpleBudgetTracker
-              partyId={partyData?.childName || 'party'}
-              initialBudget={partyData?.budget}
-              childAge={parseInt(partyData?.childAge || '0')}
-            />
-          </ProtectedTabContent>
 
           {/* Activities Tab */}
           <ProtectedTabContent tabName="activities" className="space-y-6">
@@ -2083,31 +2031,118 @@ export default function PartyPlanPage() {
             />
           </ProtectedTabContent>
 
+          {/* Vendor Suggestions Tab - NEW PRO FEATURE */}
+          <ProtectedTabContent tabName="vendor-suggestions" className="space-y-6">
+            <Card className="border-0 shadow-lg dark:bg-slate-800/90">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Building className="h-6 w-6 text-orange-600" />
+                  Vendor Suggestions
+                </CardTitle>
+                <CardDescription>
+                  Discover trusted vendors and service providers for your party
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card className="p-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Cake className="h-5 w-5" />
+                      Cake & Bakery
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Professional cake decorators and custom bakeries in your area
+                    </p>
+                    <Button size="sm" className="mt-3">View Vendors</Button>
+                  </Card>
+                  <Card className="p-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Camera className="h-5 w-5" />
+                      Photography
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Capture memories with professional party photographers
+                    </p>
+                    <Button size="sm" className="mt-3">View Vendors</Button>
+                  </Card>
+                  <Card className="p-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Music className="h-5 w-5" />
+                      Entertainment
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Clowns, magicians, and party entertainers
+                    </p>
+                    <Button size="sm" className="mt-3">View Vendors</Button>
+                  </Card>
+                  <Card className="p-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Palette className="h-5 w-5" />
+                      Decorations
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Balloon artists and decoration specialists
+                    </p>
+                    <Button size="sm" className="mt-3">View Vendors</Button>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </ProtectedTabContent>
 
-          {/* Shopping Tab */}
-          <ProtectedTabContent tabName="shopping" className="space-y-6">
-            <ShoppingSuite
-              partyBudget={partyData?.budget}
-              zipCode={partyData?.zipCode}
-              childAge={parseInt(partyData?.childAge || '0')}
-              theme={partyData?.selectedTheme || undefined}
-              partyId={partyData?.childName || 'party'}
-            />
+          {/* Venue Tab - NEW PRO FEATURE */}
+          <ProtectedTabContent tabName="venue" className="space-y-6">
+            <Card className="border-0 shadow-lg dark:bg-slate-800/90">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <MapPin className="h-6 w-6 text-green-600" />
+                  Venue Selection
+                </CardTitle>
+                <CardDescription>
+                  Find the perfect location for your party
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4">
+                  <Card className="p-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Home className="h-5 w-5" />
+                      Indoor Venues
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Community centers, party halls, and indoor play spaces
+                    </p>
+                    <Button size="sm" className="mt-3">Browse Indoor Venues</Button>
+                  </Card>
+                  <Card className="p-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Star className="h-5 w-5" />
+                      Outdoor Venues
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Parks, gardens, and outdoor party spaces
+                    </p>
+                    <Button size="sm" className="mt-3">Browse Outdoor Venues</Button>
+                  </Card>
+                  <Card className="p-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Gift className="h-5 w-5" />
+                      Specialty Venues
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      Theme-specific venues like trampoline parks, bowling alleys
+                    </p>
+                    <Button size="sm" className="mt-3">Browse Specialty Venues</Button>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
           </ProtectedTabContent>
 
 
           {/* Food Tab */}
           <ProtectedTabContent tabName="food" className="space-y-6">
             <FoodTab
-              zipCode={partyData?.zipCode}
-              partyId={currentPartyId || partyData?.childName || 'party'}
-              guestCount={guests.length}
-            />
-          </ProtectedTabContent>
-
-          {/* Cake Tab */}
-          <ProtectedTabContent tabName="cake" className="space-y-6">
-            <CakeBakeryTab
               zipCode={partyData?.zipCode}
               partyId={currentPartyId || partyData?.childName || 'party'}
               guestCount={guests.length}

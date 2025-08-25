@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 
-export type SubscriptionPlan = 'FREE' | 'STARTER' | 'PROFESSIONAL';
+export type SubscriptionPlan = 'STARTER' | 'PLUS' | 'PRO';
 
 export interface SubscriptionPlanDetails {
   name: string;
@@ -15,45 +15,47 @@ export interface SubscriptionPlanDetails {
 }
 
 export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetails> = {
-  FREE: {
-    name: 'FREE',
+  STARTER: {
+    name: 'STARTER',
     displayName: 'Starter',
-    description: 'A quick and easy starting point for parents seeking basic help.',
-    price: '$0 - Introductory Offer',
+    description: 'Essential party planning tools for getting started.',
+    price: '$9.99',
     features: [
       'Theme suggestions based on age',
+      'Guest management & RSVP tracking',
       'Smart checklist & timeline',
-      'Simple invitation creator',
+      'Basic party overview',
     ],
     allowedTabs: ['overview', 'themes', 'guests', 'timeline', 'checklist']
   },
-  STARTER: {
-    name: 'STARTER',
+  PLUS: {
+    name: 'PLUS',
     displayName: 'Plus',
-    description: 'Smart and simple AI-powered birthday planning for busy parents.',
-    price: '$14.99',
+    description: 'Enhanced planning with activities and host management features.',
+    price: '$19.99',
     features: [
       'Everything in Starter',
-      'RSVP tracking',
-      'Task reminders',
-      'Basic budget tracker (manual input)',
-      'AI-powered activity planner',
+      'AI-powered activity suggestions',
+      'Host Mode for party day management',
+      'Advanced guest coordination',
+      'Enhanced timeline features',
     ],
-    allowedTabs: ['overview', 'themes', 'budget', 'activities', 'host-mode', 'guests', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'themes', 'guests', 'timeline', 'checklist', 'activities', 'host-mode']
   },
-  PROFESSIONAL: {
-    name: 'PROFESSIONAL',
+  PRO: {
+    name: 'PRO',
     displayName: 'Pro',
-    description: 'All-in-one planning experience with comprehensive features and recommendations.',
+    description: 'Complete party planning suite with vendor recommendations and comprehensive features.',
     price: '$29.99',
     features: [
       'Everything in Plus',
-      'Vendor recommendations (cakes, decor, entertainment)',
-      'Personalized food suggestions by age & theme',
-      'Advanced budget tracking',
-      'Complete party planning suite',
+      'Vendor recommendations & suggestions',
+      'Venue selection assistance',
+      'Food & catering recommendations',
+      'Complete party planning ecosystem',
+      'Priority support',
     ],
-    allowedTabs: ['overview', 'themes', 'budget', 'activities', 'host-mode', 'shopping', 'food', 'cake', 'guests', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'themes', 'guests', 'timeline', 'checklist', 'activities', 'host-mode', 'vendor-suggestions', 'venue', 'food']
   }
 };
 
@@ -74,32 +76,34 @@ interface SubscriptionProviderProps {
 
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const { user } = useAuth();
-  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>('FREE');
+  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>('STARTER');
   const [loading, setLoading] = useState(true);
 
   // Initialize plan from user data or localStorage
   useEffect(() => {
     const initializePlan = async () => {
+      // Start with localStorage as primary source for now
+      const storedPlan = localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan;
+      const initialPlan = (storedPlan && SUBSCRIPTION_PLANS[storedPlan]) ? storedPlan : 'STARTER';
+      setCurrentPlan(initialPlan);
+      
       if (user) {
         try {
-          // Fetch user's current plan from the database
+          // Try to fetch user's current plan from the database
           const response = await fetch('/api/user/subscription');
           if (response.ok) {
             const data = await response.json();
-            setCurrentPlan(data.currentPlan || 'FREE');
+            const serverPlan = data.currentPlan || 'STARTER';
+            if (SUBSCRIPTION_PLANS[serverPlan]) {
+              setCurrentPlan(serverPlan);
+              // Sync localStorage with server
+              localStorage.setItem('userSubscriptionPlan', serverPlan);
+            }
           }
         } catch (error) {
-          console.error('Error fetching user plan:', error);
-          // Fallback to localStorage or default
-          const storedPlan = localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan;
-          if (storedPlan && SUBSCRIPTION_PLANS[storedPlan]) {
-            setCurrentPlan(storedPlan);
-          }
+          console.error('Error fetching user plan from server:', error);
+          // Continue using localStorage value
         }
-      } else {
-        // For non-authenticated users, use localStorage or default to FREE
-        const storedPlan = localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan;
-        setCurrentPlan(storedPlan || 'FREE');
       }
       setLoading(false);
     };
@@ -121,39 +125,44 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
 
   const getRequiredPlanForTab = (tabName: string): SubscriptionPlan => {
     // Check which plan first includes this tab
-    if (SUBSCRIPTION_PLANS.FREE.allowedTabs.includes(tabName)) return 'FREE';
     if (SUBSCRIPTION_PLANS.STARTER.allowedTabs.includes(tabName)) return 'STARTER';
-    return 'PROFESSIONAL';
+    if (SUBSCRIPTION_PLANS.PLUS.allowedTabs.includes(tabName)) return 'PLUS';
+    return 'PRO';
   };
 
   const updateUserPlan = async (newPlan: SubscriptionPlan): Promise<void> => {
     try {
       setLoading(true);
       
-      if (user) {
-        // Update plan in database
-        const response = await fetch('/api/user/subscription', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ currentPlan: newPlan }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update subscription plan');
-        }
-      }
-
-      // Update local state and localStorage
+      // Update local state and localStorage immediately for instant UI feedback
       setCurrentPlan(newPlan);
       localStorage.setItem('userSubscriptionPlan', newPlan);
-
-      // Show success notification
+      
+      // Show success notification immediately
       if (typeof window !== 'undefined' && window.dispatchEvent) {
         window.dispatchEvent(new CustomEvent('subscription-updated', {
           detail: { newPlan, planDetails: SUBSCRIPTION_PLANS[newPlan] }
         }));
+      }
+      
+      // Try to update plan in database in background (optional)
+      if (user) {
+        try {
+          const response = await fetch('/api/user/subscription', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ currentPlan: newPlan }),
+          });
+
+          if (!response.ok) {
+            console.warn('Failed to update subscription plan on server, but continuing with local change');
+          }
+        } catch (error) {
+          console.warn('Error updating subscription plan on server:', error);
+          // Don't throw error - local update was successful
+        }
       }
     } catch (error) {
       console.error('Error updating subscription plan:', error);

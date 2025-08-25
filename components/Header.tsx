@@ -21,21 +21,21 @@ import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 
 const planIcons = {
-  FREE: Star,
-  STARTER: Zap,
-  PROFESSIONAL: Crown,
+  STARTER: Star,
+  PLUS: Zap,
+  PRO: Crown,
 };
 
 const planColors = {
-  FREE: {
+  STARTER: {
     color: "text-purple-700 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
   },
-  STARTER: {
+  PLUS: {
     color: "text-blue-700 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
   },
-  PROFESSIONAL: {
+  PRO: {
     color: "text-amber-700 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
   }
@@ -61,7 +61,7 @@ export function Header() {
     }
   };
 
-  const handlePlanChange = async (newPlan: 'FREE' | 'STARTER' | 'PROFESSIONAL') => {
+  const handlePlanChange = async (newPlan: 'STARTER' | 'PLUS' | 'PRO') => {
     if (isUpdatingPlan || newPlan === currentPlan) return;
     
     try {
@@ -188,11 +188,11 @@ export function Header() {
                         <span>Manage Plan</span>
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent className="w-48">
-                        {(['FREE', 'STARTER', 'PROFESSIONAL'] as const).map((planKey) => {
+                        {(['STARTER', 'PLUS', 'PRO'] as const).map((planKey) => {
                           const PlanIcon = planIcons[planKey];
                           const colors = planColors[planKey];
                           const isActive = currentPlan === planKey;
-                          const plan = { displayName: planKey === 'FREE' ? 'Starter' : planKey === 'STARTER' ? 'Plus' : 'Pro' };
+                          const plan = { displayName: planKey === 'STARTER' ? 'Starter' : planKey === 'PLUS' ? 'Plus' : 'Pro' };
                           
                           return (
                             <DropdownMenuItem
