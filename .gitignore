@@ -36,3 +36,7 @@ next-env.d.ts
 
 # database
 prisma/*.db
+
+# test files
+test-*.js
+test-*.html
