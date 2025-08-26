@@ -168,10 +168,10 @@ export default function EnvCheckPage() {
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 border rounded-lg">
-                <span className="font-medium">OpenAI API</span>
+                <span className="font-medium">Azure OpenAI API</span>
                 <div className="flex items-center gap-2">
-                  {getStatusIcon(configSummary.openai.apiKey)}
-                  {getStatusBadge(configSummary.openai.apiKey)}
+                  {getStatusIcon(configSummary.azureOpenAI.apiKey)}
+                  {getStatusBadge(configSummary.azureOpenAI.apiKey)}
                 </div>
               </div>
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -207,6 +207,10 @@ export default function EnvCheckPage() {
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <span className="font-medium">Base URL</span>
                 <Badge variant="outline">{configSummary.baseUrl}</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="font-medium">Vercel Environment</span>
+                <Badge variant="outline">{configSummary.vercel.isVercel ? 'Deployed' : 'Local'}</Badge>
               </div>
             </div>
           </CardContent>
