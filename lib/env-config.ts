@@ -9,8 +9,11 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL!,
   DIRECT_URL: process.env.DIRECT_URL || process.env.DATABASE_URL!,
   
-  // OpenAI Configuration
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  // Azure OpenAI Configuration
+  AZURE_OPENAI_API_KEY: process.env.AZURE_OPENAI_API_KEY,
+  AZURE_OPENAI_ENDPOINT: process.env.AZURE_OPENAI_ENDPOINT,
+  AZURE_OPENAI_DEPLOYMENT_NAME: process.env.AZURE_OPENAI_DEPLOYMENT_NAME,
+  AZURE_OPENAI_API_VERSION: process.env.AZURE_OPENAI_API_VERSION,
   
   // Application Configuration
   NODE_ENV: process.env.NODE_ENV || 'development',
@@ -98,10 +101,15 @@ export function validateDatabaseConfig() {
   return true;
 }
 
-// OpenAI configuration validation
+// Azure OpenAI configuration validation
 export function validateOpenAIConfig() {
-  if (!env.OPENAI_API_KEY) {
-    console.warn('⚠️  OPENAI_API_KEY not set - AI features will be disabled');
+  const hasAzureAI = !!(env.AZURE_OPENAI_API_KEY && 
+                       env.AZURE_OPENAI_ENDPOINT && 
+                       env.AZURE_OPENAI_DEPLOYMENT_NAME &&
+                       env.AZURE_OPENAI_API_VERSION);
+  
+  if (!hasAzureAI) {
+    console.warn('⚠️  Azure OpenAI not configured - AI features will be disabled');
     return false;
   }
   return true;
@@ -164,8 +172,11 @@ export function getConfigSummary() {
       directUrl: env.DIRECT_URL ? '✅ Configured' : '⚠️  Missing',
       type: env.DATABASE_URL?.includes('supabase.co') ? 'Supabase' : 'Custom',
     },
-    openai: {
-      apiKey: env.OPENAI_API_KEY ? '✅ Configured' : '⚠️  Missing',
+    azureOpenAI: {
+      apiKey: env.AZURE_OPENAI_API_KEY ? '✅ Configured' : '⚠️  Missing',
+      endpoint: env.AZURE_OPENAI_ENDPOINT ? '✅ Configured' : '⚠️  Missing',
+      deployment: env.AZURE_OPENAI_DEPLOYMENT_NAME ? '✅ Configured' : '⚠️  Missing',
+      version: env.AZURE_OPENAI_API_VERSION ? '✅ Configured' : '⚠️  Missing',
     },
     stripe: {
       secretKey: env.STRIPE_SECRET_KEY ? '✅ Configured' : '⚠️  Missing',
