@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
       .insert({
         ...guestData,
         party_id: partyId,
+        user_id: user.id,
       })
       .select()
       .single()
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
       .insert({
         party_id: partyId,
         guest_id: guest.id,
+        user_id: user.id,
         status: 'PENDING',
       })
 

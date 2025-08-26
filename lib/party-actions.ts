@@ -315,6 +315,7 @@ export async function addGuest(partyId: string, guestData: {
       .insert({
         ...guestData,
         party_id: partyId,
+        user_id: user.id,
       })
       .select()
       .single()
@@ -329,6 +330,7 @@ export async function addGuest(partyId: string, guestData: {
       .insert({
         party_id: partyId,
         guest_id: guest.id,
+        user_id: user.id,
         status: 'PENDING',
       })
 

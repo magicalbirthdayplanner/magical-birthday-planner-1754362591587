@@ -160,6 +160,7 @@ export async function POST(request: NextRequest) {
       .from('guests')
       .insert({
         party_id: partyId,
+        user_id: user.id,
         name: guestData.name,
         email: guestData.email || null,
         phone: guestData.phone || null,

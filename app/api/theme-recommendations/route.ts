@@ -30,7 +30,8 @@ const openai = (() => {
         'api-key': process.env.AZURE_OPENAI_API_KEY!,
       },
     });
-  } catch {
+  } catch (error) {
+    console.error('Error initializing Azure OpenAI client:', error);
     return null;
   }
 })();
@@ -44,6 +45,16 @@ interface ThemeRequest {
   childGender?: string;
   childDetails?: string;
   selectedClassicTheme?: string;
+  currentFavorites?: string;
+  // Enhanced wizard data
+  partyDate?: string;
+  zipCode?: string;
+  country?: string;
+  guestCount?: number;
+  budget?: number;
+  currency?: string;
+  duration?: string;
+  venue?: string;
 }
 
 interface ThemeRecommendation {
@@ -63,10 +74,40 @@ interface ThemeRecommendation {
 export async function POST(request: NextRequest) {
   try {
     const body: ThemeRequest = await request.json();
-    const { childName, age, interests, favoriteColors = [], activities = [], childGender, childDetails, selectedClassicTheme } = body;
+    const { 
+      childName, 
+      age, 
+      interests, 
+      favoriteColors = [], 
+      activities = [], 
+      childGender, 
+      childDetails, 
+      selectedClassicTheme,
+      currentFavorites,
+      // Enhanced wizard data
+      partyDate,
+      zipCode,
+      country,
+      guestCount,
+      budget,
+      currency,
+      duration,
+      venue
+    } = body;
 
     // Check for inappropriate content before processing
     if (childDetails && shouldBlockAISuggestions(childDetails)) {
+      return NextResponse.json(
+        { 
+          error: 'Inappropriate content detected',
+          blocked: true,
+          message: 'Please use family-friendly language appropriate for children\'s parties.'
+        },
+        { status: 400 }
+      );
+    }
+
+    if (currentFavorites && shouldBlockAISuggestions(currentFavorites)) {
       return NextResponse.json(
         { 
           error: 'Inappropriate content detected',
@@ -82,171 +123,131 @@ export async function POST(request: NextRequest) {
         { 
           error: 'Azure OpenAI API key not configured',
           fallback: true,
-          recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme, childDetails)
+          recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme, childDetails || currentFavorites)
         },
         { status: 200 }
       );
     }
 
-    // Use the user's exact enhanced prompt specification for highly contextual recommendations
-    const baseInstructions = selectedClassicTheme 
-      ? `ULTRA CRITICAL INSTRUCTION: You MUST create ONLY ${selectedClassicTheme} theme variations that DIRECTLY incorporate the child's specific text input from "Current Favorites / Recent Hobbies". 
+    // Enhanced AI prompt with comprehensive wizard data
+    
+    // Build comprehensive party context
+    const partyContext = {
+      childName,
+      age,
+      gender: childGender,
+      interests,
+      favoriteColors,
+      childDetails: childDetails || currentFavorites || '',
+      partyDate: partyDate ? new Date(partyDate).toLocaleDateString() : null,
+      location: zipCode && country ? `${zipCode}, ${country}` : null,
+      guestCount,
+      budget: budget ? `${budget} ${currency || 'USD'}` : null,
+      duration,
+      venue
+    };
 
-      ABSOLUTE MANDATORY REQUIREMENTS - ZERO TOLERANCE FOR VIOLATIONS:
-      1. ALL themes MUST be ${selectedClassicTheme} variations - NO OTHER THEME TYPES WHATSOEVER
-      2. Each theme name MUST explicitly combine ${selectedClassicTheme} with elements from the child's text input
-      3. If child's text input mentions specific characters, movies, shows, or interests, ALL themes must incorporate those EXACT elements within the ${selectedClassicTheme} context
-      4. The child's text input is THE PRIMARY SOURCE for personalization - it takes absolute precedence over everything else
-      5. Ignore any contradictory information - focus ONLY on ${selectedClassicTheme} + child's specific text input
+    const enhancedPrompt = `You are an expert children's party planner with access to comprehensive party planning details. Create 5 unique, highly personalized birthday party themes using ALL available information.
 
-      TEXT INPUT PROCESSING RULES:
-      - Parse the "Current Favorites / Recent Hobbies" field for specific mentions
-      - Extract character names, movie titles, show names, specific interests
-      - Create ${selectedClassicTheme} themes that feature these exact elements
-      - Example: If text says "loves Spider-Man" and theme is Superhero → create ONLY Spider-Man superhero themes
-      - Example: If text says "obsessed with Iron Man" and theme is Superhero → create ONLY Iron Man superhero themes
-      - Example: If text says "cricket" and theme is Sports → create ONLY cricket sports themes
+COMPREHENSIVE PARTY CONTEXT (from 3-step wizard):
+- Child's Name: ${childName}
+- Age: ${age} years old
+- Gender: ${childGender || 'Not specified'}
+- Party Date: ${partyContext.partyDate || 'Not specified'}
+- Expected Guests: ${guestCount || 'Not specified'}
+- Budget: ${partyContext.budget || 'Not specified'}
+- Party Duration: ${duration || 'Not specified'}
+- Venue Type: ${venue || 'Not specified'}
+- Location: ${partyContext.location || 'Not specified'}
+- Child's Interests: ${interests.join(', ')}
+- Favorite Colors: ${favoriteColors.join(', ')}
+- Additional Details: ${partyContext.childDetails || 'None provided'}
 
-      CRITICAL EXAMPLES TO FOLLOW EXACTLY:
-      - Text Input: "Iron Man" + Theme: "Superhero" → "Iron Man Superhero Tech Lab", "Tony Stark Superhero Academy", "Iron Man Armor Workshop Party"
-      - Text Input: "Spider-Man" + Theme: "Superhero" → "Spider-Man Web Slinger Party", "Peter Parker Superhero Training", "Amazing Spider-Man Hero Academy"
-      - Text Input: "Snow White" + Theme: "Princess" → "Snow White Princess Forest Party", "Seven Dwarfs Royal Adventure", "Magic Mirror Princess Quest"
-      - Text Input: "Frozen, Elsa" + Theme: "Princess" → "Frozen Princess Ice Castle", "Queen Elsa Princess Party", "Anna & Elsa Royal Adventure"
-      - Text Input: "Cinderella" + Theme: "Princess" → "Cinderella Royal Ball Princess Party", "Glass Slipper Princess Adventure", "Fairy Godmother Princess Magic"
-      - Text Input: "cricket" + Theme: "Sports" → "Cricket Championship Sports Party", "Cricket Stadium Sports Adventure", "Little Cricket Champion Sports Fun"
-      - Text Input: "soccer" + Theme: "Sports" → "Soccer World Cup Sports Party", "Football Field Sports Adventure", "Little Soccer Star Sports Fun"
-      
-      ABSOLUTELY FORBIDDEN: Any themes that don't combine ${selectedClassicTheme} with the child's specific text input. NO generic themes allowed.`
-      : `ULTRA CRITICAL INSTRUCTION: Create themes that DIRECTLY incorporate the child's specific text input from "Current Favorites / Recent Hobbies".
-
-      TEXT INPUT PRIORITY RULES:
-      1. The child's text input is THE PRIMARY source for theme creation
-      2. Extract specific character names, movies, shows, interests, and general themes from the text
-      3. Create themes that feature these EXACT elements prominently
-      4. If text mentions "Spider-Man", create Spider-Man themed parties
-      5. If text mentions "Unicorn", create Unicorn themed parties
-      6. If text mentions "beach", create beach-themed art and craft parties
-      7. If text mentions general themes like "art", "music", "sports", create themed parties around those interests
-      8. Match the themes EXACTLY to what the child currently loves, including both specific characters AND general interests
-
-      Based on the following inputs, suggest 3-5 creative and trending kids' birthday party themes that DIRECTLY reflect the child's specific text input about their current favorites.`
-
-    const prompt = `${baseInstructions} For each theme, include: (1) theme name and short fun description, (2) why it matches this child (cite details!), (3) suggested activities or games for that theme, (4) suggested color palette and decorations, and (5) one or two printable ideas. Here are the child's details:
-- Name: ${childName}
-- Gender: ${childGender || 'Not specified'}  
-- Age / DOB: ${age} years old
-- Interests: ${interests.join(', ') || 'Not specified'}
-- Favorite Color: ${favoriteColors.length > 0 ? favoriteColors.join(', ') : 'Not specified'}
-- Theme Selected: ${selectedClassicTheme ? 'Classic theme' : 'Custom Theme'}
-- Current Favorites / Recent Hobbies: ${childDetails || 'Not specified'}
-${selectedClassicTheme ? `- Selected Classic Theme: ${selectedClassicTheme} (create personalized variations of this theme)` : ''}
-
-ULTRA CRITICAL TEXT INPUT ADHERENCE RULES - FOLLOW EXACTLY:
+GPT-4.1 CONTEXTUAL PERSONALIZATION INSTRUCTIONS:
 ${selectedClassicTheme ? `
-- MANDATORY: Parse the child's text input "${childDetails || 'Not specified'}" and extract ALL specific mentions
-- You are ONLY creating ${selectedClassicTheme} variations that incorporate these EXACT text input elements
-- If text input mentions "Iron Man", create ONLY Iron Man ${selectedClassicTheme} variations: "Iron Man ${selectedClassicTheme} Tech Lab", "Tony Stark ${selectedClassicTheme} Academy"
-- If text input mentions "Spider-Man", create ONLY Spider-Man ${selectedClassicTheme} variations: "Spider-Man ${selectedClassicTheme} Web Party", "Peter Parker ${selectedClassicTheme} Training"
-- If text input mentions any character/movie/show, ALL themes must feature that EXACT element within ${selectedClassicTheme} context
-- Theme names must combine ${selectedClassicTheme} + specific text input mentions
-- ZERO TOLERANCE: Any theme not directly incorporating the child's text input is FORBIDDEN
-- Example: If text says "loves Iron Man" + Superhero theme → ONLY Iron Man superhero themes allowed
-` : `
-- MANDATORY: Parse the child's text input "${childDetails || 'Not specified'}" and extract ALL specific mentions
-- Create themes that DIRECTLY feature what the child mentioned in their text input
-- If text mentions "Spider-Man", create ONLY Spider-Man themed parties
-- If text mentions "Unicorn", create ONLY Unicorn themed parties  
-- If text mentions "Iron Man", create ONLY Iron Man themed parties
-- Every theme must prominently feature elements from the child's specific text input
-- NO generic themes - only themes based on the child's actual stated favorites
-`}
-- Each theme name should reference the child's actual interests and favorites mentioned in their details
-- Color palettes must incorporate the child's favorite colors where specified
-- Activities must be directly related to the child's stated interests and the theme context
-- Provide detailed explanations of why each theme matches this specific child's interests
+CLASSIC THEME ENHANCEMENT: Create ${selectedClassicTheme} variations incorporating ALL wizard context
+- Base Theme: ${selectedClassicTheme}
+- Personalize with child's specific details: ${partyContext.childDetails}
+- Scale activities for ${guestCount || 'estimated'} guests
+- Adapt to budget: ${partyContext.budget || 'flexible'}
+- Match venue: ${venue || 'any location'}
+- Include favorite colors: ${favoriteColors.join(', ')}
+- Age-appropriate for ${age}-year-old` : `
+CUSTOM THEME CREATION using ALL wizard inputs:
+- Primary inspiration: Child's specific details (${partyContext.childDetails})
+- Age consideration: ${age}-year-old appropriate activities
+- Interest integration: ${interests.join(', ')}
+- Color preferences: ${favoriteColors.join(', ')}
+- Guest scale: ${guestCount || 'flexible'} attendees
+- Budget awareness: ${partyContext.budget || 'adaptable'}
+- Venue matching: ${venue || 'versatile'} setup`}
 
-Themes must be age-appropriate, imaginative, and reflect current party trends. Personalize every suggestion fully for this child and explain the match with specific references to their interests.
+CONTEXTUAL REQUIREMENTS:
+- Reference specific wizard inputs in every theme description
+- Scale activities appropriately for ${guestCount || 'estimated'} guests
+- Consider budget constraints: ${partyContext.budget || 'budget-flexible'}
+- Match venue requirements: ${venue || 'location-flexible'}
+- Include child's favorite colors in palettes: ${favoriteColors.join(', ')}
+- Age-appropriate complexity for ${age}-year-olds
+- Location-relevant elements: ${partyContext.location || 'universally appealing'}
 
-Return ONLY a valid JSON array of 3-5 theme objects with the following structure:
+OUTPUT FORMAT (JSON only):
 [
   {
-    "id": "unique-id",
-    "name": "Theme Name",
-    "description": "Short fun description",
-    "whyRecommended": "Why it matches this child (cite details!)",
+    "id": "unique-theme-id",
+    "name": "Theme name incorporating specific context",
+    "description": "Description mentioning wizard details",
+    "whyRecommended": "Explanation citing specific wizard inputs",
     "colorPalette": ["#hex1", "#hex2", "#hex3", "#hex4"],
-    "decorations": ["decoration1", "decoration2", "decoration3"],
-    "activities": ["activity1", "activity2", "activity3"],
+    "decorations": ["decoration1", "decoration2", "decoration3", "decoration4"],
+    "activities": ["activity1", "activity2", "activity3", "activity4"],
     "printableIdeas": ["printable1", "printable2"],
-    "emoji": "🎊",
+    "emoji": "🎉",
     "ageAppropriate": true,
     "matchScore": 95
   }
-]`;
+]
 
+PERSONALIZATION EXAMPLE:
+"Perfect for ${childName}, age ${age}, who loves ${interests[0] || 'adventure'} - designed for ${guestCount || 'an exciting group of'} guests with ${favoriteColors[0] || 'vibrant'} ${venue || 'party'} decorations ${partyContext.budget ? `within the ${partyContext.budget} budget` : ''}!"
+
+Return ONLY the JSON array.`;
+
+    console.log('Enhanced AI context for GPT-4.1:', partyContext);
     const completion = await openai.chat.completions.create({
-      model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4o-mini',
+      model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4.1',
       messages: [
         {
           role: 'system',
-          content: `You are an expert party planning AI that MUST follow text input instructions with absolute precision and consistency.
+          content: `You are an expert children's party planner AI powered by GPT-4.1, specializing in creating highly personalized birthday party themes using comprehensive party planning context.
 
-DETERMINISTIC PROCESSING RULES:
-- Your responses must be consistent across multiple calls with identical inputs
-- Always prioritize the child's specific text input over general interests
-- Generate exactly the same themes for identical input combinations
+CORE CAPABILITIES:
+- Analyze ALL available party planning data from multi-step wizard
+- Create contextually relevant themes based on child details, party logistics, and preferences
+- Incorporate age-appropriate activities, budget considerations, and venue requirements
+- Provide consistent, deterministic recommendations for identical inputs
 
-CRITICAL TEXT INPUT PROCESSING - MANDATORY COMPLIANCE:
-1. The child's "Current Favorites / Recent Hobbies" text input: "${childDetails || 'Not specified'}"
-2. This text input is your PRIMARY directive - analyze it for specific character names, movies, shows, interests
-3. Create ALL themes based on what is specifically mentioned in this text input
-4. IGNORE GENERIC TERMS: If text input contains only generic terms like "humanoid", "human", "person", use the child's selected interests instead
+PROCESSING PRIORITIES:
+1. Child's specific details and current favorites (PRIMARY)
+2. Age-appropriate complexity and activities
+3. Budget and guest count considerations
+4. Venue and location adaptations
+5. Color preferences and interests integration
 
-${selectedClassicTheme ? `
-CLASSIC THEME CONSTRAINTS:
-- Theme Type: ${selectedClassicTheme} ONLY
-- Text Input: "${childDetails || 'Not specified'}"
-- REQUIREMENT: Every theme must be a ${selectedClassicTheme} variation featuring elements from the text input
-- If text mentions "Star Wars" → Create ONLY "Star Wars ${selectedClassicTheme}" themes: "Star Wars ${selectedClassicTheme} Galaxy Party", "Jedi ${selectedClassicTheme} Training"
-- If text mentions "Iron Man" → Create ONLY "Iron Man ${selectedClassicTheme}" themes: "Iron Man ${selectedClassicTheme} Tech Party", "Tony Stark ${selectedClassicTheme} Academy"
-- If text mentions "Spider-Man" → Create ONLY "Spider-Man ${selectedClassicTheme}" themes: "Spider-Man ${selectedClassicTheme} Web Adventure", "Peter Parker ${selectedClassicTheme} Training"
-- If text mentions any specific element → ALL themes must combine ${selectedClassicTheme} + that element
-- ABSOLUTE PROHIBITION: Any theme not combining ${selectedClassicTheme} with the text input is FORBIDDEN
-` : `
-CUSTOM THEME MODE:
-- Text Input: "${childDetails || 'Not specified'}"
-- REQUIREMENT: Create themes based EXCLUSIVELY on what is mentioned in the text input
-- If text mentions "Star Wars" → Create ONLY Star Wars themed parties
-- If text mentions "Spider-Man" → Create ONLY Spider-Man themed parties
-- If text mentions "Unicorn" → Create ONLY Unicorn themed parties
-- If text mentions "Iron Man" → Create ONLY Iron Man themed parties
-- If text mentions "beach" → Create ONLY beach-themed art and craft parties
-- If text mentions "art" or "craft" → Create ONLY art and craft themed parties
-- If text mentions general interests → Create themed parties around those specific interests
-- Match the themes EXACTLY to the specific favorites mentioned
-`}
-
-CONSISTENCY REQUIREMENTS:
-- Generate identical themes for identical inputs
-- Always process text input before falling back to interests
-- Maintain consistent theme naming patterns
-- Use deterministic ordering for theme recommendations
-
-VALIDATION RULES:
-- Every theme name must contain elements from the text input
-- Every "whyRecommended" must reference specific text input mentions
-- Activities and decorations must relate to the text input elements
-- Match scores must reflect text input alignment (90+ for direct matches)
-- Respond ONLY with valid JSON array, no additional text`
+OUTPUT REQUIREMENTS:
+- Return ONLY valid JSON array
+- Include comprehensive personalization explanations
+- Reference specific wizard inputs in recommendations
+- Maintain consistent theme quality and creativity`
         },
         {
           role: 'user',
-          content: prompt
+          content: enhancedPrompt
         }
       ],
-      temperature: 0.8,  // Reduced from 1.1 for more consistent results
-      max_tokens: 3000,
-      seed: 12345,  // Add consistent seed for deterministic results
+      temperature: 0.8,
+      max_tokens: 3500,
+      seed: 12345
     });
 
     const responseText = completion.choices[0]?.message?.content;
@@ -258,12 +259,24 @@ VALIDATION RULES:
       const recommendations: ThemeRecommendation[] = JSON.parse(responseText);
       
       // Validate and ensure we have 3-5 recommendations
-      if (!Array.isArray(recommendations) || recommendations.length < 3) {
-        throw new Error('Invalid recommendations format');
+      if (!Array.isArray(recommendations) || recommendations.length === 0) {
+        throw new Error('Invalid recommendations format - no themes returned');
       }
+          
+      // If GPT returned fewer than 3 themes, supplement with fallback themes
+      let aiRecommendations = recommendations;
+      if (aiRecommendations.length < 3) {
+        console.log(`GPT returned only ${aiRecommendations.length} themes, supplementing with fallback themes`);
+        const fallbackThemes = getFallbackRecommendations(childName, age, interests, selectedClassicTheme, childDetails);
+        const neededCount = 3 - aiRecommendations.length;
+        aiRecommendations = [...aiRecommendations, ...fallbackThemes.slice(0, neededCount)];
+      }
+          
+      // Limit to maximum 5 themes for optimal user choice
+      aiRecommendations = aiRecommendations.slice(0, 5);
 
       // TEXT INPUT VALIDATION - ULTRA STRICT FILTERING BASED ON USER INPUT
-      let validatedRecommendations = recommendations;
+      let validatedRecommendations = aiRecommendations;
       
       // Extract keywords from child's text input for validation - ENHANCED FOR HUMANOID DETECTION
       const extractTextInputKeywords = (text: string): string[] => {
@@ -352,7 +365,7 @@ VALIDATION RULES:
         // Filter out generic terms from keyword matching
         const specificKeywords = textInputKeywords.filter(keyword => !isGenericTerm(keyword));
         
-        validatedRecommendations = recommendations.filter(rec => {
+        validatedRecommendations = aiRecommendations.filter(rec => {
           const themeName = rec.name.toLowerCase();
           const themeDescription = rec.description.toLowerCase();
           const whyRecommended = rec.whyRecommended.toLowerCase();
@@ -387,7 +400,7 @@ VALIDATION RULES:
         
         // Log validation results for debugging
         console.log(`Text input keywords (filtered): ${specificKeywords.join(', ')}`);
-        console.log(`Original recommendations: ${recommendations.length}, Validated: ${validatedRecommendations.length}`);
+        console.log(`Original recommendations: ${aiRecommendations.length}, Validated: ${validatedRecommendations.length}`);
         
         // If no themes match specific text input, return fallback
         if (validatedRecommendations.length === 0) {
@@ -400,7 +413,7 @@ VALIDATION RULES:
         }
       } else if (selectedClassicTheme) {
         // Standard classic theme validation when no text input provided
-        validatedRecommendations = recommendations.filter(rec => {
+        validatedRecommendations = aiRecommendations.filter(rec => {
           const themeName = rec.name.toLowerCase();
           const themeDescription = rec.description.toLowerCase();
           const selectedThemeLower = selectedClassicTheme.toLowerCase();
@@ -432,11 +445,22 @@ VALIDATION RULES:
       const sortedRecommendations = validatedRecommendations
         .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
         .slice(0, 5);
+      
+      // Ensure we always return at least 3 themes for user choice
+      let validatedFinalRecommendations = sortedRecommendations;
+      if (validatedFinalRecommendations.length < 3) {
+        console.log(`Only ${validatedFinalRecommendations.length} validated themes found, adding fallback themes to reach minimum of 3`);
+        const additionalThemes = getFallbackRecommendations(childName, age, interests, selectedClassicTheme, childDetails);
+        const neededCount = 3 - validatedFinalRecommendations.length;
+        validatedFinalRecommendations = [...validatedFinalRecommendations, ...additionalThemes.slice(0, neededCount)];
+      }
 
       return NextResponse.json({
-        recommendations: sortedRecommendations,
+        recommendations: validatedFinalRecommendations,
         fallback: false,
         generatedAt: new Date().toISOString(),
+        source: 'azure_openai',
+        total: validatedFinalRecommendations.length
       });
 
     } catch (parseError) {
@@ -461,10 +485,15 @@ VALIDATION RULES:
       interests: ['games']
     }));
     
+    // Always return fallback recommendations on error with minimum 3 themes
+    const fallbackThemes = getFallbackRecommendations(body.childName || 'Child', body.age || 5, body.interests || ['games'], body.selectedClassicTheme, body.childDetails);
+    
     return NextResponse.json({
       error: 'Failed to generate recommendations',
       fallback: true,
-      recommendations: getFallbackRecommendations(body.childName, body.age, body.interests, body.selectedClassicTheme, body.childDetails)
+      recommendations: fallbackThemes.slice(0, Math.max(3, fallbackThemes.length)), // Ensure minimum 3 themes
+      source: 'fallback',
+      total: fallbackThemes.length
     });
   }
 }

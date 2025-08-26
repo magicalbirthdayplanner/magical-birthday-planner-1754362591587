@@ -3,64 +3,98 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { CheckCircle, Clock, MapPin, Calendar, Users, Heart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  CheckCircle, 
+  XCircle, 
+  HelpCircle, 
+  Calendar, 
+  Clock, 
+  MapPin, 
+  Users,
+  Gift,
+  Cake
+} from 'lucide-react';
 
-interface RSVPData {
-  guestName: string;
-  childName: string;
-  childAge: number;
-  partyTheme: string;
-  partyDate: string;
-  partyTime: string;
-  partyLocation: string;
-  hostName: string;
-  currentStatus: string;
-  customMessage?: string;
+interface PartyDetails {
+  id: string;
+  child_name: string;
+  child_age: number;
+  theme: string;
+  selected_theme: string;
+  party_date: string;
+  party_time: string;
+  venue: string;
+  duration: string;
+}
+
+interface GuestDetails {
+  id: string;
+  name: string;
+  email: string;
+  type: string;
+}
+
+interface InvitationDetails {
+  id: string;
+  party: PartyDetails;
+  guest: GuestDetails;
+  status: string;
+  token: string;
 }
 
 export default function RSVPPage() {
-  const { token } = useParams();
-  const [rsvpData, setRSVPData] = useState<RSVPData | null>(null);
+  const params = useParams();
+  const token = params.token as string;
+  
+  const [invitation, setInvitation] = useState<InvitationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [notes, setNotes] = useState('');
+  const [dietaryRestrictions, setDietaryRestrictions] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (token) {
-      fetchRSVPData();
+      fetchInvitation();
     }
   }, [token]);
 
-  const fetchRSVPData = async () => {
+  const fetchInvitation = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`/api/rsvp/${token}`);
       const data = await response.json();
-
+      
       if (data.success) {
-        setRSVPData(data.rsvp);
-        setSelectedStatus(data.rsvp.currentStatus === 'PENDING' ? '' : data.rsvp.currentStatus);
-        setSubmitted(data.rsvp.currentStatus !== 'PENDING');
+        setInvitation(data.invitation);
+        setSelectedStatus(data.invitation.status || '');
       } else {
-        setError(data.error || 'Invalid RSVP link');
+        setError(data.error || 'Failed to load invitation');
       }
     } catch (err) {
-      setError('Failed to load RSVP details');
+      setError('Failed to load invitation details');
+      console.error('Error fetching invitation:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async () => {
-    if (!selectedStatus) return;
+  const handleSubmitRSVP = async () => {
+    if (!selectedStatus) {
+      setError('Please select an RSVP status');
+      return;
+    }
 
-    setSubmitting(true);
     try {
+      setSubmitting(true);
+      setError(null);
+      
       const response = await fetch(`/api/rsvp/${token}`, {
         method: 'POST',
         headers: {
@@ -68,31 +102,46 @@ export default function RSVPPage() {
         },
         body: JSON.stringify({
           status: selectedStatus,
-          notes: notes.trim() || undefined,
+          notes,
+          dietaryRestrictions
         }),
       });
-
+      
       const data = await response.json();
-
+      
       if (data.success) {
         setSubmitted(true);
-        setError(null);
       } else {
         setError(data.error || 'Failed to submit RSVP');
       }
     } catch (err) {
       setError('Failed to submit RSVP');
+      console.error('Error submitting RSVP:', err);
     } finally {
       setSubmitting(false);
     }
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
-          <CardContent className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <CardContent className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading invitation...</p>
           </CardContent>
         </Card>
       </div>
@@ -101,62 +150,49 @@ export default function RSVPPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-100 to-pink-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-red-600">Oops!</CardTitle>
-            <CardDescription>{error}</CardDescription>
-          </CardHeader>
+          <CardContent className="p-8 text-center">
+            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Oops!</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Try Again
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (!rsvpData) return null;
-
-  const getThemeColors = (theme: string) => {
-    const themeMap: Record<string, { from: string; to: string; accent: string }> = {
-      superhero: { from: 'from-red-400', to: 'to-blue-600', accent: 'text-red-600' },
-      princess: { from: 'from-pink-400', to: 'to-purple-600', accent: 'text-pink-600' },
-      dinosaur: { from: 'from-green-400', to: 'to-emerald-600', accent: 'text-green-600' },
-      space: { from: 'from-purple-400', to: 'to-indigo-600', accent: 'text-purple-600' },
-      safari: { from: 'from-yellow-400', to: 'to-orange-600', accent: 'text-yellow-600' },
-      ocean: { from: 'from-blue-400', to: 'to-cyan-600', accent: 'text-blue-600' },
-      pirate: { from: 'from-amber-400', to: 'to-red-600', accent: 'text-amber-600' },
-      unicorn: { from: 'from-pink-400', to: 'to-violet-600', accent: 'text-pink-600' },
-    };
-
-    return themeMap[theme.toLowerCase()] || themeMap.superhero;
-  };
-
-  const themeColors = getThemeColors(rsvpData.partyTheme);
-
   if (submitted) {
     return (
-      <div className={`min-h-screen bg-gradient-to-br ${themeColors.from} ${themeColors.to} flex items-center justify-center p-4`}>
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-10 h-10 text-green-600" />
-            </div>
-            <CardTitle className="text-2xl">Thank You!</CardTitle>
-            <CardDescription>
-              Your RSVP has been recorded for {rsvpData.childName}'s birthday party.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
-              selectedStatus === 'ACCEPTED' ? 'bg-green-100 text-green-800' :
-              selectedStatus === 'DECLINED' ? 'bg-red-100 text-red-800' :
-              'bg-yellow-100 text-yellow-800'
-            }`}>
-              {selectedStatus === 'ACCEPTED' ? '✅ You\'re Coming!' :
-               selectedStatus === 'DECLINED' ? '❌ Can\'t Make It' :
-               '🤔 Maybe'}
-            </div>
-            <p className="text-sm text-gray-600">
-              {rsvpData.hostName} has been notified of your response.
+          <CardContent className="p-8 text-center">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">RSVP Submitted!</h2>
+            <p className="text-gray-600 mb-4">
+              Thank you for responding to {invitation?.party.child_name}'s birthday party invitation.
             </p>
+            <Badge variant={
+              selectedStatus === 'CONFIRMED' ? 'default' : 
+              selectedStatus === 'DECLINED' ? 'destructive' : 'secondary'
+            }>
+              {selectedStatus}
+            </Badge>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!invitation) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <p className="text-gray-600">Invitation not found.</p>
           </CardContent>
         </Card>
       </div>
@@ -164,165 +200,156 @@ export default function RSVPPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${themeColors.from} ${themeColors.to} py-8 px-4`}>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        {/* Party Details Card */}
+        {/* Party Invitation Header */}
         <Card className="mb-6">
           <CardHeader className="text-center">
-            <div className="text-4xl mb-2">🎉</div>
-            <CardTitle className="text-3xl">You're Invited!</CardTitle>
-            <CardDescription className="text-xl">
-              {rsvpData.childName} is turning {rsvpData.childAge}!
-            </CardDescription>
+            <div className="mb-4">
+              <Cake className="w-16 h-16 text-pink-500 mx-auto mb-2" />
+              <CardTitle className="text-2xl font-bold text-gray-800">
+                🎉 You're Invited! 🎉
+              </CardTitle>
+            </div>
+            <h2 className="text-xl text-gray-700">
+              {invitation.party.child_name}'s {invitation.party.child_age}th Birthday Party
+            </h2>
+            <Badge variant="outline" className="mt-2">
+              {invitation.party.selected_theme || invitation.party.theme}
+            </Badge>
+          </CardHeader>
+        </Card>
+
+        {/* Party Details */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Calendar className="w-5 h-5 mr-2" />
+              Party Details
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <Calendar className={`w-5 h-5 ${themeColors.accent}`} />
-                <div>
-                  <p className="font-medium">Date</p>
-                  <p className="text-gray-600">{rsvpData.partyDate}</p>
-                </div>
+              <div className="flex items-center">
+                <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                <span className="font-medium">Date:</span>
+                <span className="ml-2">{formatDate(invitation.party.party_date)}</span>
               </div>
-              <div className="flex items-center space-x-3">
-                <Clock className={`w-5 h-5 ${themeColors.accent}`} />
-                <div>
-                  <p className="font-medium">Time</p>
-                  <p className="text-gray-600">{rsvpData.partyTime}</p>
-                </div>
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-gray-500" />
+                <span className="font-medium">Time:</span>
+                <span className="ml-2">{invitation.party.party_time}</span>
               </div>
-              <div className="flex items-center space-x-3 md:col-span-2">
-                <MapPin className={`w-5 h-5 ${themeColors.accent}`} />
-                <div>
-                  <p className="font-medium">Location</p>
-                  <p className="text-gray-600">{rsvpData.partyLocation}</p>
-                </div>
+              <div className="flex items-center">
+                <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                <span className="font-medium">Venue:</span>
+                <span className="ml-2">{invitation.party.venue}</span>
               </div>
-              <div className="flex items-center space-x-3">
-                <Users className={`w-5 h-5 ${themeColors.accent}`} />
-                <div>
-                  <p className="font-medium">Theme</p>
-                  <p className="text-gray-600 capitalize">{rsvpData.partyTheme} Party</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Heart className={`w-5 h-5 ${themeColors.accent}`} />
-                <div>
-                  <p className="font-medium">Host</p>
-                  <p className="text-gray-600">{rsvpData.hostName}</p>
-                </div>
+              <div className="flex items-center">
+                <Users className="w-4 h-4 mr-2 text-gray-500" />
+                <span className="font-medium">Duration:</span>
+                <span className="ml-2">{invitation.party.duration}</span>
               </div>
             </div>
-
-            {rsvpData.customMessage && (
-              <div className="bg-gray-50 rounded-lg p-4 mt-4">
-                <p className="font-medium mb-2">Personal Message:</p>
-                <p className="text-gray-700 italic">"{rsvpData.customMessage}"</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* RSVP Response Card */}
+        {/* RSVP Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Hi {rsvpData.guestName}! 👋</CardTitle>
-            <CardDescription>
-              Please let us know if you can join the celebration!
-            </CardDescription>
+            <CardTitle>RSVP for {invitation.guest.name}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* RSVP Options */}
-            <div className="space-y-3">
-              <Label className="text-base font-medium">Will you be attending?</Label>
-              <div className="grid grid-cols-1 gap-3">
-                <button
-                  onClick={() => setSelectedStatus('ACCEPTED')}
-                  className={`p-4 rounded-lg border-2 text-left transition-all ${
-                    selectedStatus === 'ACCEPTED'
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
-                  }`}
+            {/* RSVP Status Selection */}
+            <div>
+              <h4 className="font-medium mb-3">Will you be attending?</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Button
+                  variant={selectedStatus === 'CONFIRMED' ? 'default' : 'outline'}
+                  onClick={() => setSelectedStatus('CONFIRMED')}
+                  className="justify-start h-auto p-4"
                 >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">🎉</span>
-                    <div>
-                      <p className="font-medium">Yes, I'll be there!</p>
-                      <p className="text-sm text-gray-600">Can't wait to celebrate!</p>
-                    </div>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  <div>
+                    <div className="font-medium">Yes, I'll be there!</div>
+                    <div className="text-xs opacity-75">Can't wait to celebrate</div>
                   </div>
-                </button>
-
-                <button
-                  onClick={() => setSelectedStatus('DECLINED')}
-                  className={`p-4 rounded-lg border-2 text-left transition-all ${
-                    selectedStatus === 'DECLINED'
-                      ? 'border-red-500 bg-red-50 text-red-700'
-                      : 'border-gray-200 hover:border-red-300 hover:bg-red-50'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">😢</span>
-                    <div>
-                      <p className="font-medium">Sorry, I can't make it</p>
-                      <p className="text-sm text-gray-600">I'll be there in spirit!</p>
-                    </div>
-                  </div>
-                </button>
-
-                <button
+                </Button>
+                
+                <Button
+                  variant={selectedStatus === 'MAYBE' ? 'default' : 'outline'}
                   onClick={() => setSelectedStatus('MAYBE')}
-                  className={`p-4 rounded-lg border-2 text-left transition-all ${
-                    selectedStatus === 'MAYBE'
-                      ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
-                      : 'border-gray-200 hover:border-yellow-300 hover:bg-yellow-50'
-                  }`}
+                  className="justify-start h-auto p-4"
                 >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">🤔</span>
-                    <div>
-                      <p className="font-medium">Maybe / Not sure yet</p>
-                      <p className="text-sm text-gray-600">I'll try my best to make it!</p>
-                    </div>
+                  <HelpCircle className="w-5 h-5 mr-2" />
+                  <div>
+                    <div className="font-medium">Maybe</div>
+                    <div className="text-xs opacity-75">I'll try my best</div>
                   </div>
-                </button>
+                </Button>
+                
+                <Button
+                  variant={selectedStatus === 'DECLINED' ? 'destructive' : 'outline'}
+                  onClick={() => setSelectedStatus('DECLINED')}
+                  className="justify-start h-auto p-4"
+                >
+                  <XCircle className="w-5 h-5 mr-2" />
+                  <div>
+                    <div className="font-medium">Sorry, can't make it</div>
+                    <div className="text-xs opacity-75">Maybe next time</div>
+                  </div>
+                </Button>
               </div>
             </div>
 
+            <Separator />
+
+            {/* Additional Information */}
+            {selectedStatus === 'CONFIRMED' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Dietary Restrictions (Optional)
+                  </label>
+                  <Textarea
+                    value={dietaryRestrictions}
+                    onChange={(e) => setDietaryRestrictions(e.target.value)}
+                    placeholder="Please let us know about any allergies or dietary requirements..."
+                    rows={2}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="notes">Additional Notes (Optional)</Label>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Additional Notes (Optional)
+              </label>
               <Textarea
-                id="notes"
-                placeholder="Any dietary restrictions, special requests, or messages for the host..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="min-h-[100px]"
+                placeholder="Any additional comments or messages for the host..."
+                rows={3}
               />
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
             {/* Submit Button */}
             <Button
-              onClick={handleSubmit}
+              onClick={handleSubmitRSVP}
               disabled={!selectedStatus || submitting}
               className="w-full"
               size="lg"
             >
-              {submitting ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Submitting...</span>
-                </div>
-              ) : (
-                'Submit RSVP'
-              )}
+              {submitting ? 'Submitting...' : 'Submit RSVP'}
             </Button>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-700 text-sm">{error}</p>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>

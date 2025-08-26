@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Heart, HeartOff, Loader2, Wand2, Palette, Star, Plus, Trash2 } from "lucide-react";
+import { Sparkles, Heart, HeartOff, Loader2, Wand2, Palette, Star, Plus, Trash2, Search, Filter, Grid, List } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { classicThemes, themeCategories, type ClassicTheme, type ThemeCategory } from "../data/themes-data";
+import ReactCanvasConfetti from 'react-canvas-confetti';
 
 interface ThemeRecommendation {
   id: string;
@@ -30,9 +32,19 @@ interface ThemeRecommendation {
 interface PartyData {
   childName: string;
   childAge: string;
+  childGender?: string;
   interests?: string[];
   favoriteColors?: string[];
   selectedTheme?: string | null;
+  classicTheme?: string;
+  partyDate?: Date;
+  zipCode?: string;
+  country?: string;
+  guestCount?: number;
+  budget?: number;
+  currency?: string;
+  duration?: string;
+  venue?: string;
 }
 
 interface ThemesTabProps {
@@ -40,188 +52,92 @@ interface ThemesTabProps {
   onThemeSelect: (themeId: string | null) => void;
 }
 
-const classicThemes = [
-  { 
-    id: "dinosaur", 
-    name: "Dinosaur Adventure", 
-    emoji: "🦕", 
-    color: "bg-gradient-to-r from-green-500 to-emerald-600",
-    description: "A prehistoric party adventure with dinosaurs from all eras! Perfect for little paleontologists.",
-    decorations: [
-      "Dinosaur footprint path leading to party area",
-      "Large inflatable dinosaurs and fossils",
-      "Jungle backdrop with prehistoric plants",
-      "Volcano centerpiece with dry ice effect"
-    ],
-    activities: [
-      "Dinosaur fossil dig in sandbox",
-      "Pin the tail on the T-Rex",
-      "Dinosaur egg hunt with surprise toys",
-      "Create-your-own dinosaur craft station"
-    ],
-    colorPalette: ["#32CD32", "#228B22", "#8FBC8F", "#6B8E23"]
-  },
-  { 
-    id: "space", 
-    name: "Space Explorer Mission", 
-    emoji: "🚀", 
-    color: "bg-gradient-to-r from-purple-600 to-indigo-800",
-    description: "Blast off to an intergalactic celebration among the stars! Mission: Fun activated.",
-    decorations: [
-      "Silver balloon archway as space station entrance",
-      "Hanging planets and stars from ceiling",
-      "Rocket ship photo booth backdrop",
-      "Galaxy tablecloth with LED lights"
-    ],
-    activities: [
-      "Build and launch paper rockets",
-      "Space trivia and alien encounter games",
-      "Astronaut training obstacle course",
-      "Design your own planet art activity"
-    ],
-    colorPalette: ["#4169E1", "#8A2BE2", "#191970", "#483D8B"]
-  },
-  { 
-    id: "safari", 
-    name: "African Safari Adventure", 
-    emoji: "🦁", 
-    color: "bg-gradient-to-r from-yellow-500 to-orange-600",
-    description: "Join the wild adventure through African savanna with majestic animals!",
-    decorations: [
-      "Jungle vine entrance with animal sounds",
-      "Safari jeep cardboard cutout",
-      "Animal print tablecloth and napkins",
-      "Stuffed safari animals throughout venue"
-    ],
-    activities: [
-      "Animal charades and sounds game",
-      "Safari scavenger hunt",
-      "Face painting with animal designs",
-      "Make binoculars craft for exploration"
-    ],
-    colorPalette: ["#FFD700", "#FF8C00", "#DAA520", "#B8860B"]
-  },
-  { 
-    id: "ocean", 
-    name: "Under the Sea Adventure", 
-    emoji: "🐠", 
-    color: "bg-gradient-to-r from-blue-500 to-cyan-600",
-    description: "Dive deep into an underwater world filled with colorful sea creatures and treasures!",
-    decorations: [
-      "Blue streamers as ocean waves",
-      "Hanging jellyfish made from paper lanterns",
-      "Treasure chest filled with party favors",
-      "Coral reef backdrop with sea creatures"
-    ],
-    activities: [
-      "Fishing game with magnetic rods",
-      "Mermaid tail craft making",
-      "Musical sea creatures game",
-      "Ocean slime making station"
-    ],
-    colorPalette: ["#4169E1", "#00CED1", "#20B2AA", "#87CEEB"]
-  },
-  { 
-    id: "princess", 
-    name: "Royal Princess Castle", 
-    emoji: "👸", 
-    color: "bg-gradient-to-r from-pink-400 to-purple-600",
-    description: "A magical royal celebration fit for princesses and princes in an enchanted castle!",
-    decorations: [
-      "Castle entrance archway with towers",
-      "Pink and purple balloon bouquets",
-      "Royal throne chair for birthday child",
-      "Sparkling tiara centerpieces on tables"
-    ],
-    activities: [
-      "Princess dress-up and photo session",
-      "Royal treasure hunt for jewels",
-      "Decorate your own crown craft",
-      "Princess etiquette tea party games"
-    ],
-    colorPalette: ["#FF69B4", "#DA70D6", "#DDA0DD", "#F0E68C"]
-  },
-  { 
-    id: "superhero", 
-    name: "Superhero Training Academy", 
-    emoji: "🦸‍♂️", 
-    color: "bg-gradient-to-r from-red-500 to-blue-600",
-    description: "Calling all heroes! Train to become the ultimate superhero and save the day!",
-    decorations: [
-      "City skyline backdrop with buildings",
-      "Comic book action bubble decorations",
-      "Superhero cape station entrance",
-      "POW! BAM! table centerpieces"
-    ],
-    activities: [
-      "Design your own superhero cape",
-      "Superhero training obstacle course",
-      "Villain freeze dance battle",
-      "Create comic book covers activity"
-    ],
-    colorPalette: ["#FF6347", "#4169E1", "#FFD700", "#DC143C"]
-  },
-  { 
-    id: "sports", 
-    name: "Championship Sports Day", 
-    emoji: "⚽", 
-    color: "bg-gradient-to-r from-orange-500 to-red-600",
-    description: "Game on! A championship celebration with sports challenges and victory fun!",
-    decorations: [
-      "Sports equipment garland banners",
-      "Trophy and medal centerpieces",
-      "Team pennant flags hanging",
-      "Goal post entrance archway"
-    ],
-    activities: [
-      "Mini sports tournament stations",
-      "Medal ceremony and awards",
-      "Sports trivia championship",
-      "Design team jersey craft"
-    ],
-    colorPalette: ["#FF8C00", "#FF6347", "#32CD32", "#4169E1"]
-  },
-  { 
-    id: "unicorn", 
-    name: "Magical Unicorn Kingdom", 
-    emoji: "🦄", 
-    color: "bg-gradient-to-r from-pink-500 to-violet-600",
-    description: "Enter a mystical realm where unicorns roam and rainbow magic fills the air!",
-    decorations: [
-      "Rainbow balloon archway entrance",
-      "Unicorn horn and tail photo props",
-      "Glittery cloud and star hanging decorations",
-      "Pastel rainbow tablecloth settings"
-    ],
-    activities: [
-      "Unicorn horn decorating craft",
-      "Rainbow parachute play time",
-      "Pin the horn on the unicorn",
-      "Magical unicorn slime making"
-    ],
-    colorPalette: ["#FF69B4", "#9370DB", "#87CEEB", "#F0E68C"]
-  }
-];
-
-const interestOptions = [
-  "Animals", "Art & Crafts", "Cars", "Dancing", "Music", "Sports", "Science",
-  "Books", "Movies", "Games", "Building", "Nature", "Cooking", "Magic",
-  "Dinosaurs", "Space", "Superheroes", "Princesses", "Pirates", "Dragons",
-  "Unicorns", "Robots", "Adventures", "Drawing"
-];
-
-const colorOptions = [
-  { name: "Pink", value: "pink", color: "#FF69B4" },
-  { name: "Purple", value: "purple", color: "#9370DB" },
-  { name: "Blue", value: "blue", color: "#4169E1" },
-  { name: "Green", value: "green", color: "#32CD32" },
-  { name: "Yellow", value: "yellow", color: "#FFD700" },
-  { name: "Orange", value: "orange", color: "#FF8C00" },
-  { name: "Red", value: "red", color: "#FF6347" },
-  { name: "Rainbow", value: "rainbow", color: "linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7, #DDA0DD)" }
-];
+// Theme filtering and search state
+type ViewMode = 'grid' | 'list';
+type SortBy = 'name' | 'popularity' | 'category';
 
 export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) {
+  // Confetti setup
+  const refAnimationInstance = useRef<any>(null);
+  
+  const getInstance = useCallback((instance: any) => {
+    refAnimationInstance.current = instance;
+  }, []);
+  
+  const triggerConfetti = useCallback(() => {
+    console.log('🎉 Triggering confetti animation...');
+    const confetti = refAnimationInstance.current;
+    if (confetti && typeof confetti === 'function') {
+      console.log('✅ Confetti instance is valid, starting animation');
+      // Enhanced multiple bursts for maximum visibility celebration effect
+      // First central burst - high particle count
+      confetti({
+        particleCount: 250, // Increased particle count
+        spread: 120, // Wider spread
+        origin: { y: 0.6 },
+        colors: ['#FF69B4', '#9370DB', '#4169E1', '#32CD32', '#FFD700', '#FF8C00', '#FF1493', '#00CED1'],
+        scalar: 1.5, // Larger particles
+        drift: 0,
+        gravity: 0.8,
+        ticks: 400 // Longer duration
+      });
+      
+      // Second burst from left side
+      setTimeout(() => {
+        if (confetti && typeof confetti === 'function') {
+          confetti({
+            particleCount: 150,
+            angle: 60,
+            spread: 100,
+            origin: { x: 0.1, y: 0.7 },
+            colors: ['#FF69B4', '#9370DB', '#4169E1', '#32CD32', '#FFD700', '#FF8C00'],
+            scalar: 1.3,
+            drift: 0.1,
+            gravity: 0.9,
+            ticks: 300
+          });
+        }
+      }, 150);
+      
+      // Third burst from right side
+      setTimeout(() => {
+        if (confetti && typeof confetti === 'function') {
+          confetti({
+            particleCount: 150,
+            angle: 120,
+            spread: 100,
+            origin: { x: 0.9, y: 0.7 },
+            colors: ['#FF69B4', '#9370DB', '#4169E1', '#32CD32', '#FFD700', '#FF8C00'],
+            scalar: 1.3,
+            drift: -0.1,
+            gravity: 0.9,
+            ticks: 300
+          });
+        }
+      }, 300);
+      
+      // Fourth burst from top center for shower effect
+      setTimeout(() => {
+        if (confetti && typeof confetti === 'function') {
+          confetti({
+            particleCount: 100,
+            spread: 140,
+            origin: { x: 0.5, y: 0.1 },
+            colors: ['#FFD700', '#FF69B4', '#9370DB', '#32CD32'],
+            scalar: 1.0,
+            drift: 0,
+            gravity: 0.6,
+            ticks: 500
+          });
+        }
+      }, 450);
+      
+      console.log('🎊 Confetti animation sequence started!');
+    } else {
+      console.warn('❌ Confetti instance not available or not a function:', confetti);
+      console.warn('Confetti ref state:', refAnimationInstance.current);
+    }
+  }, []);
   // Persist active tab in localStorage to maintain state across navigation
   const [activeTab, setActiveTab] = useState<'classic' | 'custom'>(() => {
     if (typeof window !== 'undefined') {
@@ -231,7 +147,102 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
     return 'classic';
   });
   
+  // Theme filtering and search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedAgeRange, setSelectedAgeRange] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<SortBy>('popularity');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+  
   const [favoriteThemes, setFavoriteThemes] = useState<string[]>([]);
+  
+  // Constants moved from old implementation
+  const interestOptions = [
+    "Animals", "Art & Crafts", "Cars", "Dancing", "Music", "Sports", "Science",
+    "Books", "Movies", "Games", "Building", "Nature", "Cooking", "Magic",
+    "Dinosaurs", "Space", "Superheroes", "Princesses", "Pirates", "Dragons",
+    "Unicorns", "Robots", "Adventures", "Drawing"
+  ];
+
+  const colorOptions = [
+    { name: "Pink", value: "pink", color: "#FF69B4" },
+    { name: "Purple", value: "purple", color: "#9370DB" },
+    { name: "Blue", value: "blue", color: "#4169E1" },
+    { name: "Green", value: "green", color: "#32CD32" },
+    { name: "Yellow", value: "yellow", color: "#FFD700" },
+    { name: "Orange", value: "orange", color: "#FF8C00" },
+    { name: "Red", value: "red", color: "#FF6347" },
+    { name: "Rainbow", value: "rainbow", color: "linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7, #DDA0DD)" }
+  ];
+
+  // Age range options for filtering
+  const ageRangeOptions = [
+    { label: 'All Ages', value: 'all' },
+    { label: '0-3 years', value: '0-3' },
+    { label: '3-6 years', value: '3-6' },
+    { label: '6-9 years', value: '6-9' },
+    { label: '9-12 years', value: '9-12' }
+  ];
+
+  // Filtered and sorted themes computation
+  const filteredThemes = useMemo(() => {
+    let filtered = classicThemes.filter(theme => {
+      // Search query filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          theme.name.toLowerCase().includes(query) ||
+          theme.description.toLowerCase().includes(query) ||
+          theme.keywords.some(keyword => keyword.toLowerCase().includes(query)) ||
+          theme.category.toLowerCase().includes(query);
+        
+        if (!matchesSearch) return false;
+      }
+
+      // Category filter
+      if (selectedCategory !== 'all' && theme.category !== selectedCategory) {
+        return false;
+      }
+
+      // Age range filter
+      if (selectedAgeRange !== 'all') {
+        const childAge = parseInt(partyData.childAge) || 5;
+        const [minAge, maxAge] = theme.ageRange.split('-').map(age => parseInt(age.trim()));
+        
+        switch (selectedAgeRange) {
+          case '0-3':
+            return childAge <= 3 && minAge <= 3;
+          case '3-6':
+            return childAge >= 3 && childAge <= 6 && maxAge >= 3 && minAge <= 6;
+          case '6-9':
+            return childAge >= 6 && childAge <= 9 && maxAge >= 6 && minAge <= 9;
+          case '9-12':
+            return childAge >= 9 && childAge <= 12 && maxAge >= 9;
+          default:
+            return true;
+        }
+      }
+
+      return true;
+    });
+
+    // Sort themes
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'popularity':
+          return b.popularity - a.popularity;
+        case 'category':
+          return a.category.localeCompare(b.category) || a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [classicThemes, searchQuery, selectedCategory, selectedAgeRange, sortBy, partyData.childAge]);
   // Persist AI themes in localStorage to maintain state across navigation
   const [aiThemes, setAiThemes] = useState<ThemeRecommendation[]>(() => {
     if (typeof window !== 'undefined') {
@@ -314,6 +325,41 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
     }
   }, [partyData.selectedTheme, aiThemes]);
 
+  // Clean slate initialization - ensure no pre-selected themes from localStorage interference
+  useEffect(() => {
+    // If partyData.selectedTheme is empty string (not null), clean it up
+    if (partyData.selectedTheme === '') {
+      console.log('Cleaning up empty string selectedTheme for clean slate');
+      onThemeSelect(null);
+    }
+  }, [partyData.selectedTheme, onThemeSelect]);
+
+  // Clear AI themes when a classic theme is selected and vice versa
+  const handleThemeSelection = (themeId: string | null) => {
+    if (themeId) {
+      // Check if it's a classic theme
+      const isClassicTheme = classicThemes.some(t => t.id === themeId);
+      const isAiTheme = aiThemes.some(t => t.id === themeId);
+      
+      // If selecting a classic theme, clear any selected AI theme
+      if (isClassicTheme && partyData.selectedTheme && aiThemes.some(t => t.id === partyData.selectedTheme)) {
+        // Switch from AI to classic theme
+        onThemeSelect(themeId);
+      }
+      // If selecting an AI theme, clear any selected classic theme  
+      else if (isAiTheme && partyData.selectedTheme && classicThemes.some(t => t.id === partyData.selectedTheme)) {
+        // Switch from classic to AI theme
+        onThemeSelect(themeId);
+      }
+      else {
+        // Normal selection/deselection
+        onThemeSelect(partyData.selectedTheme === themeId ? null : themeId);
+      }
+    } else {
+      onThemeSelect(null);
+    }
+  };
+
   // Save favorites to localStorage
   const saveFavorites = (favorites: string[]) => {
     setFavoriteThemes(favorites);
@@ -336,19 +382,41 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
     setIsGenerating(true);
     
     try {
+      // Gather ALL wizard data from steps 1-3
+      const comprehensivePartyData = {
+        // Step 1: Child Information
+        childName: partyData.childName,
+        age: parseInt(partyData.childAge),
+        childGender: partyData.childGender,
+        
+        // Step 2: Theme Preferences (current AI tab)
+        interests: selectedInterests,
+        favoriteColors: selectedColors,
+        childDetails,
+        currentFavorites,
+        
+        // Step 3: Party Details (if available)
+        partyDate: partyData.partyDate?.toISOString(),
+        zipCode: partyData.zipCode,
+        country: partyData.country,
+        guestCount: partyData.guestCount,
+        budget: partyData.budget,
+        currency: partyData.currency,
+        duration: partyData.duration,
+        venue: partyData.venue,
+        
+        // Additional context
+        selectedClassicTheme: partyData.selectedTheme || partyData.classicTheme
+      };
+
+      console.log('Sending comprehensive wizard data to GPT-4.1:', comprehensivePartyData);
+
       const response = await fetch('/api/theme-recommendations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          childName: partyData.childName,
-          age: parseInt(partyData.childAge),
-          interests: selectedInterests,
-          favoriteColors: selectedColors,
-          childDetails,
-          currentFavorites
-        }),
+        body: JSON.stringify(comprehensivePartyData),
       });
 
       if (!response.ok) {
@@ -357,27 +425,89 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
 
       const data = await response.json();
       const newThemes = data.recommendations || [];
+      
+      // Set AI themes first
       setAiThemes(newThemes);
+      
       // Save to localStorage immediately
       if (typeof window !== 'undefined') {
         localStorage.setItem('aiGeneratedThemes', JSON.stringify(newThemes));
       }
+      
+      // Trigger confetti effect after themes are generated
+      if (newThemes.length > 0) {
+        // Immediate confetti for better visibility
+        setTimeout(() => {
+          try {
+            triggerConfetti();
+          } catch (confettiError) {
+            console.warn('Confetti animation failed:', confettiError);
+          }
+        }, 50);
+      }
     } catch (error) {
       console.error('Error generating AI themes:', error);
-      // Fallback themes
+      // Enhanced fallback themes with 3-4 variations to ensure multiple options
+      const primaryInterest = selectedInterests[0] || 'adventure';
+      const secondaryInterest = selectedInterests[1] || 'games';
+      const primaryColor = selectedColors[0] || '#FF69B4';
+      const secondaryColor = selectedColors[1] || '#9370DB';
+      
       const fallbackThemes = [
         {
           id: 'ai-magical-adventure',
-          name: 'Magical Adventure Quest',
+          name: `${partyData.childName}'s Magical ${primaryInterest.charAt(0).toUpperCase() + primaryInterest.slice(1)} Quest`,
           description: 'An enchanting journey through mystical lands with treasures to discover!',
-          whyRecommended: `Perfect for ${partyData.childName} based on their interests in ${selectedInterests.slice(0, 2).join(' and ')}`,
-          colorPalette: selectedColors.length > 0 ? selectedColors : ['#FF69B4', '#9370DB', '#4169E1'],
-          decorations: ['Treasure map backdrop', 'Magic wand station', 'Enchanted forest corner'],
-          activities: ['Treasure hunt', 'Magic potion making', 'Quest challenges'],
+          whyRecommended: `Perfect for ${partyData.childName}, age ${partyData.childAge}, based on their love of ${primaryInterest}${partyData.guestCount ? ` - designed for ${partyData.guestCount} guests` : ''}`,
+          colorPalette: selectedColors.length > 0 ? selectedColors.slice(0, 4) : ['#FF69B4', '#9370DB', '#4169E1', '#32CD32'],
+          decorations: ['Treasure map backdrop', 'Magic wand station', 'Enchanted forest corner', 'Quest checkpoint signs'],
+          activities: ['Treasure hunt adventure', 'Magic potion making', 'Quest challenges', 'Mystical creature encounters'],
           printableIdeas: ['Quest certificates', 'Magic spell cards'],
           emoji: '🧙‍♀️',
           ageAppropriate: true,
           matchScore: 95,
+          isCustom: true
+        },
+        {
+          id: 'ai-creative-celebration',
+          name: `${partyData.childName}'s Creative ${secondaryInterest.charAt(0).toUpperCase() + secondaryInterest.slice(1)} Celebration`,
+          description: 'A vibrant celebration filled with creativity, fun, and personalized activities!',
+          whyRecommended: `Specially designed for ${partyData.childName} who enjoys ${secondaryInterest} and creative activities - perfect for age ${partyData.childAge}!`,
+          colorPalette: [primaryColor, secondaryColor, '#FFD700', '#32CD32'],
+          decorations: ['Creative corner setup', 'Personalized banners', 'Activity stations', 'Photo booth props'],
+          activities: ['Creative workshops', 'Fun challenges', 'Interactive games', 'Celebration activities'],
+          printableIdeas: ['Activity guides', 'Celebration certificates'],
+          emoji: '🎨',
+          ageAppropriate: true,
+          matchScore: 90,
+          isCustom: true
+        },
+        {
+          id: 'ai-adventure-party',
+          name: `${partyData.childName}'s Ultimate Adventure Party`,
+          description: 'An action-packed adventure with exciting challenges and surprises at every turn!',
+          whyRecommended: `Tailored for ${partyData.childName}'s adventurous spirit and interests in ${selectedInterests.slice(0, 2).join(' and ')} - age-perfect for ${partyData.childAge}-year-olds!`,
+          colorPalette: ['#FF6347', '#4169E1', '#32CD32', '#FFD700'],
+          decorations: ['Adventure trail markers', 'Challenge station setups', 'Victory celebration corner', 'Adventure gear displays'],
+          activities: ['Adventure challenges', 'Team quests', 'Skill competitions', 'Victory celebrations'],
+          printableIdeas: ['Adventure maps', 'Achievement certificates'],
+          emoji: '🏕️',
+          ageAppropriate: true,
+          matchScore: 88,
+          isCustom: true
+        },
+        {
+          id: 'ai-dream-party',
+          name: `${partyData.childName}'s Dream Come True Party`,
+          description: 'A magical party where dreams come alive with personalized touches and special moments!',
+          whyRecommended: `Created especially for ${partyData.childName} combining their favorite things: ${selectedInterests.join(', ')} - making this ${partyData.childAge}th birthday unforgettable!`,
+          colorPalette: [primaryColor, '#E6E6FA', '#FFB6C1', '#F0E68C'],
+          decorations: ['Dream cloud displays', 'Personalized memory corner', 'Wish fulfillment station', 'Special moments backdrop'],
+          activities: ['Dream crafting', 'Wish making activities', 'Memory creation games', 'Special celebration moments'],
+          printableIdeas: ['Dream journals', 'Wish cards'],
+          emoji: '✨',
+          ageAppropriate: true,
+          matchScore: 93,
           isCustom: true
         }
       ];
@@ -386,6 +516,14 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
       if (typeof window !== 'undefined') {
         localStorage.setItem('aiGeneratedThemes', JSON.stringify(fallbackThemes));
       }
+      // Trigger confetti for fallback themes with immediate effect
+      setTimeout(() => {
+        try {
+          triggerConfetti();
+        } catch (confettiError) {
+          console.warn('Confetti animation failed for fallback themes:', confettiError);
+        }
+      }, 50);
     } finally {
       setIsGenerating(false);
     }
@@ -450,78 +588,386 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
       {/* Classic Themes Tab */}
       {activeTab === 'classic' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {classicThemes.map((theme) => (
-              <Card
-                key={theme.id}
-                className={cn(
-                  "cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg relative group",
-                  partyData.selectedTheme === theme.id
-                    ? "ring-2 ring-purple-500 shadow-lg"
-                    : "hover:shadow-md"
-                )}
-                onClick={() => onThemeSelect(partyData.selectedTheme === theme.id ? null : theme.id)}
-              >
-                <div className={cn("absolute inset-0 rounded-lg opacity-20", theme.color)} />
-                <CardContent className="p-6 text-center relative">
-                  <div className="text-4xl mb-2">{theme.emoji}</div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                    {theme.name}
-                  </h3>
-                  
-                  {/* Add to Party / Deselect Button */}
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onThemeSelect(partyData.selectedTheme === theme.id ? null : theme.id);
-                    }}
-                    variant={partyData.selectedTheme === theme.id ? "default" : "outline"}
-                    size="sm"
-                    className={cn(
-                      "w-full mb-2 transition-all duration-200",
-                      partyData.selectedTheme === theme.id 
-                        ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md" 
-                        : "border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-300 dark:hover:bg-purple-900/20"
-                    )}
-                  >
-                    {partyData.selectedTheme === theme.id ? (
-                      <>
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Remove Theme
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-3 h-3 mr-1" />
-                        Add to Party
-                      </>
-                    )}
-                  </Button>
+          {/* Search and Filter Controls */}
+          <Card className="border-gray-200 dark:border-gray-700">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search themes by name, keywords, or description..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-4"
+                  />
+                </div>
 
-                  {partyData.selectedTheme === theme.id && (
-                    <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                      <Star className="w-3 h-3 mr-1" />
-                      Current Theme
-                    </Badge>
-                  )}
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-2 right-2 p-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(theme.id);
-                    }}
-                  >
-                    {favoriteThemes.includes(theme.id) ? (
-                      <Heart className="w-4 h-4 text-red-500 fill-current" />
-                    ) : (
-                      <Heart className="w-4 h-4 text-gray-400" />
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                {/* Filter Controls Row */}
+                <div className="flex flex-wrap gap-4 items-center justify-between">
+                  <div className="flex flex-wrap gap-4 items-center">
+                    {/* Category Filter */}
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium whitespace-nowrap">Category:</Label>
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="All Categories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          {themeCategories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.emoji} {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Age Range Filter */}
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium whitespace-nowrap">Age Range:</Label>
+                      <Select value={selectedAgeRange} onValueChange={setSelectedAgeRange}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="All Ages" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ageRangeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Sort By */}
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium whitespace-nowrap">Sort by:</Label>
+                      <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="popularity">Popularity</SelectItem>
+                          <SelectItem value="name">Name A-Z</SelectItem>
+                          <SelectItem value="category">Category</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={viewMode === 'grid' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'list' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('list')}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category Overview */}
+          {selectedCategory === 'all' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Theme Categories</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                {themeCategories.map((category) => {
+                  const categoryThemeCount = classicThemes.filter(theme => theme.category === category.id).length;
+                  return (
+                    <Card
+                      key={category.id}
+                      className="cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                      onClick={() => setSelectedCategory(category.id)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <div className={`text-3xl mb-2 p-3 rounded-full bg-gradient-to-r ${category.color} text-white inline-block`}>
+                          {category.emoji}
+                        </div>
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-1">
+                          {category.name}
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {categoryThemeCount} themes
+                        </p>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Themes Display */}
+          <div className="space-y-4">
+            {/* Results Count */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {filteredThemes.length} of {classicThemes.length} themes
+                {searchQuery && ` for "${searchQuery}"`}
+                {selectedCategory !== 'all' && (
+                  <> in {themeCategories.find(c => c.id === selectedCategory)?.name}</>
+                )}
+              </p>
+              {(searchQuery || selectedCategory !== 'all' || selectedAgeRange !== 'all') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('all');
+                    setSelectedAgeRange('all');
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+
+            {/* Themes Grid/List */}
+            {filteredThemes.length > 0 ? (
+              <div className={cn(
+                viewMode === 'grid' 
+                  ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                  : "space-y-4"
+              )}>
+                {filteredThemes.map((theme) => (
+                  viewMode === 'grid' ? (
+                    <Card
+                      key={theme.id}
+                      className={cn(
+                        "cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg relative group",
+                        partyData.selectedTheme === theme.id
+                          ? "ring-2 ring-purple-500 shadow-lg"
+                          : "hover:shadow-md"
+                      )}
+                      onClick={() => handleThemeSelection(partyData.selectedTheme === theme.id ? null : theme.id)}
+                    >
+                      <div className={cn("absolute inset-0 rounded-lg opacity-20", theme.color)} />
+                      <CardContent className="p-4 text-center relative">
+                        <div className="text-3xl mb-2">{theme.emoji}</div>
+                        <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
+                          {theme.name}
+                        </h3>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                          {theme.description}
+                        </p>
+                        
+                        {/* Action Buttons */}
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onThemeSelect(partyData.selectedTheme === theme.id ? null : theme.id);
+                          }}
+                          variant={partyData.selectedTheme === theme.id ? "default" : "outline"}
+                          size="sm"
+                          className={cn(
+                            "w-full mb-2 transition-all duration-200",
+                            partyData.selectedTheme === theme.id 
+                              ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md" 
+                              : "border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-300 dark:hover:bg-purple-900/20"
+                          )}
+                        >
+                          {partyData.selectedTheme === theme.id ? (
+                            <>
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Remove
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3 h-3 mr-1" />
+                              Select
+                            </>
+                          )}
+                        </Button>
+
+                        {partyData.selectedTheme === theme.id && (
+                          <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                            <Star className="w-3 h-3 mr-1" />
+                            Current
+                          </Badge>
+                        )}
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute top-2 right-2 p-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(theme.id);
+                          }}
+                        >
+                          {favoriteThemes.includes(theme.id) ? (
+                            <Heart className="w-4 h-4 text-red-500 fill-current" />
+                          ) : (
+                            <Heart className="w-4 h-4 text-gray-400" />
+                          )}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card
+                      key={theme.id}
+                      className={cn(
+                        "cursor-pointer transition-all duration-200 hover:shadow-lg relative",
+                        partyData.selectedTheme === theme.id
+                          ? "ring-2 ring-purple-500 shadow-lg"
+                          : "hover:shadow-md"
+                      )}
+                      onClick={() => handleThemeSelection(partyData.selectedTheme === theme.id ? null : theme.id)}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="text-4xl flex-shrink-0">{theme.emoji}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between mb-2">
+                              <div>
+                                <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100 mb-1">
+                                  {theme.name}
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                  {theme.description}
+                                </p>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <Badge variant="outline">
+                                    Ages {theme.ageRange}
+                                  </Badge>
+                                  <div className="flex items-center gap-1">
+                                    {Array.from({ length: theme.popularity }).map((_, i) => (
+                                      <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(theme.id);
+                                }}
+                              >
+                                {favoriteThemes.includes(theme.id) ? (
+                                  <Heart className="w-4 h-4 text-red-500 fill-current" />
+                                ) : (
+                                  <Heart className="w-4 h-4 text-gray-400" />
+                                )}
+                              </Button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm">
+                              <div>
+                                <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-1">Decorations</h5>
+                                <ul className="text-gray-600 dark:text-gray-400 space-y-1">
+                                  {theme.decorations.slice(0, 2).map((item, index) => (
+                                    <li key={index}>• {item}</li>
+                                  ))}
+                                  {theme.decorations.length > 2 && (
+                                    <li className="text-purple-600 dark:text-purple-400">+ {theme.decorations.length - 2} more...</li>
+                                  )}
+                                </ul>
+                              </div>
+                              <div>
+                                <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-1">Activities</h5>
+                                <ul className="text-gray-600 dark:text-gray-400 space-y-1">
+                                  {theme.activities.slice(0, 2).map((item, index) => (
+                                    <li key={index}>• {item}</li>
+                                  ))}
+                                  {theme.activities.length > 2 && (
+                                    <li className="text-purple-600 dark:text-purple-400">+ {theme.activities.length - 2} more...</li>
+                                  )}
+                                </ul>
+                              </div>
+                              <div>
+                                <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-1">Colors</h5>
+                                <div className="flex gap-1 flex-wrap">
+                                  {theme.colorPalette.slice(0, 4).map((color, index) => (
+                                    <div
+                                      key={index}
+                                      className="w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600"
+                                      style={{ backgroundColor: color }}
+                                      title={color}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onThemeSelect(partyData.selectedTheme === theme.id ? null : theme.id);
+                                }}
+                                variant={partyData.selectedTheme === theme.id ? "default" : "outline"}
+                                size="sm"
+                                className={cn(
+                                  "transition-all duration-200",
+                                  partyData.selectedTheme === theme.id 
+                                    ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md" 
+                                    : "border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-300 dark:hover:bg-purple-900/20"
+                                )}
+                              >
+                                {partyData.selectedTheme === theme.id ? (
+                                  <>
+                                    <Trash2 className="w-3 h-3 mr-1" />
+                                    Remove Theme
+                                  </>
+                                ) : (
+                                  <>
+                                    <Plus className="w-3 h-3 mr-1" />
+                                    Select Theme
+                                  </>
+                                )}
+                              </Button>
+                              
+                              {partyData.selectedTheme === theme.id && (
+                                <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                  <Star className="w-3 h-3 mr-1" />
+                                  Current Theme
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-gray-400 dark:text-gray-600 mb-4">
+                  <Search className="h-12 w-12 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No themes found</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Try adjusting your search or filter criteria
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('all');
+                    setSelectedAgeRange('all');
+                  }}
+                >
+                  Clear All Filters
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -646,7 +1092,7 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
                         ? "ring-2 ring-purple-500 shadow-lg"
                         : "hover:shadow-md"
                     )}
-                    onClick={() => onThemeSelect(partyData.selectedTheme === theme.id ? null : theme.id)}
+                    onClick={() => handleThemeSelection(partyData.selectedTheme === theme.id ? null : theme.id)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
@@ -879,6 +1325,20 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
         </Card>
       )}
 
+      {/* Confetti Component - Enhanced Visibility */}
+      <ReactCanvasConfetti
+        onInit={getInstance}
+        style={{
+          position: 'fixed',
+          pointerEvents: 'none',
+          width: '100vw',
+          height: '100vh',
+          top: 0,
+          left: 0,
+          zIndex: 99999, // Extremely high z-index to ensure visibility
+          backgroundColor: 'transparent'
+        }}
+      />
     </div>
   );
 }

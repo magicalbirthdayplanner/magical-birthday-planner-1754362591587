@@ -228,7 +228,7 @@ interface PartyData {
   favoriteColors: string[];
   childDetails?: string;
   partyDate: Date | undefined;
-  selectedTheme: string;
+  selectedTheme: string | null; // Allow null for clean state
   aiRecommendations?: ThemeRecommendation[];
   isLoadingAI?: boolean;
   classicTheme?: string; // New field for classic theme selection
@@ -399,7 +399,7 @@ export default function CreatePartyPage() {
     childInterests: [],
     favoriteColors: [],
     partyDate: undefined,
-    selectedTheme: "",
+    selectedTheme: null, // Initialize as null for clean slate
     aiRecommendations: [],
     isLoadingAI: false,
     classicTheme: "",
@@ -460,7 +460,9 @@ export default function CreatePartyPage() {
           country: parsedData.country || "",
           zipCodeError: parsedData.zipCodeError || undefined,
           // Convert partyDate back to Date object if it exists
-          partyDate: parsedData.partyDate ? new Date(parsedData.partyDate) : undefined
+          partyDate: parsedData.partyDate ? new Date(parsedData.partyDate) : undefined,
+          // Ensure clean slate for theme selection - convert empty strings to null
+          selectedTheme: parsedData.selectedTheme === "" ? null : parsedData.selectedTheme
         };
         setPartyData(restoredData);
       } catch (error) {
@@ -1099,16 +1101,16 @@ export default function CreatePartyPage() {
                             childInterests: [],
                             favoriteColors: [],
                             partyDate: undefined,
-                            selectedTheme: "",
-                        aiRecommendations: [],
-                        isLoadingAI: false,
-                        classicTheme: "",
+                            selectedTheme: null, // Initialize as null for clean slate
+                            aiRecommendations: [],
+                            isLoadingAI: false,
+                            classicTheme: "",
                             budget: undefined,
                             currency: "",
                             zipCode: "",
                             country: "",
                             zipCodeError: undefined,
-                        guestCount: undefined
+                            guestCount: undefined
                           });
                         }}
                         size="sm"
