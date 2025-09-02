@@ -12,6 +12,7 @@ import { Sparkles, Heart, HeartOff, Loader2, Wand2, Palette, Star, Plus, Trash2,
 import { cn } from "@/lib/utils";
 import { classicThemes, themeCategories, type ClassicTheme, type ThemeCategory } from "../data/themes-data";
 import ReactCanvasConfetti from 'react-canvas-confetti';
+import ThemeSelectionSplash from './ThemeSelectionSplash';
 
 interface ThemeRecommendation {
   id: string;
@@ -156,6 +157,10 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
   const [showFilters, setShowFilters] = useState(false);
   
   const [favoriteThemes, setFavoriteThemes] = useState<string[]>([]);
+  
+  // Splash screen state
+  const [showSplash, setShowSplash] = useState(false);
+  const [splashTheme, setSplashTheme] = useState<any>(null);
   
   // Constants moved from old implementation
   const interestOptions = [
@@ -340,6 +345,31 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
       // Check if it's a classic theme
       const isClassicTheme = classicThemes.some(t => t.id === themeId);
       const isAiTheme = aiThemes.some(t => t.id === themeId);
+      
+      // Only show splash and confetti if we're actually selecting a theme (not deselecting)
+      const isNewSelection = partyData.selectedTheme !== themeId;
+      
+      if (isNewSelection) {
+        // Find the selected theme details for splash screen
+        const selectedThemeDetails = isClassicTheme 
+          ? classicThemes.find(t => t.id === themeId)
+          : aiThemes.find(t => t.id === themeId);
+        
+        if (selectedThemeDetails) {
+          // Set splash screen data
+          setSplashTheme(selectedThemeDetails);
+          setShowSplash(true);
+          
+          // Trigger confetti effect with 50ms delay as per specification
+          setTimeout(() => {
+            try {
+              triggerConfetti();
+            } catch (confettiError) {
+              console.warn('Confetti animation failed:', confettiError);
+            }
+          }, 50);
+        }
+      }
       
       // If selecting a classic theme, clear any selected AI theme
       if (isClassicTheme && partyData.selectedTheme && aiThemes.some(t => t.id === partyData.selectedTheme)) {
@@ -1324,6 +1354,14 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
           </CardContent>
         </Card>
       )}
+
+      {/* Theme Selection Splash Screen */}
+      <ThemeSelectionSplash
+        isOpen={showSplash}
+        onClose={() => setShowSplash(false)}
+        theme={splashTheme}
+        childName={partyData.childName}
+      />
 
       {/* Confetti Component - Enhanced Visibility */}
       <ReactCanvasConfetti

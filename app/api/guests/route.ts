@@ -155,6 +155,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Map frontend guest types to database-compatible types
+    // Frontend: ADULT, CHILD, FAMILY, COUPLE
+    // Database: GUEST, HELPER, HOST (until constraint is fixed)
+    const mapGuestType = (frontendType: string) => {
+      switch (frontendType) {
+        case 'ADULT':
+        case 'CHILD':
+        case 'FAMILY':
+        case 'COUPLE':
+          return 'GUEST'; // Map all to GUEST for now
+        default:
+          return 'GUEST';
+      }
+    };
+
+    console.log('Mapping guest type:', guestData.type, '->', mapGuestType(guestData.type));
+
     // Add the guest
     const { data: newGuest, error: guestError } = await supabase
       .from('guests')
@@ -164,9 +181,9 @@ export async function POST(request: NextRequest) {
         name: guestData.name,
         email: guestData.email || null,
         phone: guestData.phone || null,
-        type: guestData.type,
+        type: mapGuestType(guestData.type), // Use mapped type
         age: guestData.age || null,
-        notes: guestData.notes || null
+        notes: guestData.notes ? `${guestData.notes} [Original type: ${guestData.type}]` : `[Original type: ${guestData.type}]`
       })
       .select()
       .single();

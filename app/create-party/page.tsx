@@ -237,6 +237,8 @@ interface PartyData {
   country?: string; // New field for selected country
   zipCode?: string; // New field for zip code
   guestCount?: number; // New field for number of guests
+  adultCount?: number; // New field for number of adults
+  kidCount?: number; // New field for number of kids
   zipCodeError?: string; // New field for zip code validation error
   partyId?: string; // Track party ID for updates and continuity
   venue?: 'indoor' | 'outdoor' | 'mixed'; // New field for venue type
@@ -410,7 +412,9 @@ export default function CreatePartyPage() {
     zipCodeError: undefined,
     venue: 'mixed', // Default venue type
     duration: '2-3 hours', // Default party duration
-    guestCount: undefined
+    guestCount: undefined,
+    adultCount: undefined,
+    kidCount: undefined
   });
   const [isNavigating, setIsNavigating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -702,6 +706,8 @@ export default function CreatePartyPage() {
         interests: partyData.childInterests,
         favoriteColors: partyData.favoriteColors,
         guestCount: partyData.guestCount,
+        adultCount: partyData.adultCount,
+        kidCount: partyData.kidCount,
         budget: partyData.budget || undefined,
         location: partyData.zipCode,
         venue: partyData.venue,
@@ -750,9 +756,9 @@ export default function CreatePartyPage() {
       setSubmissionStep('Party created successfully! 🎉');
       setShowConfetti(true);
       
-      // Navigate to the party plan page
+      // Navigate to the party plan page with created flag for confetti
       setTimeout(() => {
-        router.push(`/party-plan?id=${partyId}`);
+        router.push(`/party-plan?id=${partyId}&created=true`);
       }, 2000);
 
     } catch (error) {
@@ -1110,7 +1116,9 @@ export default function CreatePartyPage() {
                             zipCode: "",
                             country: "",
                             zipCodeError: undefined,
-                            guestCount: undefined
+                            guestCount: undefined,
+                            adultCount: undefined,
+                            kidCount: undefined
                           });
                         }}
                         size="sm"
@@ -1369,9 +1377,10 @@ export default function CreatePartyPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Single Row Layout for Main Fields */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {/* Zip Code Input with Auto Country Detection */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
                       <MapPin className="h-4 w-4 text-blue-600" />
                       Zip Code
@@ -1414,8 +1423,8 @@ export default function CreatePartyPage() {
                     </p>
                   </div>
 
-                  {/* Guest Count Input */}
-                  <div className="space-y-3">
+                  {/* Guest Count Input with Adult/Kid Breakdown */}
+                  <div className="space-y-2">
                     <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
                       <Users className="h-4 w-4 text-purple-600" />
                       Number of Guests
@@ -1426,58 +1435,114 @@ export default function CreatePartyPage() {
                         type="number"
                         placeholder="Expected guests (adults + children)"
                         value={partyData.guestCount || ''}
-                        onChange={(e) => setPartyData({ ...partyData, guestCount: e.target.value ? parseInt(e.target.value) : undefined })}
+                        onChange={(e) => {
+                          const count = e.target.value ? parseInt(e.target.value) : undefined;
+                          setPartyData({ 
+                            ...partyData, 
+                            guestCount: count,
+                            // Reset adult/kid counts when total changes
+                            adultCount: undefined,
+                            kidCount: undefined
+                          });
+                        }}
                         className="pl-10 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
                         min="1"
                         max="200"
                       />
                     </div>
+                    
+                    {/* Adult/Kid Breakdown - Only show if guestCount is set */}
+                    {partyData.guestCount && partyData.guestCount > 0 && (
+                      <div className="flex gap-2 mt-2">
+                        <div className="flex-1">
+                          <Input
+                            type="number"
+                            placeholder="Adults"
+                            value={partyData.adultCount || ''}
+                            onChange={(e) => {
+                              const adults = e.target.value ? parseInt(e.target.value) : undefined;
+                              const kids = adults && partyData.guestCount ? partyData.guestCount - adults : partyData.kidCount;
+                              setPartyData({ 
+                                ...partyData, 
+                                adultCount: adults,
+                                kidCount: kids && kids >= 0 ? kids : undefined
+                              });
+                            }}
+                            className="text-sm h-9 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                            min="0"
+                            max={partyData.guestCount}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Adults</p>
+                        </div>
+                        <div className="flex-1">
+                          <Input
+                            type="number"
+                            placeholder="Kids"
+                            value={partyData.kidCount || ''}
+                            onChange={(e) => {
+                              const kids = e.target.value ? parseInt(e.target.value) : undefined;
+                              const adults = kids && partyData.guestCount ? partyData.guestCount - kids : partyData.adultCount;
+                              setPartyData({ 
+                                ...partyData, 
+                                kidCount: kids,
+                                adultCount: adults && adults >= 0 ? adults : undefined
+                              });
+                            }}
+                            className="text-sm h-9 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                            min="0"
+                            max={partyData.guestCount}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Kids</p>
+                        </div>
+                      </div>
+                    )}
+                    
                     <p className="text-xs text-gray-500">
                       Include both adults and children in the total count
                     </p>
                   </div>
-                </div>
 
-                {/* Budget Input (Optional) */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                    Party Budget (Optional)
-                  </Label>
-                  <div className="flex gap-2 max-w-md">
-                    {/* Currency Selector Button */}
-                    <Select value={partyData.currency || 'USD'} onValueChange={handleCurrencyChange}>
-                      <SelectTrigger className="w-20 h-12 text-lg font-semibold dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
-                        <SelectValue>
-                          {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.symbol || '$' : '$'}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {currencyOptions.map((currency) => (
-                          <SelectItem key={currency.code} value={currency.code}>
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg font-semibold">{currency.symbol}</span>
-                              <span className="text-sm">{currency.code}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    {/* Budget Input */}
-                    <Input
-                      type="number"
-                      placeholder="Enter budget amount"
-                      value={partyData.budget || ''}
-                      onChange={(e) => setPartyData({ ...partyData, budget: e.target.value ? parseFloat(e.target.value) : undefined })}
-                      className="flex-1 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
-                      min="0"
-                      step="10"
-                    />
+                  {/* Budget Input (Optional) */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      Party Budget (Optional)
+                    </Label>
+                    <div className="flex gap-2">
+                      {/* Currency Selector Button */}
+                      <Select value={partyData.currency || 'USD'} onValueChange={handleCurrencyChange}>
+                        <SelectTrigger className="w-20 h-12 text-lg font-semibold dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">
+                          <SelectValue>
+                            {partyData.currency ? currencyOptions.find(c => c.code === partyData.currency)?.symbol || '$' : '$'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {currencyOptions.map((currency) => (
+                            <SelectItem key={currency.code} value={currency.code}>
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg font-semibold">{currency.symbol}</span>
+                                <span className="text-sm">{currency.code}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      {/* Budget Input */}
+                      <Input
+                        type="number"
+                        placeholder="Enter budget amount"
+                        value={partyData.budget || ''}
+                        onChange={(e) => setPartyData({ ...partyData, budget: e.target.value ? parseFloat(e.target.value) : undefined })}
+                        className="flex-1 text-lg h-12 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200"
+                        min="0"
+                        step="10"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Budget helps us recommend the right options for your party
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Budget helps us recommend the right options for your party
-                  </p>
                 </div>
               </div>
             )}
@@ -1570,7 +1635,14 @@ export default function CreatePartyPage() {
                           <span className="text-lg">👥</span>
                           Guests:
                         </span>
-                        <span className="text-sm font-semibold text-gray-800">{partyData.guestCount || 0} expected</span>
+                        <div className="text-right">
+                          <span className="text-sm font-semibold text-gray-800 block">{partyData.guestCount || 0} expected</span>
+                          {partyData.adultCount !== undefined && partyData.kidCount !== undefined && (
+                            <span className="text-xs text-gray-600">
+                              {partyData.adultCount} adults, {partyData.kidCount} kids
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
                         <span className="text-sm font-medium text-gray-600 flex items-center gap-2">

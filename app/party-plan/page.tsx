@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import GuestList, { Guest, Invitation } from "@/components/GuestList";
-import BulkInvitations from "@/components/BulkInvitations";
-import RSVPTracker from "@/components/RSVPTracker";
+import ModernGuestRSVP, { ModernGuest } from "@/components/ModernGuestRSVP";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
 import ShoppingSuite from "@/components/ShoppingSuite";
 import FoodTab from "@/components/FoodTab";
@@ -68,6 +66,7 @@ import {
   Building,
   Heart,
 } from "lucide-react";
+import ReactCanvasConfetti from 'react-canvas-confetti';
 import Link from "next/link";
 
 interface PartyData {
@@ -150,8 +149,7 @@ export default function PartyPlanPage() {
   const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();
   const [partyData, setPartyData] = useState<PartyData | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
-  const [guests, setGuests] = useState<Guest[]>([]);
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [guests, setGuests] = useState<ModernGuest[]>([]);
   const [showCompleted, setShowCompleted] = useState(true);
   const [editingTask, setEditingTask] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
@@ -164,6 +162,132 @@ export default function PartyPlanPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentPartyId, setCurrentPartyId] = useState<string | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  
+  // Confetti setup for party plan celebration
+  const refAnimationInstance = useRef<any>(null);
+  const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
+  
+  const getInstance = useCallback((instance: any) => {
+    console.log('🗿 DEBUG: Confetti getInstance called with:', instance);
+    refAnimationInstance.current = instance;
+    console.log('🗿 DEBUG: Confetti instance stored in ref');
+  }, []);
+  
+  const triggerPartyPlanConfetti = useCallback(() => {
+    console.log('🎉 DEBUG: triggerPartyPlanConfetti function called');
+    console.log('🎉 Triggering party plan celebration confetti...');
+    const confettiInstance = refAnimationInstance.current;
+    
+    // Handle both direct function and object with confetti property
+    const confetti = typeof confettiInstance === 'function' 
+      ? confettiInstance 
+      : confettiInstance?.confetti;
+    
+    console.log('🔍 DEBUG: Confetti instance check:', {
+      confettiInstanceExists: !!confettiInstance,
+      confettiInstanceType: typeof confettiInstance,
+      confettiExists: !!confetti,
+      confettiType: typeof confetti,
+      isFunction: typeof confetti === 'function',
+      instanceStructure: confettiInstance
+    });
+    
+    if (confetti && typeof confetti === 'function') {
+      console.log('✅ Confetti instance is valid, starting party plan celebration');
+      // Enhanced celebration effect for party plan creation
+      // First central burst - extra high particle count for major milestone
+      confetti({
+        particleCount: 300, // Higher particle count for party creation
+        spread: 130, // Wider spread
+        origin: { y: 0.6 },
+        colors: ['#FF69B4', '#9370DB', '#4169E1', '#32CD32', '#FFD700', '#FF8C00', '#FF1493', '#00CED1'],
+        scalar: 1.6, // Larger particles
+        drift: 0,
+        gravity: 0.8,
+        ticks: 450 // Longer duration
+      });
+      
+      console.log('🎊 DEBUG: First confetti burst executed');
+      
+      // Second burst from left side
+      setTimeout(() => {
+        if (confetti && typeof confetti === 'function') {
+          confetti({
+            particleCount: 200,
+            angle: 60,
+            spread: 110,
+            origin: { x: 0.1, y: 0.7 },
+            colors: ['#FF69B4', '#9370DB', '#4169E1', '#32CD32', '#FFD700', '#FF8C00'],
+            scalar: 1.4,
+            drift: 0.1,
+            gravity: 0.9,
+            ticks: 350
+          });
+          console.log('🎊 DEBUG: Second confetti burst executed');
+        }
+      }, 200);
+      
+      // Third burst from right side
+      setTimeout(() => {
+        if (confetti && typeof confetti === 'function') {
+          confetti({
+            particleCount: 200,
+            angle: 120,
+            spread: 110,
+            origin: { x: 0.9, y: 0.7 },
+            colors: ['#FF69B4', '#9370DB', '#4169E1', '#32CD32', '#FFD700', '#FF8C00'],
+            scalar: 1.4,
+            drift: -0.1,
+            gravity: 0.9,
+            ticks: 350
+          });
+          console.log('🎊 DEBUG: Third confetti burst executed');
+        }
+      }, 400);
+      
+      // Fourth burst from top center for shower effect
+      setTimeout(() => {
+        if (confetti && typeof confetti === 'function') {
+          confetti({
+            particleCount: 150,
+            spread: 160,
+            origin: { x: 0.5, y: 0.1 },
+            colors: ['#FFD700', '#FF69B4', '#9370DB', '#32CD32'],
+            scalar: 1.2,
+            drift: 0,
+            gravity: 0.6,
+            ticks: 600
+          });
+          console.log('🎊 DEBUG: Fourth confetti burst executed');
+        }
+      }, 600);
+      
+      // Fifth burst for extra celebration
+      setTimeout(() => {
+        if (confetti && typeof confetti === 'function') {
+          confetti({
+            particleCount: 100,
+            spread: 80,
+            origin: { x: 0.5, y: 0.8 },
+            colors: ['#9370DB', '#FF1493', '#00CED1', '#FFD700'],
+            scalar: 1.1,
+            drift: 0,
+            gravity: 0.7,
+            ticks: 400
+          });
+          console.log('🎊 DEBUG: Fifth confetti burst executed');
+        }
+      }, 800);
+      
+      console.log('🎊 Party plan celebration confetti sequence started!');
+    } else {
+      console.warn('❌ Confetti instance not available or not a function:', {
+        confettiInstance,
+        confetti,
+        confettiType: typeof confetti
+      });
+    }
+  }, []);
 
   // API Helper Functions to replace server actions
   const updatePartyAPI = async (partyId: string, updates: any) => {
@@ -417,7 +541,7 @@ export default function PartyPlanPage() {
         partyData,
         checklist,
         guests,
-        invitations,
+        [], // No separate invitations - RSVP status is in guests
         budgetData,
         foodVendors
       );
@@ -694,6 +818,142 @@ export default function PartyPlanPage() {
       // CRITICAL: Set the current party ID for all subsequent operations
       setCurrentPartyId(party.id);
       
+      // Check if this is a newly created party (coming from wizard)
+      const checkForNewPartyConfetti = () => {
+        try {
+          console.log('🔍 DEBUG: Checking for new party confetti triggers...');
+          
+          // Check if we're coming from the create party wizard
+          const urlParams = new URLSearchParams(window.location.search);
+          const fromCreate = urlParams.get('created') === 'true';
+          const partyId = urlParams.get('id');
+          
+          console.log('🔍 DEBUG: URL parameters:', { fromCreate, partyId, currentPartyId: party.id });
+          
+          // Check localStorage for recently created party
+          const currentParty = localStorage.getItem('currentParty');
+          const lastCreatedParty = localStorage.getItem('lastCreatedParty');
+          
+          console.log('🔍 DEBUG: LocalStorage data:', {
+            currentParty: currentParty ? 'found' : 'not found',
+            lastCreatedParty: lastCreatedParty ? 'found' : 'not found',
+            hasTriggeredConfetti
+          });
+          
+          let shouldTriggerConfetti = false;
+          
+          if (fromCreate && partyId === party.id) {
+            console.log('🎉 DEBUG: New party detected from URL parameter');
+            shouldTriggerConfetti = true;
+          } else if (currentParty) {
+            try {
+              const currentPartyData = JSON.parse(currentParty);
+              const partyCreatedRecently = currentPartyData.timestamp && 
+                (Date.now() - currentPartyData.timestamp) < 30000; // Within 30 seconds
+              
+              console.log('🔍 DEBUG: Current party data:', {
+                partyId: currentPartyData.partyId,
+                timestamp: currentPartyData.timestamp,
+                partyCreatedRecently,
+                timeDiff: currentPartyData.timestamp ? Date.now() - currentPartyData.timestamp : 'no timestamp'
+              });
+              
+              if (currentPartyData.partyId === party.id && partyCreatedRecently) {
+                console.log('🎉 DEBUG: Recently created party detected from localStorage');
+                shouldTriggerConfetti = true;
+              }
+            } catch (parseError) {
+              console.warn('Error parsing currentParty data:', parseError);
+            }
+          } else if (lastCreatedParty) {
+            try {
+              const lastCreatedData = JSON.parse(lastCreatedParty);
+              const partyCreatedRecently = lastCreatedData.timestamp && 
+                (Date.now() - lastCreatedData.timestamp) < 60000; // Within 60 seconds
+              
+              console.log('🔍 DEBUG: Last created party data:', {
+                partyId: lastCreatedData.id,
+                timestamp: lastCreatedData.timestamp,
+                partyCreatedRecently,
+                timeDiff: lastCreatedData.timestamp ? Date.now() - lastCreatedData.timestamp : 'no timestamp'
+              });
+              
+              if (lastCreatedData.id === party.id && partyCreatedRecently) {
+                console.log('🎉 DEBUG: Recently created party detected from lastCreatedParty');
+                shouldTriggerConfetti = true;
+              }
+            } catch (parseError) {
+              console.warn('Error parsing lastCreatedParty data:', parseError);
+            }
+          }
+          
+          console.log('🔍 DEBUG: Final confetti decision:', {
+            shouldTriggerConfetti,
+            hasTriggeredConfetti,
+            confettiInstance: refAnimationInstance.current ? 'available' : 'not available'
+          });
+          
+          // Trigger confetti if this is a new party and we haven't triggered it yet
+          if (shouldTriggerConfetti && !hasTriggeredConfetti) {
+            console.log('🎊 DEBUG: Triggering confetti for new party!');
+            setHasTriggeredConfetti(true);
+            
+            // More robust confetti triggering with retry mechanism
+            const attemptConfetti = (retryCount = 0) => {
+              console.log(`🎊 DEBUG: Confetti attempt ${retryCount + 1}`);
+              
+              const confettiInstance = refAnimationInstance.current;
+              const confetti = typeof confettiInstance === 'function' 
+                ? confettiInstance 
+                : confettiInstance?.confetti;
+              
+              if (confetti && typeof confetti === 'function') {
+                try {
+                  console.log('🎊 DEBUG: Executing confetti animation...');
+                  triggerPartyPlanConfetti();
+                  console.log('🎊 Party plan confetti triggered for new party!');
+                } catch (confettiError) {
+                  console.warn('Failed to trigger party plan confetti:', confettiError);
+                }
+              } else if (retryCount < 5) {
+                console.log(`🎊 DEBUG: Confetti instance not ready, retrying in ${200 * (retryCount + 1)}ms...`);
+                console.log(`🔍 DEBUG: Current instance state:`, { confettiInstance, confetti });
+                setTimeout(() => attemptConfetti(retryCount + 1), 200 * (retryCount + 1));
+              } else {
+                console.error('❌ DEBUG: Confetti instance never became available after 5 retries');
+                console.error('❌ DEBUG: Final instance state:', { confettiInstance, confetti });
+              }
+            };
+            
+            // Start attempting confetti after 1 second delay
+            setTimeout(() => attemptConfetti(), 1000);
+            
+            // Clean up localStorage flags
+            setTimeout(() => {
+              try {
+                console.log('🧹 DEBUG: Cleaning up party creation flags...');
+                localStorage.removeItem('currentParty');
+                // Clean up URL parameter
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.delete('created');
+                window.history.replaceState({}, '', newUrl.toString());
+                console.log('🧹 DEBUG: Cleanup completed');
+              } catch (cleanupError) {
+                console.warn('Error cleaning up party creation flags:', cleanupError);
+              }
+            }, 5000); // Extended cleanup time
+          } else {
+            console.log('❌ DEBUG: Confetti not triggered because:', {
+              shouldTriggerConfetti,
+              hasTriggeredConfetti,
+              reason: !shouldTriggerConfetti ? 'no trigger condition met' : 'already triggered'
+            });
+          }
+        } catch (error) {
+          console.error('Error checking for new party confetti:', error);
+        }
+      };
+      
       // Set party data with all required fields for inspiration tab
       setPartyData({
         id: party.id,
@@ -713,7 +973,7 @@ export default function PartyPlanPage() {
       });
 
       // Set guests from database only
-      let finalGuestData: Guest[] = [];
+      let finalGuestData: ModernGuest[] = [];
       
       if (party.guests && party.guests.length > 0) {
         // Use database data
@@ -723,33 +983,15 @@ export default function PartyPlanPage() {
           email: guest.email || '',
           phone: guest.phone || '',
           type: guest.type,
-          age: guest.age || undefined,
+          rsvpStatus: guest.rsvpStatus || 'NOT_SENT',
+          sentAt: guest.sentAt ? new Date(guest.sentAt) : undefined,
+          respondedAt: guest.respondedAt ? new Date(guest.respondedAt) : undefined,
           notes: guest.notes || '',
         }));
         console.log('Loaded guests from database:', finalGuestData.length);
       }
       
       setGuests(finalGuestData);
-
-      // Set invitations from database only
-      let finalInvitationData: Invitation[] = [];
-      
-      if (party.invitations && party.invitations.length > 0) {
-        // Use database data
-        finalInvitationData = party.invitations.map((inv: any) => ({
-          id: inv.id,
-          guestId: inv.guestId,
-          guestName: inv.guest?.name || '',
-          status: inv.status,
-          sentAt: inv.sentAt ? new Date(inv.sentAt) : undefined,
-          respondedAt: inv.respondedAt ? new Date(inv.respondedAt) : undefined,
-          message: inv.message || '',
-          notes: inv.notes || '',
-        }));
-        console.log('Loaded invitations from database:', finalInvitationData.length);
-      }
-      
-      setInvitations(finalInvitationData);
 
       // Generate and load checklist
       const baseChecklist = generateBaseChecklist(party);
@@ -764,6 +1006,9 @@ export default function PartyPlanPage() {
       } else {
         setChecklist(baseChecklist);
       }
+      
+      // Check for new party confetti after setting all data
+      checkForNewPartyConfetti();
     };
 
     loadPartyData();
@@ -905,7 +1150,7 @@ export default function PartyPlanPage() {
   };
 
   // Database sync function for guests
-  const syncGuestsToDatabase = async (guestData: Guest[]) => {
+  const syncGuestsToDatabase = async (guestData: ModernGuest[]) => {
     if (!currentPartyId || !user) {
       console.log('Cannot sync: missing party ID or user authentication');
       return;
@@ -933,7 +1178,6 @@ export default function PartyPlanPage() {
             email: localGuest.email,
             phone: localGuest.phone,
             type: localGuest.type,
-            age: localGuest.age,
             notes: localGuest.notes
           });
           
@@ -954,7 +1198,6 @@ export default function PartyPlanPage() {
               dbGuest.email !== (localGuest.email || null) ||
               dbGuest.phone !== (localGuest.phone || null) ||
               dbGuest.type !== localGuest.type ||
-              dbGuest.age !== (localGuest.age || null) ||
               dbGuest.notes !== (localGuest.notes || null)
             ) {
               // Update existing guest
@@ -964,7 +1207,6 @@ export default function PartyPlanPage() {
                 email: localGuest.email || '',
                 phone: localGuest.phone || '',
                 type: localGuest.type,
-                age: localGuest.age,
                 notes: localGuest.notes || ''
               });
               
@@ -1001,7 +1243,7 @@ export default function PartyPlanPage() {
   };
 
   // Guest management functions
-  const handleAddGuest = async (guestData: Omit<Guest, 'id'>) => {
+  const handleAddGuest = async (guestData: Omit<ModernGuest, 'id' | 'rsvpStatus'>) => {
     if (!currentPartyId || !user) {
       console.error('Cannot add guest: missing party ID or user authentication');
       return;
@@ -1014,19 +1256,18 @@ export default function PartyPlanPage() {
         email: guestData.email,
         phone: guestData.phone,
         type: guestData.type,
-        age: guestData.age,
         notes: guestData.notes
       });
 
       if (result.success && result.guest) {
         // Add to local state with real database ID
-        const newGuest: Guest = {
+        const newGuest: ModernGuest = {
           id: result.guest.id,
           name: result.guest.name,
           email: result.guest.email || undefined,
           phone: result.guest.phone || undefined,
           type: result.guest.type,
-          age: result.guest.age || undefined,
+          rsvpStatus: 'NOT_SENT',
           notes: result.guest.notes || undefined,
         };
 
@@ -1043,7 +1284,7 @@ export default function PartyPlanPage() {
     }
   };
 
-  const handleEditGuest = async (id: string, guestData: Partial<Guest>) => {
+  const handleEditGuest = async (id: string, guestData: Partial<ModernGuest>) => {
     if (!currentPartyId || !user) {
       console.error('Cannot edit guest: missing party ID or user authentication');
       return;
@@ -1057,7 +1298,6 @@ export default function PartyPlanPage() {
           email: guestData.email || '',
           phone: guestData.phone || '',
           type: guestData.type || 'ADULT',
-          age: guestData.age,
           notes: guestData.notes || ''
         });
 
@@ -1101,113 +1341,59 @@ export default function PartyPlanPage() {
       // Update local state
       const updatedGuests = guests.filter(guest => guest.id !== id);
       setGuests(updatedGuests);
-      
-      // Also remove any invitations for this guest
-      const updatedInvitations = invitations.filter(inv => inv.guestId !== id);
-      setInvitations(updatedInvitations);
 
-      // Guest data is now managed directly through database
+      console.log('Guest deleted from local state');
     } catch (error) {
       console.error('Error deleting guest:', error);
     }
   };
 
-  const handleSendInvitation = (guestId: string, message: string) => {
-    const newInvitation: Invitation = {
-      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      guestId,
-      status: 'SENT',
-      sentAt: new Date(),
-      message
-    };
+  const handleSendInvitation = (guestId: string) => {
+    // Update guest's RSVP status to SENT
+    const updatedGuests = guests.map(guest => 
+      guest.id === guestId 
+        ? { ...guest, rsvpStatus: 'SENT' as const, sentAt: new Date() }
+        : guest
+    );
+    setGuests(updatedGuests);
     
-    const updatedInvitations = [...invitations.filter(inv => inv.guestId !== guestId), newInvitation];
-    setInvitations(updatedInvitations);
-    
-    if (typeof window !== 'undefined') {
-      // Invitation data is now managed directly through database
-    }
+    console.log('Invitation sent to guest:', guestId);
+    // TODO: Implement actual email sending via API
   };
 
-  const handleSendBulkInvitations = async (guestIds: string[], templateId: string, customMessage: string) => {
-    // Note: Bulk invitations are now handled by the BulkInvitations component directly via API
-    // This function is called after successful email sending to update local state
-    
-    console.log('Updating local invitation state after bulk send');
-    
-    // Re-fetch party data to get updated invitations from database
-    if (currentPartyId) {
-      try {
-        const result = await getPartyAPI(currentPartyId);
-        if (result.success && result.party) {
-          // Update local state with database invitations
-          const dbInvitations = result.party.invitations?.map((inv: any) => ({
-            id: inv.id,
-            guestId: inv.guestId,
-            guestName: inv.guest?.name || '',
-            status: inv.status,
-            sentAt: inv.sentAt ? new Date(inv.sentAt) : undefined,
-            respondedAt: inv.respondedAt ? new Date(inv.respondedAt) : undefined,
-            message: inv.customMessage || '',
-            notes: inv.notes || '',
-          })) || [];
-          
-          setInvitations(dbInvitations);
-          
-          // Invitation data is now managed directly through database
-        }
-      } catch (error) {
-        console.error('Error refreshing invitation data:', error);
-      }
-    }
-  };
-
-  const handleUpdateRSVP = async (invitationId: string, status: Invitation['status'], notes?: string) => {
+  const handleUpdateRSVP = async (guestId: string, status: ModernGuest['rsvpStatus'], notes?: string) => {
     if (!currentPartyId || !user) {
       console.error('Cannot update RSVP: missing party ID or user authentication');
       return;
     }
 
     try {
-      // Update RSVP in database first (only if it's a real database ID)
-      if (!invitationId.startsWith('inv_')) {
-        const result = await updateInvitationStatusAPI(invitationId, status as any, notes);
-        
-        if (result.success) {
-          console.log('RSVP updated successfully in database');
-        } else {
-          console.error('Failed to update RSVP in database');
-        }
-      }
-
-      // Update local state
-      const updatedInvitations = invitations.map(inv => 
-        inv.id === invitationId 
-          ? { ...inv, status, notes, respondedAt: new Date() }
-          : inv
+      // Update guest's RSVP status in local state
+      const updatedGuests = guests.map(guest => 
+        guest.id === guestId 
+          ? { ...guest, rsvpStatus: status, notes, respondedAt: new Date() }
+          : guest
       );
-      setInvitations(updatedInvitations);
+      setGuests(updatedGuests);
 
-      // Invitation data is now managed directly through database
+      console.log('RSVP updated for guest:', guestId, 'Status:', status);
+      // TODO: Implement database update for RSVP status
     } catch (error) {
       console.error('Error updating RSVP:', error);
     }
   };
 
-  const handleSendReminder = (guestId: string, message: string) => {
-    // In a real app, this would send an email reminder
-    console.log(`Sending reminder to guest ${guestId}:`, message);
-    // For now, just update the sent date
-    const updatedInvitations = invitations.map(inv => 
-      inv.guestId === guestId 
-        ? { ...inv, sentAt: new Date() }
-        : inv
+  const handleSendReminder = (guestId: string) => {
+    // Update guest with reminder timestamp
+    const updatedGuests = guests.map(guest => 
+      guest.id === guestId 
+        ? { ...guest, lastReminderSent: new Date() }
+        : guest
     );
-    setInvitations(updatedInvitations);
+    setGuests(updatedGuests);
     
-    if (typeof window !== 'undefined') {
-      // Invitation data is now managed directly through database
-    }
+    console.log('Reminder sent to guest:', guestId);
+    // TODO: Implement actual reminder sending via API
   };
 
   const getThemeDetails = () => {
@@ -1918,19 +2104,19 @@ export default function PartyPlanPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Invitations Sent</span>
                       <Badge variant="outline">
-                        {invitations.filter(inv => inv.status === 'SENT' || inv.status === 'ACCEPTED' || inv.status === 'DECLINED' || inv.status === 'MAYBE').length}
+                        {guests.filter(guest => ['SENT', 'ACCEPTED', 'DECLINED', 'MAYBE'].includes(guest.rsvpStatus)).length}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm">RSVPs Received</span>
                       <Badge variant="default">
-                        {invitations.filter(inv => inv.status === 'ACCEPTED' || inv.status === 'DECLINED' || inv.status === 'MAYBE').length}
+                        {guests.filter(guest => ['ACCEPTED', 'DECLINED', 'MAYBE'].includes(guest.rsvpStatus)).length}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Confirmed Attendees</span>
                       <Badge className="bg-green-600">
-                        {invitations.filter(inv => inv.status === 'ACCEPTED').length}
+                        {guests.filter(guest => guest.rsvpStatus === 'ACCEPTED').length}
                       </Badge>
                     </div>
                   </CardContent>
@@ -2336,56 +2522,20 @@ export default function PartyPlanPage() {
           </TabsContent>
 
 
-          {/* Guests Tab - Combined Guest Management and Invitations */}
+          {/* Guests Tab - Simplified RSVP System */}
           <TabsContent value="guests" className="space-y-6">
-            <Tabs defaultValue="manage" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="manage">Manage Guests</TabsTrigger>
-                <TabsTrigger value="bulk">Send Invitations</TabsTrigger>
-                <TabsTrigger value="rsvp">RSVP Tracking</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="manage" className="mt-6">
-                <GuestList
-                  partyId={partyData?.childName || 'party'}
-                  guests={guests}
-                  invitations={invitations}
-                  onAddGuest={handleAddGuest}
-                  onEditGuest={handleEditGuest}
-                  onDeleteGuest={handleDeleteGuest}
-                  onSendInvitation={handleSendInvitation}
-                  onUpdateRSVP={handleUpdateRSVP}
-                />
-              </TabsContent>
-              
-              <TabsContent value="bulk" className="mt-6">
-                <BulkInvitations
-                  partyId={currentPartyId || partyData?.childName || 'party'}
-                  childName={partyData?.childName || ''}
-                  childAge={partyData?.childAge ? parseInt(partyData.childAge.toString()) : 0}
-                  partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
-                  partyTime="2:00 PM"
-                  partyLocation="TBD"
-                  theme={partyData?.selectedTheme || ''}
-                  guests={guests}
-                  invitations={invitations}
-                  userId={user?.id}
-                  onSendBulkInvitations={handleSendBulkInvitations}
-                />
-              </TabsContent>
-              
-              <TabsContent value="rsvp" className="mt-6">
-                <RSVPTracker
-                  partyId={partyData?.childName || 'party'}
-                  childName={partyData?.childName || ''}
-                  partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
-                  guests={guests}
-                  invitations={invitations}
-                  onUpdateRSVP={handleUpdateRSVP}
-                  onSendReminder={handleSendReminder}
-                />
-              </TabsContent>
-            </Tabs>
+            <ModernGuestRSVP
+              partyId={currentPartyId || partyData?.childName || 'party'}
+              childName={partyData?.childName || ''}
+              partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
+              partyTime="2:00 PM"
+              partyLocation="TBD"
+              guests={guests}
+              onAddGuest={handleAddGuest}
+              onSendInvitation={handleSendInvitation}
+              onUpdateRSVP={handleUpdateRSVP}
+              onDeleteGuest={handleDeleteGuest}
+            />
           </TabsContent>
 
 
@@ -2963,6 +3113,21 @@ export default function PartyPlanPage() {
           }}
         />
       )}
+      
+      {/* Confetti Component for Party Plan Celebration */}
+      <ReactCanvasConfetti
+        onInit={getInstance}
+        style={{
+          position: 'fixed',
+          pointerEvents: 'none',
+          width: '100vw',
+          height: '100vh',
+          top: 0,
+          left: 0,
+          zIndex: 99999, // Maximum z-index for visibility
+          backgroundColor: 'transparent'
+        }}
+      />
     </div>
   );
 }
