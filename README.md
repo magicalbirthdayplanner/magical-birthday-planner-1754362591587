@@ -66,6 +66,30 @@ A modern, responsive web application designed to help parents plan magical birth
 - **📱 Responsive Design**: Mobile-first approach with seamless experience across devices
 
 ### Recently Added Features
+- **🧮 Enhanced Guest Management with Adult/Kid Breakdown**: Comprehensive guest tracking
+  - Adult and kid count breakdown for accurate planning
+  - Automatic calculations between adult and kid counts
+  - Visual summary showing adults vs kids ratio
+  - Improved form layout with all fields on one row
+  - Conditional display of breakdown fields for cleaner UI
+  - Real-time validation and synchronization
+  - Enhanced guest tracking in party summary
+
+- **🎨 Theme Selection UI Improvements**: Better theme browsing experience
+  - Stunning theme selection splash screen with animations
+  - Dynamic theme card design with visual indicators
+  - Improved filtering and sorting capabilities
+  - Enhanced theme preview with more details
+  - Confetti celebration on theme selection
+  - Mobile-responsive design for all screen sizes
+
+- **🐛 Guest Type Constraint Fix**: Database compatibility solution
+  - Fixed database constraint violations when adding guests
+  - Implementation of application-level type mapping
+  - Preservation of frontend guest types (Adult, Child, Family, Couple)
+  - Backwards compatibility with existing UI components
+  - Detailed SQL migration script for future deployments
+
 - **🤖 AI-Powered Theme Recommendations**: Revolutionary personalized theme suggestion system
   - OpenAI GPT-4o integration for intelligent theme generation
   - Personalized recommendations based on child's age, interests, and favorite colors
@@ -183,13 +207,17 @@ npm start
 
 ### 4. Enhanced Party Creation Wizard (`/create-party`)
 - **Step 1**: Child information input (name, age selection, gender, party date with calendar)
-- **Step 2**: Theme selection (Classic themes for quick setup or Custom themes with interests/colors)
-- **Step 3**: AI-powered theme selection with personalized recommendations
-- **Step 4**: Enhanced party details with new fields:
+- **Step 2**: Enhanced party details with improved layout:
+  - Single-row layout for zip code, guest count, and budget fields
+  - Adult/kid breakdown that appears conditionally when guest count is entered
+  - Auto-calculation between adult and kid counts
   - Budget with multi-currency support (USD, EUR, GBP, etc.)
   - Location with auto-country detection from zip code
-  - Guest count with validation
-  - **NEW: Party duration selection** (1-2 hours to 4+ hours)
+  - **NEW: Adult/Kid breakdown** for better guest planning
+- **Step 3**: Theme selection with improved UI:
+  - Classic themes for quick setup or Custom themes with interests/colors
+  - AI-powered theme selection with personalized recommendations
+  - New theme selection splash screen with animations
 - Interactive interests selection with 20+ categories
 - Smart AI recommendations based on age and interests
 - Inspiration board previews for each theme
@@ -429,12 +457,12 @@ The app is configured to work with Supabase for database/authentication and Open
 
 ## 🔮 Next Steps
 
-1. **User Authentication**: Implement Supabase auth for user accounts
-2. **Database Integration**: Migrate from localStorage to Supabase database
-3. **Guest Management**: Add RSVP and invitation features
-4. **AI Integration**: Add personalized suggestion engine
+1. **UI Polish**: Continue enhancing UI components for better user experience
+2. **Performance Optimization**: Improve loading times and optimize database queries
+3. **Additional Guest Features**: Add dietary restriction tracking and plus-one management
+4. **Theme Customization**: Add ability to customize existing themes
 5. **Mobile App**: Consider React Native implementation
-6. **Advanced Features**: Photo sharing, budget tracking, vendor recommendations
+6. **Advanced Features**: Photo sharing, more vendor integrations, printable party materials
 
 ## 📄 License
 
