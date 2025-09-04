@@ -36,6 +36,18 @@ interface Activity {
   source: 'AI_GENERATED' | 'USER_CREATED' | 'THEME_DEFAULT';
 }
 
+interface VenueData {
+  name: string;
+  address: string;
+  rating?: number;
+  distance?: string;
+  type?: 'home' | 'indoor' | 'outdoor' | 'specialty';
+  partySize?: string;
+  addOns?: string[];
+  placeId?: string;
+  photoUrl?: string;
+}
+
 interface ActivitiesTabProps {
   partyId: string;
   themeActivities?: string;
@@ -45,7 +57,7 @@ interface ActivitiesTabProps {
     theme: string;
     interests: string[];
     favoriteColors: string[];
-    venue?: string;
+    venue?: VenueData | 'indoor' | 'outdoor' | 'mixed';
     guestCount?: number;
   };
   onActivitiesChange?: (activities: Activity[]) => void;
@@ -213,7 +225,8 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
       }
       
       // Venue-based recommendations
-      if (venue === 'outdoor') {
+      const venueType = typeof venue === 'object' && venue ? venue.type : venue;
+      if (venueType === 'outdoor') {
         const outdoorActivities = activityList.filter(a => 
           a.venue === 'outdoor' || a.venue === 'both'
         );
