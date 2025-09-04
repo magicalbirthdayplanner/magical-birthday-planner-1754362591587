@@ -1,0 +1,26 @@
+{
+  "id": "prt_916647a54001TsMfzGBZvvS97L",
+  "messageID": "msg_91664578e001JEEb80zs61Shbr",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01EnJRz4nxtvTu4DFdLNS4Do",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "git fetch --all",
+      "description": "Fetch all remote branches and updates"
+    },
+    "output": "From https://github.com/magicalbirthdayplanner/magical-birthday-planner-1754362591587\n * [new branch]      development -> origin/development\n * [new branch]      production  -> origin/production\n * [new branch]      staging     -> origin/staging\n",
+    "metadata": {
+      "output": "From https://github.com/magicalbirthdayplanner/magical-birthday-planner-1754362591587\n * [new branch]      development -> origin/development\n * [new branch]      production  -> origin/production\n * [new branch]      staging     -> origin/staging\n",
+      "exit": 0,
+      "description": "Fetch all remote branches and updates"
+    },
+    "title": "git fetch --all",
+    "time": {
+      "start": 1757017308089,
+      "end": 1757017309600
+    }
+  }
+}
