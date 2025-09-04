@@ -1,6 +1,18 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+interface VenueData {
+  name: string;
+  address: string;
+  rating?: number;
+  distance?: string;
+  type?: 'home' | 'indoor' | 'outdoor' | 'specialty';
+  partySize?: string;
+  addOns?: string[];
+  placeId?: string;
+  photoUrl?: string;
+}
+
 interface PartyData {
   childName: string;
   childAge: string;
@@ -9,7 +21,7 @@ interface PartyData {
   budget?: number;
   zipCode?: string;
   guestCount?: number;
-  venue?: 'indoor' | 'outdoor' | 'mixed';
+  venue?: VenueData | 'indoor' | 'outdoor' | 'mixed';
   duration?: string;
 }
 
@@ -178,7 +190,7 @@ export function generatePartyPlanPDF(
     ['Party Date', partyData.partyDate.toLocaleDateString()],
     ['Theme', partyData.selectedTheme || 'No theme selected'],
     ['Guest Count', partyData.guestCount?.toString() || 'Not specified'],
-    ['Venue Type', partyData.venue || 'Not specified'],
+    ['Venue', typeof partyData.venue === 'object' && partyData.venue ? partyData.venue.name : partyData.venue || 'Not specified'],
     ['Duration', partyData.duration || 'Not specified'],
     ['Budget', partyData.budget ? `$${partyData.budget}` : 'Not specified'],
     ['Location', partyData.zipCode || 'Not specified']
