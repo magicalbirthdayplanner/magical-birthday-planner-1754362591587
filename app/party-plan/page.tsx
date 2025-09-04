@@ -74,6 +74,18 @@ import {
 import ReactCanvasConfetti from 'react-canvas-confetti';
 import Link from "next/link";
 
+interface VenueData {
+  name: string;
+  address: string;
+  rating?: number;
+  distance?: string;
+  type?: 'home' | 'indoor' | 'outdoor' | 'specialty';
+  partySize?: string;
+  addOns?: string[];
+  placeId?: string;
+  photoUrl?: string;
+}
+
 interface PartyData {
   id?: string;
   childName: string;
@@ -88,7 +100,7 @@ interface PartyData {
   guestCount?: number;
   adultCount?: number;
   kidCount?: number;
-  venue?: 'indoor' | 'outdoor' | 'mixed';
+  venue?: VenueData | 'indoor' | 'outdoor' | 'mixed';
   duration?: string;
   themeActivities?: string;
 }
@@ -166,11 +178,11 @@ export default function PartyPlanPage() {
   const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
   const [loading, setLoading] = useState(true);
   const [selectedVenueType, setSelectedVenueType] = useState<'home' | 'indoor' | 'outdoor' | 'specialty' | null>(null);
-  const [venues, setVenues] = useState<any[]>([]);
+  const [venues, setVenues] = useState<VenueData[]>([]);
   const [venueLoading, setVenueLoading] = useState(false);
   const [selectedHomeSize, setSelectedHomeSize] = useState<string>('');
   const [selectedHomeAddOns, setSelectedHomeAddOns] = useState<string[]>([]);
-  const [selectedVenue, setSelectedVenue] = useState<any>(null);
+  const [selectedVenue, setSelectedVenue] = useState<VenueData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentPartyId, setCurrentPartyId] = useState<string | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -207,7 +219,7 @@ export default function PartyPlanPage() {
     }
   };
 
-  const handleVenueSelect = (venue: any) => {
+  const handleVenueSelect = (venue: VenueData) => {
     setSelectedVenue(venue);
     console.log('Venue selected:', venue);
   };
@@ -241,7 +253,7 @@ export default function PartyPlanPage() {
   const handleHomeVenueSelect = () => {
     if (!selectedHomeSize) return;
     
-    const venueData = {
+    const venueData: VenueData = {
       name: 'Home Venue',
       address: 'Your Home',
       rating: 5,
