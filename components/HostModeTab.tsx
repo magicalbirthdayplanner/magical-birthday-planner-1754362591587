@@ -72,6 +72,18 @@ interface HostModeActivity {
   };
 }
 
+interface VenueData {
+  name: string;
+  address: string;
+  rating?: number;
+  distance?: string;
+  type?: 'home' | 'indoor' | 'outdoor' | 'specialty';
+  partySize?: string;
+  addOns?: string[];
+  placeId?: string;
+  photoUrl?: string;
+}
+
 interface HostModeTabProps {
   partyId: string;
   partyData?: {
@@ -80,7 +92,7 @@ interface HostModeTabProps {
     theme: string;
     interests: string[];
     favoriteColors: string[];
-    venue?: string;
+    venue?: VenueData | 'indoor' | 'outdoor' | 'mixed';
     guestCount?: number;
   };
 }

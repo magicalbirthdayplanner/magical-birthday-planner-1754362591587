@@ -2683,7 +2683,7 @@ export default function PartyPlanPage() {
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-1">
                                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                        <span className="text-sm font-medium">{venue.rating.toFixed(1)}</span>
+                                        <span className="text-sm font-medium">{venue.rating?.toFixed(1) || 'N/A'}</span>
                                       </div>
                                       <Badge variant="secondary" className="text-xs">
                                         {venue.distance}
@@ -2825,7 +2825,8 @@ export default function PartyPlanPage() {
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-green-600" />
                     <div className="flex-1">
-                      {partyData?.venue?.name || "No Venue Selected"}
+                      {typeof partyData?.venue === 'object' && partyData.venue?.name ? partyData.venue.name : 
+                       typeof partyData?.venue === 'string' ? partyData.venue : "No Venue Selected"}
                     </div>
                     {partyData?.venue && (
                       <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -2841,27 +2842,36 @@ export default function PartyPlanPage() {
                       <div>
                         <h4 className="font-semibold mb-2">Venue Details:</h4>
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm">{partyData.venue.address}</span>
-                          </div>
-                          {partyData.venue.rating && (
+                          {typeof partyData.venue === 'object' && partyData.venue.address && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-gray-500" />
+                              <span className="text-sm">{partyData.venue.address}</span>
+                            </div>
+                          )}
+                          {typeof partyData.venue === 'object' && partyData.venue.rating && (
                             <div className="flex items-center gap-2">
                               <Star className="w-4 h-4 text-yellow-400 fill-current" />
                               <span className="text-sm">{partyData.venue.rating.toFixed(1)} rating</span>
                             </div>
                           )}
-                          {partyData.venue.distance && (
+                          {typeof partyData.venue === 'object' && partyData.venue.distance && (
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-gray-600 dark:text-gray-400">
                                 {partyData.venue.distance}
                               </span>
                             </div>
                           )}
-                          {partyData.venue.partySize && (
+                          {typeof partyData.venue === 'object' && partyData.venue.partySize && (
                             <div className="flex items-center gap-2">
                               <Users className="w-4 h-4 text-gray-500" />
                               <span className="text-sm">{partyData.venue.partySize} party</span>
+                            </div>
+                          )}
+                          {typeof partyData.venue === 'string' && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {partyData.venue.charAt(0).toUpperCase() + partyData.venue.slice(1)} venue
+                              </span>
                             </div>
                           )}
                         </div>
