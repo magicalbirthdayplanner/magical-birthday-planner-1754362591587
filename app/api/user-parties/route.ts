@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
+export const dynamic = 'force-dynamic';
+
 // Multi-layered authentication helper (copied from parties route)
 async function getAuthenticatedSupabaseClient(request: NextRequest) {
   const accessToken = request.headers.get('Authorization')?.replace('Bearer ', '');
