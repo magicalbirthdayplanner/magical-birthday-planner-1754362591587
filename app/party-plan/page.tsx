@@ -70,6 +70,7 @@ import {
   Trees,
   Heart,
   Loader2,
+  HelpCircle
 } from "lucide-react";
 import ReactCanvasConfetti from 'react-canvas-confetti';
 import Link from "next/link";
@@ -2087,6 +2088,41 @@ export default function PartyPlanPage() {
                             </span>
                           </div>
                         </div>
+                        
+                        {/* Venue Selection Button */}
+                        <div className="pt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              // Enhanced navigation to venue tab
+                              let success = false;
+                              
+                              const venueTab = document.querySelector('[value="venue"]') as HTMLButtonElement;
+                              if (venueTab && !success) {
+                                venueTab.click();
+                                success = true;
+                              }
+                              
+                              if (!success) {
+                                const tabButtons = document.querySelectorAll('[role="tab"]');
+                                for (const button of Array.from(tabButtons)) {
+                                  if (button.textContent?.trim().toLowerCase().includes('venue')) {
+                                    (button as HTMLButtonElement).click();
+                                    success = true;
+                                    break;
+                                  }
+                                }
+                              }
+                              
+                              console.log(success ? 'Successfully navigated to venue tab' : 'Failed to find venue tab');
+                            }}
+                          >
+                            <MapPin className="w-4 h-4 mr-2" />
+                            {partyData?.venue ? 'Change Venue' : 'Select Venue'}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -2130,7 +2166,75 @@ export default function PartyPlanPage() {
                           </div>
                         ) : (
                           <div className="text-center py-2">
-                            <p className="text-gray-600 dark:text-gray-400 text-sm">No theme selected</p>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">No theme selected</p>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => {
+                                // Enhanced navigation to themes tab
+                                let success = false;
+                                
+                                const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
+                                if (themesTab && !success) {
+                                  themesTab.click();
+                                  success = true;
+                                }
+                                
+                                if (!success) {
+                                  const tabButtons = document.querySelectorAll('[role="tab"]');
+                                  for (const button of Array.from(tabButtons)) {
+                                    if (button.textContent?.trim().toLowerCase().includes('themes')) {
+                                      (button as HTMLButtonElement).click();
+                                      success = true;
+                                      break;
+                                    }
+                                  }
+                                }
+                                
+                                console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
+                              }}
+                            >
+                              <Palette className="w-4 h-4 mr-2" />
+                              Select Theme
+                            </Button>
+                          </div>
+                        )}
+                        
+                        {/* Theme Selection Button - Show when theme is selected */}
+                        {themeDetails && (
+                          <div className="pt-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => {
+                                // Enhanced navigation to themes tab
+                                let success = false;
+                                
+                                const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
+                                if (themesTab && !success) {
+                                  themesTab.click();
+                                  success = true;
+                                }
+                                
+                                if (!success) {
+                                  const tabButtons = document.querySelectorAll('[role="tab"]');
+                                  for (const button of Array.from(tabButtons)) {
+                                    if (button.textContent?.trim().toLowerCase().includes('themes')) {
+                                      (button as HTMLButtonElement).click();
+                                      success = true;
+                                      break;
+                                    }
+                                  }
+                                }
+                                
+                                console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
+                              }}
+                            >
+                              <Palette className="w-4 h-4 mr-2" />
+                              Change Theme
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -2176,6 +2280,22 @@ export default function PartyPlanPage() {
                             </Badge>
                           </div>
                         </div>
+                        
+                        {/* Guest Management Button */}
+                        <div className="pt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              const guestsTab = document.querySelector('[value="guests"]') as HTMLButtonElement;
+                              if (guestsTab) guestsTab.click();
+                            }}
+                          >
+                            <Users className="w-4 h-4 mr-2" />
+                            Manage Guests ({guests.length})
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -2207,6 +2327,31 @@ export default function PartyPlanPage() {
                     >
                       <Download className="h-4 w-4 mr-2" />
                       Download PDF
+                    </Button>
+                    
+                    {/* Timeline Button */}
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                      onClick={() => {
+                        const timelineTab = document.querySelector('[value="timeline"]') as HTMLButtonElement;
+                        if (timelineTab) timelineTab.click();
+                      }}
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      View Timeline
+                    </Button>
+                    
+                    {/* Help Button */}
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={() => {
+                        // You can implement help functionality here
+                        alert('Help feature coming soon! For now, you can explore the different tabs to plan your party.');
+                      }}
+                    >
+                      <HelpCircle className="h-4 w-4 mr-2" />
+                      Help & Support
                     </Button>
                     
                     {/* Additional Quick Actions - Only show if tabs are available */}
