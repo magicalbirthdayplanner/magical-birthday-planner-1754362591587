@@ -2040,222 +2040,156 @@ export default function PartyPlanPage() {
           {/* Overview Tab */}
                       <TabsContent value="overview" className="space-y-4 sm:space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {/* Theme Card */}
+                {/* Card 1: Child & Party Details */}
                 <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <span className="text-2xl">{themeDetails?.emoji || "🎉"}</span>
+                      <span className="text-2xl">🎂</span>
                       <div className="flex-1">
-                        {themeDetails?.name || "No Theme Selected"} 
-                        {themeDetails ? " Theme" : ""}
+                        Party Details
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {/* Child Information */}
+                      <div>
+                        <h4 className="font-semibold mb-3 text-lg">Birthday Child</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Name</span>
+                            <span className="font-medium">{partyData?.childName || 'Not specified'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Age</span>
+                            <span className="font-medium">{partyData?.childAge || 'Not specified'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Party Date</span>
+                            <span className="font-medium">
+                              {partyData?.partyDate ? new Date(partyData.partyDate).toLocaleDateString() : 'Not set'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <h4 className="font-semibold mb-3 text-lg">Party Info</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Location</span>
+                            <span className="font-medium">{partyData?.zipCode || 'Not specified'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Budget</span>
+                            <span className="font-medium">
+                              {partyData?.budget ? `$${partyData.budget}` : 'Not set'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card 2: Theme & Guest Summary */}
+                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <span className="text-2xl">{themeDetails?.emoji || "🎨"}</span>
+                      <div className="flex-1">
+                        Theme & Guests
                       </div>
                       {themeDetails && (
                         <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                           <Star className="w-3 h-3 mr-1" />
-                          Selected
+                          Theme Set
                         </Badge>
                       )}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {themeDetails ? (
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-semibold mb-2">Color Palette:</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {themeDetails?.colors.map((color, index) => (
-                              <Badge key={index} variant="secondary">{color}</Badge>
-                            ))}
+                    <div className="space-y-4">
+                      {/* Theme Section */}
+                      <div>
+                        <h4 className="font-semibold mb-3 text-lg">Selected Theme</h4>
+                        {themeDetails ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl">{themeDetails.emoji}</span>
+                              <span className="font-medium">{themeDetails.name}</span>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Color Palette:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {themeDetails.colors.map((color, index) => (
+                                  <Badge key={index} variant="secondary" className="text-xs">{color}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-2">
+                            <p className="text-gray-600 dark:text-gray-400 text-sm">No theme selected</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <h4 className="font-semibold mb-3 text-lg">Guest Summary</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Total Guests</span>
+                            <Badge variant="secondary">{guests.length}</Badge>
+                          </div>
+                          
+                          {/* Adults/Kids Breakdown */}
+                          {(partyData?.adultCount || partyData?.kidCount) && (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                                  <User className="h-3 w-3" />
+                                  Adults
+                                </span>
+                                <Badge variant="outline">{partyData.adultCount || 0}</Badge>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                                  <Baby className="h-3 w-3" />
+                                  Kids
+                                </span>
+                                <Badge variant="outline">{partyData.kidCount || 0}</Badge>
+                              </div>
+                            </>
+                          )}
+                          
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">RSVPs Received</span>
+                            <Badge variant="default">
+                              {guests.filter(guest => ['ACCEPTED', 'DECLINED', 'MAYBE'].includes(guest.rsvpStatus)).length}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Confirmed</span>
+                            <Badge className="bg-green-600">
+                              {guests.filter(guest => guest.rsvpStatus === 'ACCEPTED').length}
+                            </Badge>
                           </div>
                         </div>
-                        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              // Enhanced navigation with multiple robust fallback methods
-                              let success = false;
-                              
-                              // Method 1: Direct value selector
-                              const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
-                              if (themesTab && !success) {
-                                themesTab.click();
-                                success = true;
-                              }
-                              
-                              // Method 2: Find by role="tab" and text content
-                              if (!success) {
-                                const tabButtons = document.querySelectorAll('[role="tab"]');
-                                for (const button of Array.from(tabButtons)) {
-                                  if (button.textContent?.trim().toLowerCase().includes('themes')) {
-                                    (button as HTMLButtonElement).click();
-                                    success = true;
-                                    break;
-                                  }
-                                }
-                              }
-                              
-                              // Method 3: Find by data-state attribute and text content
-                              if (!success) {
-                                const allButtons = document.querySelectorAll('button');
-                                for (const button of Array.from(allButtons)) {
-                                  if (button.textContent?.trim().toLowerCase() === 'themes' && 
-                                      button.getAttribute('data-state') !== null) {
-                                    button.click();
-                                    success = true;
-                                    break;
-                                  }
-                                }
-                              }
-                              
-                              // Method 4: Direct class-based search for TabsTrigger
-                              if (!success) {
-                                const triggers = document.querySelectorAll('[class*="TabsTrigger"], [class*="tabs-trigger"]');
-                                for (const trigger of Array.from(triggers)) {
-                                  if (trigger.textContent?.trim().toLowerCase().includes('themes')) {
-                                    (trigger as HTMLButtonElement).click();
-                                    success = true;
-                                    break;
-                                  }
-                                }
-                              }
-                              
-                              console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
-                            }}
-                            className="w-full"
-                          >
-                            <Palette className="w-4 h-4 mr-2" />
-                            Change Theme
-                          </Button>
-                        </div>
                       </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-gray-600 dark:text-gray-400 mb-3">
-                          No theme selected yet
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            // Enhanced navigation with multiple robust fallback methods
-                            let success = false;
-                            
-                            // Method 1: Direct value selector
-                            const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
-                            if (themesTab && !success) {
-                              themesTab.click();
-                              success = true;
-                            }
-                            
-                            // Method 2: Find by role="tab" and text content
-                            if (!success) {
-                              const tabButtons = document.querySelectorAll('[role="tab"]');
-                              for (const button of Array.from(tabButtons)) {
-                                if (button.textContent?.trim().toLowerCase().includes('themes')) {
-                                  (button as HTMLButtonElement).click();
-                                  success = true;
-                                  break;
-                                }
-                              }
-                            }
-                            
-                            // Method 3: Find by data-state attribute and text content
-                            if (!success) {
-                              const allButtons = document.querySelectorAll('button');
-                              for (const button of Array.from(allButtons)) {
-                                if (button.textContent?.trim().toLowerCase() === 'themes' && 
-                                    button.getAttribute('data-state') !== null) {
-                                  button.click();
-                                  success = true;
-                                  break;
-                                }
-                              }
-                            }
-                            
-                            // Method 4: Direct class-based search for TabsTrigger
-                            if (!success) {
-                              const triggers = document.querySelectorAll('[class*="TabsTrigger"], [class*="tabs-trigger"]');
-                              for (const trigger of Array.from(triggers)) {
-                                if (trigger.textContent?.trim().toLowerCase().includes('themes')) {
-                                  (trigger as HTMLButtonElement).click();
-                                  success = true;
-                                  break;
-                                }
-                              }
-                            }
-                            
-                            console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
-                          }}
-                          className="w-full"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Select Theme
-                        </Button>
-                      </div>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
 
-                {/* Guest Stats */}
+                {/* Card 3: Share & Export */}
                 <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      Guest Overview
+                      <span className="text-2xl">📤</span>
+                      <div className="flex-1">
+                        Share & Export
+                      </div>
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Total Guests</span>
-                      <Badge variant="secondary">{guests.length}</Badge>
-                    </div>
-                    
-                    {/* Adults/Kids Breakdown */}
-                    {(partyData?.adultCount || partyData?.kidCount) && (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            Adults
-                          </span>
-                          <Badge variant="outline">{partyData.adultCount || 0}</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm flex items-center gap-1">
-                            <Baby className="h-3 w-3" />
-                            Kids
-                          </span>
-                          <Badge variant="outline">{partyData.kidCount || 0}</Badge>
-                        </div>
-                      </>
-                    )}
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Invitations Sent</span>
-                      <Badge variant="outline">
-                        {guests.filter(guest => ['SENT', 'ACCEPTED', 'DECLINED', 'MAYBE'].includes(guest.rsvpStatus)).length}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">RSVPs Received</span>
-                      <Badge variant="default">
-                        {guests.filter(guest => ['ACCEPTED', 'DECLINED', 'MAYBE'].includes(guest.rsvpStatus)).length}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Confirmed Attendees</span>
-                      <Badge className="bg-green-600">
-                        {guests.filter(guest => guest.rsvpStatus === 'ACCEPTED').length}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Actions Card - Dynamic content based on available tabs */}
-                <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <Button 
@@ -2274,17 +2208,8 @@ export default function PartyPlanPage() {
                       <Download className="h-4 w-4 mr-2" />
                       Download PDF
                     </Button>
-                    <Button 
-                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                      onClick={() => {
-                        const guestsTab = document.querySelector('[value="guests"]') as HTMLButtonElement;
-                        if (guestsTab) guestsTab.click();
-                      }}
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      Manage Guests ({guests.length})
-                    </Button>
-                    {/* Activities Quick Action - Only show if activities tab is available */}
+                    
+                    {/* Additional Quick Actions - Only show if tabs are available */}
                     {isTabAllowed('activities') && (
                       <Button 
                         className="w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white"
@@ -2297,7 +2222,6 @@ export default function PartyPlanPage() {
                         Plan Activities
                       </Button>
                     )}
-                    {/* Vendor Suggestions Quick Action - Only show if vendor-suggestions tab is available */}
                     {isTabAllowed('vendor-suggestions') && (
                       <Button 
                         className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white"
