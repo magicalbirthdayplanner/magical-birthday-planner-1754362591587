@@ -225,11 +225,11 @@ export default function PartyPlanPage() {
   };
 
   const handleAddVenueToParty = async () => {
-    if (!selectedVenue) return;
+    if (!selectedVenue || !partyData) return;
     
     try {
       // Update party data with venue information
-      const updatedPartyData = {
+      const updatedPartyData: PartyData = {
         ...partyData,
         venue: selectedVenue
       };
@@ -268,11 +268,11 @@ export default function PartyPlanPage() {
   };
 
   const handleAddHomeVenueToParty = async () => {
-    if (!selectedVenue || selectedVenue.type !== 'home') return;
+    if (!selectedVenue || selectedVenue.type !== 'home' || !partyData) return;
     
     try {
       // Update party data with home venue information
-      const updatedPartyData = {
+      const updatedPartyData: PartyData = {
         ...partyData,
         venue: selectedVenue
       };
