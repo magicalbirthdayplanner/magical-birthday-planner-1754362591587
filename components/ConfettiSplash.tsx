@@ -1,0 +1,48 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import ConfettiCanvas from '@cwahlers/react-confetti-canvas';
+
+interface ConfettiSplashProps {
+  isOpen: boolean;
+  onClose: () => void;
+  duration?: number; // in milliseconds, default 3000
+}
+
+export default function ConfettiSplash({ 
+  isOpen, 
+  onClose, 
+  duration = 3000
+}: ConfettiSplashProps) {
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Auto-close after specified duration
+  useEffect(() => {
+    if (isOpen) {
+      setShowConfetti(true);
+      const timer = setTimeout(() => {
+        setShowConfetti(false);
+        setTimeout(() => {
+          onClose();
+        }, 500); // Allow confetti to fade out
+      }, duration);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, duration, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 pointer-events-none">
+      {showConfetti && (
+        <ConfettiCanvas
+          colors={['#FFD700', '#FF69B4', '#00BFFF', '#32CD32', '#9370DB', '#FF4500', '#FF1493', '#00CED1']}
+          duration={3000}
+          paperCount={100}
+          ribbonCount={20}
+        />
+      )}
+    </div>
+  );
+}

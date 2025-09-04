@@ -25,8 +25,9 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
       'Guest management & RSVP tracking',
       'Smart checklist & timeline',
       'Basic party overview',
+      'Venue selection assistance',
     ],
-    allowedTabs: ['overview', 'themes', 'guests', 'timeline', 'checklist']
+    allowedTabs: ['overview', 'venue', 'themes', 'guests', 'timeline', 'checklist']
   },
   PLUS: {
     name: 'PLUS',
@@ -40,7 +41,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
       'Advanced guest coordination',
       'Enhanced timeline features',
     ],
-    allowedTabs: ['overview', 'themes', 'guests', 'timeline', 'checklist', 'activities', 'host-mode']
+    allowedTabs: ['overview', 'venue', 'themes', 'guests', 'timeline', 'checklist', 'activities', 'host-mode']
   },
   PRO: {
     name: 'PRO',

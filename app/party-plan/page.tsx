@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ModernGuestRSVP, { ModernGuest } from "@/components/ModernGuestRSVP";
 import SimpleBudgetTracker from "@/components/SimpleBudgetTracker";
@@ -64,7 +66,10 @@ import {
   Crown,
   Lightbulb,
   Building,
+  Building2,
+  Trees,
   Heart,
+  Loader2,
 } from "lucide-react";
 import ReactCanvasConfetti from 'react-canvas-confetti';
 import Link from "next/link";
@@ -145,6 +150,7 @@ const themeData = {
 
 
 export default function PartyPlanPage() {
+  const router = useRouter();
   const { user, session } = useAuth();
   const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();
   const [partyData, setPartyData] = useState<PartyData | null>(null);
@@ -159,6 +165,12 @@ export default function PartyPlanPage() {
   const [timelineDensity, setTimelineDensity] = useState<'compact' | 'expanded'>('expanded');
   const [collapsedSwimlanes, setCollapsedSwimlanes] = useState<Set<string>>(new Set(['Venue and RSVP', 'Decorations', 'Planning', 'Setup', 'Food', 'Gifts', 'Documentation']));
   const [loading, setLoading] = useState(true);
+  const [selectedVenueType, setSelectedVenueType] = useState<'home' | 'indoor' | 'outdoor' | 'specialty' | null>(null);
+  const [venues, setVenues] = useState<any[]>([]);
+  const [venueLoading, setVenueLoading] = useState(false);
+  const [selectedHomeSize, setSelectedHomeSize] = useState<string>('');
+  const [selectedHomeAddOns, setSelectedHomeAddOns] = useState<string[]>([]);
+  const [selectedVenue, setSelectedVenue] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentPartyId, setCurrentPartyId] = useState<string | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -173,6 +185,111 @@ export default function PartyPlanPage() {
     console.log('🗿 DEBUG: Confetti instance stored in ref');
   }, []);
   
+  const handleVenueTypeSelect = async (type: 'home' | 'indoor' | 'outdoor' | 'specialty') => {
+    setSelectedVenueType(type);
+    
+    if (type === 'home') {
+      return; // Show home venue options
+    }
+    
+    // Fetch venues for other types
+    setVenueLoading(true);
+    try {
+      const response = await fetch(`/api/venues?zip=${partyData?.zipCode || '48226'}&category=${type}`);
+      if (!response.ok) throw new Error('Failed to fetch venues');
+      
+      const data = await response.json();
+      setVenues(data);
+    } catch (err) {
+      console.error('Error fetching venues:', err);
+    } finally {
+      setVenueLoading(false);
+    }
+  };
+
+  const handleVenueSelect = (venue: any) => {
+    setSelectedVenue(venue);
+    console.log('Venue selected:', venue);
+  };
+
+  const handleAddVenueToParty = async () => {
+    if (!selectedVenue) return;
+    
+    try {
+      // Update party data with venue information
+      const updatedPartyData = {
+        ...partyData,
+        venue: selectedVenue
+      };
+      
+      setPartyData(updatedPartyData);
+      
+      // Show success message
+      alert(`Venue "${selectedVenue.name}" added to your party!`);
+      
+      // Reset venue selection state
+      setSelectedVenueType(null);
+      setVenues([]);
+      setSelectedVenue(null);
+      
+    } catch (error) {
+      console.error('Error adding venue to party:', error);
+      alert('Failed to add venue to party. Please try again.');
+    }
+  };
+
+  const handleHomeVenueSelect = () => {
+    if (!selectedHomeSize) return;
+    
+    const venueData = {
+      name: 'Home Venue',
+      address: 'Your Home',
+      rating: 5,
+      distance: '0 miles',
+      type: 'home',
+      partySize: selectedHomeSize,
+      addOns: selectedHomeAddOns
+    };
+    
+    setSelectedVenue(venueData);
+    console.log('Home venue selected:', venueData);
+  };
+
+  const handleAddHomeVenueToParty = async () => {
+    if (!selectedVenue || selectedVenue.type !== 'home') return;
+    
+    try {
+      // Update party data with home venue information
+      const updatedPartyData = {
+        ...partyData,
+        venue: selectedVenue
+      };
+      
+      setPartyData(updatedPartyData);
+      
+      // Show success message
+      alert(`Home venue added to your party!`);
+      
+      // Reset venue selection state
+      setSelectedVenueType(null);
+      setSelectedHomeSize('');
+      setSelectedHomeAddOns([]);
+      setSelectedVenue(null);
+      
+    } catch (error) {
+      console.error('Error adding home venue to party:', error);
+      alert('Failed to add home venue to party. Please try again.');
+    }
+  };
+
+  const handleVenueBack = () => {
+    setSelectedVenueType(null);
+    setVenues([]);
+    setSelectedHomeSize('');
+    setSelectedHomeAddOns([]);
+    setSelectedVenue(null);
+  };
+
   const triggerPartyPlanConfetti = useCallback(() => {
     console.log('🎉 DEBUG: triggerPartyPlanConfetti function called');
     console.log('🎉 Triggering party plan celebration confetti...');
@@ -400,6 +517,14 @@ export default function PartyPlanPage() {
       requiredPlan: 'STARTER' // Included in all plans
     },
     {
+      id: 'venue',
+      label: 'Venue',
+      icon: MapPin,
+      gradient: 'from-green-500 to-emerald-500',
+      hoverColor: 'bg-green-50 dark:bg-green-900/20',
+      requiredPlan: 'STARTER' // Now included in all plans as 2nd tab
+    },
+    {
       id: 'themes',
       label: 'Themes',
       icon: Palette,
@@ -453,14 +578,6 @@ export default function PartyPlanPage() {
       icon: Building,
       gradient: 'from-orange-500 to-red-500',
       hoverColor: 'bg-orange-50 dark:bg-orange-900/20',
-      requiredPlan: 'PRO' // Pro plan only
-    },
-    {
-      id: 'venue',
-      label: 'Venue',
-      icon: MapPin,
-      gradient: 'from-green-500 to-emerald-500',
-      hoverColor: 'bg-green-50 dark:bg-green-900/20',
       requiredPlan: 'PRO' // Pro plan only
     },
     {
@@ -971,6 +1088,7 @@ export default function PartyPlanPage() {
         duration: party.duration || '2-3 hours',
         themeActivities: party.themeActivities || undefined,
       });
+
 
       // Set guests from database only
       let finalGuestData: ModernGuest[] = [];
@@ -2276,7 +2394,7 @@ export default function PartyPlanPage() {
             </Card>
           </ProtectedTabContent>
 
-          {/* Venue Tab - NEW PRO FEATURE */}
+          {/* Venue Tab - INLINE SELECTION */}
           <ProtectedTabContent tabName="venue" className="space-y-6">
             <Card className="border-0 shadow-lg dark:bg-slate-800/90">
               <CardHeader>
@@ -2289,38 +2407,300 @@ export default function PartyPlanPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid gap-4">
-                  <Card className="p-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Home className="h-5 w-5" />
-                      Indoor Venues
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                      Community centers, party halls, and indoor play spaces
+                {!selectedVenueType ? (
+                  // Initial venue type selection
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                      Choose your venue type (searching near ZIP code: {partyData?.zipCode || '48226'})
                     </p>
-                    <Button size="sm" className="mt-3">Browse Indoor Venues</Button>
-                  </Card>
-                  <Card className="p-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Star className="h-5 w-5" />
-                      Outdoor Venues
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                      Parks, gardens, and outdoor party spaces
-                    </p>
-                    <Button size="sm" className="mt-3">Browse Outdoor Venues</Button>
-                  </Card>
-                  <Card className="p-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Gift className="h-5 w-5" />
-                      Specialty Venues
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                      Theme-specific venues like trampoline parks, bowling alleys
-                    </p>
-                    <Button size="sm" className="mt-3">Browse Specialty Venues</Button>
-                  </Card>
-                </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Home Venue - Featured */}
+                      <Card 
+                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400"
+                        onClick={() => handleVenueTypeSelect('home')}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900">
+                              <Home className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900 dark:text-white">Home Venue</h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Host at your place</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Indoor Venues */}
+                      <Card 
+                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-green-300"
+                        onClick={() => handleVenueTypeSelect('indoor')}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900">
+                              <Building2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900 dark:text-white">Indoor Venues</h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Community centers, party halls</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Outdoor Venues */}
+                      <Card 
+                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-blue-300"
+                        onClick={() => handleVenueTypeSelect('outdoor')}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-blue-900 dark:to-cyan-900">
+                              <Trees className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900 dark:text-white">Outdoor Venues</h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Parks, gardens, outdoor spaces</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Specialty Venues */}
+                      <Card 
+                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-yellow-300"
+                        onClick={() => handleVenueTypeSelect('specialty')}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900 dark:to-orange-900">
+                              <Star className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900 dark:text-white">Specialty Venues</h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Trampoline parks, bowling alleys</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                ) : selectedVenueType === 'home' ? (
+                  // Home venue selection
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={handleVenueBack}>
+                        ← Back
+                      </Button>
+                      <h3 className="text-lg font-semibold">Home Venue Setup</h3>
+                    </div>
+
+                    {/* Party Size Selection */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900 dark:text-white">Party Size</h4>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { id: 'small', label: 'Small', guestRange: '5-15 guests', icon: <Users className="w-4 h-4" /> },
+                          { id: 'medium', label: 'Medium', guestRange: '16-30 guests', icon: <Users className="w-5 h-5" /> },
+                          { id: 'large', label: 'Large', guestRange: '31+ guests', icon: <Users className="w-6 h-6" /> }
+                        ].map((size) => (
+                          <Card
+                            key={size.id}
+                            className={cn(
+                              "cursor-pointer transition-all duration-200 border-2",
+                              selectedHomeSize === size.id
+                                ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                                : "border-gray-200 dark:border-gray-700 hover:border-purple-300"
+                            )}
+                            onClick={() => setSelectedHomeSize(size.id)}
+                          >
+                            <CardContent className="p-3 text-center">
+                              <div className="mx-auto mb-2 p-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-800 dark:to-pink-800">
+                                <div className="text-purple-600 dark:text-purple-400">
+                                  {size.icon}
+                                </div>
+                              </div>
+                              <h5 className="font-medium text-sm">{size.label}</h5>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">{size.guestRange}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Quick Add-ons */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900 dark:text-white">Quick Add-ons (Optional)</h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { id: 'decorations', name: 'Decorations', price: 'From $50', icon: <Sparkles className="w-4 h-4" /> },
+                          { id: 'catering', name: 'Catering', price: 'From $15/person', icon: <Utensils className="w-4 h-4" /> },
+                          { id: 'rentals', name: 'Equipment', price: 'From $100', icon: <Gift className="w-4 h-4" /> },
+                          { id: 'photography', name: 'Photography', price: 'From $200', icon: <Camera className="w-4 h-4" /> }
+                        ].map((addOn) => (
+                          <div
+                            key={addOn.id}
+                            className={cn(
+                              "flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all duration-200",
+                              selectedHomeAddOns.includes(addOn.id)
+                                ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                                : "border-gray-200 dark:border-gray-700 hover:border-purple-300"
+                            )}
+                            onClick={() => setSelectedHomeAddOns(prev => 
+                              prev.includes(addOn.id) 
+                                ? prev.filter(id => id !== addOn.id)
+                                : [...prev, addOn.id]
+                            )}
+                          >
+                            <Checkbox
+                              checked={selectedHomeAddOns.includes(addOn.id)}
+                              className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                            />
+                            <div className="flex items-center gap-2 flex-1">
+                              <div className="text-purple-600 dark:text-purple-400">
+                                {addOn.icon}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-sm">{addOn.name}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">{addOn.price}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {!selectedVenue ? (
+                      <Button
+                        onClick={handleHomeVenueSelect}
+                        disabled={!selectedHomeSize}
+                        className={cn(
+                          "w-full",
+                          !selectedHomeSize
+                            ? "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
+                            : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        )}
+                      >
+                        Continue with Home Venue
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handleAddHomeVenueToParty}
+                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                      >
+                        Add to Party
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  // Venue browsing
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={handleVenueBack}>
+                        ← Back
+                      </Button>
+                      <h3 className="text-lg font-semibold">
+                        {selectedVenueType === 'indoor' && 'Indoor Venues'}
+                        {selectedVenueType === 'outdoor' && 'Outdoor Venues'}
+                        {selectedVenueType === 'specialty' && 'Specialty Venues'}
+                      </h3>
+                    </div>
+
+                    {venueLoading ? (
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <Loader2 className="w-8 h-8 animate-spin text-purple-600 mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400">Finding venues near you...</p>
+                      </div>
+                    ) : venues.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <MapPin className="w-12 h-12 text-gray-400 mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                          No venues found
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                          No {selectedVenueType} venues found near ZIP code {partyData?.zipCode || '48226'}.
+                        </p>
+                        <Button 
+                          onClick={() => handleVenueTypeSelect('home')}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        >
+                          Try Home Venue Instead
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Found {venues.length} venue{venues.length !== 1 ? 's' : ''} near you
+                        </p>
+                        
+                        <div className="grid gap-4 max-h-96 overflow-y-auto">
+                          {venues.map((venue, index) => (
+                            <Card 
+                              key={venue.placeId || index}
+                              className={cn(
+                                "transition-all duration-200 hover:shadow-md border-2",
+                                selectedVenue && selectedVenue.placeId === venue.placeId
+                                  ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                                  : "border-gray-200 dark:border-gray-700 hover:border-purple-300 cursor-pointer"
+                              )}
+                              onClick={() => handleVenueSelect(venue)}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-start gap-4">
+                                  {venue.photoUrl && (
+                                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                                      <img 
+                                        src={venue.photoUrl} 
+                                        alt={venue.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                      {venue.name}
+                                    </h4>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                                      {venue.address}
+                                    </p>
+                                    
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-1">
+                                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                        <span className="text-sm font-medium">{venue.rating.toFixed(1)}</span>
+                                      </div>
+                                      <Badge variant="secondary" className="text-xs">
+                                        {venue.distance}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {selectedVenue && selectedVenue.placeId === venue.placeId && (
+                                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <Button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddVenueToParty();
+                                      }}
+                                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                                    >
+                                      Add to Party
+                                    </Button>
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </ProtectedTabContent>
@@ -2426,6 +2806,128 @@ export default function PartyPlanPage() {
                   </Card>
                 );
               })}
+              
+              {/* Venue Card */}
+              <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                    <div className="flex-1">
+                      {partyData?.venue?.name || "No Venue Selected"}
+                    </div>
+                    {partyData?.venue && (
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        <Star className="w-3 h-3 mr-1" />
+                        Selected
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {partyData?.venue ? (
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-semibold mb-2">Venue Details:</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm">{partyData.venue.address}</span>
+                          </div>
+                          {partyData.venue.rating && (
+                            <div className="flex items-center gap-2">
+                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                              <span className="text-sm">{partyData.venue.rating.toFixed(1)} rating</span>
+                            </div>
+                          )}
+                          {partyData.venue.distance && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {partyData.venue.distance}
+                              </span>
+                            </div>
+                          )}
+                          {partyData.venue.partySize && (
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-gray-500" />
+                              <span className="text-sm">{partyData.venue.partySize} party</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Navigate to venue tab
+                            let success = false;
+                            
+                            const venueTab = document.querySelector('[value="venue"]') as HTMLButtonElement;
+                            if (venueTab && !success) {
+                              venueTab.click();
+                              success = true;
+                            }
+                            
+                            if (!success) {
+                              const tabButtons = document.querySelectorAll('[role="tab"]');
+                              for (const button of Array.from(tabButtons)) {
+                                if (button.textContent?.trim().toLowerCase().includes('venue')) {
+                                  (button as HTMLButtonElement).click();
+                                  success = true;
+                                  break;
+                                }
+                              }
+                            }
+                            
+                            console.log(success ? 'Successfully navigated to venue tab' : 'Failed to find venue tab');
+                          }}
+                          className="w-full"
+                        >
+                          <MapPin className="w-4 h-4 mr-2" />
+                          Change Venue
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-gray-600 dark:text-gray-400 mb-3">
+                        No venue selected yet
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Navigate to venue tab
+                          let success = false;
+                          
+                          const venueTab = document.querySelector('[value="venue"]') as HTMLButtonElement;
+                          if (venueTab && !success) {
+                            venueTab.click();
+                            success = true;
+                          }
+                          
+                          if (!success) {
+                            const tabButtons = document.querySelectorAll('[role="tab"]');
+                            for (const button of Array.from(tabButtons)) {
+                              if (button.textContent?.trim().toLowerCase().includes('venue')) {
+                                (button as HTMLButtonElement).click();
+                                success = true;
+                                break;
+                              }
+                            }
+                          }
+                          
+                          console.log(success ? 'Successfully navigated to venue tab' : 'Failed to find venue tab');
+                        }}
+                        className="w-full"
+                      >
+                        <MapPin className="w-4 h-4 mr-2" />
+                        Select Venue
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -3128,6 +3630,7 @@ export default function PartyPlanPage() {
           backgroundColor: 'transparent'
         }}
       />
+
     </div>
   );
 }
