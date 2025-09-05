@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -70,7 +70,8 @@ import {
   Trees,
   Heart,
   Loader2,
-  HelpCircle
+  HelpCircle,
+  Search
 } from "lucide-react";
 import ReactCanvasConfetti from 'react-canvas-confetti';
 import Link from "next/link";
@@ -85,6 +86,11 @@ interface VenueData {
   addOns?: string[];
   placeId?: string;
   photoUrl?: string;
+  reviewsCount?: number;
+  price?: string;
+  phone?: string;
+  website?: string;
+  category?: string;
 }
 
 interface PartyData {
@@ -164,6 +170,7 @@ const themeData = {
 
 export default function PartyPlanPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, session } = useAuth();
   const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();
   const [partyData, setPartyData] = useState<PartyData | null>(null);
@@ -187,6 +194,17 @@ export default function PartyPlanPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentPartyId, setCurrentPartyId] = useState<string | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  
+  // Tab state management
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  
+  // Selected activities state for Host Mode
+  const [selectedActivities, setSelectedActivities] = useState<any[]>([]);
+
+  // Venue search and filter state
+  const [venueSearchQuery, setVenueSearchQuery] = useState('');
+  const [venueSortBy, setVenueSortBy] = useState('rating');
+  const [venueMinRating, setVenueMinRating] = useState(0);
   
   // Confetti setup for party plan celebration
   const refAnimationInstance = useRef<any>(null);
@@ -220,38 +238,55 @@ export default function PartyPlanPage() {
     }
   };
 
-  const handleVenueSelect = (venue: VenueData) => {
-    setSelectedVenue(venue);
-    console.log('Venue selected:', venue);
-  };
-
-  const handleAddVenueToParty = async () => {
-    if (!selectedVenue || !partyData) return;
+  const handleVenueSearch = async () => {
+    if (!selectedVenueType || selectedVenueType === 'home') return;
     
+    setVenueLoading(true);
     try {
-      // Update party data with venue information
-      const updatedPartyData: PartyData = {
-        ...partyData,
-        venue: selectedVenue
-      };
+      const params = new URLSearchParams({
+        zip: partyData?.zipCode || '48226',
+        category: selectedVenueType,
+        sortBy: venueSortBy,
+        minRating: venueMinRating.toString(),
+        maxDistance: '50'
+      });
       
-      setPartyData(updatedPartyData);
+      if (venueSearchQuery.trim()) {
+        params.append('search', venueSearchQuery.trim());
+      }
       
-      // Show success message
-      alert(`Venue "${selectedVenue.name}" added to your party!`);
-      
-      // Reset venue selection state
-      setSelectedVenueType(null);
-      setVenues([]);
-      setSelectedVenue(null);
-      
+      const response = await fetch(`/api/venues?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        setVenues(data);
+      } else {
+        console.error('Failed to search venues');
+      }
     } catch (error) {
-      console.error('Error adding venue to party:', error);
-      alert('Failed to add venue to party. Please try again.');
+      console.error('Error searching venues:', error);
+    } finally {
+      setVenueLoading(false);
     }
   };
 
-  const handleHomeVenueSelect = () => {
+  const handleVenueSelect = async (venue: VenueData) => {
+    setSelectedVenue(venue);
+    console.log('Venue selected:', venue);
+    
+    // Automatically add venue to party data
+    if (partyData) {
+      const updatedPartyData: PartyData = {
+        ...partyData,
+        venue: venue
+      };
+      
+      setPartyData(updatedPartyData);
+      console.log('Venue automatically added to party:', venue.name);
+    }
+  };
+
+
+  const handleHomeVenueSelect = async () => {
     if (!selectedHomeSize) return;
     
     const venueData: VenueData = {
@@ -266,34 +301,19 @@ export default function PartyPlanPage() {
     
     setSelectedVenue(venueData);
     console.log('Home venue selected:', venueData);
-  };
-
-  const handleAddHomeVenueToParty = async () => {
-    if (!selectedVenue || selectedVenue.type !== 'home' || !partyData) return;
     
-    try {
-      // Update party data with home venue information
+    // Automatically add home venue to party data
+    if (partyData) {
       const updatedPartyData: PartyData = {
         ...partyData,
-        venue: selectedVenue
+        venue: venueData
       };
       
       setPartyData(updatedPartyData);
-      
-      // Show success message
-      alert(`Home venue added to your party!`);
-      
-      // Reset venue selection state
-      setSelectedVenueType(null);
-      setSelectedHomeSize('');
-      setSelectedHomeAddOns([]);
-      setSelectedVenue(null);
-      
-    } catch (error) {
-      console.error('Error adding home venue to party:', error);
-      alert('Failed to add home venue to party. Please try again.');
+      console.log('Home venue automatically added to party');
     }
   };
+
 
   const handleVenueBack = () => {
     setSelectedVenueType(null);
@@ -571,34 +591,18 @@ export default function PartyPlanPage() {
     },
     {
       id: 'activities',
-      label: 'Activities',
+      label: 'Activities & Host Mode',
       icon: Sparkles,
       gradient: 'from-violet-500 to-purple-500',
       hoverColor: 'bg-violet-50 dark:bg-violet-900/20',
       requiredPlan: 'PLUS' // Plus and Pro plans
     },
     {
-      id: 'host-mode',
-      label: 'Host Mode',
-      icon: Crown,
-      gradient: 'from-purple-600 to-pink-600',
-      hoverColor: 'bg-purple-50 dark:bg-purple-900/20',
-      requiredPlan: 'PLUS' // Plus and Pro plans
-    },
-    {
       id: 'vendor-suggestions',
-      label: 'Vendor Suggestions',
+      label: 'Vendors & Food',
       icon: Building,
       gradient: 'from-orange-500 to-red-500',
       hoverColor: 'bg-orange-50 dark:bg-orange-900/20',
-      requiredPlan: 'PRO' // Pro plan only
-    },
-    {
-      id: 'food',
-      label: 'Food',
-      icon: UtensilsCrossed,
-      gradient: 'from-red-500 to-pink-500',
-      hoverColor: 'bg-red-50 dark:bg-red-900/20',
       requiredPlan: 'PRO' // Pro plan only
     },
   ];
@@ -658,7 +662,7 @@ export default function PartyPlanPage() {
 
       // Collect food vendor data (if available)
       let foodVendors;
-      if (isTabAllowed('food')) {
+      if (isTabAllowed('vendor-suggestions')) {
         // Mock food vendor data - in real implementation, this would come from FoodTab component
         foodVendors = [
           { name: 'Pizza Palace', cuisine: 'Italian', rating: 4.3, deliveryAvailable: true, specialties: ['Pizza', 'Pasta'] },
@@ -1145,6 +1149,18 @@ export default function PartyPlanPage() {
     loadPartyData();
   }, [user]);
 
+  // Handle tab parameter from URL
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      // Validate that the tab exists in the allowed tabs
+      const isValidTab = tabConfigs.some(tab => tab.id === tabParam);
+      if (isValidTab) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, [searchParams]);
+
   const generateBaseChecklist = (data: any): ChecklistItem[] => {
     return [
       // 4-6 weeks before (using 5 weeks as average)
@@ -1296,7 +1312,7 @@ export default function PartyPlanPage() {
         throw new Error('Failed to fetch party data for sync');
       }
       
-      const dbGuests = partyResult.party.guests || [];
+              const dbGuests = partyResult.party.guests || [];
       const localGuests = guestData;
       
       // Handle new guests (those with temporary IDs)
@@ -1472,7 +1488,7 @@ export default function PartyPlanPage() {
       // Update local state
       const updatedGuests = guests.filter(guest => guest.id !== id);
       setGuests(updatedGuests);
-
+      
       console.log('Guest deleted from local state');
     } catch (error) {
       console.error('Error deleting guest:', error);
@@ -1823,10 +1839,10 @@ export default function PartyPlanPage() {
           ) : (
             <>
               <PartyPopper className="h-8 w-8 text-purple-600 mx-auto mb-3 animate-pulse" />
-              <p className="text-gray-600 dark:text-gray-300 mb-4">Loading your party plan...</p>
-              <Button onClick={() => window.location.href = '/create-party'}>
-                Go back to create party
-              </Button>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">Loading your party plan...</p>
+          <Button onClick={() => window.location.href = '/create-party'}>
+            Go back to create party
+          </Button>
             </>
           )}
         </div>
@@ -2003,7 +2019,7 @@ export default function PartyPlanPage() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Party Management</h2>
           </div>
           
-          <Tabs defaultValue="overview" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="overflow-x-auto mb-6">
               <TabsList className="flex w-full h-auto p-1.5 gap-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-md rounded-xl">
                 {visibleTabs.map((tab) => {
@@ -2019,10 +2035,8 @@ export default function PartyPlanPage() {
                           tab.id === 'overview' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' : 
                           tab.id === 'themes' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
                           tab.id === 'activities' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)' :
-                          tab.id === 'host-mode' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' :
                           tab.id === 'vendor-suggestions' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fbbf24 100%)' :
                           tab.id === 'venue' ? 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' :
-                          tab.id === 'food' ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)' :
                           tab.id === 'guests' ? 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #2dd4bf 100%)' :
                           tab.id === 'timeline' ? 'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #818cf8 100%)' :
                           tab.id === 'checklist' ? 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%)' :
@@ -2079,8 +2093,22 @@ export default function PartyPlanPage() {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600 dark:text-gray-400">Location</span>
-                            <span className="font-medium">{partyData?.zipCode || 'Not specified'}</span>
+                            <span className="font-medium">
+                              {partyData?.venue && typeof partyData.venue === 'object' && 'name' in partyData.venue 
+                                ? partyData.venue.name 
+                                : partyData?.zipCode || 'Not specified'}
+                            </span>
                           </div>
+                          {partyData?.venue && typeof partyData.venue === 'object' && 'name' in partyData.venue && (
+                            <>
+                              {partyData.venue.address && (
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-gray-600 dark:text-gray-400">Address</span>
+                                  <span className="font-medium text-sm">{partyData.venue.address}</span>
+                                </div>
+                              )}
+                            </>
+                          )}
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600 dark:text-gray-400">Budget</span>
                             <span className="font-medium">
@@ -2095,32 +2123,10 @@ export default function PartyPlanPage() {
                             variant="outline"
                             size="sm"
                             className="w-full"
-                            onClick={() => {
-                              // Enhanced navigation to venue tab
-                              let success = false;
-                              
-                              const venueTab = document.querySelector('[value="venue"]') as HTMLButtonElement;
-                              if (venueTab && !success) {
-                                venueTab.click();
-                                success = true;
-                              }
-                              
-                              if (!success) {
-                                const tabButtons = document.querySelectorAll('[role="tab"]');
-                                for (const button of Array.from(tabButtons)) {
-                                  if (button.textContent?.trim().toLowerCase().includes('venue')) {
-                                    (button as HTMLButtonElement).click();
-                                    success = true;
-                                    break;
-                                  }
-                                }
-                              }
-                              
-                              console.log(success ? 'Successfully navigated to venue tab' : 'Failed to find venue tab');
-                            }}
+                            onClick={() => setActiveTab('venue')}
                           >
                             <MapPin className="w-4 h-4 mr-2" />
-                            {partyData?.venue ? 'Change Venue' : 'Select Venue'}
+                            {partyData?.venue && typeof partyData.venue === 'object' && 'name' in partyData.venue ? 'Change Venue' : 'Select Venue'}
                           </Button>
                         </div>
                       </div>
@@ -2149,135 +2155,91 @@ export default function PartyPlanPage() {
                       {/* Theme Section */}
                       <div>
                         <h4 className="font-semibold mb-3 text-lg">Selected Theme</h4>
-                        {themeDetails ? (
-                          <div className="space-y-3">
+                    {themeDetails ? (
+                      <div className="space-y-3">
                             <div className="flex items-center gap-2">
                               <span className="text-2xl">{themeDetails.emoji}</span>
                               <span className="font-medium">{themeDetails.name}</span>
                             </div>
-                            <div>
+                        <div>
                               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Color Palette:</p>
                               <div className="flex flex-wrap gap-1">
                                 {themeDetails.colors.map((color, index) => (
                                   <Badge key={index} variant="secondary" className="text-xs">{color}</Badge>
-                                ))}
-                              </div>
-                            </div>
+                            ))}
+                          </div>
+                        </div>
                           </div>
                         ) : (
                           <div className="text-center py-2">
                             <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">No theme selected</p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full"
-                              onClick={() => {
-                                // Enhanced navigation to themes tab
-                                let success = false;
-                                
-                                const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
-                                if (themesTab && !success) {
-                                  themesTab.click();
-                                  success = true;
-                                }
-                                
-                                if (!success) {
-                                  const tabButtons = document.querySelectorAll('[role="tab"]');
-                                  for (const button of Array.from(tabButtons)) {
-                                    if (button.textContent?.trim().toLowerCase().includes('themes')) {
-                                      (button as HTMLButtonElement).click();
-                                      success = true;
-                                      break;
-                                    }
-                                  }
-                                }
-                                
-                                console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
-                              }}
-                            >
-                              <Palette className="w-4 h-4 mr-2" />
-                              Select Theme
-                            </Button>
-                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => setActiveTab('themes')}
+                          >
+                            <Palette className="w-4 h-4 mr-2" />
+                            Select Theme
+                          </Button>
+                        </div>
                         )}
                         
                         {/* Theme Selection Button - Show when theme is selected */}
                         {themeDetails && (
                           <div className="pt-3">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full"
-                              onClick={() => {
-                                // Enhanced navigation to themes tab
-                                let success = false;
-                                
-                                const themesTab = document.querySelector('[value="themes"]') as HTMLButtonElement;
-                                if (themesTab && !success) {
-                                  themesTab.click();
-                                  success = true;
-                                }
-                                
-                                if (!success) {
-                                  const tabButtons = document.querySelectorAll('[role="tab"]');
-                                  for (const button of Array.from(tabButtons)) {
-                                    if (button.textContent?.trim().toLowerCase().includes('themes')) {
-                                      (button as HTMLButtonElement).click();
-                                      success = true;
-                                      break;
-                                    }
-                                  }
-                                }
-                                
-                                console.log(success ? 'Successfully navigated to themes tab' : 'Failed to find themes tab');
-                              }}
-                            >
-                              <Palette className="w-4 h-4 mr-2" />
-                              Change Theme
-                            </Button>
-                          </div>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => setActiveTab('themes')}
+                        >
+                          <Palette className="w-4 h-4 mr-2" />
+                          Change Theme
+                        </Button>
+                      </div>
+                    )}
                       </div>
                       
                       <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                         <h4 className="font-semibold mb-3 text-lg">Guest Summary</h4>
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600 dark:text-gray-400">Total Guests</span>
-                            <Badge variant="secondary">{guests.length}</Badge>
-                          </div>
-                          
-                          {/* Adults/Kids Breakdown */}
-                          {(partyData?.adultCount || partyData?.kidCount) && (
-                            <>
-                              <div className="flex items-center justify-between">
+                      <Badge variant="secondary">{guests.length}</Badge>
+                    </div>
+                    
+                    {/* Adults/Kids Breakdown */}
+                    {(partyData?.adultCount || partyData?.kidCount) && (
+                      <>
+                        <div className="flex items-center justify-between">
                                 <span className="text-sm flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                                  <User className="h-3 w-3" />
-                                  Adults
-                                </span>
-                                <Badge variant="outline">{partyData.adultCount || 0}</Badge>
-                              </div>
-                              <div className="flex items-center justify-between">
+                            <User className="h-3 w-3" />
+                            Adults
+                          </span>
+                          <Badge variant="outline">{partyData.adultCount || 0}</Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
                                 <span className="text-sm flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                                  <Baby className="h-3 w-3" />
-                                  Kids
-                                </span>
-                                <Badge variant="outline">{partyData.kidCount || 0}</Badge>
-                              </div>
-                            </>
-                          )}
-                          
-                          <div className="flex items-center justify-between">
+                            <Baby className="h-3 w-3" />
+                            Kids
+                          </span>
+                          <Badge variant="outline">{partyData.kidCount || 0}</Badge>
+                        </div>
+                      </>
+                    )}
+                    
+                    <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600 dark:text-gray-400">RSVPs Received</span>
-                            <Badge variant="default">
+                      <Badge variant="default">
                               {guests.filter(guest => ['ACCEPTED', 'DECLINED', 'MAYBE'].includes(guest.rsvpStatus)).length}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center justify-between">
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600 dark:text-gray-400">Confirmed</span>
-                            <Badge className="bg-green-600">
+                      <Badge className="bg-green-600">
                               {guests.filter(guest => guest.rsvpStatus === 'ACCEPTED').length}
-                            </Badge>
+                      </Badge>
                           </div>
                         </div>
                         
@@ -2287,10 +2249,7 @@ export default function PartyPlanPage() {
                             variant="outline"
                             size="sm"
                             className="w-full"
-                            onClick={() => {
-                              const guestsTab = document.querySelector('[value="guests"]') as HTMLButtonElement;
-                              if (guestsTab) guestsTab.click();
-                            }}
+                            onClick={() => setActiveTab('guests')}
                           >
                             <Users className="w-4 h-4 mr-2" />
                             Manage Guests ({guests.length})
@@ -2332,20 +2291,17 @@ export default function PartyPlanPage() {
                     {/* Timeline Button */}
                     <Button 
                       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
-                      onClick={() => {
-                        const timelineTab = document.querySelector('[value="timeline"]') as HTMLButtonElement;
-                        if (timelineTab) timelineTab.click();
-                      }}
+                      onClick={() => setActiveTab('timeline')}
                     >
                       <Clock className="h-4 w-4 mr-2" />
                       View Timeline
                     </Button>
                     
                     {/* Help Button */}
-                    <Button 
+                      <Button 
                       className="w-full" 
                       variant="outline"
-                      onClick={() => {
+                        onClick={() => {
                         // You can implement help functionality here
                         alert('Help feature coming soon! For now, you can explore the different tabs to plan your party.');
                       }}
@@ -2358,10 +2314,7 @@ export default function PartyPlanPage() {
                     {isTabAllowed('activities') && (
                       <Button 
                         className="w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white"
-                        onClick={() => {
-                          const activitiesTab = document.querySelector('[value="activities"]') as HTMLButtonElement;
-                          if (activitiesTab) activitiesTab.click();
-                        }}
+                        onClick={() => setActiveTab('activities')}
                       >
                         <Sparkles className="h-4 w-4 mr-2" />
                         Plan Activities
@@ -2370,10 +2323,7 @@ export default function PartyPlanPage() {
                     {isTabAllowed('vendor-suggestions') && (
                       <Button 
                         className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white"
-                        onClick={() => {
-                          const vendorTab = document.querySelector('[value="vendor-suggestions"]') as HTMLButtonElement;
-                          if (vendorTab) vendorTab.click();
-                        }}
+                        onClick={() => setActiveTab('vendor-suggestions')}
                       >
                         <Building className="h-4 w-4 mr-2" />
                         Find Vendors
@@ -2384,7 +2334,7 @@ export default function PartyPlanPage() {
               </div>
             </TabsContent>
 
-          {/* Activities Tab */}
+          {/* Activities & Host Mode Tab */}
           <ProtectedTabContent tabName="activities" className="space-y-6">
             <ActivitiesTab
               partyId={currentPartyId || partyData?.childName || 'party'}
@@ -2397,32 +2347,78 @@ export default function PartyPlanPage() {
                 venue: partyData.venue,
                 guestCount: partyData.guestCount
               } : undefined}
+              onSelectedActivitiesChange={setSelectedActivities}
             />
+            
+            {/* Host Mode - Only show when activities are selected */}
+            {selectedActivities.length > 0 && (
+              <div className="mt-8">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    <Crown className="h-5 w-5 text-purple-600" />
+                    Host Mode - {selectedActivities.length} Activity{selectedActivities.length !== 1 ? 'ies' : ''} Selected
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Manage your selected activities with AI-powered host scripts and instructions
+                  </p>
+                </div>
+                <HostModeTab
+                  partyId={currentPartyId || partyData?.childName || 'party'}
+                  partyData={partyData ? {
+                    childName: partyData.childName,
+                    childAge: parseInt(partyData.childAge || '0'),
+                    theme: partyData.selectedTheme || 'Birthday',
+                    interests: partyData.interests || [],
+                    favoriteColors: partyData.favoriteColors || [],
+                    venue: partyData.venue,
+                    guestCount: partyData.guestCount
+                  } : undefined}
+                />
+              </div>
+            )}
+            
+            {/* Empty state when no activities selected */}
+            {selectedActivities.length === 0 && (
+              <div className="text-center py-12">
+                <Crown className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  No Activities Selected
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Select activities above to unlock Host Mode with AI-powered scripts and instructions
+                </p>
+              </div>
+            )}
           </ProtectedTabContent>
 
-          {/* Host Mode Tab */}
-          <ProtectedTabContent tabName="host-mode" className="space-y-6">
-            <HostModeTab
-              partyId={currentPartyId || partyData?.childName || 'party'}
-              partyData={partyData ? {
-                childName: partyData.childName,
-                childAge: parseInt(partyData.childAge || '0'),
-                theme: partyData.selectedTheme || 'Birthday',
-                interests: partyData.interests || [],
-                favoriteColors: partyData.favoriteColors || [],
-                venue: partyData.venue,
-                guestCount: partyData.guestCount
-              } : undefined}
-            />
-          </ProtectedTabContent>
-
-          {/* Vendor Suggestions Tab - NEW PRO FEATURE */}
+          {/* Vendors & Food Tab - NEW PRO FEATURE */}
           <ProtectedTabContent tabName="vendor-suggestions" className="space-y-6">
+            {/* Food & Drinks Section */}
+            <Card className="border-0 shadow-lg dark:bg-slate-800/90">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <UtensilsCrossed className="h-6 w-6 text-red-600" />
+                  Food & Drinks
+                </CardTitle>
+                <CardDescription>
+                  Find the perfect food and drinks for your party
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FoodTab
+                  zipCode={partyData?.zipCode}
+                  partyId={currentPartyId || partyData?.childName || 'party'}
+                  guestCount={guests.length}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Other Vendor Services Section */}
             <Card className="border-0 shadow-lg dark:bg-slate-800/90">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <Building className="h-6 w-6 text-orange-600" />
-                  Vendor Suggestions
+                  Other Vendor Services
                 </CardTitle>
                 <CardDescription>
                   Discover trusted vendors and service providers for your party
@@ -2479,92 +2475,118 @@ export default function PartyPlanPage() {
           <ProtectedTabContent tabName="venue" className="space-y-6">
             <Card className="border-0 shadow-lg dark:bg-slate-800/90">
               <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <MapPin className="h-6 w-6 text-green-600" />
-                  Venue Selection
-                </CardTitle>
-                <CardDescription>
-                  Find the perfect location for your party
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-6 w-6 text-green-600" />
+                    <div>
+                      <CardTitle className="text-xl">Venue Selection</CardTitle>
+                      <CardDescription className="mt-1">
+                        Find the perfect location for your party
+                      </CardDescription>
+                    </div>
+                  </div>
+                  {selectedVenueType && (
+                    <Button variant="ghost" size="sm" onClick={handleVenueBack} className="text-gray-600 hover:text-gray-900">
+                      ← Back
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Show currently selected venue */}
+                {partyData?.venue && typeof partyData.venue === 'object' && 'name' in partyData.venue && (
+                  <div className="mb-6 p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-100 dark:bg-green-800/30 rounded-full">
+                          <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-green-800 dark:text-green-200 text-lg">Selected Venue</div>
+                          <div className="text-green-700 dark:text-green-300 font-medium">{partyData.venue.name}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">{partyData.venue.address}</div>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          setSelectedVenueType(null);
+                          setSelectedVenue(null);
+                          setPartyData(prev => prev ? { ...prev, venue: undefined } : prev);
+                        }}
+                        className="text-gray-600 hover:text-red-600 border-gray-300 hover:border-red-300"
+                      >
+                        Change
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
                 {!selectedVenueType ? (
                   // Initial venue type selection
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                      Choose your venue type (searching near ZIP code: {partyData?.zipCode || '48226'})
-                    </p>
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Choose Venue Type</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Searching near ZIP code: {partyData?.zipCode || '48226'}
+                      </p>
+                    </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {/* Home Venue - Featured */}
                       <Card 
-                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400"
+                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 border-purple-200 dark:border-purple-800 hover:border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20"
                         onClick={() => handleVenueTypeSelect('home')}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900">
-                              <Home className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">Home Venue</h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Host at your place</p>
-                            </div>
+                        <CardContent className="p-4 text-center">
+                          <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 mx-auto mb-3 w-fit">
+                            <Home className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                           </div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Home Venue</h3>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Host at your place</p>
                         </CardContent>
                       </Card>
 
                       {/* Indoor Venues */}
                       <Card 
-                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-green-300"
+                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20"
                         onClick={() => handleVenueTypeSelect('indoor')}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900">
-                              <Building2 className="w-6 h-6 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">Indoor Venues</h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Community centers, party halls</p>
-                            </div>
+                        <CardContent className="p-4 text-center">
+                          <div className="p-3 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 mx-auto mb-3 w-fit">
+                            <Building2 className="w-6 h-6 text-green-600 dark:text-green-400" />
                           </div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Indoor Venues</h3>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Community centers, party halls</p>
                         </CardContent>
                       </Card>
 
                       {/* Outdoor Venues */}
                       <Card 
-                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-blue-300"
+                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20"
                         onClick={() => handleVenueTypeSelect('outdoor')}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-full bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-blue-900 dark:to-cyan-900">
-                              <Trees className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">Outdoor Venues</h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Parks, gardens, outdoor spaces</p>
-                            </div>
+                        <CardContent className="p-4 text-center">
+                          <div className="p-3 rounded-full bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-blue-900 dark:to-cyan-900 mx-auto mb-3 w-fit">
+                            <Trees className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                           </div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Outdoor Venues</h3>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Parks, gardens, outdoor spaces</p>
                         </CardContent>
                       </Card>
 
                       {/* Specialty Venues */}
                       <Card 
-                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-yellow-300"
+                        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-yellow-300 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20"
                         onClick={() => handleVenueTypeSelect('specialty')}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900 dark:to-orange-900">
-                              <Star className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">Specialty Venues</h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Trampoline parks, bowling alleys</p>
-                            </div>
+                        <CardContent className="p-4 text-center">
+                          <div className="p-3 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900 dark:to-orange-900 mx-auto mb-3 w-fit">
+                            <Star className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                           </div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Specialty Venues</h3>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Trampoline parks, bowling alleys</p>
                         </CardContent>
                       </Card>
                     </div>
@@ -2573,9 +2595,6 @@ export default function PartyPlanPage() {
                   // Home venue selection
                   <div className="space-y-6">
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm" onClick={handleVenueBack}>
-                        ← Back
-                      </Button>
                       <h3 className="text-lg font-semibold">Home Venue Setup</h3>
                     </div>
 
@@ -2654,35 +2673,23 @@ export default function PartyPlanPage() {
                       </div>
                     </div>
 
-                    {!selectedVenue ? (
-                      <Button
-                        onClick={handleHomeVenueSelect}
-                        disabled={!selectedHomeSize}
-                        className={cn(
-                          "w-full",
-                          !selectedHomeSize
-                            ? "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
-                            : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                        )}
-                      >
-                        Continue with Home Venue
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleAddHomeVenueToParty}
-                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                      >
-                        Add to Party
-                      </Button>
-                    )}
+                    <Button
+                      onClick={handleHomeVenueSelect}
+                      disabled={!selectedHomeSize}
+                      className={cn(
+                        "w-full",
+                        !selectedHomeSize
+                          ? "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
+                          : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                      )}
+                    >
+                      Select Home Venue
+                    </Button>
                   </div>
                 ) : (
                   // Venue browsing
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm" onClick={handleVenueBack}>
-                        ← Back
-                      </Button>
                       <h3 className="text-lg font-semibold">
                         {selectedVenueType === 'indoor' && 'Indoor Venues'}
                         {selectedVenueType === 'outdoor' && 'Outdoor Venues'}
@@ -2713,9 +2720,88 @@ export default function PartyPlanPage() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Found {venues.length} venue{venues.length !== 1 ? 's' : ''} near you
-                        </p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Found {venues.length} venue{venues.length !== 1 ? 's' : ''} near you
+                          </p>
+                        </div>
+
+                        {/* Search and Filter Controls */}
+                        <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Search Input */}
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Search venues
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="Search by name, address, or category..."
+                                value={venueSearchQuery}
+                                onChange={(e) => setVenueSearchQuery(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                              />
+                            </div>
+
+                            {/* Sort Dropdown */}
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Sort by
+                              </label>
+                              <select
+                                value={venueSortBy}
+                                onChange={(e) => setVenueSortBy(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                              >
+                                <option value="rating">Highest Rated</option>
+                                <option value="distance">Closest Distance</option>
+                                <option value="name">Name A-Z</option>
+                                <option value="reviews">Most Reviews</option>
+                              </select>
+                            </div>
+
+                            {/* Rating Filter */}
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Min Rating
+                              </label>
+                              <select
+                                value={venueMinRating}
+                                onChange={(e) => setVenueMinRating(parseFloat(e.target.value))}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                              >
+                                <option value="0">Any Rating</option>
+                                <option value="3">3+ Stars</option>
+                                <option value="4">4+ Stars</option>
+                                <option value="4.5">4.5+ Stars</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Filter Actions */}
+                          <div className="flex items-center justify-between">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setVenueSearchQuery('');
+                                setVenueSortBy('rating');
+                                setVenueMinRating(0);
+                              }}
+                              className="text-gray-600 hover:text-gray-800"
+                            >
+                              Clear Filters
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={handleVenueSearch}
+                              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                            >
+                              <Search className="w-4 h-4 mr-2" />
+                              Search
+                            </Button>
+                          </div>
+                        </div>
                         
                         <div className="grid gap-4 max-h-96 overflow-y-auto">
                           {venues.map((venue, index) => (
@@ -2749,29 +2835,69 @@ export default function PartyPlanPage() {
                                       {venue.address}
                                     </p>
                                     
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between mb-2">
                                       <div className="flex items-center gap-1">
                                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
                                         <span className="text-sm font-medium">{venue.rating?.toFixed(1) || 'N/A'}</span>
+                                        {venue.reviewsCount && (
+                                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                                            ({venue.reviewsCount} reviews)
+                                          </span>
+                                        )}
                                       </div>
                                       <Badge variant="secondary" className="text-xs">
                                         {venue.distance}
                                       </Badge>
                                     </div>
+
+                                    {/* Additional venue info */}
+                                    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                                      {venue.price && (
+                                        <span className="flex items-center gap-1">
+                                          <span className="font-medium">Price:</span>
+                                          {venue.price}
+                                        </span>
+                                      )}
+                                      {venue.category && (
+                                        <span className="flex items-center gap-1">
+                                          <span className="font-medium">Type:</span>
+                                          {venue.category}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Contact info */}
+                                    {(venue.phone || venue.website) && (
+                                      <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                        <div className="flex items-center gap-4 text-xs">
+                                          {venue.phone && (
+                                            <span className="text-blue-600 dark:text-blue-400">
+                                              📞 {venue.phone}
+                                            </span>
+                                          )}
+                                          {venue.website && (
+                                            <a 
+                                              href={venue.website} 
+                                              target="_blank" 
+                                              rel="noopener noreferrer"
+                                              className="text-blue-600 dark:text-blue-400 hover:underline"
+                                              onClick={(e) => e.stopPropagation()}
+                                            >
+                                              🌐 Website
+                                            </a>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                                 
                                 {selectedVenue && selectedVenue.placeId === venue.placeId && (
                                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                    <Button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleAddVenueToParty();
-                                      }}
-                                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                                    >
-                                      Add to Party
-                                    </Button>
+                                    <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
+                                      <CheckCircle2 className="w-5 h-5" />
+                                      <span className="font-medium">Selected</span>
+                                    </div>
                                   </div>
                                 )}
                               </CardContent>
@@ -2787,14 +2913,6 @@ export default function PartyPlanPage() {
           </ProtectedTabContent>
 
 
-          {/* Food Tab */}
-          <ProtectedTabContent tabName="food" className="space-y-6">
-            <FoodTab
-              zipCode={partyData?.zipCode}
-              partyId={currentPartyId || partyData?.childName || 'party'}
-              guestCount={guests.length}
-            />
-          </ProtectedTabContent>
 
 
           {/* Checklist Tab */}
@@ -3118,17 +3236,17 @@ export default function PartyPlanPage() {
           {/* Guests Tab - Simplified RSVP System */}
           <TabsContent value="guests" className="space-y-6">
             <ModernGuestRSVP
-              partyId={currentPartyId || partyData?.childName || 'party'}
-              childName={partyData?.childName || ''}
-              partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
-              partyTime="2:00 PM"
-              partyLocation="TBD"
-              guests={guests}
+                  partyId={currentPartyId || partyData?.childName || 'party'}
+                  childName={partyData?.childName || ''}
+                  partyDate={partyData?.partyDate && !isNaN(partyData.partyDate.getTime()) ? partyData.partyDate.toISOString() : ''}
+                  partyTime="2:00 PM"
+                  partyLocation="TBD"
+                  guests={guests}
               onAddGuest={handleAddGuest}
               onSendInvitation={handleSendInvitation}
-              onUpdateRSVP={handleUpdateRSVP}
+                  onUpdateRSVP={handleUpdateRSVP}
               onDeleteGuest={handleDeleteGuest}
-            />
+                />
           </TabsContent>
 
 

@@ -14,6 +14,9 @@ DIRECT_URL=postgresql://postgres:MagicalBirthdayPlanner@db.nwgqmsuaoflklrgrxfwy.
 NODE_ENV=production
 NEXT_PUBLIC_BASE_URL=https://your-vercel-domain.vercel.app
 
+# APIFY API Configuration
+APIFY_API_TOKEN=apify_api_RdwdNVmEgwhxFVR2IaU68qeobLhmHy35A047
+
 # Vercel-specific
 VERCEL_ENV=production
 
@@ -23,7 +26,8 @@ VERCEL_ENV=production
 # 3. Add each variable above (one per line)
 # 4. Make sure to set NODE_ENV=production for production deployments
 # 5. Update NEXT_PUBLIC_BASE_URL to match your actual Vercel domain
-# 6. Redeploy your project after adding these variables
+# 6. The APIFY_API_TOKEN is already configured for real venue data
+# 7. Redeploy your project after adding these variables
 
 # Common Vercel deployment issues this fixes:
 # - Database connection timeouts

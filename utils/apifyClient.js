@@ -32,14 +32,14 @@ export async function scrapeGoogleMapsVenues({ location, searchTerms, radiusKm =
   const actorId = 'nwua9Gu5YrADL7ZDj';
   
   const input = {
-    searchTerms: searchTerms,
+    searchStringsArray: searchTerms,
     searchLocation: location,
     maxCrawledPlacesPerSearch: 20,
     includeImages: true,
     includeReviews: false,
     reviewsSort: 'mostRelevant',
     language: 'en',
-    countryCode: 'US',
+    countryCode: 'us',
     searchRadius: radiusKm * 1000, // Convert km to meters
     exportPlaceUrls: false,
     deeperCityScrape: false,
