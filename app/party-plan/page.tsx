@@ -3,7 +3,7 @@
 // Force dynamic rendering to prevent prerendering issues
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -171,7 +171,7 @@ const themeData = {
 
 
 
-export default function PartyPlanPage() {
+function PartyPlanPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, session } = useAuth();
@@ -3846,3 +3846,14 @@ export default function PartyPlanPage() {
     </div>
   );
 }
+
+// Wrapper component with Suspense boundary for useSearchParams
+function PartyPlanPageWithSuspense() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PartyPlanPage />
+    </Suspense>
+  );
+}
+
+export default PartyPlanPageWithSuspense;
