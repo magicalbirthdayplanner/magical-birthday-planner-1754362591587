@@ -162,8 +162,9 @@ export async function GET(request: NextRequest) {
     
     console.log(`Searching Google Places for: ${query} near ${location}`);
     
-    // Search Google Places
-    const places = await searchGooglePlaces(query, location, maxDistance * 1609.34); // Convert miles to meters
+    // Search Google Places (limit radius to 50km max for Google Places API)
+    const radiusInMeters = Math.min(maxDistance * 1609.34, 50000); // Convert miles to meters, max 50km
+    const places = await searchGooglePlaces(query, location, radiusInMeters);
     
     if (!places || places.length === 0) {
       console.log('No places found, returning fallback data');
