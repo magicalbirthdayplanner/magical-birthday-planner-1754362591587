@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Google Places API integration
+// Google Places API (New) integration
 async function searchGooglePlaces(query: string, location: string, radius: number = 50000) {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   
@@ -8,31 +8,51 @@ async function searchGooglePlaces(query: string, location: string, radius: numbe
     throw new Error('Google Places API key not found');
   }
 
-  const baseUrl = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
-  const params = new URLSearchParams({
-    query: query,
-    location: location,
-    radius: radius.toString(),
-    key: apiKey,
-    type: 'establishment'
-  });
+  // Use the new Places API (New) endpoint
+  const baseUrl = 'https://places.googleapis.com/v1/places:searchText';
+  
+  const requestBody = {
+    textQuery: query,
+    locationBias: {
+      circle: {
+        center: {
+          latitude: 42.3314, // Default to Detroit area coordinates
+          longitude: -83.0458
+        },
+        radius: radius
+      }
+    },
+    maxResultCount: 20,
+    languageCode: 'en'
+  };
 
-  const response = await fetch(`${baseUrl}?${params}`);
+  const response = await fetch(baseUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.nationalPhoneNumber,places.websiteUri,places.photos,places.types,places.id'
+    },
+    body: JSON.stringify(requestBody)
+  });
   
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Google Places API error:', response.status, errorText);
     throw new Error(`Google Places API error: ${response.status}`);
   }
 
   const data = await response.json();
   
-  if (data.status !== 'OK') {
-    throw new Error(`Google Places API error: ${data.status}`);
+  if (!data.places) {
+    console.log('No places found in response:', data);
+    return [];
   }
 
-  return data.results || [];
+  return data.places || [];
 }
 
-// Get place details including photos and reviews
+// Get place details using the new Places API (New)
 async function getPlaceDetails(placeId: string) {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   
@@ -40,26 +60,25 @@ async function getPlaceDetails(placeId: string) {
     throw new Error('Google Places API key not found');
   }
 
-  const baseUrl = 'https://maps.googleapis.com/maps/api/place/details/json';
-  const params = new URLSearchParams({
-    place_id: placeId,
-    fields: 'name,formatted_address,rating,user_ratings_total,price_level,formatted_phone_number,website,photos',
-    key: apiKey
+  const baseUrl = `https://places.googleapis.com/v1/places/${placeId}`;
+  
+  const response = await fetch(baseUrl, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'displayName,formattedAddress,rating,userRatingCount,priceLevel,nationalPhoneNumber,websiteUri,photos,types'
+    }
   });
-
-  const response = await fetch(`${baseUrl}?${params}`);
   
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Google Places Details API error:', response.status, errorText);
     throw new Error(`Google Places Details API error: ${response.status}`);
   }
 
   const data = await response.json();
-  
-  if (data.status !== 'OK') {
-    throw new Error(`Google Places Details API error: ${data.status}`);
-  }
-
-  return data.result;
+  return data;
 }
 
 // Search terms mapping for different venue categories
@@ -122,6 +141,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Check if API key is available
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    console.log('Google Places API Key available:', !!apiKey);
+    
+    if (!apiKey) {
+      console.log('No Google Places API key found, using fallback data');
+      const fallbackVenues = getFallbackVenues(category || 'indoor', zip || '10001');
+      return NextResponse.json(fallbackVenues);
+    }
+
     // Get search terms for the category
     const searchTerms = SEARCH_TERMS[category as keyof typeof SEARCH_TERMS] || SEARCH_TERMS.indoor;
     
@@ -142,33 +171,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(fallbackVenues);
     }
 
-    // Get detailed information for each place
-    const venues = await Promise.all(
-      places.slice(0, 20).map(async (place) => {
-        try {
-          const details = await getPlaceDetails(place.place_id);
-          
-          return {
-            name: place.name || 'Unknown Venue',
-            address: place.formatted_address || 'Address not available',
-            rating: place.rating || 0,
-            photoUrl: place.photos && place.photos[0] 
-              ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${process.env.GOOGLE_PLACES_API_KEY}`
-              : 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
-            distance: place.distance ? `${(place.distance / 1609.34).toFixed(1)} miles` : 'Distance not available',
-            placeId: place.place_id,
-            reviewsCount: place.user_ratings_total || 0,
-            price: details.price_level ? '$'.repeat(details.price_level) : 'Price not available',
-            phone: details.formatted_phone_number || 'Phone not available',
-            website: details.website || 'Website not available',
-            category: place.types ? place.types[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Venue'
-          };
-        } catch (error) {
-          console.error(`Error getting details for place ${place.place_id}:`, error);
-          return null;
-        }
-      })
-    );
+    // Process places from the new API format
+    const venues = places.slice(0, 20).map((place) => {
+      try {
+        return {
+          name: place.displayName?.text || 'Unknown Venue',
+          address: place.formattedAddress || 'Address not available',
+          rating: place.rating || 0,
+          photoUrl: place.photos && place.photos[0] 
+            ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?maxWidthPx=400&key=${process.env.GOOGLE_PLACES_API_KEY}`
+            : 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
+          distance: 'Distance calculated by Google',
+          placeId: place.id,
+          reviewsCount: place.userRatingCount || 0,
+          price: place.priceLevel ? '$'.repeat(place.priceLevel) : 'Price not available',
+          phone: place.nationalPhoneNumber || 'Phone not available',
+          website: place.websiteUri || 'Website not available',
+          category: place.types && place.types[0] ? place.types[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Venue'
+        };
+      } catch (error) {
+        console.error(`Error processing place ${place.id}:`, error);
+        return null;
+      }
+    });
 
     // Filter out null results and apply filters
     let filteredVenues = venues.filter(venue => venue !== null);
@@ -205,6 +230,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching venues:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     console.log('Google Places API failed, providing fallback sample data');
     const fallbackVenues = getFallbackVenues(category || 'indoor', zip || '10001');
     return NextResponse.json(fallbackVenues);
