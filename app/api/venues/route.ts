@@ -1,43 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { scrapeGoogleMapsVenues, cleanVenueData } from '../../../utils/apifyClient';
 
-export const dynamic = 'force-dynamic';
+// Google Places API integration
+async function searchGooglePlaces(query: string, location: string, radius: number = 50000) {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Google Places API key not found');
+  }
 
-interface Venue {
-  name: string;
-  address: string;
-  rating: number;
-  photoUrl?: string;
-  distance: string;
-  placeId?: string;
-  reviewsCount?: number;
-  price?: string;
-  phone?: string;
-  website?: string;
-  category?: string;
+  const baseUrl = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+  const params = new URLSearchParams({
+    query: query,
+    location: location,
+    radius: radius.toString(),
+    key: apiKey,
+    type: 'establishment'
+  });
+
+  const response = await fetch(`${baseUrl}?${params}`);
+  
+  if (!response.ok) {
+    throw new Error(`Google Places API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  
+  if (data.status !== 'OK') {
+    throw new Error(`Google Places API error: ${data.status}`);
+  }
+
+  return data.results || [];
+}
+
+// Get place details including photos and reviews
+async function getPlaceDetails(placeId: string) {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Google Places API key not found');
+  }
+
+  const baseUrl = 'https://maps.googleapis.com/maps/api/place/details/json';
+  const params = new URLSearchParams({
+    place_id: placeId,
+    fields: 'name,formatted_address,rating,user_ratings_total,price_level,formatted_phone_number,website,photos',
+    key: apiKey
+  });
+
+  const response = await fetch(`${baseUrl}?${params}`);
+  
+  if (!response.ok) {
+    throw new Error(`Google Places Details API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  
+  if (data.status !== 'OK') {
+    throw new Error(`Google Places Details API error: ${data.status}`);
+  }
+
+  return data.result;
 }
 
 // Search terms mapping for different venue categories
 const SEARCH_TERMS = {
   indoor: [
-    'party hall',
+    'indoor party venue',
+    'event space',
     'community center',
-    'indoor playground',
     'recreation center',
-    'event venue',
-    'banquet hall',
-    'conference center',
-    'kids party venue'
+    'indoor playground',
+    'trampoline park',
+    'bowling alley',
+    'arcade',
+    'laser tag',
+    'escape room'
   ],
   outdoor: [
+    'outdoor party venue',
     'park pavilion',
-    'outdoor venue',
-    'garden party',
-    'picnic area',
-    'outdoor playground',
-    'beach venue',
+    'garden venue',
     'outdoor event space',
-    'park gazebo'
+    'beach venue',
+    'outdoor playground',
+    'sports complex',
+    'outdoor recreation',
+    'picnic area',
+    'outdoor amphitheater'
   ],
   specialty: [
     'trampoline park',
@@ -49,7 +98,9 @@ const SEARCH_TERMS = {
     'escape room',
     'indoor water park',
     'adventure park',
-    'fun center'
+    'fun center',
+    'trampoline center',
+    'entertainment center'
   ]
 };
 
@@ -63,7 +114,6 @@ export async function GET(request: NextRequest) {
   const maxDistance = parseFloat(searchParams.get('maxDistance') || '50');
 
   try {
-
     // Validate required parameters
     if (!zip || !category) {
       return NextResponse.json(
@@ -72,166 +122,101 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate category
-    if (!['indoor', 'outdoor', 'specialty'].includes(category)) {
-      return NextResponse.json(
-        { error: 'Invalid category. Must be: indoor, outdoor, or specialty' },
-        { status: 400 }
-      );
-    }
-
-    // Check if APIFY token is available
-    if (!process.env.APIFY_API_TOKEN) {
-      console.warn('APIFY_API_TOKEN not found, falling back to mock data');
-      return NextResponse.json([]);
-    }
-
     // Get search terms for the category
-    const searchTerms = SEARCH_TERMS[category as keyof typeof SEARCH_TERMS];
+    const searchTerms = SEARCH_TERMS[category as keyof typeof SEARCH_TERMS] || SEARCH_TERMS.indoor;
     
-    // Add custom search query if provided
-    if (searchQuery) {
-      searchTerms.unshift(searchQuery);
-    }
-
-    console.log(`Searching for ${category} venues near ZIP ${zip} with terms:`, searchTerms);
-
-    // Scrape venues using APIFY
-    const rawVenues = await scrapeGoogleMapsVenues({
-      location: zip,
-      searchTerms: searchTerms,
-      radiusKm: maxDistance / 1.60934, // Convert miles to km
-    });
-
-    console.log(`Found ${rawVenues.length} raw venues`);
-
-    // If no venues found from APIFY, provide fallback sample data
-    if (rawVenues.length === 0) {
-      console.log('No venues found from APIFY, providing fallback sample data');
-      const fallbackVenues = getFallbackVenues(category, zip);
+    // If there's a search query, use it; otherwise use category-specific terms
+    const query = searchQuery || searchTerms.join(' OR ');
+    
+    // Convert ZIP to coordinates for location-based search
+    const location = `${zip}, USA`;
+    
+    console.log(`Searching Google Places for: ${query} near ${location}`);
+    
+    // Search Google Places
+    const places = await searchGooglePlaces(query, location, maxDistance * 1609.34); // Convert miles to meters
+    
+    if (!places || places.length === 0) {
+      console.log('No places found, returning fallback data');
+      const fallbackVenues = getFallbackVenues(category || 'indoor', zip || '10001');
       return NextResponse.json(fallbackVenues);
     }
 
-    // Clean and transform venue data
-    const cleanedVenues = rawVenues
-      .map(cleanVenueData)
-      .map((venue, index) => ({
-        name: venue.title,
-        address: venue.address,
-        rating: venue.rating || 0,
-        photoUrl: venue.imageUrl,
-        distance: calculateDistanceFromZip(zip, venue.coordinates),
-        placeId: venue.id,
-        reviewsCount: venue.reviewsCount,
-        price: venue.price,
-        phone: venue.phone,
-        website: venue.website,
-        category: venue.category,
-      }))
-      .filter(venue => {
-        // Filter by minimum rating
-        if (minRating > 0 && venue.rating < minRating) return false;
-        
-        // Filter by search query
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          return venue.name.toLowerCase().includes(query) || 
-                 venue.address.toLowerCase().includes(query) ||
-                 venue.category?.toLowerCase().includes(query);
+    // Get detailed information for each place
+    const venues = await Promise.all(
+      places.slice(0, 20).map(async (place) => {
+        try {
+          const details = await getPlaceDetails(place.place_id);
+          
+          return {
+            name: place.name || 'Unknown Venue',
+            address: place.formatted_address || 'Address not available',
+            rating: place.rating || 0,
+            photoUrl: place.photos && place.photos[0] 
+              ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${process.env.GOOGLE_PLACES_API_KEY}`
+              : 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
+            distance: place.distance ? `${(place.distance / 1609.34).toFixed(1)} miles` : 'Distance not available',
+            placeId: place.place_id,
+            reviewsCount: place.user_ratings_total || 0,
+            price: details.price_level ? '$'.repeat(details.price_level) : 'Price not available',
+            phone: details.formatted_phone_number || 'Phone not available',
+            website: details.website || 'Website not available',
+            category: place.types ? place.types[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Venue'
+          };
+        } catch (error) {
+          console.error(`Error getting details for place ${place.place_id}:`, error);
+          return null;
         }
-        
-        return true;
-      });
+      })
+    );
+
+    // Filter out null results and apply filters
+    let filteredVenues = venues.filter(venue => venue !== null);
+
+    // Apply search filter
+    if (searchQuery) {
+      filteredVenues = filteredVenues.filter(venue => 
+        venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        venue.address.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply rating filter
+    filteredVenues = filteredVenues.filter(venue => venue.rating >= minRating);
 
     // Sort venues
-    const sortedVenues = sortVenues(cleanedVenues, sortBy);
+    filteredVenues.sort((a, b) => {
+      switch (sortBy) {
+        case 'rating':
+          return b.rating - a.rating;
+        case 'distance':
+          return parseFloat(a.distance) - parseFloat(b.distance);
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'reviews':
+          return b.reviewsCount - a.reviewsCount;
+        default:
+          return b.rating - a.rating;
+      }
+    });
 
-    console.log(`Returning ${sortedVenues.length} filtered venues`);
-
-    return NextResponse.json(sortedVenues);
-
-    /* 
-    // Production implementation with Google Places API:
-    
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'Google Places API key not configured' },
-        { status: 500 }
-      );
-    }
-
-    // Get coordinates for ZIP code (using geocoding)
-    const geocodeResponse = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${zip}&key=${apiKey}`
-    );
-    const geocodeData = await geocodeResponse.json();
-    
-    if (geocodeData.status !== 'OK' || !geocodeData.results[0]) {
-      return NextResponse.json(
-        { error: 'Invalid ZIP code' },
-        { status: 400 }
-      );
-    }
-
-    const location = geocodeData.results[0].geometry.location;
-    
-    // Build search query based on category
-    let query = '';
-    switch (category) {
-      case 'indoor':
-        query = 'party hall community center indoor playground';
-        break;
-      case 'outdoor':
-        query = 'park pavilion outdoor venue garden';
-        break;
-      case 'specialty':
-        query = 'trampoline park bowling alley laser tag arcade';
-        break;
-    }
-
-    // Search for places
-    const placesResponse = await fetch(
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&location=${location.lat},${location.lng}&radius=10000&key=${apiKey}`
-    );
-    const placesData = await placesResponse.json();
-
-    if (placesData.status !== 'OK') {
-      return NextResponse.json(
-        { error: 'Failed to fetch venues' },
-        { status: 500 }
-      );
-    }
-
-    // Transform results
-    const venues: Venue[] = placesData.results.map((place: any) => ({
-      name: place.name,
-      address: place.formatted_address,
-      rating: place.rating || 0,
-      photoUrl: place.photos?.[0] 
-        ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${apiKey}`
-        : undefined,
-      distance: calculateDistance(location, place.geometry.location),
-      placeId: place.place_id
-    }));
-
-    return NextResponse.json(venues);
-    */
+    console.log(`Found ${filteredVenues.length} venues after filtering`);
+    return NextResponse.json(filteredVenues);
 
   } catch (error) {
     console.error('Error fetching venues:', error);
-    console.log('APIFY failed, providing fallback sample data');
+    console.log('Google Places API failed, providing fallback sample data');
     const fallbackVenues = getFallbackVenues(category || 'indoor', zip || '10001');
     return NextResponse.json(fallbackVenues);
   }
 }
 
-// Fallback venue data when APIFY returns no results
+// Fallback venue data when Google Places API fails
 function getFallbackVenues(category: string, zipCode: string): Venue[] {
   const baseVenues = {
     indoor: [
       {
-        name: "Community Center Party Hall",
+        name: "Community Center Hall",
         address: `${zipCode} Area, MI`,
         rating: 4.2,
         photoUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=300&fit=crop",
@@ -244,13 +229,13 @@ function getFallbackVenues(category: string, zipCode: string): Venue[] {
         category: "Community Center"
       },
       {
-        name: "Recreation Center Event Space",
+        name: "Recreation Center",
         address: `${zipCode} Area, MI`,
         rating: 4.5,
-        photoUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-        distance: "3.2 miles",
+        photoUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
+        distance: "3.5 miles",
         placeId: "fallback_indoor_2",
-        reviewsCount: 32,
+        reviewsCount: 67,
         price: "$$$",
         phone: "(555) 234-5678",
         website: "https://example.com",
@@ -287,83 +272,48 @@ function getFallbackVenues(category: string, zipCode: string): Venue[] {
     ],
     specialty: [
       {
-        name: "Fun Zone Activity Center",
+        name: "JumpZone Trampoline Park",
         address: `${zipCode} Area, MI`,
         rating: 4.6,
-        photoUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
-        distance: "2.5 miles",
+        photoUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
+        distance: "2.3 miles",
         placeId: "fallback_specialty_1",
         reviewsCount: 89,
         price: "$$$",
         phone: "(555) 567-8901",
         website: "https://example.com",
-        category: "Activity Center"
+        category: "Trampoline Park"
       },
       {
-        name: "Adventure Quest Entertainment",
+        name: "Strike Zone Bowling",
         address: `${zipCode} Area, MI`,
-        rating: 4.4,
-        photoUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
-        distance: "3.7 miles",
+        rating: 4.1,
+        photoUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
+        distance: "3.2 miles",
         placeId: "fallback_specialty_2",
-        reviewsCount: 67,
+        reviewsCount: 34,
         price: "$$",
         phone: "(555) 678-9012",
         website: "https://example.com",
-        category: "Entertainment"
+        category: "Bowling Alley"
       }
     ]
   };
 
-  return baseVenues[category as keyof typeof baseVenues] || [];
+  return baseVenues[category as keyof typeof baseVenues] || baseVenues.indoor;
 }
 
-// Helper function to calculate distance from ZIP code
-async function calculateDistanceFromZip(zipCode: string, coordinates: { lat: number; lng: number } | null): string {
-  if (!coordinates) return 'Distance unknown';
-  
-  try {
-    // For now, return a placeholder. In production, you'd geocode the ZIP to get coordinates
-    // and then calculate the actual distance
-    return 'Distance calculated';
-  } catch (error) {
-    console.error('Error calculating distance:', error);
-    return 'Distance unknown';
-  }
-}
-
-// Helper function to sort venues
-function sortVenues(venues: Venue[], sortBy: string): Venue[] {
-  return venues.sort((a, b) => {
-    switch (sortBy) {
-      case 'rating':
-        return (b.rating || 0) - (a.rating || 0);
-      case 'distance':
-        // Extract numeric distance for sorting
-        const aDistance = parseFloat(a.distance.replace(/[^\d.]/g, '')) || 999;
-        const bDistance = parseFloat(b.distance.replace(/[^\d.]/g, '')) || 999;
-        return aDistance - bDistance;
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'reviews':
-        return (b.reviewsCount || 0) - (a.reviewsCount || 0);
-      default:
-        return 0;
-    }
-  });
-}
-
-// Helper function to calculate distance (for production use)
-function calculateDistance(origin: { lat: number; lng: number }, destination: { lat: number; lng: number }): string {
-  const R = 3959; // Earth's radius in miles
-  const dLat = (destination.lat - origin.lat) * Math.PI / 180;
-  const dLng = (destination.lng - origin.lng) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(origin.lat * Math.PI / 180) * Math.cos(destination.lat * Math.PI / 180) * 
-    Math.sin(dLng/2) * Math.sin(dLng/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const distance = R * c;
-  
-  return `${distance.toFixed(1)} miles`;
+// Venue data interface
+interface Venue {
+  name: string;
+  address: string;
+  rating: number;
+  photoUrl: string;
+  distance: string;
+  placeId: string;
+  reviewsCount: number;
+  price: string;
+  phone: string;
+  website: string;
+  category: string;
 }

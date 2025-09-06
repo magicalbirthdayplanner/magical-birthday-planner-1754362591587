@@ -14,8 +14,8 @@ DIRECT_URL=postgresql://postgres:MagicalBirthdayPlanner@db.nwgqmsuaoflklrgrxfwy.
 NODE_ENV=production
 NEXT_PUBLIC_BASE_URL=https://your-vercel-domain.vercel.app
 
-# APIFY API Configuration
-APIFY_API_TOKEN=apify_api_RdwdNVmEgwhxFVR2IaU68qeobLhmHy35A047
+# Google Places API Configuration
+GOOGLE_PLACES_API_KEY=your_google_places_api_key_here
 
 # Vercel-specific
 VERCEL_ENV=production
