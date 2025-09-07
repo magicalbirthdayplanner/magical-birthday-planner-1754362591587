@@ -244,6 +244,7 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
 
   // Activity selection functions
   const toggleActivitySelection = (activityId: string) => {
+    console.log('Toggling activity selection for:', activityId);
     setActivities(prev => {
       const updated = prev.map(activity =>
         activity.id === activityId 
@@ -253,6 +254,7 @@ export default function ActivitiesTab({ partyId, themeActivities, partyData, onA
       
       // Call callback with selected activities
       const selected = updated.filter(a => a.isSelected);
+      console.log('Selected activities after toggle:', selected.length, selected);
       onSelectedActivitiesChange?.(selected);
       
       return updated;

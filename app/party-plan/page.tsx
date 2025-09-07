@@ -207,6 +207,11 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
   
   // Selected activities state for Host Mode
   const [selectedActivities, setSelectedActivities] = useState<any[]>([]);
+  
+  // Debug: Log selected activities changes
+  useEffect(() => {
+    console.log('Selected activities updated:', selectedActivities.length, selectedActivities);
+  }, [selectedActivities]);
 
   // Venue search and filter state
   const [venueSearchQuery, setVenueSearchQuery] = useState('');
