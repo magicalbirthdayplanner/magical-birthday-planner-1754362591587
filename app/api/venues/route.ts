@@ -49,63 +49,33 @@ async function searchGooglePlaces(query: string, location: string, radius: numbe
     return [];
   }
 
-  return data.places || [];
+  return data.places;
 }
 
-// Get place details using the new Places API (New)
-async function getPlaceDetails(placeId: string) {
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-  
-  if (!apiKey) {
-    throw new Error('Google Places API key not found');
-  }
-
-  const baseUrl = `https://places.googleapis.com/v1/places/${placeId}`;
-  
-  const response = await fetch(baseUrl, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': 'displayName,formattedAddress,rating,userRatingCount,priceLevel,nationalPhoneNumber,websiteUri,photos,types'
-    }
-  });
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Google Places Details API error:', response.status, errorText);
-    throw new Error(`Google Places Details API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data;
-}
-
-// Search terms mapping for different venue categories
-const SEARCH_TERMS = {
+const SEARCH_TERMS: { [key: string]: string[] } = {
   indoor: [
-    'indoor party venue',
-    'event space',
-    'community center',
-    'recreation center',
     'indoor playground',
-    'trampoline park',
+    'event hall',
+    'community center',
+    'gymnasium',
     'bowling alley',
-    'arcade',
-    'laser tag',
-    'escape room'
+    'skating rink',
+    'art studio',
+    'cooking class venue',
+    'childrens museum',
+    'indoor sports facility'
   ],
   outdoor: [
-    'outdoor party venue',
-    'park pavilion',
-    'garden venue',
+    'park',
+    'botanical garden',
+    'farm venue',
     'outdoor event space',
-    'beach venue',
-    'outdoor playground',
-    'sports complex',
-    'outdoor recreation',
     'picnic area',
-    'outdoor amphitheater'
+    'beach venue',
+    'rooftop venue',
+    'amphitheater',
+    'zoo',
+    'park gazebo'
   ],
   specialty: [
     'trampoline park',
@@ -117,9 +87,7 @@ const SEARCH_TERMS = {
     'escape room',
     'indoor water park',
     'adventure park',
-    'fun center',
-    'trampoline center',
-    'entertainment center'
+    'fun center'
   ]
 };
 
@@ -146,9 +114,11 @@ export async function GET(request: NextRequest) {
     console.log('Google Places API Key available:', !!apiKey);
     
     if (!apiKey) {
-      console.log('No Google Places API key found, using fallback data');
-      const fallbackVenues = getFallbackVenues(category || 'indoor', zip || '10001');
-      return NextResponse.json(fallbackVenues);
+      console.error('Google Places API key is required but not found');
+      return NextResponse.json(
+        { error: 'Google Places API key is required but not configured' },
+        { status: 500 }
+      );
     }
 
     // Get search terms for the category
@@ -167,9 +137,8 @@ export async function GET(request: NextRequest) {
     const places = await searchGooglePlaces(query, location, radiusInMeters);
     
     if (!places || places.length === 0) {
-      console.log('No places found, returning fallback data');
-      const fallbackVenues = getFallbackVenues(category || 'indoor', zip || '10001');
-      return NextResponse.json(fallbackVenues);
+      console.log('No places found for the given search criteria');
+      return NextResponse.json([]);
     }
 
     // Process places from the new API format
@@ -180,43 +149,40 @@ export async function GET(request: NextRequest) {
           address: place.formattedAddress || 'Address not available',
           rating: place.rating || 0,
           photoUrl: place.photos && place.photos[0] 
-            ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?maxWidthPx=400&key=${process.env.GOOGLE_PLACES_API_KEY}`
+            ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?maxWidthPx=400&key=${apiKey}`
             : 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
-          distance: 'Distance calculated by Google',
-          placeId: place.id,
+          distance: 'Distance calculated by Google Places',
+          placeId: place.id || 'unknown',
           reviewsCount: place.userRatingCount || 0,
-          price: place.priceLevel ? '$'.repeat(place.priceLevel) : 'Price not available',
+          price: place.priceLevel ? '$'.repeat(place.priceLevel) : '$$',
           phone: place.nationalPhoneNumber || 'Phone not available',
           website: place.websiteUri || 'Website not available',
-          category: place.types && place.types[0] ? place.types[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Venue'
+          category: place.types?.[0] || 'Venue'
         };
       } catch (error) {
-        console.error(`Error processing place ${place.id}:`, error);
+        console.error('Error processing place:', error);
         return null;
       }
+    }).filter(Boolean);
+
+    // Apply server-side filtering
+    let filteredVenues = venues.filter(venue => {
+      const matchesSearch = searchQuery
+        ? venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          venue.address.toLowerCase().includes(searchQuery.toLowerCase())
+        : true;
+      const matchesRating = venue.rating >= minRating;
+      return matchesSearch && matchesRating;
     });
 
-    // Filter out null results and apply filters
-    let filteredVenues = venues.filter(venue => venue !== null);
-
-    // Apply search filter
-    if (searchQuery) {
-      filteredVenues = filteredVenues.filter(venue => 
-        venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        venue.address.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply rating filter
-    filteredVenues = filteredVenues.filter(venue => venue.rating >= minRating);
-
-    // Sort venues
-    filteredVenues.sort((a, b) => {
+    // Apply server-side sorting
+    const sortedVenues = filteredVenues.sort((a, b) => {
       switch (sortBy) {
         case 'rating':
           return b.rating - a.rating;
         case 'distance':
-          return parseFloat(a.distance) - parseFloat(b.distance);
+          // Since we don't have exact distance, sort by rating as fallback
+          return b.rating - a.rating;
         case 'name':
           return a.name.localeCompare(b.name);
         case 'reviews':
@@ -227,107 +193,16 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(`Found ${filteredVenues.length} venues after filtering`);
-    return NextResponse.json(filteredVenues);
+    return NextResponse.json(sortedVenues);
 
   } catch (error) {
     console.error('Error fetching venues:', error);
     console.error('Error details:', JSON.stringify(error, null, 2));
-    console.log('Google Places API failed, providing fallback sample data');
-    const fallbackVenues = getFallbackVenues(category || 'indoor', zip || '10001');
-    return NextResponse.json(fallbackVenues);
+    return NextResponse.json(
+      { error: 'Failed to fetch venues from Google Places API' },
+      { status: 500 }
+    );
   }
-}
-
-// Fallback venue data when Google Places API fails
-function getFallbackVenues(category: string, zipCode: string): Venue[] {
-  const baseVenues = {
-    indoor: [
-      {
-        name: "Community Center Hall",
-        address: `${zipCode} Area, MI`,
-        rating: 4.2,
-        photoUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=300&fit=crop",
-        distance: "2.1 miles",
-        placeId: "fallback_indoor_1",
-        reviewsCount: 45,
-        price: "$$",
-        phone: "(555) 123-4567",
-        website: "https://example.com",
-        category: "Community Center"
-      },
-      {
-        name: "Recreation Center",
-        address: `${zipCode} Area, MI`,
-        rating: 4.5,
-        photoUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
-        distance: "3.5 miles",
-        placeId: "fallback_indoor_2",
-        reviewsCount: 67,
-        price: "$$$",
-        phone: "(555) 234-5678",
-        website: "https://example.com",
-        category: "Recreation Center"
-      }
-    ],
-    outdoor: [
-      {
-        name: "Riverside Park Pavilion",
-        address: `${zipCode} Area, MI`,
-        rating: 4.3,
-        photoUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
-        distance: "1.8 miles",
-        placeId: "fallback_outdoor_1",
-        reviewsCount: 28,
-        price: "$",
-        phone: "(555) 345-6789",
-        website: "https://example.com",
-        category: "Park"
-      },
-      {
-        name: "Sunset Gardens Event Space",
-        address: `${zipCode} Area, MI`,
-        rating: 4.7,
-        photoUrl: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=300&fit=crop",
-        distance: "4.1 miles",
-        placeId: "fallback_outdoor_2",
-        reviewsCount: 56,
-        price: "$$",
-        phone: "(555) 456-7890",
-        website: "https://example.com",
-        category: "Garden"
-      }
-    ],
-    specialty: [
-      {
-        name: "JumpZone Trampoline Park",
-        address: `${zipCode} Area, MI`,
-        rating: 4.6,
-        photoUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-        distance: "2.3 miles",
-        placeId: "fallback_specialty_1",
-        reviewsCount: 89,
-        price: "$$$",
-        phone: "(555) 567-8901",
-        website: "https://example.com",
-        category: "Trampoline Park"
-      },
-      {
-        name: "Strike Zone Bowling",
-        address: `${zipCode} Area, MI`,
-        rating: 4.1,
-        photoUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-        distance: "3.2 miles",
-        placeId: "fallback_specialty_2",
-        reviewsCount: 34,
-        price: "$$",
-        phone: "(555) 678-9012",
-        website: "https://example.com",
-        category: "Bowling Alley"
-      }
-    ]
-  };
-
-  return baseVenues[category as keyof typeof baseVenues] || baseVenues.indoor;
 }
 
 // Venue data interface

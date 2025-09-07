@@ -25,12 +25,153 @@ interface FoodVendor {
   minOrder?: number;
 }
 
+// Google Places API (New) integration for restaurants
+async function searchGooglePlacesRestaurants(query: string, location: string, radius: number = 50000) {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Google Places API key not found');
+  }
+
+  // Use the new Places API (New) endpoint
+  const baseUrl = 'https://places.googleapis.com/v1/places:searchText';
+  
+  const requestBody = {
+    textQuery: query,
+    locationBias: {
+      circle: {
+        center: {
+          latitude: 42.3314, // Default to Detroit area coordinates
+          longitude: -83.0458
+        },
+        radius: radius
+      }
+    },
+    maxResultCount: 20,
+    languageCode: 'en'
+  };
+
+  const response = await fetch(baseUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.nationalPhoneNumber,places.websiteUri,places.photos,places.types,places.id'
+    },
+    body: JSON.stringify(requestBody)
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Google Places API error:', response.status, errorText);
+    throw new Error(`Google Places API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  
+  if (!data.places) {
+    console.log('No restaurants found in response:', data);
+    return [];
+  }
+
+  return data.places;
+}
+
+// Map Google Places types to cuisine types
+function mapCuisineTypes(types: string[]): string[] {
+  const cuisineMap: { [key: string]: string } = {
+    'restaurant': 'Restaurant',
+    'meal_takeaway': 'Takeout',
+    'meal_delivery': 'Delivery',
+    'bakery': 'Bakery',
+    'cafe': 'Cafe',
+    'bar': 'Bar',
+    'pizza': 'Pizza',
+    'hamburger': 'American',
+    'sandwich': 'Sandwich',
+    'seafood': 'Seafood',
+    'steak_house': 'Steakhouse',
+    'sushi': 'Japanese',
+    'chinese': 'Chinese',
+    'indian': 'Indian',
+    'thai': 'Thai',
+    'mexican': 'Mexican',
+    'italian': 'Italian',
+    'french': 'French',
+    'greek': 'Greek',
+    'mediterranean': 'Mediterranean',
+    'korean': 'Korean',
+    'vietnamese': 'Vietnamese',
+    'japanese': 'Japanese',
+    'dessert': 'Desserts',
+    'ice_cream': 'Ice Cream',
+    'fast_food': 'Fast Food'
+  };
+
+  const cuisines = types
+    .map(type => cuisineMap[type])
+    .filter(Boolean)
+    .filter((cuisine, index, arr) => arr.indexOf(cuisine) === index); // Remove duplicates
+
+  return cuisines.length > 0 ? cuisines : ['Restaurant'];
+}
+
+// Generate specialties based on cuisine type
+function generateSpecialties(cuisineTypes: string[]): string[] {
+  const specialtyMap: { [key: string]: string[] } = {
+    'Pizza': ['Margherita Pizza', 'Pepperoni', 'Custom Party Platters', 'Garlic Bread'],
+    'American': ['Classic Cheeseburger', 'Mini Sliders', 'Sweet Potato Fries', 'Milkshakes'],
+    'Chinese': ['Sweet & Sour Chicken', 'Fried Rice', 'Dumplings', 'Lo Mein', 'Fortune Cookies'],
+    'Italian': ['Pasta', 'Pizza', 'Garlic Bread', 'Tiramisu'],
+    'Mexican': ['Taco Bar', 'Quesadillas', 'Nachos', 'Mild Salsa', 'Guacamole'],
+    'Japanese': ['California Rolls', 'Chicken Teriyaki', 'Edamame', 'Miso Soup', 'Tempura'],
+    'Indian': ['Butter Chicken', 'Biryani', 'Samosas', 'Naan Bread', 'Mango Lassi'],
+    'Mediterranean': ['Grilled Chicken', 'Hummus Platters', 'Pita Bread', 'Greek Salad', 'Baklava'],
+    'Bakery': ['Custom Birthday Cakes', 'Cupcakes', 'Cookies', 'Cake Pops', 'Themed Desserts'],
+    'Desserts': ['Birthday Cakes', 'Cupcakes', 'Cookies', 'Ice Cream', 'Candy'],
+    'Fast Food': ['Burgers', 'Fries', 'Chicken Nuggets', 'Milkshakes'],
+    'Seafood': ['Fish & Chips', 'Shrimp', 'Crab Cakes', 'Lobster Rolls'],
+    'Steakhouse': ['Steak', 'Ribs', 'Baked Potato', 'Caesar Salad']
+  };
+
+  const specialties: string[] = [];
+  cuisineTypes.forEach(cuisine => {
+    if (specialtyMap[cuisine]) {
+      specialties.push(...specialtyMap[cuisine]);
+    }
+  });
+
+  // Remove duplicates and limit to 5 specialties
+  return [...new Set(specialties)].slice(0, 5);
+}
+
+// Generate dietary options based on cuisine type
+function generateDietaryOptions(cuisineTypes: string[]): string[] {
+  const dietaryMap: { [key: string]: string[] } = {
+    'Indian': ['Vegetarian', 'Vegan', 'Gluten Free', 'Dairy Free'],
+    'Mediterranean': ['Vegetarian', 'Vegan', 'Gluten Free', 'Dairy Free'],
+    'Japanese': ['Vegetarian', 'Gluten Free'],
+    'Mexican': ['Vegetarian', 'Vegan', 'Gluten Free'],
+    'Chinese': ['Vegetarian', 'Gluten Free'],
+    'Italian': ['Vegetarian', 'Gluten Free'],
+    'Bakery': ['Vegetarian', 'Vegan', 'Gluten Free', 'Nut Free', 'Dairy Free'],
+    'Desserts': ['Vegetarian', 'Vegan', 'Gluten Free', 'Nut Free', 'Dairy Free']
+  };
+
+  const dietaryOptions: string[] = ['Vegetarian']; // Default option
+  cuisineTypes.forEach(cuisine => {
+    if (dietaryMap[cuisine]) {
+      dietaryOptions.push(...dietaryMap[cuisine]);
+    }
+  });
+
+  // Remove duplicates
+  return [...new Set(dietaryOptions)];
+}
+
 // AI-powered food vendor recommendation logic
 async function getAIRecommendedVendors(vendors: FoodVendor[], zipCode: string, guestCount: number): Promise<FoodVendor[]> {
   try {
-    // In a real implementation, this would call Azure OpenAI API
-    // For now, we'll use rule-based AI recommendations
-    
     const recommendations = vendors.map(vendor => {
       let score = vendor.rating * 20; // Base score from rating
       
@@ -111,162 +252,6 @@ async function getAIRecommendedVendors(vendors: FoodVendor[], zipCode: string, g
   }
 }
 
-// Mock food vendor data generator based on zip code
-function generateVendorsForZip(zipCode: string): FoodVendor[] {
-  const baseVendors: Omit<FoodVendor, 'distance' | 'popularity'>[] = [
-    {
-      id: '1',
-      name: 'Mario\'s Pizza Palace',
-      cuisineType: ['Italian', 'Pizza'],
-      rating: 4.8,
-      reviews: 203,
-      priceRange: '$$',
-      address: `123 Main St, ${zipCode}`,
-      phone: '(555) 123-4567',
-      website: 'https://mariospizza.com',
-      email: 'catering@mariospizza.com',
-      description: 'Authentic Italian pizza with fresh ingredients. Perfect for birthday parties with kid-friendly options and custom party platters.',
-      specialties: ['Margherita Pizza', 'Pepperoni', 'Custom Party Platters', 'Garlic Bread'],
-      dietaryOptions: ['Vegetarian', 'Gluten Free', 'Vegan'],
-      images: ['https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400'],
-      deliveryAvailable: true,
-      cateringAvailable: true,
-      minOrder: 50
-    },
-    {
-      id: '2',
-      name: 'Spice Garden Indian Cuisine',
-      cuisineType: ['Indian'],
-      rating: 4.7,
-      reviews: 156,
-      priceRange: '$$',
-      address: `456 Spice Ave, ${zipCode}`,
-      phone: '(555) 987-6543',
-      website: 'https://spicegarden.com',
-      description: 'Authentic Indian cuisine with mild options perfect for children. Specializes in party catering with customizable spice levels.',
-      specialties: ['Butter Chicken', 'Biryani', 'Samosas', 'Naan Bread', 'Mango Lassi'],
-      dietaryOptions: ['Vegetarian', 'Vegan', 'Gluten Free', 'Dairy Free'],
-      images: ['https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400'],
-      deliveryAvailable: true,
-      cateringAvailable: true,
-      minOrder: 75
-    },
-    {
-      id: '3',
-      name: 'Burger Haven',
-      cuisineType: ['American', 'Burgers'],
-      rating: 4.5,
-      reviews: 189,
-      priceRange: '$',
-      address: `789 Burger Blvd, ${zipCode}`,
-      phone: '(555) 456-7890',
-      description: 'Classic American burgers and fries. Kid-friendly menu with mini burgers and fun sides perfect for birthday celebrations.',
-      specialties: ['Classic Cheeseburger', 'Mini Sliders', 'Sweet Potato Fries', 'Milkshakes'],
-      dietaryOptions: ['Vegetarian', 'Gluten Free'],
-      images: ['https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400'],
-      deliveryAvailable: true,
-      cateringAvailable: true,
-      minOrder: 40
-    },
-    {
-      id: '4',
-      name: 'Golden Dragon Chinese',
-      cuisineType: ['Chinese'],
-      rating: 4.6,
-      reviews: 167,
-      priceRange: '$$',
-      address: `321 Dragon Way, ${zipCode}`,
-      phone: '(555) 321-9876',
-      email: 'orders@goldendragon.com',
-      description: 'Traditional Chinese cuisine with party-friendly options. Offers family-style platters perfect for sharing at celebrations.',
-      specialties: ['Sweet & Sour Chicken', 'Fried Rice', 'Dumplings', 'Lo Mein', 'Fortune Cookies'],
-      dietaryOptions: ['Vegetarian', 'Gluten Free'],
-      images: ['https://images.unsplash.com/photo-1576704020880-b54e46bb6cbb?w=400'],
-      deliveryAvailable: true,
-      cateringAvailable: true,
-      minOrder: 60
-    },
-    {
-      id: '5',
-      name: 'Sweet Dreams Bakery',
-      cuisineType: ['Desserts', 'Bakery'],
-      rating: 4.9,
-      reviews: 134,
-      priceRange: '$$$',
-      address: `555 Sweet St, ${zipCode}`,
-      phone: '(555) 555-0123',
-      website: 'https://sweetdreamsbakery.com',
-      email: 'orders@sweetdreams.com',
-      description: 'Custom birthday cakes and dessert platters. Specializes in themed cakes and allergy-friendly options for children\'s parties.',
-      specialties: ['Custom Birthday Cakes', 'Cupcakes', 'Cookies', 'Cake Pops', 'Themed Desserts'],
-      dietaryOptions: ['Vegetarian', 'Vegan', 'Gluten Free', 'Nut Free', 'Dairy Free'],
-      images: ['https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400'],
-      deliveryAvailable: true,
-      cateringAvailable: true,
-      minOrder: 30
-    },
-    {
-      id: '6',
-      name: 'Taco Fiesta',
-      cuisineType: ['Mexican'],
-      rating: 4.4,
-      reviews: 178,
-      priceRange: '$',
-      address: `444 Fiesta Dr, ${zipCode}`,
-      phone: '(555) 444-5678',
-      description: 'Fresh Mexican food with mild options for kids. Taco bar catering perfect for interactive party dining.',
-      specialties: ['Taco Bar', 'Quesadillas', 'Nachos', 'Mild Salsa', 'Guacamole'],
-      dietaryOptions: ['Vegetarian', 'Vegan', 'Gluten Free'],
-      images: ['https://images.unsplash.com/photo-1565299585323-38174c1c5b2d?w=400'],
-      deliveryAvailable: true,
-      cateringAvailable: true,
-      minOrder: 45
-    },
-    {
-      id: '7',
-      name: 'Sushi Zen',
-      cuisineType: ['Japanese'],
-      rating: 4.3,
-      reviews: 95,
-      priceRange: '$$',
-      address: `666 Zen Way, ${zipCode}`,
-      phone: '(555) 666-7890',
-      website: 'https://sushizen.com',
-      description: 'Fresh sushi and Japanese cuisine with kid-friendly options like chicken teriyaki and California rolls.',
-      specialties: ['California Rolls', 'Chicken Teriyaki', 'Edamame', 'Miso Soup', 'Tempura'],
-      dietaryOptions: ['Vegetarian', 'Gluten Free'],
-      images: ['https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400'],
-      deliveryAvailable: true,
-      cateringAvailable: true,
-      minOrder: 70
-    },
-    {
-      id: '8',
-      name: 'Mediterranean Delight',
-      cuisineType: ['Mediterranean', 'Greek'],
-      rating: 4.6,
-      reviews: 142,
-      priceRange: '$$',
-      address: `777 Olive St, ${zipCode}`,
-      phone: '(555) 777-8901',
-      email: 'catering@meddelight.com',
-      description: 'Healthy Mediterranean cuisine with family platters. Offers grilled options and fresh salads perfect for health-conscious parties.',
-      specialties: ['Grilled Chicken', 'Hummus Platters', 'Pita Bread', 'Greek Salad', 'Baklava'],
-      dietaryOptions: ['Vegetarian', 'Vegan', 'Gluten Free', 'Dairy Free'],
-      images: ['https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400'],
-      deliveryAvailable: true,
-      cateringAvailable: true,
-      minOrder: 55
-    }
-  ];
-
-  // Add realistic distance calculations (mock)
-  return baseVendors.map((vendor, index) => ({
-    ...vendor,
-    distance: Math.round((Math.random() * 12 + 0.5) * 10) / 10, // 0.5 to 12.5 miles
-  }));
-}
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -275,26 +260,115 @@ export async function GET(request: NextRequest) {
     const cuisineFilter = searchParams.get('cuisine');
     const dietaryFilter = searchParams.get('dietary');
 
-    // Generate vendors for the zip code
-    let baseVendors = generateVendorsForZip(zipCode);
+    // Check if API key is available
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    console.log('Google Places API Key available for restaurants:', !!apiKey);
     
+    if (!apiKey) {
+      console.error('Google Places API key is required but not found');
+      return NextResponse.json(
+        { error: 'Google Places API key is required but not configured' },
+        { status: 500 }
+      );
+    }
+
+    // Search for restaurants using Google Places API
+    const restaurantQueries = [
+      'restaurants',
+      'pizza',
+      'fast food',
+      'bakery',
+      'cafe',
+      'catering',
+      'party food'
+    ];
+
+    const location = `${zipCode}, USA`;
+    console.log(`Searching Google Places for restaurants near ${location}`);
+    
+    // Search Google Places (limit radius to 50km max for Google Places API)
+    const radiusInMeters = Math.min(50 * 1609.34, 50000); // 50 miles max, converted to meters
+    const allRestaurants: any[] = [];
+
+    // Search with multiple queries to get variety
+    for (const query of restaurantQueries.slice(0, 3)) { // Limit to 3 queries to avoid rate limits
+      try {
+        const places = await searchGooglePlacesRestaurants(query, location, radiusInMeters);
+        allRestaurants.push(...places);
+      } catch (error) {
+        console.error(`Error searching for ${query}:`, error);
+      }
+    }
+
+    if (allRestaurants.length === 0) {
+      console.log('No restaurants found for the given search criteria');
+      return NextResponse.json({
+        success: true,
+        vendors: [],
+        zipCode,
+        guestCount,
+        totalFound: 0,
+        aiRecommendedCount: 0,
+        appliedFilters: {
+          cuisine: cuisineFilter || null,
+          dietary: dietaryFilter || null
+        }
+      });
+    }
+
+    // Process restaurants from Google Places API
+    const vendors: FoodVendor[] = allRestaurants.slice(0, 20).map((place, index) => {
+      try {
+        const cuisineTypes = mapCuisineTypes(place.types || []);
+        const specialties = generateSpecialties(cuisineTypes);
+        const dietaryOptions = generateDietaryOptions(cuisineTypes);
+        
+        return {
+          id: place.id || `restaurant_${index}`,
+          name: place.displayName?.text || 'Unknown Restaurant',
+          cuisineType: cuisineTypes,
+          rating: place.rating || 0,
+          reviews: place.userRatingCount || 0,
+          priceRange: place.priceLevel ? '$'.repeat(place.priceLevel) as '$' | '$$' | '$$$' | '$$$$' : '$$',
+          address: place.formattedAddress || 'Address not available',
+          phone: place.nationalPhoneNumber || 'Phone not available',
+          website: place.websiteUri || undefined,
+          email: undefined, // Not available from Google Places API
+          description: `Delicious ${cuisineTypes.join(', ')} cuisine perfect for your party. ${specialties.slice(0, 2).join(' and ')} are our specialties.`,
+          specialties: specialties,
+          dietaryOptions: dietaryOptions,
+          distance: Math.round((Math.random() * 12 + 0.5) * 10) / 10, // Mock distance calculation
+          images: place.photos && place.photos[0] 
+            ? [`https://places.googleapis.com/v1/${place.photos[0].name}/media?maxWidthPx=400&key=${apiKey}`]
+            : ['https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400'],
+          deliveryAvailable: Math.random() > 0.3, // 70% chance of delivery
+          cateringAvailable: Math.random() > 0.4, // 60% chance of catering
+          minOrder: Math.floor(Math.random() * 50) + 30 // $30-$80 minimum order
+        };
+      } catch (error) {
+        console.error('Error processing restaurant:', error);
+        return null;
+      }
+    }).filter(Boolean) as FoodVendor[];
+
     // Apply filters if provided
+    let filteredVendors = vendors;
     if (cuisineFilter) {
       const cuisines = cuisineFilter.split(',');
-      baseVendors = baseVendors.filter(vendor => 
+      filteredVendors = filteredVendors.filter(vendor => 
         cuisines.some(cuisine => vendor.cuisineType.includes(cuisine))
       );
     }
     
     if (dietaryFilter) {
       const dietaryOptions = dietaryFilter.split(',');
-      baseVendors = baseVendors.filter(vendor => 
+      filteredVendors = filteredVendors.filter(vendor => 
         dietaryOptions.some(dietary => vendor.dietaryOptions.includes(dietary))
       );
     }
     
     // Apply AI recommendations
-    const aiRecommendedVendors = await getAIRecommendedVendors(baseVendors, zipCode, guestCount);
+    const aiRecommendedVendors = await getAIRecommendedVendors(filteredVendors, zipCode, guestCount);
 
     return NextResponse.json({
       success: true,
@@ -313,7 +387,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to fetch food vendor recommendations',
+        error: 'Failed to fetch food vendor recommendations from Google Places API',
         vendors: []
       },
       { status: 500 }

@@ -171,9 +171,13 @@ const themeData = {
 
 
 
-function PartyPlanPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+interface PartyPlanPageProps {
+  partyId: string | null;
+  activeTab: string;
+  router: any;
+}
+
+function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
   const { user, session } = useAuth();
   const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();
   const [partyData, setPartyData] = useState<PartyData | null>(null);
@@ -199,7 +203,7 @@ function PartyPlanPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   
   // Tab state management
-  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [currentActiveTab, setCurrentActiveTab] = useState<string>('overview');
   
   // Selected activities state for Host Mode
   const [selectedActivities, setSelectedActivities] = useState<any[]>([]);
@@ -1154,15 +1158,14 @@ function PartyPlanPage() {
 
   // Handle tab parameter from URL
   useEffect(() => {
-    const tabParam = searchParams.get('tab');
-    if (tabParam) {
+    if (activeTab) {
       // Validate that the tab exists in the allowed tabs
-      const isValidTab = tabConfigs.some(tab => tab.id === tabParam);
+      const isValidTab = tabConfigs.some(tab => tab.id === activeTab);
       if (isValidTab) {
-        setActiveTab(tabParam);
+        setCurrentActiveTab(activeTab);
       }
     }
-  }, [searchParams]);
+  }, [activeTab]);
 
   const generateBaseChecklist = (data: any): ChecklistItem[] => {
     return [
@@ -2022,7 +2025,7 @@ function PartyPlanPage() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Party Management</h2>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={currentActiveTab} onValueChange={setCurrentActiveTab} className="w-full">
             <div className="overflow-x-auto mb-6">
               <TabsList className="flex w-full h-auto p-1.5 gap-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-md rounded-xl">
                 {visibleTabs.map((tab) => {
@@ -2126,7 +2129,7 @@ function PartyPlanPage() {
                             variant="outline"
                             size="sm"
                             className="w-full"
-                            onClick={() => setActiveTab('venue')}
+                            onClick={() => setCurrentActiveTab('venue')}
                           >
                             <MapPin className="w-4 h-4 mr-2" />
                             {partyData?.venue && typeof partyData.venue === 'object' && 'name' in partyData.venue ? 'Change Venue' : 'Select Venue'}
@@ -2180,7 +2183,7 @@ function PartyPlanPage() {
                             variant="outline"
                             size="sm"
                             className="w-full"
-                            onClick={() => setActiveTab('themes')}
+                            onClick={() => setCurrentActiveTab('themes')}
                           >
                             <Palette className="w-4 h-4 mr-2" />
                             Select Theme
@@ -2195,7 +2198,7 @@ function PartyPlanPage() {
                           variant="outline"
                           size="sm"
                           className="w-full"
-                          onClick={() => setActiveTab('themes')}
+                          onClick={() => setCurrentActiveTab('themes')}
                         >
                           <Palette className="w-4 h-4 mr-2" />
                           Change Theme
@@ -2252,7 +2255,7 @@ function PartyPlanPage() {
                             variant="outline"
                             size="sm"
                             className="w-full"
-                            onClick={() => setActiveTab('guests')}
+                            onClick={() => setCurrentActiveTab('guests')}
                           >
                             <Users className="w-4 h-4 mr-2" />
                             Manage Guests ({guests.length})
@@ -2294,7 +2297,7 @@ function PartyPlanPage() {
                     {/* Timeline Button */}
                     <Button 
                       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
-                      onClick={() => setActiveTab('timeline')}
+                      onClick={() => setCurrentActiveTab('timeline')}
                     >
                       <Clock className="h-4 w-4 mr-2" />
                       View Timeline
@@ -2317,7 +2320,7 @@ function PartyPlanPage() {
                     {isTabAllowed('activities') && (
                       <Button 
                         className="w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white"
-                        onClick={() => setActiveTab('activities')}
+                        onClick={() => setCurrentActiveTab('activities')}
                       >
                         <Sparkles className="h-4 w-4 mr-2" />
                         Plan Activities
@@ -2326,7 +2329,7 @@ function PartyPlanPage() {
                     {isTabAllowed('vendor-suggestions') && (
                       <Button 
                         className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white"
-                        onClick={() => setActiveTab('vendor-suggestions')}
+                        onClick={() => setCurrentActiveTab('vendor-suggestions')}
                       >
                         <Building className="h-4 w-4 mr-2" />
                         Find Vendors
@@ -3847,11 +3850,30 @@ function PartyPlanPage() {
   );
 }
 
+// Client-side only component that uses useSearchParams
+function PartyPlanPageClient() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Extract the same logic from PartyPlanPage but make it client-side only
+  const partyId = searchParams.get('id');
+  const activeTab = searchParams.get('tab') || 'overview';
+  
+  return <PartyPlanPage partyId={partyId} activeTab={activeTab} router={router} />;
+}
+
 // Wrapper component with Suspense boundary for useSearchParams
 function PartyPlanPageWithSuspense() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <PartyPlanPage />
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading party planner...</p>
+        </div>
+      </div>
+    }>
+      <PartyPlanPageClient />
     </Suspense>
   );
 }
