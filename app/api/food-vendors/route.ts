@@ -142,7 +142,7 @@ function generateSpecialties(cuisineTypes: string[]): string[] {
   });
 
   // Remove duplicates and limit to 5 specialties
-  return [...new Set(specialties)].slice(0, 5);
+  return Array.from(new Set(specialties)).slice(0, 5);
 }
 
 // Generate dietary options based on cuisine type
@@ -166,7 +166,7 @@ function generateDietaryOptions(cuisineTypes: string[]): string[] {
   });
 
   // Remove duplicates
-  return [...new Set(dietaryOptions)];
+  return Array.from(new Set(dietaryOptions));
 }
 
 // AI-powered food vendor recommendation logic
