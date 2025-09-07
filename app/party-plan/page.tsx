@@ -928,7 +928,7 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
               interests: result.party.interests || [],
               favoriteColors: result.party.favorite_colors || [],
               budget: result.party.budget,
-              location: result.party.zip_code,
+              zipCode: result.party.zip_code,
               guestCount: result.party.guest_count,
               venue: result.party.venue_type,
               duration: result.party.duration,
