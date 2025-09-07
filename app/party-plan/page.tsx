@@ -235,14 +235,15 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
       return; // Show home venue options
     }
     
-    // Fetch venues for other types
+    // Fetch venues for other types using the new local venues API
     setVenueLoading(true);
     try {
-      const response = await fetch(`/api/venues?zip=${partyData?.zipCode || '48226'}&category=${type}`);
+      const response = await fetch(`/api/venues-local?zip=${partyData?.zipCode || '48226'}&category=${type}&radius=15`);
       if (!response.ok) throw new Error('Failed to fetch venues');
       
       const data = await response.json();
       setVenues(data);
+      console.log(`Found ${data.length} local venues for ${type} near ${partyData?.zipCode}`);
     } catch (err) {
       console.error('Error fetching venues:', err);
     } finally {
@@ -267,10 +268,11 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
         params.append('search', venueSearchQuery.trim());
       }
       
-      const response = await fetch(`/api/venues?${params}`);
+      const response = await fetch(`/api/venues-local?${params}`);
       if (response.ok) {
         const data = await response.json();
         setVenues(data);
+        console.log(`Search found ${data.length} local venues`);
       } else {
         console.error('Failed to search venues');
       }
