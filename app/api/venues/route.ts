@@ -1,12 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Google Places API (New) integration
-async function searchGooglePlaces(query: string, location: string, radius: number = 50000) {
+// Geocode ZIP code to coordinates using Google Geocoding API
+async function geocodeZipCode(zipCode: string): Promise<{latitude: number, longitude: number}> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   
   if (!apiKey) {
     throw new Error('Google Places API key not found');
   }
+
+  // Format ZIP code with country for better geocoding results
+  const address = `${zipCode},USA`;
+  const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
+  
+  try {
+    const response = await fetch(geocodeUrl);
+    const data = await response.json();
+    
+    if (data.status === 'OK' && data.results && data.results.length > 0) {
+      const location = data.results[0].geometry.location;
+      console.log(`Geocoded ZIP ${zipCode} to coordinates: ${location.lat}, ${location.lng}`);
+      return {
+        latitude: location.lat,
+        longitude: location.lng
+      };
+    } else {
+      console.error('Geocoding failed:', data.status, data.error_message);
+      // Fallback to a default location if geocoding fails
+      return {
+        latitude: 42.3314, // Default to Detroit area coordinates
+        longitude: -83.0458
+      };
+    }
+  } catch (error) {
+    console.error('Error geocoding ZIP code:', error);
+    // Fallback to a default location if geocoding fails
+    return {
+      latitude: 42.3314, // Default to Detroit area coordinates
+      longitude: -83.0458
+    };
+  }
+}
+
+// Google Places API (New) integration
+async function searchGooglePlaces(query: string, zipCode: string, radius: number = 50000) {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Google Places API key not found');
+  }
+
+  // Geocode the ZIP code to get actual coordinates
+  const coordinates = await geocodeZipCode(zipCode);
 
   // Use the new Places API (New) endpoint
   const baseUrl = 'https://places.googleapis.com/v1/places:searchText';
@@ -16,8 +60,8 @@ async function searchGooglePlaces(query: string, location: string, radius: numbe
     locationBias: {
       circle: {
         center: {
-          latitude: 42.3314, // Default to Detroit area coordinates
-          longitude: -83.0458
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude
         },
         radius: radius
       }
@@ -127,14 +171,11 @@ export async function GET(request: NextRequest) {
     // If there's a search query, use it; otherwise use category-specific terms
     const query = searchQuery || searchTerms.join(' OR ');
     
-    // Convert ZIP to coordinates for location-based search
-    const location = `${zip}, USA`;
-    
-    console.log(`Searching Google Places for: ${query} near ${location}`);
+    console.log(`Searching Google Places for: ${query} near ZIP ${zip}`);
     
     // Search Google Places (limit radius to 50km max for Google Places API)
     const radiusInMeters = Math.min(maxDistance * 1609.34, 50000); // Convert miles to meters, max 50km
-    const places = await searchGooglePlaces(query, location, radiusInMeters);
+    const places = await searchGooglePlaces(query, zip, radiusInMeters);
     
     if (!places || places.length === 0) {
       console.log('No places found for the given search criteria');
