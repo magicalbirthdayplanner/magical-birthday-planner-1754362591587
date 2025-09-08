@@ -21,12 +21,17 @@ import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 
 const planIcons = {
+  FREE: User,
   STARTER: Star,
   PLUS: Zap,
   PRO: Crown,
 };
 
 const planColors = {
+  FREE: {
+    color: "text-gray-700 dark:text-gray-400",
+    bgColor: "bg-gray-100 dark:bg-gray-800",
+  },
   STARTER: {
     color: "text-purple-700 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
@@ -43,7 +48,7 @@ const planColors = {
 
 export function Header() {
   const { user, signOut, isSigningOut } = useAuth();
-  const { currentPlan, planDetails, updateUserPlan, loading } = useSubscription();
+  const { currentPlan, planDetails, subscriptionStatus, updateUserPlan, canUpgradeTo, loading } = useSubscription();
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
   const [userDisplayName, setUserDisplayName] = useState<string>('');
 
@@ -61,27 +66,8 @@ export function Header() {
     }
   };
 
-  const handlePlanChange = async (newPlan: 'STARTER' | 'PLUS' | 'PRO') => {
-    if (isUpdatingPlan || newPlan === currentPlan) return;
-    
-    try {
-      setIsUpdatingPlan(true);
-      await updateUserPlan(newPlan);
-      toast({
-        title: "Plan Updated",
-        description: `Successfully switched to ${planDetails.displayName} plan!`,
-      });
-    } catch (error) {
-      console.error('Error updating plan:', error);
-      toast({
-        title: "Update Failed",
-        description: "Failed to update subscription plan. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdatingPlan(false);
-    }
-  };
+  // Plan changes now redirect to pricing page for payment
+  // Actual plan updates happen after successful payment via checkout-success page
 
   // Initialize display name and listen for profile updates
   useEffect(() => {
@@ -175,9 +161,15 @@ export function Header() {
                             );
                           })()}
                         </div>
-                        <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-xs px-2 py-0.5">
-                          Active
-                        </Badge>
+                        {subscriptionStatus.isActive ? (
+                          <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-xs px-2 py-0.5">
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs px-2 py-0.5">
+                            Free
+                          </Badge>
+                        )}
                       </div>
                     </div>
 
@@ -188,36 +180,67 @@ export function Header() {
                         <span>Manage Plan</span>
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent className="w-48">
-                        {(['STARTER', 'PLUS', 'PRO'] as const).map((planKey) => {
-                          const PlanIcon = planIcons[planKey];
-                          const colors = planColors[planKey];
-                          const isActive = currentPlan === planKey;
-                          const plan = { displayName: planKey === 'STARTER' ? 'Starter' : planKey === 'PLUS' ? 'Plus' : 'Pro' };
-                          
-                          return (
-                            <DropdownMenuItem
-                              key={planKey}
-                              onClick={() => handlePlanChange(planKey)}
-                              disabled={isUpdatingPlan}
-                              className={`flex items-center justify-between ${isActive ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                            >
+                        {/* Show current plan */}
+                        {currentPlan !== 'FREE' && (
+                          <div className="px-2 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-sm">
+                            <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2">
-                                <div className={`p-1 rounded-full ${colors.bgColor}`}>
-                                  <PlanIcon className={`h-3 w-3 ${colors.color}`} />
-                                </div>
-                                <span className="text-sm">{plan.displayName}</span>
+                                {(() => {
+                                  const PlanIcon = planIcons[currentPlan];
+                                  const colors = planColors[currentPlan];
+                                  return (
+                                    <>
+                                      <div className={`p-1 rounded-full ${colors.bgColor}`}>
+                                        <PlanIcon className={`h-3 w-3 ${colors.color}`} />
+                                      </div>
+                                      <span className="text-sm font-medium">{planDetails.displayName}</span>
+                                    </>
+                                  );
+                                })()}
                               </div>
-                              {isActive && (
-                                <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs">
-                                  Current
-                                </Badge>
-                              )}
-                              {isUpdatingPlan && (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              )}
-                            </DropdownMenuItem>
-                          );
-                        })}
+                              <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs">
+                                Current
+                              </Badge>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show upgrade options */}
+                        {subscriptionStatus.canUpgrade && (
+                          <>
+                            {currentPlan !== 'FREE' && <DropdownMenuSeparator />}
+                            <div className="px-2 py-1">
+                              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                {currentPlan === 'FREE' ? 'Choose Plan' : 'Upgrade Options'}
+                              </span>
+                            </div>
+                            {(['STARTER', 'PLUS', 'PRO'] as const).map((planKey) => {
+                              if (!canUpgradeTo(planKey)) return null;
+                              
+                              const PlanIcon = planIcons[planKey];
+                              const colors = planColors[planKey];
+                              const plan = { displayName: planKey === 'STARTER' ? 'Starter' : planKey === 'PLUS' ? 'Plus' : 'Pro' };
+                              
+                              return (
+                                <DropdownMenuItem
+                                  key={planKey}
+                                  asChild
+                                  className="flex items-center justify-between cursor-pointer"
+                                >
+                                  <Link href={`/pricing?upgrade=${planKey.toLowerCase()}`}>
+                                    <div className="flex items-center space-x-2">
+                                      <div className={`p-1 rounded-full ${colors.bgColor}`}>
+                                        <PlanIcon className={`h-3 w-3 ${colors.color}`} />
+                                      </div>
+                                      <span className="text-sm">{plan.displayName}</span>
+                                    </div>
+                                    <ChevronRight className="h-3 w-3 text-gray-400" />
+                                  </Link>
+                                </DropdownMenuItem>
+                              );
+                            })}
+                          </>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <Link href="/pricing" className="flex items-center justify-between">

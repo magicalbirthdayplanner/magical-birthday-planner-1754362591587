@@ -1,0 +1,11 @@
+{
+  "id": "prt_92baf7461001vX4uncSsWXTenx",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "I need to update all the references to use `currentPlanDetails`:",
+  "time": {
+    "start": 1757374543381,
+    "end": 1757374543381
+  }
+}

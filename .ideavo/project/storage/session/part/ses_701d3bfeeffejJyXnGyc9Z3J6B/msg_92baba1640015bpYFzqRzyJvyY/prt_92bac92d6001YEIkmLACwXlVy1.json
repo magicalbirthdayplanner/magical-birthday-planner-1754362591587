@@ -1,0 +1,26 @@
+{
+  "id": "prt_92bac92d6001YEIkmLACwXlVy1",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01XgteJBt3Y8dyRQtY95PbmD",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "oldString": "      value={{\n        currentPlan,\n        planDetails,\n        isTabAllowed,\n        updateUserPlan,\n        getRestrictedMessage,\n        hasActiveSubscription,\n        markPlanAsPurchased,\n        loading,\n      }}",
+      "newString": "      value={{\n        currentPlan,\n        planDetails,\n        subscriptionStatus,\n        isTabAllowed,\n        updateUserPlan,\n        getRestrictedMessage,\n        hasActiveSubscription,\n        markPlanAsPurchased,\n        canUpgradeTo,\n        getNextUpgradePlan,\n        loading,\n      }}"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/contexts/SubscriptionContext.tsx\n===================================================================\n--- /home/user/project/contexts/SubscriptionContext.tsx\n+++ /home/user/project/contexts/SubscriptionContext.tsx\n@@ -263,13 +263,16 @@\n <SubscriptionContext.Provider\n   value={{\n     currentPlan,\n     planDetails,\n+    subscriptionStatus,\n     isTabAllowed,\n     updateUserPlan,\n     getRestrictedMessage,\n     hasActiveSubscription,\n     markPlanAsPurchased,\n+    canUpgradeTo,\n+    getNextUpgradePlan,\n     loading,\n   }}\n >\n   {children}\n"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1757374356769,
+      "end": 1757374356773
+    }
+  }
+}

@@ -17,38 +17,88 @@ function CheckoutSuccessContent() {
   const [plan, setPlan] = useState<string>('');
 
   useEffect(() => {
-    const processPurchase = () => {
-      // Get plan from URL parameters
-      const planParam = searchParams.get('plan') || searchParams.get('product');
-      const success = searchParams.get('success');
-      
-      // Map product IDs to plan names (based on your DoDo Payment links)
-      const productToPlan: Record<string, string> = {
-        'pdt_Jw4ObhU8ojSaq87wELhsm': 'STARTER',
-        'pdt_rSGRT2hBbKsoln84yQgHC': 'PLUS', 
-        'pdt_v3NFp5Zq587xbPoPLd29x': 'PRO'
-      };
+    const processPurchase = async () => {
+      try {
+        // Get parameters from URL - DoDo Payments typically sends these
+        const planParam = searchParams.get('plan') || searchParams.get('product') || searchParams.get('product_id');
+        const success = searchParams.get('success');
+        const sessionId = searchParams.get('session_id');
+        const transactionId = searchParams.get('transaction_id') || searchParams.get('payment_id');
+        
+        // Map product IDs to plan names (based on your DoDo Payment links)
+        const productToPlan: Record<string, string> = {
+          'pdt_Jw4ObhU8ojSaq87wELhsm': 'STARTER',
+          'pdt_rSGRT2hBbKsoln84yQgHC': 'PLUS', 
+          'pdt_v3NFp5Zq587xbPoPLd29x': 'PRO'
+        };
 
-      let purchasedPlan = 'STARTER';
-      
-      if (planParam && productToPlan[planParam]) {
-        purchasedPlan = productToPlan[planParam];
-      } else if (planParam && ['STARTER', 'PLUS', 'PRO'].includes(planParam.toUpperCase())) {
-        purchasedPlan = planParam.toUpperCase();
+        let purchasedPlan = 'STARTER';
+        
+        if (planParam && productToPlan[planParam]) {
+          purchasedPlan = productToPlan[planParam];
+        } else if (planParam && ['STARTER', 'PLUS', 'PRO'].includes(planParam.toUpperCase())) {
+          purchasedPlan = planParam.toUpperCase();
+        }
+
+        console.log('Processing purchase:', { 
+          planParam, 
+          purchasedPlan, 
+          success, 
+          sessionId, 
+          transactionId,
+          allParams: Object.fromEntries(searchParams.entries())
+        });
+
+        // Store purchase info in localStorage for persistence
+        const purchaseInfo = {
+          plan: purchasedPlan,
+          purchaseDate: new Date().toISOString(),
+          transactionId,
+          sessionId,
+          processed: true
+        };
+        
+        localStorage.setItem('lastPurchase', JSON.stringify(purchaseInfo));
+
+        // Mark the plan as purchased
+        markPlanAsPurchased(purchasedPlan as any);
+        setPlan(purchasedPlan);
+        
+        // Try to save purchase to database if user is authenticated
+        // This is optional and won't block the process if it fails
+        try {
+          const response = await fetch('/api/user/purchase', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(purchaseInfo),
+          });
+          
+          if (response.ok) {
+            console.log('Purchase saved to database successfully');
+          } else {
+            console.warn('Failed to save purchase to database, but continuing...');
+          }
+        } catch (dbError) {
+          console.warn('Database save failed, but purchase is still valid:', dbError);
+        }
+        
+        setIsProcessing(false);
+
+        // Auto-redirect after 4 seconds (slightly longer to show success)
+        setTimeout(() => {
+          const returnUrl = searchParams.get('return_url') || '/party-plan';
+          router.push(returnUrl);
+        }, 4000);
+        
+      } catch (error) {
+        console.error('Error processing purchase:', error);
+        // Still mark as successful but with fallback plan
+        markPlanAsPurchased('STARTER' as any);
+        setPlan('STARTER');
+        setIsProcessing(false);
       }
-
-      console.log('Processing purchase:', { planParam, purchasedPlan, success });
-
-      // Mark the plan as purchased
-      markPlanAsPurchased(purchasedPlan as any);
-      setPlan(purchasedPlan);
-      setIsProcessing(false);
-
-      // Auto-redirect after 3 seconds
-      setTimeout(() => {
-        const returnUrl = searchParams.get('return_url') || '/party-plan';
-        router.push(returnUrl);
-      }, 3000);
     };
 
     processPurchase();

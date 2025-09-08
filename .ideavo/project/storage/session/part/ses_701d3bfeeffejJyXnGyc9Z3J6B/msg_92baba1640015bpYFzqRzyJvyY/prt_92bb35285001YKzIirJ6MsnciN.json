@@ -1,0 +1,25 @@
+{
+  "id": "prt_92bb35285001YKzIirJ6MsnciN",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01FPnSqs4P6s27fheiWy7mJU",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/signup/page.tsx",
+      "offset": 1,
+      "limit": 20
+    },
+    "output": "<file>\n00002| \n00003| export default function SignUpPage() {\n00004|   return <SignUp />\n00005| }\n</file>",
+    "metadata": {
+      "preview": "\nexport default function SignUpPage() {\n  return <SignUp />\n}"
+    },
+    "title": "app/signup/page.tsx",
+    "time": {
+      "start": 1757374797125,
+      "end": 1757374797127
+    }
+  }
+}

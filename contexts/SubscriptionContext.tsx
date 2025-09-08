@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 
-export type SubscriptionPlan = 'STARTER' | 'PLUS' | 'PRO';
+export type SubscriptionPlan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO';
 
 export interface SubscriptionPlanDetails {
   name: string;
@@ -14,7 +14,28 @@ export interface SubscriptionPlanDetails {
   allowedTabs: string[];
 }
 
+export interface SubscriptionStatus {
+  isActive: boolean;
+  planType: SubscriptionPlan;
+  purchaseDate?: string;
+  canUpgrade: boolean;
+  canDowngrade: boolean;
+  nextUpgradePlan?: SubscriptionPlan;
+}
+
 export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetails> = {
+  FREE: {
+    name: 'FREE',
+    displayName: 'Free',
+    description: 'Create parties with basic wizard access only.',
+    price: '$0',
+    features: [
+      'Party creation wizard',
+      'Basic theme selection',
+      'Guest count planning'
+    ],
+    allowedTabs: [] // No tabs allowed for free users
+  },
   STARTER: {
     name: 'STARTER',
     displayName: 'Starter',
@@ -63,11 +84,14 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
 interface SubscriptionContextType {
   currentPlan: SubscriptionPlan;
   planDetails: SubscriptionPlanDetails;
+  subscriptionStatus: SubscriptionStatus;
   isTabAllowed: (tabName: string) => boolean;
   updateUserPlan: (newPlan: SubscriptionPlan) => Promise<void>;
   getRestrictedMessage: (tabName: string) => string;
   hasActiveSubscription: () => boolean;
   markPlanAsPurchased: (plan: SubscriptionPlan) => void;
+  canUpgradeTo: (targetPlan: SubscriptionPlan) => boolean;
+  getNextUpgradePlan: () => SubscriptionPlan | null;
   loading: boolean;
 }
 
@@ -79,15 +103,22 @@ interface SubscriptionProviderProps {
 
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const { user } = useAuth();
-  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>('STARTER');
+  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>('FREE');
   const [loading, setLoading] = useState(true);
 
   // Initialize plan from user data or localStorage
   useEffect(() => {
     const initializePlan = async () => {
-      // Start with localStorage as primary source for now
+      // Check if user has purchased a plan
+      const hasPurchased = localStorage.getItem('hasPurchasedPlan') === 'true';
       const storedPlan = localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan;
-      const initialPlan = (storedPlan && SUBSCRIPTION_PLANS[storedPlan]) ? storedPlan : 'STARTER';
+      
+      let initialPlan: SubscriptionPlan = 'FREE';
+      
+      if (hasPurchased && storedPlan && SUBSCRIPTION_PLANS[storedPlan]) {
+        initialPlan = storedPlan;
+      }
+      
       setCurrentPlan(initialPlan);
       
       if (user) {
@@ -137,6 +168,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     localStorage.setItem('hasPurchasedPlan', 'true');
     localStorage.setItem('userPlanPurchased', plan);
     localStorage.setItem('hasValidSubscription', 'true');
+    localStorage.setItem('userSubscriptionPlan', plan);
+    localStorage.setItem('subscriptionPurchaseDate', new Date().toISOString());
     setCurrentPlan(plan);
     
     // Dispatch event for any components listening
@@ -145,6 +178,31 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         detail: { plan, planDetails: SUBSCRIPTION_PLANS[plan] }
       }));
     }
+  };
+
+  const canUpgradeTo = (targetPlan: SubscriptionPlan): boolean => {
+    const planHierarchy = ['FREE', 'STARTER', 'PLUS', 'PRO'];
+    const currentIndex = planHierarchy.indexOf(currentPlan);
+    const targetIndex = planHierarchy.indexOf(targetPlan);
+    return targetIndex > currentIndex;
+  };
+
+  const getNextUpgradePlan = (): SubscriptionPlan | null => {
+    switch (currentPlan) {
+      case 'FREE': return 'STARTER';
+      case 'STARTER': return 'PLUS';
+      case 'PLUS': return 'PRO';
+      default: return null;
+    }
+  };
+
+  const subscriptionStatus: SubscriptionStatus = {
+    isActive: hasActiveSubscription(),
+    planType: currentPlan,
+    purchaseDate: localStorage.getItem('subscriptionPurchaseDate') || undefined,
+    canUpgrade: currentPlan !== 'PRO',
+    canDowngrade: false, // No downgrades allowed
+    nextUpgradePlan: getNextUpgradePlan()
   };
 
   const updateUserPlan = async (newPlan: SubscriptionPlan): Promise<void> => {
@@ -206,11 +264,14 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       value={{
         currentPlan,
         planDetails,
+        subscriptionStatus,
         isTabAllowed,
         updateUserPlan,
         getRestrictedMessage,
         hasActiveSubscription,
         markPlanAsPurchased,
+        canUpgradeTo,
+        getNextUpgradePlan,
         loading,
       }}
     >

@@ -1,0 +1,26 @@
+{
+  "id": "prt_92baf1753001jS9Ei2qsjZwdfN",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01CyCMWRmxLxsrK27rz1XK9r",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/account/page.tsx",
+      "oldString": "export default function AccountPage() {\n  const { user, loading } = useAuth();",
+      "newString": "export default function AccountPage() {\n  const { user, loading } = useAuth();\n  const { currentPlan, subscriptionStatus, canUpgradeTo } = useSubscription();"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/account/page.tsx\n===================================================================\n--- /home/user/project/app/account/page.tsx\n+++ /home/user/project/app/account/page.tsx\n@@ -96,8 +96,9 @@\n };\n \n export default function AccountPage() {\n   const { user, loading } = useAuth();\n+  const { currentPlan, subscriptionStatus, canUpgradeTo } = useSubscription();\n   const router = useRouter();\n   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);\n   const [isEditing, setIsEditing] = useState(false);\n   const [formData, setFormData] = useState({\n"
+    },
+    "title": "app/account/page.tsx",
+    "time": {
+      "start": 1757374520631,
+      "end": 1757374520639
+    }
+  }
+}

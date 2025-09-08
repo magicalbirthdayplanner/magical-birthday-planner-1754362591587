@@ -1,0 +1,25 @@
+{
+  "id": "prt_92bae6c12001pVDOiHPFc1hMw2",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01Fm1JJdjp2dQb1uYqjuiC8Q",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/account/page.tsx",
+      "offset": 60,
+      "limit": 30
+    },
+    "output": "<file>\n00061| \n00062| const planDetails = {\n00063|   STARTER: {\n00064|     name: \"🎈 Starter\",\n00065|     icon: Star,\n00066|     color: \"text-purple-600 dark:text-purple-400\",\n00067|     bgColor: \"bg-purple-100 dark:bg-purple-900/30\",\n00068|     features: [\"Theme suggestions based on age\", \"Smart checklist & timeline\", \"Simple invitation creator\"],\n00069|     price: \"$9.99 per party\"\n00070|   },\n00071|   PLUS: {\n00072|     name: \"🧁 Plus\", \n00073|     icon: Zap,\n00074|     color: \"text-blue-600 dark:text-blue-400\",\n00075|     bgColor: \"bg-blue-100 dark:bg-blue-900/30\",\n00076|     features: [\"Everything in Starter\", \"Personalized activity ideas\", \"RSVP tracking\", \"Task reminders\", \"Basic budget tracker\"],\n00077|     price: \"$19.99 per party\"\n00078|   },\n00079|   PRO: {\n00080|     name: \"✨ Pro\",\n00081|     icon: Crown,\n00082|     color: \"text-emerald-600 dark:text-emerald-400\",\n00083|     bgColor: \"bg-emerald-100 dark:bg-emerald-900/30\",\n00084|     features: [\"Everything in Plus\", \"Vendor recommendations\", \"Personalized food suggestions\", \"Smart budget tracker with insights\"],\n00085|     price: \"$29.99 per party\"\n00086|   }\n00087| };\n00088| \n00089| export default function AccountPage() {\n00090|   const { user, loading } = useAuth();\n\n(File has more lines. Use 'offset' parameter to read beyond line 90)\n</file>",
+    "metadata": {
+      "preview": "\nconst planDetails = {\n  STARTER: {\n    name: \"🎈 Starter\",\n    icon: Star,\n    color: \"text-purple-600 dark:text-purple-400\",\n    bgColor: \"bg-purple-100 dark:bg-purple-900/30\",\n    features: [\"Theme suggestions based on age\", \"Smart checklist & timeline\", \"Simple invitation creator\"],\n    price: \"$9.99 per party\"\n  },\n  PLUS: {\n    name: \"🧁 Plus\", \n    icon: Zap,\n    color: \"text-blue-600 dark:text-blue-400\",\n    bgColor: \"bg-blue-100 dark:bg-blue-900/30\",\n    features: [\"Everything in Starter\", \"Personalized activity ideas\", \"RSVP tracking\", \"Task reminders\", \"Basic budget tracker\"],\n    price: \"$19.99 per party\"\n  },\n  PRO: {\n    name: \"✨ Pro\","
+    },
+    "title": "app/account/page.tsx",
+    "time": {
+      "start": 1757374475923,
+      "end": 1757374475927
+    }
+  }
+}

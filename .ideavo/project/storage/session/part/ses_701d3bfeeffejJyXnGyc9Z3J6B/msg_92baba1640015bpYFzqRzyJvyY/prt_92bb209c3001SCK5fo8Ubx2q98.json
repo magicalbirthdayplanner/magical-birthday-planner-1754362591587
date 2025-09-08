@@ -1,0 +1,25 @@
+{
+  "id": "prt_92bb209c3001SCK5fo8Ubx2q98",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01XX7Y6ztFbbioqtBsTyYgeQ",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/pricing/page.tsx",
+      "offset": 100,
+      "limit": 20
+    },
+    "output": "<file>\n00101|   return (\n00102|     <div className=\"min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50\">\n00103|       {/* Header */}\n00104|       <div className=\"container mx-auto px-4 pt-20 pb-12\">\n00105|         <div className=\"text-center max-w-3xl mx-auto\">\n00106|           <Badge className=\"mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0\">\n00107|             🎂 Pay per party. No monthly subscriptions.\n00108|           </Badge>\n00109|           <h1 className=\"text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6\">\n00110|             Choose Your Perfect Plan\n00111|           </h1>\n00112|           <p className=\"text-xl text-gray-600 mb-8\">\n00113|             Simple, transparent pricing with no hidden fees. Pay per party with no recurring charges - perfect for planning magical birthday celebrations.\n00114|           </p>\n00115|         </div>\n00116|       </div>\n00117| \n00118|       {/* Pricing Cards */}\n00119|       <div className=\"container mx-auto px-4 pb-20\">\n00120|         <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto\">\n\n(File has more lines. Use 'offset' parameter to read beyond line 120)\n</file>",
+    "metadata": {
+      "preview": "  return (\n    <div className=\"min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50\">\n      {/* Header */}\n      <div className=\"container mx-auto px-4 pt-20 pb-12\">\n        <div className=\"text-center max-w-3xl mx-auto\">\n          <Badge className=\"mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0\">\n            🎂 Pay per party. No monthly subscriptions.\n          </Badge>\n          <h1 className=\"text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6\">\n            Choose Your Perfect Plan\n          </h1>\n          <p className=\"text-xl text-gray-600 mb-8\">\n            Simple, transparent pricing with no hidden fees. Pay per party with no recurring charges - perfect for planning magical birthday celebrations.\n          </p>\n        </div>\n      </div>\n\n      {/* Pricing Cards */}\n      <div className=\"container mx-auto px-4 pb-20\">\n        <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto\">"
+    },
+    "title": "app/pricing/page.tsx",
+    "time": {
+      "start": 1757374712859,
+      "end": 1757374712863
+    }
+  }
+}

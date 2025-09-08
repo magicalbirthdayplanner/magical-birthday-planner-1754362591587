@@ -1,0 +1,25 @@
+{
+  "id": "prt_92baf56fa001MYpNq8qs17okjD",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_018QbrfoKQBt72ResRDg4dSF",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/account/page.tsx",
+      "offset": 550,
+      "limit": 30
+    },
+    "output": "<file>\n00551|                 <div className=\"flex items-center justify-between\">\n00552|                   <div>\n00553|                     <CardTitle className=\"flex items-center gap-2\">\n00554|                       <div className={`p-2 rounded-full ${currentPlan.bgColor}`}>\n00555|                         <PlanIcon className={`h-5 w-5 ${currentPlan.color}`} />\n00556|                       </div>\n00557|                       Current Plan: {currentPlan.name}\n00558|                     </CardTitle>\n00559|                     <CardDescription>\n00560|                       Your current subscription details and usage\n00561|                     </CardDescription>\n00562|                   </div>\n00563|                   <Badge className={currentPlan.bgColor}>\n00564|                     {userProfile.subscription?.status || 'ACTIVE'}\n00565|                   </Badge>\n00566|                 </div>\n00567|               </CardHeader>\n00568|               <CardContent className=\"space-y-4\">\n00569|                 <div>\n00570|                   <h4 className=\"font-medium text-gray-900 dark:text-gray-100 mb-2\">Plan Features</h4>\n00571|                   <ul className=\"space-y-1\">\n00572|                     {currentPlan.features.map((feature, index) => (\n00573|                       <li key={index} className=\"flex items-center text-sm text-gray-600 dark:text-gray-300\">\n00574|                         <Check className=\"h-3 w-3 text-green-500 mr-2\" />\n00575|                         {feature}\n00576|                       </li>\n00577|                     ))}\n00578|                   </ul>\n00579|                 </div>\n00580|               </CardContent>\n\n(File has more lines. Use 'offset' parameter to read beyond line 580)\n</file>",
+    "metadata": {
+      "preview": "                <div className=\"flex items-center justify-between\">\n                  <div>\n                    <CardTitle className=\"flex items-center gap-2\">\n                      <div className={`p-2 rounded-full ${currentPlan.bgColor}`}>\n                        <PlanIcon className={`h-5 w-5 ${currentPlan.color}`} />\n                      </div>\n                      Current Plan: {currentPlan.name}\n                    </CardTitle>\n                    <CardDescription>\n                      Your current subscription details and usage\n                    </CardDescription>\n                  </div>\n                  <Badge className={currentPlan.bgColor}>\n                    {userProfile.subscription?.status || 'ACTIVE'}\n                  </Badge>\n                </div>\n              </CardHeader>\n              <CardContent className=\"space-y-4\">\n                <div>\n                  <h4 className=\"font-medium text-gray-900 dark:text-gray-100 mb-2\">Plan Features</h4>"
+    },
+    "title": "app/account/page.tsx",
+    "time": {
+      "start": 1757374537581,
+      "end": 1757374537584
+    }
+  }
+}

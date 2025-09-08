@@ -1958,7 +1958,8 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
   }
 
   // Check if user has an active subscription to access party management
-  if (!hasActiveSubscription()) {
+  // FREE users need to purchase a plan to access party management features
+  if (!hasActiveSubscription() || currentPlan === 'FREE') {
     const isNewParty = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('created') === 'true';
     
     return (

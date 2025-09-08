@@ -1,0 +1,26 @@
+{
+  "id": "prt_92bb361ef001maswyzVr0lf0Vj",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01SthPtRtDboTVzMDeZf5nTA",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "find /home/user/project -name \"*SignUp*\" -o -name \"*signup*\" -type f",
+      "description": "Find signup components"
+    },
+    "output": "/home/user/project/components/auth/SignUp.tsx\n/home/user/project/node_modules/@n8n/api-types/dist/dto/auth/resolve-signup-token-query.dto.js\n/home/user/project/node_modules/@n8n/api-types/dist/dto/auth/resolve-signup-token-query.dto.js.map\n/home/user/project/node_modules/@n8n/api-types/dist/dto/auth/resolve-signup-token-query.dto.d.ts\n",
+    "metadata": {
+      "output": "/home/user/project/components/auth/SignUp.tsx\n/home/user/project/node_modules/@n8n/api-types/dist/dto/auth/resolve-signup-token-query.dto.js\n/home/user/project/node_modules/@n8n/api-types/dist/dto/auth/resolve-signup-token-query.dto.js.map\n/home/user/project/node_modules/@n8n/api-types/dist/dto/auth/resolve-signup-token-query.dto.d.ts\n",
+      "exit": 0,
+      "description": "Find signup components"
+    },
+    "title": "find /home/user/project -name \"*SignUp*\" -o -name \"*signup*\" -type f",
+    "time": {
+      "start": 1757374801345,
+      "end": 1757374802226
+    }
+  }
+}

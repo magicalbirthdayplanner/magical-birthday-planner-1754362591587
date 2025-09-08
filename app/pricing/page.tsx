@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
+import { useSubscription } from "@/contexts/SubscriptionContext"
 
 const pricingTiers = [
   {
@@ -97,7 +99,11 @@ const faqs = [
   },
 ]
 
-export default function PricingPage() {
+function PricingContent() {
+  const { currentPlan, canUpgradeTo } = useSubscription();
+  const searchParams = useSearchParams();
+  const upgradeTarget = searchParams.get('upgrade')?.toUpperCase();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Header */}
@@ -107,10 +113,20 @@ export default function PricingPage() {
             🎂 Pay per party. No monthly subscriptions.
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6">
-            Choose Your Perfect Plan
+            {upgradeTarget && currentPlan !== 'FREE' 
+              ? `Upgrade to ${upgradeTarget === 'STARTER' ? 'Starter' : upgradeTarget === 'PLUS' ? 'Plus' : 'Pro'}`
+              : currentPlan === 'FREE' 
+                ? 'Choose Your First Plan'
+                : 'Choose Your Perfect Plan'
+            }
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Simple, transparent pricing with no hidden fees. Pay per party with no recurring charges - perfect for planning magical birthday celebrations.
+            {upgradeTarget && currentPlan !== 'FREE' 
+              ? `You're currently on the ${currentPlan === 'STARTER' ? 'Starter' : currentPlan === 'PLUS' ? 'Plus' : 'Pro'} plan. Upgrade to unlock more powerful features.`
+              : currentPlan === 'FREE' 
+                ? 'Select a plan to unlock party management features and start planning amazing celebrations.'
+                : 'Simple, transparent pricing with no hidden fees. Pay per party with no recurring charges - perfect for planning magical birthday celebrations.'
+            }
           </p>
         </div>
       </div>
@@ -119,23 +135,39 @@ export default function PricingPage() {
       <div className="container mx-auto px-4 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {pricingTiers.map((tier, index) => {
+            // Skip tiers that user can't upgrade to
+            const tierKey = tier.name.includes('Starter') ? 'STARTER' : 
+                           tier.name.includes('Plus') ? 'PLUS' : 'PRO';
+            
+            // For free users, show all plans. For paid users, only show upgradeable plans
+            if (currentPlan !== 'FREE' && !canUpgradeTo(tierKey)) {
+              return null;
+            }
+            
             const displayPrice = tier.price
             const billingPeriod = '(Per Birthday Party)'
+            const isCurrentPlan = currentPlan === tierKey;
             
             return (
               <Card 
                 key={tier.name} 
                 className={`relative overflow-hidden border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+                  isCurrentPlan ? 'border-green-500 shadow-lg scale-105' :
                   tier.popular ? 'border-blue-500 shadow-lg scale-105' : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                {tier.popular && (
+                {isCurrentPlan && (
+                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-center py-2 text-sm font-medium">
+                    ✅ Current Plan
+                  </div>
+                )}
+                {!isCurrentPlan && tier.popular && (
                   <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-center py-2 text-sm font-medium">
                     🌟 Most Popular
                   </div>
                 )}
                 
-                <CardHeader className={`bg-gradient-to-br ${tier.bgGradient} ${tier.popular ? 'pt-12' : 'pt-6'}`}>
+                <CardHeader className={`bg-gradient-to-br ${tier.bgGradient} ${(isCurrentPlan || tier.popular) ? 'pt-12' : 'pt-6'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <div className={`p-3 rounded-full bg-gradient-to-r ${tier.gradient}`}>
                       <tier.icon className="h-6 w-6 text-white" />
@@ -172,27 +204,36 @@ export default function PricingPage() {
                     ))}
                   </ul>
 
-                  <Button 
-                    className={`w-full text-sm ${
-                      tier.popular 
-                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' 
-                        : tier.ctaVariant === 'outline' 
-                          ? '' 
-                          : `bg-gradient-to-r ${tier.gradient} hover:opacity-90`
-                    }`}
-                    variant={tier.ctaVariant}
-                    asChild
-                  >
-                    <Link href={
-                      tier.name === "🎈 Starter" 
-                        ? "https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1"
-                        : tier.name === "🧁 Plus"
-                          ? "https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1"
-                          : "https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1"
-                    }>
-                      {tier.cta}
-                    </Link>
-                  </Button>
+                  {isCurrentPlan ? (
+                    <Button 
+                      className="w-full text-sm bg-gray-400 cursor-not-allowed"
+                      disabled
+                    >
+                      Current Plan
+                    </Button>
+                  ) : (
+                    <Button 
+                      className={`w-full text-sm ${
+                        tier.popular 
+                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' 
+                          : tier.ctaVariant === 'outline' 
+                            ? '' 
+                            : `bg-gradient-to-r ${tier.gradient} hover:opacity-90`
+                      }`}
+                      variant={tier.ctaVariant}
+                      asChild
+                    >
+                      <Link href={
+                        tier.name === "🎈 Starter" 
+                          ? "https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1"
+                          : tier.name === "🧁 Plus"
+                            ? "https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1"
+                            : "https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1"
+                      }>
+                        {currentPlan === 'FREE' ? tier.cta : `Upgrade to ${tier.name.split(' ')[1]}`}
+                      </Link>
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             )
@@ -363,4 +404,14 @@ export default function PricingPage() {
       </div>
     </div>
   )
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+    </div>}>
+      <PricingContent />
+    </Suspense>
+  );
 }
