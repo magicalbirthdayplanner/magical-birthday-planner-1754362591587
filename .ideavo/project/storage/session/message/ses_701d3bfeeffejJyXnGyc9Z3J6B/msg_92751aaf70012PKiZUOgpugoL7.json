@@ -8,15 +8,16 @@
   },
   "tokens": {
     "input": 6,
-    "output": 143,
+    "output": 459,
     "reasoning": 0,
     "cache": {
-      "write": 17257,
-      "read": 86263
+      "write": 137,
+      "read": 106465
     }
   },
   "time": {
-    "created": 1757301287671
+    "created": 1757301287671,
+    "completed": 1757301340657
   },
   "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B"
 }

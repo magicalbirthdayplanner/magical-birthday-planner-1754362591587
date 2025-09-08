@@ -6,13 +6,21 @@
   "tool": "bash",
   "callID": "toolu_01CkpJrPXidcD7xdt35dFA1c",
   "state": {
-    "status": "running",
+    "status": "completed",
     "input": {
       "command": "git add .",
       "description": "Stage all current changes"
     },
+    "output": "",
+    "metadata": {
+      "output": "",
+      "exit": 0,
+      "description": "Stage all current changes"
+    },
+    "title": "git add .",
     "time": {
-      "start": 1757301314976
+      "start": 1757301314976,
+      "end": 1757301314994
     }
   }
 }
