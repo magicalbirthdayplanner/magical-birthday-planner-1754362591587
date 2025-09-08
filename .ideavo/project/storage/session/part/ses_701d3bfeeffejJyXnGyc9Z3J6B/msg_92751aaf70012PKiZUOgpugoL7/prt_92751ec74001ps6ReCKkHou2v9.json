@@ -1,0 +1,26 @@
+{
+  "id": "prt_92751ec74001ps6ReCKkHou2v9",
+  "messageID": "msg_92751aaf70012PKiZUOgpugoL7",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01PTYFuuLd7EWWmZQDPVgLS8",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "git show 784f23c --name-only | grep -E \"(api|lib|database)\" | head -10",
+      "description": "Check if key venue implementation files were included"
+    },
+    "output": "    - Implement venue selection and database storage functionality\n    - Create database schema for venues, searches, and venue selections\napp/api/party-venue/route.ts\napp/api/venues-search/route.ts\ndatabase/setup-venues-manual.sql\ndatabase/venues-schema.sql\nlib/google-places-photos.ts\nlib/google-places.ts\n",
+    "metadata": {
+      "output": "    - Implement venue selection and database storage functionality\n    - Create database schema for venues, searches, and venue selections\napp/api/party-venue/route.ts\napp/api/venues-search/route.ts\ndatabase/setup-venues-manual.sql\ndatabase/venues-schema.sql\nlib/google-places-photos.ts\nlib/google-places.ts\n",
+      "exit": 0,
+      "description": "Check if key venue implementation files were included"
+    },
+    "title": "git show 784f23c --name-only | grep -E \"(api|lib|database)\" | head -10",
+    "time": {
+      "start": 1757301308069,
+      "end": 1757301308106
+    }
+  }
+}

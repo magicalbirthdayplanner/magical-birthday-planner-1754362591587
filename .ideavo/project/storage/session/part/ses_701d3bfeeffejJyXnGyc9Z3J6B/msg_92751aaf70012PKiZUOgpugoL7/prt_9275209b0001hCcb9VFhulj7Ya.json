@@ -1,0 +1,18 @@
+{
+  "id": "prt_9275209b0001hCcb9VFhulj7Ya",
+  "messageID": "msg_92751aaf70012PKiZUOgpugoL7",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01CkpJrPXidcD7xdt35dFA1c",
+  "state": {
+    "status": "running",
+    "input": {
+      "command": "git add .",
+      "description": "Stage all current changes"
+    },
+    "time": {
+      "start": 1757301314976
+    }
+  }
+}
