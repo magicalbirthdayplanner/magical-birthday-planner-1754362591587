@@ -66,6 +66,8 @@ interface SubscriptionContextType {
   isTabAllowed: (tabName: string) => boolean;
   updateUserPlan: (newPlan: SubscriptionPlan) => Promise<void>;
   getRestrictedMessage: (tabName: string) => string;
+  hasActiveSubscription: () => boolean;
+  markPlanAsPurchased: (plan: SubscriptionPlan) => void;
   loading: boolean;
 }
 
@@ -131,6 +133,20 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     return 'PRO';
   };
 
+  const markPlanAsPurchased = (plan: SubscriptionPlan): void => {
+    localStorage.setItem('hasPurchasedPlan', 'true');
+    localStorage.setItem('userPlanPurchased', plan);
+    localStorage.setItem('hasValidSubscription', 'true');
+    setCurrentPlan(plan);
+    
+    // Dispatch event for any components listening
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('subscription-purchased', {
+        detail: { plan, planDetails: SUBSCRIPTION_PLANS[plan] }
+      }));
+    }
+  };
+
   const updateUserPlan = async (newPlan: SubscriptionPlan): Promise<void> => {
     try {
       setLoading(true);
@@ -173,6 +189,18 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     }
   };
 
+  const hasActiveSubscription = (): boolean => {
+    // Check if user has purchased any plan
+    // This should be set to 'true' after successful payment
+    const hasPurchasedPlan = localStorage.getItem('hasPurchasedPlan') === 'true';
+    
+    // Also check for any subscription indicator in user data or localStorage
+    const userPlanPurchased = localStorage.getItem('userPlanPurchased');
+    const hasValidSubscription = localStorage.getItem('hasValidSubscription') === 'true';
+    
+    return hasPurchasedPlan || hasValidSubscription || !!userPlanPurchased;
+  };
+
   return (
     <SubscriptionContext.Provider
       value={{
@@ -181,6 +209,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         isTabAllowed,
         updateUserPlan,
         getRestrictedMessage,
+        hasActiveSubscription,
+        markPlanAsPurchased,
         loading,
       }}
     >

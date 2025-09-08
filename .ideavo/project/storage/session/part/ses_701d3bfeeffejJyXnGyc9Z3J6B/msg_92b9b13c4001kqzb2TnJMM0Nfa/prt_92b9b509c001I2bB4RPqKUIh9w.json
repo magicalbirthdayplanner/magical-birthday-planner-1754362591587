@@ -1,0 +1,25 @@
+{
+  "id": "prt_92b9b509c001I2bB4RPqKUIh9w",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01NB4jivqXuDnf28R9oa2qK4",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/create-party/page.tsx",
+      "offset": 750,
+      "limit": 20
+    },
+    "output": "<file>\n00751|           console.warn('Failed to save party continuity data:', error);\n00752|         }\n00753|       }\n00754| \n00755|       // Show success state\n00756|       setSubmissionStep('Party created successfully! 🎉');\n00757|       setShowConfetti(true);\n00758|       \n00759|       // Navigate to the party plan page with created flag for confetti\n00760|       setTimeout(() => {\n00761|         router.push(`/party-plan?id=${partyId}&created=true`);\n00762|       }, 2000);\n00763| \n00764|     } catch (error) {\n00765|       console.error('Error creating party:', error);\n00766|       \n00767|       // Provide more specific error messages\n00768|       let errorMessage = 'Failed to create party. Please try again.';\n00769|       if (error instanceof Error) {\n00770|         if (error.message.includes('timed out')) {\n\n(File has more lines. Use 'offset' parameter to read beyond line 770)\n</file>",
+    "metadata": {
+      "preview": "          console.warn('Failed to save party continuity data:', error);\n        }\n      }\n\n      // Show success state\n      setSubmissionStep('Party created successfully! 🎉');\n      setShowConfetti(true);\n      \n      // Navigate to the party plan page with created flag for confetti\n      setTimeout(() => {\n        router.push(`/party-plan?id=${partyId}&created=true`);\n      }, 2000);\n\n    } catch (error) {\n      console.error('Error creating party:', error);\n      \n      // Provide more specific error messages\n      let errorMessage = 'Failed to create party. Please try again.';\n      if (error instanceof Error) {\n        if (error.message.includes('timed out')) {"
+    },
+    "title": "app/create-party/page.tsx",
+    "time": {
+      "start": 1757373224376,
+      "end": 1757373224381
+    }
+  }
+}

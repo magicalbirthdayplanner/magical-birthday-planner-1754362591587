@@ -1,0 +1,11 @@
+{
+  "id": "prt_92b9e1ea2001lb7Ge8mEsduVQS",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "Great! I can see there's a `loadPartyDetails` function that handles party data loading. Now I need to modify this to handle temporary parties. Let me update it:",
+  "time": {
+    "start": 1757373407683,
+    "end": 1757373407683
+  }
+}

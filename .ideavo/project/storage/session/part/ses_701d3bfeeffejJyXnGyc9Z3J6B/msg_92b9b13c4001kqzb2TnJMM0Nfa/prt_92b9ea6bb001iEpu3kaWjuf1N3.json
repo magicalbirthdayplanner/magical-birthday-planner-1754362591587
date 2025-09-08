@@ -1,0 +1,25 @@
+{
+  "id": "prt_92b9ea6bb001iEpu3kaWjuf1N3",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_012AuS9r39dAVXvWpB4hhF8j",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/page.tsx",
+      "offset": 220,
+      "limit": 15
+    },
+    "output": "<file>\n00221|                       Get Started Free\n00222|                     </Button>\n00223|                   </Link>\n00224|                   <Link href=\"/create-party\" className=\"w-full sm:w-auto\">\n00225|                     <Button variant=\"outline\" size=\"lg\" className=\"w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-6 sm:px-8 py-3 text-base sm:text-lg\">\n00226|                       Try Demo\n00227|                     </Button>\n00228|                   </Link>\n00229|                 </div>\n00230|                 <p className=\"text-sm text-gray-500 dark:text-gray-400 mt-4\">\n00231|                   Already have an account? <Link href=\"/signin\" className=\"text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium\">Sign in</Link>\n00232|                 </p>\n00233|               </>\n00234|             )}\n00235|           </div>\n\n(File has more lines. Use 'offset' parameter to read beyond line 235)\n</file>",
+    "metadata": {
+      "preview": "                      Get Started Free\n                    </Button>\n                  </Link>\n                  <Link href=\"/create-party\" className=\"w-full sm:w-auto\">\n                    <Button variant=\"outline\" size=\"lg\" className=\"w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-6 sm:px-8 py-3 text-base sm:text-lg\">\n                      Try Demo\n                    </Button>\n                  </Link>\n                </div>\n                <p className=\"text-sm text-gray-500 dark:text-gray-400 mt-4\">\n                  Already have an account? <Link href=\"/signin\" className=\"text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium\">Sign in</Link>\n                </p>\n              </>\n            )}\n          </div>"
+    },
+    "title": "app/page.tsx",
+    "time": {
+      "start": 1757373442433,
+      "end": 1757373442438
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "prt_92ba00df1001KYOZ4JmEVi5mST",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_013ABHSpNPLUg8RZPCynss5e",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/components/SubscriptionGate.tsx",
+      "oldString": "                  <Button \n                    className={`w-full text-sm ${\n                      plan.popular \n                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' \n                        : `bg-gradient-to-r ${plan.gradient} hover:opacity-90`\n                    }`}\n                    asChild\n                  >\n                    <Link href={plan.checkoutUrl} target=\"_blank\">\n                      Choose {plan.key === 'STARTER' ? 'Starter' : plan.key === 'PLUS' ? 'Plus' : 'Pro'}\n                    </Link>\n                  </Button>",
+      "newString": "                  <Button \n                    className={`w-full text-sm ${\n                      plan.popular \n                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' \n                        : `bg-gradient-to-r ${plan.gradient} hover:opacity-90`\n                    }`}\n                    asChild\n                  >\n                    <Link href={getCheckoutUrl(plan.checkoutUrl, plan.key)} target=\"_blank\">\n                      Choose {plan.key === 'STARTER' ? 'Starter' : plan.key === 'PLUS' ? 'Plus' : 'Pro'}\n                    </Link>\n                  </Button>"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/components/SubscriptionGate.tsx\n===================================================================\n--- /home/user/project/components/SubscriptionGate.tsx\n+++ /home/user/project/components/SubscriptionGate.tsx\n@@ -181,9 +181,9 @@\n         : `bg-gradient-to-r ${plan.gradient} hover:opacity-90`\n     }`}\n     asChild\n   >\n-    <Link href={plan.checkoutUrl} target=\"_blank\">\n+    <Link href={getCheckoutUrl(plan.checkoutUrl, plan.key)} target=\"_blank\">\n       Choose {plan.key === 'STARTER' ? 'Starter' : plan.key === 'PLUS' ? 'Plus' : 'Pro'}\n     </Link>\n   </Button>\n </CardContent>\n"
+    },
+    "title": "components/SubscriptionGate.tsx",
+    "time": {
+      "start": 1757373538299,
+      "end": 1757373538304
+    }
+  }
+}

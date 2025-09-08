@@ -1,0 +1,11 @@
+{
+  "id": "prt_92ba085d2001xxKYDX0IYhyWjX",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "Now let me test that everything is working by creating a simple test flow. But first, let me make sure the party-plan page handles the case when the window object might not be available during SSR:",
+  "time": {
+    "start": 1757373565944,
+    "end": 1757373565944
+  }
+}

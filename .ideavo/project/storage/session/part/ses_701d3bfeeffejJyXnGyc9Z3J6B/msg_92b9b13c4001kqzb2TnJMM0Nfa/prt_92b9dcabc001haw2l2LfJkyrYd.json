@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b9dcabc001haw2l2LfJkyrYd",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01TwFLEPHhqUsubJEqePXVJ7",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "grep -n -A10 -B5 \"router.push.*party-plan\" /home/user/project/app/create-party/page.tsx",
+      "description": "Find navigation to party-plan"
+    },
+    "output": "754-      setSubmissionStep('Party created successfully! 🎉');\n755-      setShowConfetti(true);\n756-      \n757-      // Navigate to the party plan page with created flag for confetti\n758-      setTimeout(() => {\n759:        router.push(`/party-plan?id=${partyId}&created=true`);\n760-      }, 2000);\n761-\n762-    } catch (error) {\n763-      console.error('Error creating party:', error);\n764-      \n765-      // Provide more specific error messages\n766-      let errorMessage = 'Failed to create party. Please try again.';\n767-      if (error instanceof Error) {\n768-        if (error.message.includes('timed out')) {\n769-          errorMessage = 'The request is taking longer than expected. This might be due to network connectivity issues. Please check your internet connection and try again.';\n",
+    "metadata": {
+      "output": "754-      setSubmissionStep('Party created successfully! 🎉');\n755-      setShowConfetti(true);\n756-      \n757-      // Navigate to the party plan page with created flag for confetti\n758-      setTimeout(() => {\n759:        router.push(`/party-plan?id=${partyId}&created=true`);\n760-      }, 2000);\n761-\n762-    } catch (error) {\n763-      console.error('Error creating party:', error);\n764-      \n765-      // Provide more specific error messages\n766-      let errorMessage = 'Failed to create party. Please try again.';\n767-      if (error instanceof Error) {\n768-        if (error.message.includes('timed out')) {\n769-          errorMessage = 'The request is taking longer than expected. This might be due to network connectivity issues. Please check your internet connection and try again.';\n",
+      "exit": 0,
+      "description": "Find navigation to party-plan"
+    },
+    "title": "grep -n -A10 -B5 \"router.push.*party-plan\" /home/user/project/app/create-party/page.tsx",
+    "time": {
+      "start": 1757373386518,
+      "end": 1757373386523
+    }
+  }
+}

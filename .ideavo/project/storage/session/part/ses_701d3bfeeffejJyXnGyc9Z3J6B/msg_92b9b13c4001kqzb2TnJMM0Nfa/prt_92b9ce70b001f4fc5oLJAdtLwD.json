@@ -1,0 +1,20 @@
+{
+  "id": "prt_92b9ce70b001f4fc5oLJAdtLwD",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "grep",
+  "callID": "toolu_012fGVogyLoxPS9UmhhTxxw7",
+  "state": {
+    "status": "error",
+    "input": {
+      "pattern": "return \\(|return \\<",
+      "path": "/home/user/project/app/party-plan/page.tsx"
+    },
+    "error": "Error: ripgrep failed: regex parse error:\n    return \\(|return \\<\n                     ^^\nerror: unrecognized escape sequence\n",
+    "time": {
+      "start": 1757373327639,
+      "end": 1757373327645
+    }
+  }
+}

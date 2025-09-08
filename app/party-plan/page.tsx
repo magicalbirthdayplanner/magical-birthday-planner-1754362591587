@@ -22,6 +22,7 @@ import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
 import ThemesTab from "@/components/ThemesTab";
 import SharePlanModal from "@/components/SharePlanModal";
+import SubscriptionGate from "@/components/SubscriptionGate";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { generatePartyPlanPDF } from "@/lib/pdf-generator";
@@ -179,7 +180,7 @@ interface PartyPlanPageProps {
 
 function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
   const { user, session } = useAuth();
-  const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();
+  const { currentPlan, isTabAllowed, getRestrictedMessage, hasActiveSubscription } = useSubscription();
   const [partyData, setPartyData] = useState<PartyData | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [guests, setGuests] = useState<ModernGuest[]>([]);
@@ -837,6 +838,38 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
 
   useEffect(() => {
     const loadPartyData = async () => {
+      // Get party ID from URL query parameter first
+      const urlParams = new URLSearchParams(window.location.search);
+      const partyId = urlParams.get('id');
+
+      // Handle temporary parties for guest users (no authentication required)
+      if (partyId && partyId.startsWith('temp_')) {
+        console.log('Loading temporary party data for ID:', partyId);
+        
+        try {
+          const tempPartyData = localStorage.getItem(`temp_party_${partyId}`);
+          if (tempPartyData) {
+            const parsedTempParty = JSON.parse(tempPartyData);
+            console.log('Found temporary party data:', parsedTempParty);
+            loadPartyDetails({
+              ...parsedTempParty,
+              partyDate: new Date(parsedTempParty.partyDate)
+            });
+            return;
+          } else {
+            setError('Temporary party data not found. The party may have expired or been cleared from your browser.');
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Error loading temporary party:', error);
+          setError('Failed to load temporary party data.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // For authenticated parties, require user login
       if (!user) {
         setError('Please sign in to view your party plan');
         setLoading(false);
@@ -847,9 +880,6 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
         setLoading(true);
         setError(null);
         
-        // Get party ID from URL query parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const partyId = urlParams.get('id');
         const isLocal = urlParams.get('local') === 'true';
         
         console.log('Debug - Party loading:', { partyId, isLocal, currentPath: window.location.pathname + window.location.search });
@@ -1924,6 +1954,23 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
           )}
         </div>
       </div>
+    );
+  }
+
+  // Check if user has an active subscription to access party management
+  if (!hasActiveSubscription()) {
+    const isNewParty = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('created') === 'true';
+    
+    return (
+      <SubscriptionGate
+        showPartyCreationSuccess={isNewParty}
+        title={isNewParty ? "🎉 Party Created! Now Unlock Full Planning Tools" : "Unlock Your Party Management Dashboard"}
+        description={
+          isNewParty 
+            ? "Great start! Your party details are saved. Choose a plan to access all planning features, detailed tabs, and party management tools."
+            : "Access your complete party planning dashboard with detailed tabs, guest management, timeline tracking, and more."
+        }
+      />
     );
   }
 

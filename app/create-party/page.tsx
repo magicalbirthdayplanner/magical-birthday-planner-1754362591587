@@ -674,10 +674,8 @@ export default function CreatePartyPage() {
   };
 
   const handleSubmit = async () => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
+    // Allow party creation without authentication for demo/trial purposes
+    const isGuestUser = !user;
 
     setIsSubmitting(true);
     setSubmitError(null);
@@ -718,19 +716,38 @@ export default function CreatePartyPage() {
       console.log('Creating party with robust authentication...');
       setSubmissionStep('Creating your magical party plan...');
 
-      // Multi-layered authentication approach
-      const result = await createPartyWithRobustAuth(createPayload);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to create party');
-      }
+      let partyId: string;
 
-      if (!result.party?.id) {
-        throw new Error('Party created but no ID returned');
-      }
+      if (isGuestUser) {
+        // For guest users, create a temporary party ID and store data locally
+        partyId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        console.log('Creating temporary party for guest user with ID:', partyId);
+        
+        // Store party data in localStorage for guest users
+        const guestPartyData = {
+          ...createPayload,
+          id: partyId,
+          isTemporary: true,
+          createdAt: new Date().toISOString()
+        };
+        
+        localStorage.setItem(`temp_party_${partyId}`, JSON.stringify(guestPartyData));
+        localStorage.setItem('current_temp_party', partyId);
+      } else {
+        // For authenticated users, create party normally
+        const result = await createPartyWithRobustAuth(createPayload);
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to create party');
+        }
 
-      const partyId = result.party.id;
-      console.log('Party created successfully with ID:', partyId);
+        if (!result.party?.id) {
+          throw new Error('Party created but no ID returned');
+        }
+
+        partyId = result.party.id;
+        console.log('Party created successfully with ID:', partyId);
+      }
 
       // Save the party ID for continuity
       setPartyData(prev => ({ ...prev, partyId }));
@@ -1707,13 +1724,13 @@ export default function CreatePartyPage() {
         </Card>
       </div>
 
-      {/* Auth Modal */}
-      <AuthModal 
+      {/* Auth Modal - Currently disabled as party creation is free */}
+      {/* <AuthModal 
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         title="Save Your Party Plan"
         description="Sign in to save your party plan, access AI-powered recommendations, and keep your celebrations safe and organized."
-      />
+      /> */}
     </div>
   );
 }

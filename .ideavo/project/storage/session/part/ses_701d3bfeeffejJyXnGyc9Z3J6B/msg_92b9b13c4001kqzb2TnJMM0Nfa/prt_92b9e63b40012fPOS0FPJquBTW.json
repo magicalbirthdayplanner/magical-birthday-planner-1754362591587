@@ -1,0 +1,25 @@
+{
+  "id": "prt_92b9e63b40012fPOS0FPJquBTW",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01KRg17rVFL7uxr3BSzg5Ue7",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "offset": 880,
+      "limit": 10
+    },
+    "output": "<file>\n00881|         setError(null);\n00882|         \n00883|         // Get party ID from URL query parameter\n00884|         const urlParams = new URLSearchParams(window.location.search);\n00885|         const partyId = urlParams.get('id');\n00886|         const isLocal = urlParams.get('local') === 'true';\n00887|         \n00888|         console.log('Debug - Party loading:', { partyId, isLocal, currentPath: window.location.pathname + window.location.search });\n00889|         \n00890|         // Handle local party data first\n\n(File has more lines. Use 'offset' parameter to read beyond line 890)\n</file>",
+    "metadata": {
+      "preview": "        setError(null);\n        \n        // Get party ID from URL query parameter\n        const urlParams = new URLSearchParams(window.location.search);\n        const partyId = urlParams.get('id');\n        const isLocal = urlParams.get('local') === 'true';\n        \n        console.log('Debug - Party loading:', { partyId, isLocal, currentPath: window.location.pathname + window.location.search });\n        \n        // Handle local party data first"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757373424733,
+      "end": 1757373424749
+    }
+  }
+}
