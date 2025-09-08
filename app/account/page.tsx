@@ -66,7 +66,7 @@ const planDetails = {
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
     features: ["Theme suggestions based on age", "Smart checklist & timeline", "Simple invitation creator"],
-    price: "$0 - Introductory Offer"
+    price: "$9.99 per party"
   },
   PLUS: {
     name: "🧁 Plus", 
@@ -74,7 +74,7 @@ const planDetails = {
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     features: ["Everything in Starter", "Personalized activity ideas", "RSVP tracking", "Task reminders", "Basic budget tracker"],
-    price: "$14.99 (One-Time)"
+    price: "$19.99 per party"
   },
   PRO: {
     name: "✨ Pro",
@@ -82,7 +82,7 @@ const planDetails = {
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
     features: ["Everything in Plus", "Vendor recommendations", "Personalized food suggestions", "Smart budget tracker with insights"],
-    price: "$29.99 (One-Time)"
+    price: "$29.99 per party"
   }
 };
 
@@ -630,7 +630,7 @@ export default function AccountPage() {
                         <Zap className="h-5 w-5 text-blue-600" />
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100">🧁 Plus</h3>
                       </div>
-                      <Badge variant="outline" className="text-xs">$14.99</Badge>
+                      <Badge variant="outline" className="text-xs">$19.99</Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                       Smart and simple AI-powered birthday planning for busy parents.

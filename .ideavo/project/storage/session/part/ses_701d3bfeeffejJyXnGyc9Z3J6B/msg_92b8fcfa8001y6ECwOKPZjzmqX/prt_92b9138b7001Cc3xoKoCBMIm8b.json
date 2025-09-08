@@ -1,0 +1,24 @@
+{
+  "id": "prt_92b9138b7001Cc3xoKoCBMIm8b",
+  "messageID": "msg_92b8fcfa8001y6ECwOKPZjzmqX",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01J3cgQMHjWmJ6CFTdySLtR8",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/account/page.tsx",
+      "limit": 100
+    },
+    "output": "<file>\n00001| \"use client\";\n00002| \n00003| import { useState, useEffect } from \"react\";\n00004| import { Button } from \"@/components/ui/button\";\n00005| import { Card, CardContent, CardDescription, CardHeader, CardTitle } from \"@/components/ui/card\";\n00006| import { Input } from \"@/components/ui/input\";\n00007| import { Label } from \"@/components/ui/label\";\n00008| import { Badge } from \"@/components/ui/badge\";\n00009| import { Separator } from \"@/components/ui/separator\";\n00010| import { Switch } from \"@/components/ui/switch\";\n00011| import { Tabs, TabsContent, TabsList, TabsTrigger } from \"@/components/ui/tabs\";\n00012| import { \n00013|   User, \n00014|   Mail, \n00015|   Settings, \n00016|   CreditCard, \n00017|   Bell, \n00018|   Shield, \n00019|   Calendar,\n00020|   Crown,\n00021|   Star,\n00022|   Zap,\n00023|   Sparkles,\n00024|   FileText,\n00025|   Download,\n00026|   Edit,\n00027|   Save,\n00028|   X,\n00029|   Check,\n00030|   Loader2,\n00031|   CheckCircle,\n00032|   AlertCircle,\n00033|   Key,\n00034|   Trash2\n00035| } from \"lucide-react\";\n00036| import { useAuth } from \"@/contexts/AuthContext\";\n00037| import { useRouter } from \"next/navigation\";\n00038| import Link from \"next/link\";\n00039| \n00040| interface UserProfile {\n00041|   id: string;\n00042|   email: string;\n00043|   name: string;\n00044|   displayName?: string;\n00045|   avatar?: string;\n00046|   createdAt: string;\n00047|   isSupeadmin?: boolean;\n00048|   subscription?: {\n00049|     planType: 'STARTER' | 'PLUS' | 'PRO';\n00050|     status: 'ACTIVE' | 'CANCELED' | 'PAST_DUE';\n00051|     currentPeriodEnd: string;\n00052|     cancelAtPeriodEnd: boolean;\n00053|   };\n00054|   usageStats?: {\n00055|     partiesThisMonth: number;\n00056|     totalParties: number;\n00057|     guestsThisMonth: number;\n00058|     aiRequestsThisMonth: number;\n00059|   };\n00060| }\n00061| \n00062| const planDetails = {\n00063|   STARTER: {\n00064|     name: \"🎈 Starter\",\n00065|     icon: Star,\n00066|     color: \"text-purple-600 dark:text-purple-400\",\n00067|     bgColor: \"bg-purple-100 dark:bg-purple-900/30\",\n00068|     features: [\"Theme suggestions based on age\", \"Smart checklist & timeline\", \"Simple invitation creator\"],\n00069|     price: \"$0 - Introductory Offer\"\n00070|   },\n00071|   PLUS: {\n00072|     name: \"🧁 Plus\", \n00073|     icon: Zap,\n00074|     color: \"text-blue-600 dark:text-blue-400\",\n00075|     bgColor: \"bg-blue-100 dark:bg-blue-900/30\",\n00076|     features: [\"Everything in Starter\", \"Personalized activity ideas\", \"RSVP tracking\", \"Task reminders\", \"Basic budget tracker\"],\n00077|     price: \"$14.99 (One-Time)\"\n00078|   },\n00079|   PRO: {\n00080|     name: \"✨ Pro\",\n00081|     icon: Crown,\n00082|     color: \"text-emerald-600 dark:text-emerald-400\",\n00083|     bgColor: \"bg-emerald-100 dark:bg-emerald-900/30\",\n00084|     features: [\"Everything in Plus\", \"Vendor recommendations\", \"Personalized food suggestions\", \"Smart budget tracker with insights\"],\n00085|     price: \"$29.99 (One-Time)\"\n00086|   }\n00087| };\n00088| \n00089| export default function AccountPage() {\n00090|   const { user, loading } = useAuth();\n00091|   const router = useRouter();\n00092|   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);\n00093|   const [isEditing, setIsEditing] = useState(false);\n00094|   const [formData, setFormData] = useState({\n00095|     name: \"\",\n00096|     displayName: \"\"\n00097|   });\n00098|   const [notifications, setNotifications] = useState({\n00099|     email: true,\n00100|     reminders: true,\n\n(File has more lines. Use 'offset' parameter to read beyond line 100)\n</file>",
+    "metadata": {
+      "preview": "\"use client\";\n\nimport { useState, useEffect } from \"react\";\nimport { Button } from \"@/components/ui/button\";\nimport { Card, CardContent, CardDescription, CardHeader, CardTitle } from \"@/components/ui/card\";\nimport { Input } from \"@/components/ui/input\";\nimport { Label } from \"@/components/ui/label\";\nimport { Badge } from \"@/components/ui/badge\";\nimport { Separator } from \"@/components/ui/separator\";\nimport { Switch } from \"@/components/ui/switch\";\nimport { Tabs, TabsContent, TabsList, TabsTrigger } from \"@/components/ui/tabs\";\nimport { \n  User, \n  Mail, \n  Settings, \n  CreditCard, \n  Bell, \n  Shield, \n  Calendar,\n  Crown,"
+    },
+    "title": "app/account/page.tsx",
+    "time": {
+      "start": 1757372562062,
+      "end": 1757372562065
+    }
+  }
+}

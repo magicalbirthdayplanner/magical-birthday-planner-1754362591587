@@ -1,0 +1,24 @@
+{
+  "id": "prt_92b90106d001ARPXiUfJZLsFcL",
+  "messageID": "msg_92b8fcfa8001y6ECwOKPZjzmqX",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "list",
+  "callID": "toolu_01LpQLKQJjBZfAdEA7gWpEH3",
+  "state": {
+    "status": "completed",
+    "input": {
+      "path": "/home/user/project/app/pricing"
+    },
+    "output": "/home/user/project/app/pricing/\n  page.tsx\n",
+    "metadata": {
+      "count": 1,
+      "truncated": false
+    },
+    "title": "app/pricing",
+    "time": {
+      "start": 1757372485801,
+      "end": 1757372485803
+    }
+  }
+}

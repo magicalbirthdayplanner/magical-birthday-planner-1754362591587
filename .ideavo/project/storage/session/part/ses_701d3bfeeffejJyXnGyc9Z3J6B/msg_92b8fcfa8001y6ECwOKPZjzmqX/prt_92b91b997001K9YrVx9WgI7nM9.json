@@ -1,0 +1,25 @@
+{
+  "id": "prt_92b91b997001K9YrVx9WgI7nM9",
+  "messageID": "msg_92b8fcfa8001y6ECwOKPZjzmqX",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "grep",
+  "callID": "toolu_01KHDjJqwMJeMFu99ZAmDcXt",
+  "state": {
+    "status": "completed",
+    "input": {
+      "pattern": "\\$0|Introductory|introductory|annual|Annual",
+      "include": "*.tsx"
+    },
+    "output": "Found 3 matches\n/home/user/project/app/pricing/page.tsx:\n  Line 15:     annualPrice: 9.99,\n  Line 35:     annualPrice: 19.99,\n  Line 57:     annualPrice: 29.99,",
+    "metadata": {
+      "matches": 3,
+      "truncated": false
+    },
+    "title": "\\$0|Introductory|introductory|annual|Annual",
+    "time": {
+      "start": 1757372595301,
+      "end": 1757372595314
+    }
+  }
+}

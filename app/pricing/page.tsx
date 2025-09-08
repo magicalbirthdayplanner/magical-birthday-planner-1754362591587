@@ -11,8 +11,8 @@ import { useState } from "react"
 const pricingTiers = [
   {
     name: "🎈 Starter",
-    price: 0,
-    annualPrice: 0,
+    price: 9.99,
+    annualPrice: 9.99,
     description: "A quick and easy starting point for parents seeking basic help.",
     icon: Star,
     gradient: "from-purple-500 to-pink-500",
@@ -31,8 +31,8 @@ const pricingTiers = [
   },
   {
     name: "🧁 Plus",
-    price: 14.99,
-    annualPrice: 14.99,
+    price: 19.99,
+    annualPrice: 19.99,
     description: "Smart and simple AI-powered birthday planning for busy parents.",
     icon: Zap,
     gradient: "from-blue-500 to-cyan-500",
@@ -76,8 +76,8 @@ const pricingTiers = [
 
 const faqs = [
   {
-    question: "Are all plans one-time payments?",
-    answer: "Yes! All our plans (Starter, Plus, and Pro) are one-time payments with no monthly subscriptions. Pay once and use the features forever."
+    question: "How does the per-party pricing work?",
+    answer: "Yes! All our plans (Starter, Plus, and Pro) are per-party payments with no monthly subscriptions. Pay only when you plan a birthday party."
   },
   {
     question: "Can I upgrade between plans?",
@@ -104,13 +104,13 @@ export default function PricingPage() {
       <div className="container mx-auto px-4 pt-20 pb-12">
         <div className="text-center max-w-3xl mx-auto">
           <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-            🎂 One-time payments only. No monthly subscriptions.
+            🎂 Pay per party. No monthly subscriptions.
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6">
             Choose Your Perfect Plan
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Simple, transparent pricing with no hidden fees. Pay once and enjoy all features forever - perfect for planning magical birthday celebrations.
+            Simple, transparent pricing with no hidden fees. Pay per party with no recurring charges - perfect for planning magical birthday celebrations.
           </p>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {pricingTiers.map((tier, index) => {
             const displayPrice = tier.price
-            const billingPeriod = tier.price === 0 ? 'Introductory Offer' : '(One-Time)'
+            const billingPeriod = '(Per Birthday Party)'
             
             return (
               <Card 
@@ -217,18 +217,18 @@ export default function PricingPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left p-4 font-semibold text-gray-900">Features</th>
-                  <th className="text-center p-4">
-                    <div className="font-semibold text-gray-900 text-sm">🎈 Starter</div>
-                    <div className="text-xs text-gray-500">$0 - Introductory Offer</div>
-                  </th>
-                  <th className="text-center p-4">
-                    <div className="font-semibold text-gray-900 text-sm">🧁 Plus</div>
-                    <div className="text-xs text-gray-500">$14.99 one-time</div>
-                  </th>
-                  <th className="text-center p-4">
-                    <div className="font-semibold text-gray-900 text-sm">✨ Pro</div>
-                    <div className="text-xs text-gray-500">$29.99 one-time</div>
-                  </th>
+                   <th className="text-center p-4">
+                     <div className="font-semibold text-gray-900 text-sm">🎈 Starter</div>
+                     <div className="text-xs text-gray-500">$9.99 per party</div>
+                   </th>
+                   <th className="text-center p-4">
+                     <div className="font-semibold text-gray-900 text-sm">🧁 Plus</div>
+                     <div className="text-xs text-gray-500">$19.99 per party</div>
+                   </th>
+                   <th className="text-center p-4">
+                     <div className="font-semibold text-gray-900 text-sm">✨ Pro</div>
+                     <div className="text-xs text-gray-500">$29.99 per party</div>
+                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -299,7 +299,7 @@ export default function PricingPage() {
             Frequently Asked Questions
           </h2>
           <p className="text-gray-600">
-            Everything you need to know about our simple, one-time pricing plans.
+            Everything you need to know about our simple, per-party pricing plans.
           </p>
         </div>
 

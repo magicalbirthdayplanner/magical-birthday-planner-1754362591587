@@ -463,13 +463,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-              🎂 Annual birthday pricing. No monthly subscriptions.
+              🎂 Pay per party. No monthly subscriptions.
             </Badge>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               Choose Your Perfect Package
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              From single birthday celebrations to multi-child families, find the annual package that makes every birthday magical
+              From single birthday celebrations to multi-child families, find the perfect package that makes every birthday magical
             </p>
           </div>
 
@@ -495,10 +495,10 @@ export default function Home() {
                 <CardDescription className="text-gray-600 dark:text-gray-300">
                   A quick and easy starting point for parents seeking basic help.
                 </CardDescription>
-                <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$0</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">Introductory Offer</span>
-                </div>
+                 <div className="flex items-baseline mt-4">
+                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$9.99</span>
+                   <span className="text-gray-600 dark:text-gray-400 ml-2">per party</span>
+                 </div>
               </CardHeader>
               <CardContent className="p-6">
                 <ul className="space-y-3 mb-6">
@@ -546,10 +546,10 @@ export default function Home() {
                 <CardDescription className="text-gray-600 dark:text-gray-300">
                   Smart and simple AI-powered birthday planning for busy parents.
                 </CardDescription>
-                <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$14.99</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">(One-Time)</span>
-                </div>
+                 <div className="flex items-baseline mt-4">
+                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$19.99</span>
+                   <span className="text-gray-600 dark:text-gray-400 ml-2">per party</span>
+                 </div>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">Includes everything in Starter, plus:</div>
@@ -599,10 +599,10 @@ export default function Home() {
                 <CardDescription className="text-gray-600 dark:text-gray-300">
                   All-in-one planning experience with advanced support and recommendations.
                 </CardDescription>
-                <div className="flex items-baseline mt-4">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$29.99</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2">(One-Time)</span>
-                </div>
+                 <div className="flex items-baseline mt-4">
+                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$29.99</span>
+                   <span className="text-gray-600 dark:text-gray-400 ml-2">per party</span>
+                 </div>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">Includes everything in Plus, plus:</div>

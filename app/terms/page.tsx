@@ -52,12 +52,12 @@ export default function TermsConditionsPage() {
                 Our service offers multiple subscription tiers:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
-                <li>Starter Plan: $0 (Introductory Offer) with basic features</li>
+                <li>Starter Plan: $9.99 per party with basic features</li>
                 <li>Plus Plan: Enhanced features with additional capabilities</li>
                 <li>Pro Plan: Full access to all platform features</li>
               </ul>
               <p className="text-gray-600 dark:text-gray-300 mt-4">
-                Billing is processed annually. All fees are non-refundable except as required by law. 
+                Billing is processed per party. All fees are non-refundable except as required by law. 
                 We reserve the right to change our pricing with 30 days' notice.
               </p>
             </section>
