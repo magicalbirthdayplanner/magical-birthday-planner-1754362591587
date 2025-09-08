@@ -1,0 +1,73 @@
+{
+  "id": "prt_927314aea001FROVyCeXOa7nOO",
+  "messageID": "msg_92730828f001O1gKUMPsoEnE4x",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "todowrite",
+  "callID": "toolu_01AZspb5Ym7wLbED8ZCexRfm",
+  "state": {
+    "status": "completed",
+    "input": {
+      "todos": [
+        {
+          "content": "Examine party wizard to understand zip code field structure",
+          "status": "completed",
+          "priority": "high",
+          "id": "1"
+        },
+        {
+          "content": "Find overview tab component and check location display logic",
+          "status": "completed",
+          "priority": "high",
+          "id": "2"
+        },
+        {
+          "content": "Check database schema for zip code storage",
+          "status": "completed",
+          "priority": "medium",
+          "id": "3"
+        },
+        {
+          "content": "Fix location display to show zip code in overview",
+          "status": "in_progress",
+          "priority": "high",
+          "id": "4"
+        }
+      ]
+    },
+    "output": "[\n  {\n    \"content\": \"Examine party wizard to understand zip code field structure\",\n    \"status\": \"completed\",\n    \"priority\": \"high\",\n    \"id\": \"1\"\n  },\n  {\n    \"content\": \"Find overview tab component and check location display logic\",\n    \"status\": \"completed\",\n    \"priority\": \"high\",\n    \"id\": \"2\"\n  },\n  {\n    \"content\": \"Check database schema for zip code storage\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\",\n    \"id\": \"3\"\n  },\n  {\n    \"content\": \"Fix location display to show zip code in overview\",\n    \"status\": \"in_progress\",\n    \"priority\": \"high\",\n    \"id\": \"4\"\n  }\n]",
+    "metadata": {
+      "todos": [
+        {
+          "content": "Examine party wizard to understand zip code field structure",
+          "status": "completed",
+          "priority": "high",
+          "id": "1"
+        },
+        {
+          "content": "Find overview tab component and check location display logic",
+          "status": "completed",
+          "priority": "high",
+          "id": "2"
+        },
+        {
+          "content": "Check database schema for zip code storage",
+          "status": "completed",
+          "priority": "medium",
+          "id": "3"
+        },
+        {
+          "content": "Fix location display to show zip code in overview",
+          "status": "in_progress",
+          "priority": "high",
+          "id": "4"
+        }
+      ]
+    },
+    "title": "1 todos",
+    "time": {
+      "start": 1757299167635,
+      "end": 1757299167647
+    }
+  }
+}

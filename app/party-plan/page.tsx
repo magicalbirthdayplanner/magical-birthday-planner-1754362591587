@@ -1113,7 +1113,7 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
         interests: party.interests || [],
         favoriteColors: party.favoriteColors || [],
         budget: party.budget || undefined,
-        zipCode: party.location || undefined,
+        zipCode: party.location || party.zipCode || undefined,
         guestCount: party.guestCount || undefined,
         venue: party.venue || 'mixed',
         duration: party.duration || '2-3 hours',

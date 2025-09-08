@@ -1,0 +1,24 @@
+{
+  "id": "prt_92730ad78001dLDvbziKN9zikd",
+  "messageID": "msg_92730828f001O1gKUMPsoEnE4x",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "glob",
+  "callID": "toolu_01WoUFU69qPBwN4WxTxEfTcL",
+  "state": {
+    "status": "completed",
+    "input": {
+      "pattern": "**/create-party/**"
+    },
+    "output": "/home/user/project/app/create-party/page.tsx",
+    "metadata": {
+      "count": 1,
+      "truncated": false
+    },
+    "title": "",
+    "time": {
+      "start": 1757299125664,
+      "end": 1757299125681
+    }
+  }
+}

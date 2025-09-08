@@ -1,0 +1,11 @@
+{
+  "id": "prt_927314179001gus3MgPQmi088r",
+  "messageID": "msg_92730828f001O1gKUMPsoEnE4x",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "Now I understand the issue! Looking at line 938, the data is loaded as `zipCode: result.party.zip_code`, but in line 1116, there's a fallback that maps `zipCode: party.location || undefined`. The issue is that the location field is not being properly set or the zipCode field is not being properly displayed.",
+  "time": {
+    "start": 1757299165929,
+    "end": 1757299165929
+  }
+}

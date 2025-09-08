@@ -1,0 +1,25 @@
+{
+  "id": "prt_927318e93001FwHIvPznomc2c8",
+  "messageID": "msg_92730828f001O1gKUMPsoEnE4x",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01Eq1vYFB99m4oDkyUUamUh4",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "offset": 1110,
+      "limit": 30
+    },
+    "output": "<file>\n01111|         selectedTheme: party.theme,\n01112|         theme: party.theme,\n01113|         interests: party.interests || [],\n01114|         favoriteColors: party.favoriteColors || [],\n01115|         budget: party.budget || undefined,\n01116|         zipCode: party.location || undefined,\n01117|         guestCount: party.guestCount || undefined,\n01118|         venue: party.venue || 'mixed',\n01119|         duration: party.duration || '2-3 hours',\n01120|         themeActivities: party.themeActivities || undefined,\n01121|       });\n01122| \n01123| \n01124|       // Set guests from database only\n01125|       let finalGuestData: ModernGuest[] = [];\n01126|       \n01127|       if (party.guests && party.guests.length > 0) {\n01128|         // Use database data\n01129|         finalGuestData = party.guests.map((guest: any) => ({\n01130|           id: guest.id,\n01131|           name: guest.name,\n01132|           email: guest.email || '',\n01133|           phone: guest.phone || '',\n01134|           type: guest.type,\n01135|           rsvpStatus: guest.rsvpStatus || 'NOT_SENT',\n01136|           sentAt: guest.sentAt ? new Date(guest.sentAt) : undefined,\n01137|           respondedAt: guest.respondedAt ? new Date(guest.respondedAt) : undefined,\n01138|           notes: guest.notes || '',\n01139|         }));\n01140|         console.log('Loaded guests from database:', finalGuestData.length);\n\n(File has more lines. Use 'offset' parameter to read beyond line 1140)\n</file>",
+    "metadata": {
+      "preview": "        selectedTheme: party.theme,\n        theme: party.theme,\n        interests: party.interests || [],\n        favoriteColors: party.favoriteColors || [],\n        budget: party.budget || undefined,\n        zipCode: party.location || undefined,\n        guestCount: party.guestCount || undefined,\n        venue: party.venue || 'mixed',\n        duration: party.duration || '2-3 hours',\n        themeActivities: party.themeActivities || undefined,\n      });\n\n\n      // Set guests from database only\n      let finalGuestData: ModernGuest[] = [];\n      \n      if (party.guests && party.guests.length > 0) {\n        // Use database data\n        finalGuestData = party.guests.map((guest: any) => ({\n          id: guest.id,"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757299183701,
+      "end": 1757299183703
+    }
+  }
+}

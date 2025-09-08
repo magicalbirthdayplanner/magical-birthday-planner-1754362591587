@@ -1,0 +1,26 @@
+{
+  "id": "prt_9273136c4001xgoWCgzWttUPCk",
+  "messageID": "msg_92730828f001O1gKUMPsoEnE4x",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "grep",
+  "callID": "toolu_01HMPpbY6i9x64qTZTRoe1eQ",
+  "state": {
+    "status": "completed",
+    "input": {
+      "pattern": "zip_code|zipCode",
+      "path": "/home/user/project/app/party-plan",
+      "include": "*.tsx"
+    },
+    "output": "Found 10 matches\n/home/user/project/app/party-plan/page.tsx:\n  Line 109:   zipCode?: string;\n  Line 241:       const response = await fetch(`/api/venues-local?zip=${partyData?.zipCode || '48226'}&category=${type}&radius=15`);\n  Line 246:       console.log(`Found ${data.length} local venues for ${type} near ${partyData?.zipCode}`);\n  Line 260:         zip: partyData?.zipCode || '48226',\n  Line 938:               zipCode: result.party.zip_code,\n  Line 1116:         zipCode: party.location || undefined,\n  Line 2112:                                 : partyData?.zipCode || 'Not specified'}\n  Line 2422:                   zipCode={partyData?.zipCode}\n  Line 2545:                         Searching near ZIP code: {partyData?.zipCode || '48226'}\n  Line 2725:                           No {selectedVenueType} venues found near ZIP code {partyData?.zipCode || '48226'}.",
+    "metadata": {
+      "matches": 10,
+      "truncated": false
+    },
+    "title": "zip_code|zipCode",
+    "time": {
+      "start": 1757299160836,
+      "end": 1757299160846
+    }
+  }
+}

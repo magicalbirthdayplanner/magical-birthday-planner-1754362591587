@@ -1,0 +1,18 @@
+{
+  "id": "prt_927338fc2001tA583pWlaSc3g5",
+  "messageID": "msg_92730828f001O1gKUMPsoEnE4x",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "model": "Claude Sonnet 4",
+  "type": "finish",
+  "commitMessage": "fix(party-plan): resolve location/zipCode display inconsistency",
+  "cost": 0.235029,
+  "tokens": {
+    "input": 4,
+    "output": 266,
+    "reasoning": 0,
+    "cache": {
+      "write": 381,
+      "read": 27031
+    }
+  }
+}
