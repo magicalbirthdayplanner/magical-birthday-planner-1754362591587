@@ -95,9 +95,10 @@ interface HostModeTabProps {
     venue?: VenueData | 'indoor' | 'outdoor' | 'mixed';
     guestCount?: number;
   };
+  selectedActivities?: any[];
 }
 
-export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
+export default function HostModeTab({ partyId, partyData, selectedActivities = [] }: HostModeTabProps) {
   const [activities, setActivities] = useState<HostModeActivity[]>([]);
   const [currentActivity, setCurrentActivity] = useState<HostModeActivity | null>(null);
   const [loading, setLoading] = useState(false);
@@ -106,12 +107,54 @@ export default function HostModeTab({ partyId, partyData }: HostModeTabProps) {
   const [success, setSuccess] = useState<string | null>(null);
 
 
-  // Load activities only when partyId is provided and not during initial mount
+  // Use selected activities from Activities tab instead of loading from API
   useEffect(() => {
-    if (partyId) {
-      loadActivities();
+    if (selectedActivities && selectedActivities.length > 0) {
+      // Transform selected activities to HostModeActivity format
+      const hostModeActivities = selectedActivities.map(activity => ({
+        id: activity.id,
+        name: activity.name,
+        description: activity.description,
+        estimatedTime: activity.estimatedTime || 30,
+        timeUnit: activity.timeUnit || 'minutes',
+        supplies: activity.suppliesNeeded || ['Basic supplies'],
+        peopleRequired: activity.minParticipants || 2,
+        groupInstructions: activity.description,
+        hostScript: `Welcome to ${activity.name}! Let's have some fun!`,
+        themeEmoji: '🎉',
+        themeContext: 'Birthday Party',
+        stepByStepScript: activity.description,
+        soundCues: ['🎵', '👏', '🎉'],
+        energyLevel: 'MEDIUM' as const,
+        isHostModeReady: true,
+        isSelected: true,
+        source: 'THEME_DEFAULT' as const,
+        isFullyExpanded: false,
+        fullHostScript: `Welcome everyone to our amazing ${activity.name} activity! This is going to be so much fun. Let me explain how we're going to play...`,
+        rulesAndVariations: {
+          baseRules: ['Have fun!', 'Be safe!', 'Include everyone!'],
+          variations: ['Easy mode', 'Challenge mode'],
+          safetyNotes: ['Make sure everyone is safe', 'Take breaks if needed']
+        },
+        timingAndFlow: {
+          setupTime: '5 minutes',
+          activityDuration: `${activity.estimatedTime || 30} minutes`,
+          cleanupTime: '5 minutes',
+          transitionTips: 'Great job everyone! Ready for the next activity?'
+        },
+        engagementStrategies: {
+          attentionGrabbers: ['Listen up!', 'Ready to play?'],
+          participationTips: ['Everyone gets a turn', 'Help each other out'],
+          energyManagement: ['Take breaks', 'Stay hydrated']
+        }
+      }));
+      
+      setActivities(hostModeActivities);
+      console.log('Host Mode loaded with selected activities:', hostModeActivities.length);
+    } else {
+      setActivities([]);
     }
-  }, [partyId]);
+  }, [selectedActivities]);
 
 
   const loadActivities = async () => {

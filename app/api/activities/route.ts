@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerComponentClient } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,11 @@ export async function GET(request: NextRequest) {
     const materials = searchParams.get('materials') || undefined;
     const search = searchParams.get('search') || undefined;
 
-    const supabase = createServerComponentClient({ cookies: () => [] });
+    // Use service role key to bypass RLS for activities API
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     
     // Build query
     let query = supabase

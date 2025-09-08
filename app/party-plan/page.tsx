@@ -2344,6 +2344,56 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Card 4: Selected Activities */}
+                {selectedActivities.length > 0 && (
+                  <Card className="border-0 shadow-lg dark:bg-slate-800/90 dark:backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <span className="text-2xl">🎯</span>
+                        <div className="flex-1">
+                          Selected Activities
+                        </div>
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          {selectedActivities.length} Selected
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {selectedActivities.map((activity) => (
+                          <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-sm">{activity.name}</h4>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                {activity.category}
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentActiveTab('activities')}
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        ))}
+                        <div className="pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => setCurrentActiveTab('activities')}
+                          >
+                            <PartyPopper className="w-4 h-4 mr-2" />
+                            Manage Activities
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </TabsContent>
 
@@ -2386,6 +2436,7 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
                     venue: partyData.venue,
                     guestCount: partyData.guestCount
                   } : undefined}
+                  selectedActivities={selectedActivities}
                 />
               </div>
             )}
