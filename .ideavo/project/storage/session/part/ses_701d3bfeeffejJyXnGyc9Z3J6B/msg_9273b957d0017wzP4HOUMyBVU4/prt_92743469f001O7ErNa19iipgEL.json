@@ -1,0 +1,25 @@
+{
+  "id": "prt_92743469f001O7ErNa19iipgEL",
+  "messageID": "msg_9273b957d0017wzP4HOUMyBVU4",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_018RVpFfa9PA67hyLwcsZeRg",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "offset": 285,
+      "limit": 50
+    },
+    "output": "<file>\n00286|   const handleVenueSelect = async (venue: VenueData) => {\n00287|     setSelectedVenue(venue);\n00288|     console.log('Venue selected:', venue);\n00289|     \n00290|     // Automatically add venue to party data\n00291|     if (partyData) {\n00292|       const updatedPartyData: PartyData = {\n00293|         ...partyData,\n00294|         venue: venue\n00295|       };\n00296|       \n00297|       setPartyData(updatedPartyData);\n00298|       console.log('Venue automatically added to party:', venue.name);\n00299|     }\n00300|   };\n00301| \n00302| \n00303|   const handleHomeVenueSelect = async () => {\n00304|     if (!selectedHomeSize) return;\n00305|     \n00306|     const venueData: VenueData = {\n00307|       name: 'Home Venue',\n00308|       address: 'Your Home',\n00309|       rating: 5,\n00310|       distance: '0 miles',\n00311|       type: 'home',\n00312|       partySize: selectedHomeSize,\n00313|       addOns: selectedHomeAddOns\n00314|     };\n00315|     \n00316|     setSelectedVenue(venueData);\n00317|     console.log('Home venue selected:', venueData);\n00318|     \n00319|     // Automatically add home venue to party data\n00320|     if (partyData) {\n00321|       const updatedPartyData: PartyData = {\n00322|         ...partyData,\n00323|         venue: venueData\n00324|       };\n00325|       \n00326|       setPartyData(updatedPartyData);\n00327|       console.log('Home venue automatically added to party');\n00328|     }\n00329|   };\n00330| \n00331| \n00332|   const handleVenueBack = () => {\n00333|     setSelectedVenueType(null);\n00334|     setVenues([]);\n00335|     setSelectedHomeSize('');\n\n(File has more lines. Use 'offset' parameter to read beyond line 335)\n</file>",
+    "metadata": {
+      "preview": "  const handleVenueSelect = async (venue: VenueData) => {\n    setSelectedVenue(venue);\n    console.log('Venue selected:', venue);\n    \n    // Automatically add venue to party data\n    if (partyData) {\n      const updatedPartyData: PartyData = {\n        ...partyData,\n        venue: venue\n      };\n      \n      setPartyData(updatedPartyData);\n      console.log('Venue automatically added to party:', venue.name);\n    }\n  };\n\n\n  const handleHomeVenueSelect = async () => {\n    if (!selectedHomeSize) return;\n    "
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757300345112,
+      "end": 1757300345115
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "prt_9274a22ac001YMJEvwfe7J9xhv",
+  "messageID": "msg_92746f010001x1uR1aVxND1gH0",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01L8JFgpDtgLxQaUYBmmSgJJ",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "cd /home/user/project && node -e \"\nconst { createClient } = require('@supabase/supabase-js');\n\nconst supabase = createClient(\n  process.env.NEXT_PUBLIC_SUPABASE_URL,\n  process.env.SUPABASE_SERVICE_ROLE_KEY\n);\n\nasync function checkTables() {\n  try {\n    // Try to query the venues table\n    const { data: venuesData, error: venuesError } = await supabase\n      .from('venues')\n      .select('id')\n      .limit(1);\n      \n    console.log('venues table:', venuesError ? 'does not exist' : 'exists');\n    \n    // Try to query the party_venues table\n    const { data: partyVenuesData, error: partyVenuesError } = await supabase\n      .from('party_venues')\n      .select('id')\n      .limit(1);\n      \n    console.log('party_venues table:', partyVenuesError ? 'does not exist' : 'exists');\n    \n  } catch (e) {\n    console.log('Error:', e.message);\n  }\n}\n\ncheckTables();\n\"",
+      "description": "Check if venue tables exist by querying them"
+    },
+    "output": "venues table: does not exist\nparty_venues table: does not exist\n",
+    "metadata": {
+      "output": "venues table: does not exist\nparty_venues table: does not exist\n",
+      "exit": 0,
+      "description": "Check if venue tables exist by querying them"
+    },
+    "title": "cd /home/user/project && node -e \"\nconst { createClient } = require('@supabase/supabase-js');\n\nconst supabase = createClient(\n  process.env.NEXT_PUBLIC_SUPABASE_URL,\n  process.env.SUPABASE_SERVICE_ROLE_KEY\n);\n\nasync function checkTables() {\n  try {\n    // Try to query the venues table\n    const { data: venuesData, error: venuesError } = await supabase\n      .from('venues')\n      .select('id')\n      .limit(1);\n      \n    console.log('venues table:', venuesError ? 'does not exist' : 'exists');\n    \n    // Try to query the party_venues table\n    const { data: partyVenuesData, error: partyVenuesError } = await supabase\n      .from('party_venues')\n      .select('id')\n      .limit(1);\n      \n    console.log('party_venues table:', partyVenuesError ? 'does not exist' : 'exists');\n    \n  } catch (e) {\n    console.log('Error:', e.message);\n  }\n}\n\ncheckTables();\n\"",
+    "time": {
+      "start": 1757300801041,
+      "end": 1757300801769
+    }
+  }
+}

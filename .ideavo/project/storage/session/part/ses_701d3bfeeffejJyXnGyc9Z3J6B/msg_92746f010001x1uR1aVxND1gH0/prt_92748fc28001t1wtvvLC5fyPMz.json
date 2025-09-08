@@ -1,0 +1,26 @@
+{
+  "id": "prt_92748fc28001t1wtvvLC5fyPMz",
+  "messageID": "msg_92746f010001x1uR1aVxND1gH0",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_018G52FWEhUmH31wN2Nrf3qj",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "oldString": "  const handleVenueSearch = async () => {\n    if (!selectedVenueType || selectedVenueType === 'home') return;\n    \n    setVenueLoading(true);\n    try {\n      const params = new URLSearchParams({\n        zip: partyData?.zipCode || '48226',\n        category: selectedVenueType,\n        sortBy: venueSortBy,\n        minRating: venueMinRating.toString(),\n        maxDistance: '50'\n      });\n      \n      if (venueSearchQuery.trim()) {\n        params.append('search', venueSearchQuery.trim());\n      }\n      \n      const response = await fetch(`/api/venues-local?${params}`);\n      if (response.ok) {\n        const data = await response.json();\n        setVenues(data);\n        console.log(`Search found ${data.length} local venues`);\n      } else {\n        console.error('Failed to search venues');\n      }\n    } catch (error) {\n      console.error('Error searching venues:', error);",
+      "newString": "  const handleVenueSearch = async () => {\n    if (!selectedVenueType || selectedVenueType === 'home') return;\n    \n    setVenueLoading(true);\n    try {\n      const params = new URLSearchParams({\n        zipCode: partyData?.zipCode || '48226',\n        category: selectedVenueType,\n        radius: '20',\n        sortBy: venueSortBy,\n        minRating: venueMinRating.toString()\n      });\n      \n      if (venueSearchQuery.trim()) {\n        params.append('search', venueSearchQuery.trim());\n      }\n      \n      const response = await fetch(`/api/venues-search?${params}`);\n      if (response.ok) {\n        const data = await response.json();\n        setVenues(data.venues || []);\n        console.log(`Search found ${data.venues?.length || 0} venues`);\n      } else {\n        console.error('Failed to search venues');\n        setVenues([]);\n      }\n    } catch (error) {\n      console.error('Error searching venues:', error);\n      setVenues([]);"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/party-plan/page.tsx\n===================================================================\n--- /home/user/project/app/party-plan/page.tsx\n+++ /home/user/project/app/party-plan/page.tsx\n@@ -264,29 +264,31 @@\n   \n   setVenueLoading(true);\n   try {\n     const params = new URLSearchParams({\n-      zip: partyData?.zipCode || '48226',\n+      zipCode: partyData?.zipCode || '48226',\n       category: selectedVenueType,\n+      radius: '20',\n       sortBy: venueSortBy,\n-      minRating: venueMinRating.toString(),\n-      maxDistance: '50'\n+      minRating: venueMinRating.toString()\n     });\n     \n     if (venueSearchQuery.trim()) {\n       params.append('search', venueSearchQuery.trim());\n     }\n     \n-    const response = await fetch(`/api/venues-local?${params}`);\n+    const response = await fetch(`/api/venues-search?${params}`);\n     if (response.ok) {\n       const data = await response.json();\n-      setVenues(data);\n-      console.log(`Search found ${data.length} local venues`);\n+      setVenues(data.venues || []);\n+      console.log(`Search found ${data.venues?.length || 0} venues`);\n     } else {\n       console.error('Failed to search venues');\n+      setVenues([]);\n     }\n   } catch (error) {\n     console.error('Error searching venues:', error);\n+    setVenues([]);\n   } finally {\n     setVenueLoading(false);\n   }\n };\n"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757300724473,
+      "end": 1757300724507
+    }
+  }
+}

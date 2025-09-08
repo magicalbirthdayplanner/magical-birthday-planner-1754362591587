@@ -1,0 +1,25 @@
+{
+  "id": "prt_9274da3da00120e1eVqlVGKG33",
+  "messageID": "msg_92746f010001x1uR1aVxND1gH0",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_017FWsxcyauvnotY1JQrPbVp",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/api/party-venue/route.ts",
+      "offset": 130,
+      "limit": 40
+    },
+    "output": "<file>\n00131|     if (partyVenue.is_custom) {\n00132|       venue = {\n00133|         name: partyVenue.custom_name,\n00134|         address: partyVenue.custom_address,\n00135|         ...(partyVenue.custom_notes ? JSON.parse(partyVenue.custom_notes) : {})\n00136|       };\n00137|     } else if (partyVenue.venues) {\n00138|       const v = partyVenue.venues;\n00139|       venue = {\n00140|         id: v.id,\n00141|         placeId: v.place_id,\n00142|         name: v.name,\n00143|         address: v.address,\n00144|         formattedAddress: v.formatted_address,\n00145|         phone: v.phone,\n00146|         website: v.website,\n00147|         rating: v.rating,\n00148|         reviewsCount: v.reviews_count,\n00149|         priceLevel: v.price_level,\n00150|         category: v.category,\n00151|         types: v.types,\n00152|         businessStatus: v.business_status,\n00153|         latitude: v.latitude,\n00154|         longitude: v.longitude,\n00155|         zipCode: v.zip_code,\n00156|         city: v.city,\n00157|         state: v.state,\n00158|         photos: v.photos,\n00159|         openingHours: v.opening_hours,\n00160|         partyPackagesAvailable: v.party_packages_available\n00161|       };\n00162|     }\n00163| \n00164|     return NextResponse.json({ \n00165|       venue,\n00166|       selectedAt: partyVenue.selected_at,\n00167|       isCustom: partyVenue.is_custom\n00168|     });\n00169| \n00170|   } catch (error) {\n\n(File has more lines. Use 'offset' parameter to read beyond line 170)\n</file>",
+    "metadata": {
+      "preview": "    if (partyVenue.is_custom) {\n      venue = {\n        name: partyVenue.custom_name,\n        address: partyVenue.custom_address,\n        ...(partyVenue.custom_notes ? JSON.parse(partyVenue.custom_notes) : {})\n      };\n    } else if (partyVenue.venues) {\n      const v = partyVenue.venues;\n      venue = {\n        id: v.id,\n        placeId: v.place_id,\n        name: v.name,\n        address: v.address,\n        formattedAddress: v.formatted_address,\n        phone: v.phone,\n        website: v.website,\n        rating: v.rating,\n        reviewsCount: v.reviews_count,\n        priceLevel: v.price_level,\n        category: v.category,"
+    },
+    "title": "app/api/party-venue/route.ts",
+    "time": {
+      "start": 1757301024280,
+      "end": 1757301024284
+    }
+  }
+}

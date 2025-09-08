@@ -1,0 +1,26 @@
+{
+  "id": "prt_9274c3bbe001zP91sMQu5Y0aIG",
+  "messageID": "msg_92746f010001x1uR1aVxND1gH0",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01NAxed2qcpUdb2ARhGBEmmL",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "cd /home/user/project && rm setup-venue-tables.js setup-venues-direct.js test-venue-api.js",
+      "description": "Clean up temporary setup files"
+    },
+    "output": "",
+    "metadata": {
+      "output": "",
+      "exit": 0,
+      "description": "Clean up temporary setup files"
+    },
+    "title": "cd /home/user/project && rm setup-venue-tables.js setup-venues-direct.js test-venue-api.js",
+    "time": {
+      "start": 1757300932425,
+      "end": 1757300932444
+    }
+  }
+}

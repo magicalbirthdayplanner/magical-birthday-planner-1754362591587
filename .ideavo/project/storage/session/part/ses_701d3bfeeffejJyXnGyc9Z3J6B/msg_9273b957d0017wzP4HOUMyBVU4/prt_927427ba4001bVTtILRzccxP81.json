@@ -1,0 +1,26 @@
+{
+  "id": "prt_927427ba4001bVTtILRzccxP81",
+  "messageID": "msg_9273b957d0017wzP4HOUMyBVU4",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "write",
+  "callID": "toolu_01Vcim6YUPDDB6UNwnf7N8er",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/lib/google-places-photos.ts",
+      "content": "// Google Places Photos API integration\nconst GOOGLE_PLACES_API_KEY = 'AIzaSyDWCLa9aKpRHX5y7LTc9rvQXTzJefjaCZw';\n\nexport function getGooglePlacePhotoUrl(\n  photoReference: string, \n  maxWidth: number = 400,\n  maxHeight: number = 300\n): string {\n  return `https://maps.googleapis.com/maps/api/place/photo?` +\n    `maxwidth=${maxWidth}&` +\n    `maxheight=${maxHeight}&` +\n    `photoreference=${photoReference}&` +\n    `key=${GOOGLE_PLACES_API_KEY}`;\n}\n\nexport function getGooglePlacePhotosUrls(\n  photoReferences: string[],\n  maxWidth: number = 400,\n  maxHeight: number = 300\n): string[] {\n  return photoReferences.map(ref => getGooglePlacePhotoUrl(ref, maxWidth, maxHeight));\n}\n\n// Get photo URL with error handling\nexport function getVenuePhotoUrl(\n  venue: { photos?: string[]; name: string },\n  maxWidth: number = 400,\n  maxHeight: number = 300\n): string | null {\n  if (!venue.photos || venue.photos.length === 0) {\n    return null;\n  }\n  \n  try {\n    return getGooglePlacePhotoUrl(venue.photos[0], maxWidth, maxHeight);\n  } catch (error) {\n    console.error('Error getting venue photo URL:', error);\n    return null;\n  }\n}\n\n// Generate placeholder image URL based on venue name and category\nexport function getVenuePlaceholderUrl(venueName: string, category: string): string {\n  // Generate a simple placeholder based on venue type\n  const placeholderImages = {\n    indoor: 'https://images.unsplash.com/photo-1545431781-3e1b506e6e96?w=400&h=300&fit=crop',\n    outdoor: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop', \n    specialty: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop',\n    community: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop'\n  };\n  \n  return placeholderImages[category as keyof typeof placeholderImages] || placeholderImages.indoor;\n}"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "filepath": "/home/user/project/lib/google-places-photos.ts",
+      "exists": false
+    },
+    "title": "lib/google-places-photos.ts",
+    "time": {
+      "start": 1757300307877,
+      "end": 1757300307900
+    }
+  }
+}
