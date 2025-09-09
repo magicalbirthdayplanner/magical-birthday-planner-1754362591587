@@ -1,0 +1,11 @@
+{
+  "id": "prt_92bc6e6ce001mPcSgAqTUsZVf1",
+  "messageID": "msg_92bc6dd98001M4GGxTDuKULFlv",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "I can see there's a JavaScript initialization error with `hasActiveSubscription`. This is likely in the SubscriptionContext where we recently made changes. Let me check the current state of the SubscriptionContext and fix the initialization issue.",
+  "time": {
+    "start": 1757376081054,
+    "end": 1757376081054
+  }
+}

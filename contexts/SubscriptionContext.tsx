@@ -196,6 +196,18 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     }
   };
 
+  const hasActiveSubscription = (): boolean => {
+    // Check if user has purchased any plan
+    // This should be set to 'true' after successful payment
+    const hasPurchasedPlan = localStorage.getItem('hasPurchasedPlan') === 'true';
+    
+    // Also check for any subscription indicator in user data or localStorage
+    const userPlanPurchased = localStorage.getItem('userPlanPurchased');
+    const hasValidSubscription = localStorage.getItem('hasValidSubscription') === 'true';
+    
+    return hasPurchasedPlan || hasValidSubscription || !!userPlanPurchased;
+  };
+
   const subscriptionStatus: SubscriptionStatus = {
     isActive: hasActiveSubscription(),
     planType: currentPlan,
@@ -245,18 +257,6 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const hasActiveSubscription = (): boolean => {
-    // Check if user has purchased any plan
-    // This should be set to 'true' after successful payment
-    const hasPurchasedPlan = localStorage.getItem('hasPurchasedPlan') === 'true';
-    
-    // Also check for any subscription indicator in user data or localStorage
-    const userPlanPurchased = localStorage.getItem('userPlanPurchased');
-    const hasValidSubscription = localStorage.getItem('hasValidSubscription') === 'true';
-    
-    return hasPurchasedPlan || hasValidSubscription || !!userPlanPurchased;
   };
 
   return (
