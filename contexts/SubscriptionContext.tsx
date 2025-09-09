@@ -1,9 +1,18 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 
-export type SubscriptionPlan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO';
+export type SubscriptionPlan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO' | 'PROFESSIONAL';
+
+export interface SubscriptionStatus {
+  isActive: boolean;
+  planType: SubscriptionPlan;
+  purchaseDate?: string;
+  canUpgrade: boolean;
+  canDowngrade: boolean;
+  nextUpgradePlan: SubscriptionPlan | null;
+}
 
 export interface SubscriptionPlanDetails {
   name: string;
@@ -14,14 +23,14 @@ export interface SubscriptionPlanDetails {
   allowedTabs: string[];
 }
 
-export interface SubscriptionStatus {
-  isActive: boolean;
-  planType: SubscriptionPlan;
-  purchaseDate?: string;
-  canUpgrade: boolean;
-  canDowngrade: boolean;
-  nextUpgradePlan?: SubscriptionPlan | null;
-}
+// Map database plan values to our internal plan types
+const PLAN_MAPPING: Record<string, SubscriptionPlan> = {
+  'FREE': 'FREE',
+  'STARTER': 'STARTER',
+  'PLUS': 'PLUS',
+  'PRO': 'PRO',
+  'PROFESSIONAL': 'PRO' // Map PROFESSIONAL to PRO
+};
 
 export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetails> = {
   FREE: {
@@ -78,7 +87,8 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
       'Priority support',
     ],
     allowedTabs: ['overview', 'themes', 'guests', 'timeline', 'checklist', 'activities', 'host-mode', 'vendor-suggestions', 'venue', 'food']
-  }
+  },
+  // PROFESSIONAL is mapped to PRO, so we don't need a separate entry
 };
 
 interface SubscriptionContextType {
@@ -109,9 +119,18 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   // Initialize plan from user data or localStorage
   useEffect(() => {
     const initializePlan = async () => {
+      console.log('🔄 SubscriptionContext: Initializing plan...');
+      
       // Check if user has purchased a plan
       const hasPurchased = localStorage.getItem('hasPurchasedPlan') === 'true';
       const storedPlan = localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan;
+      
+      console.log('🔄 SubscriptionContext: localStorage values:', {
+        hasPurchasedPlan: localStorage.getItem('hasPurchasedPlan'),
+        userSubscriptionPlan: localStorage.getItem('userSubscriptionPlan'),
+        userPlanPurchased: localStorage.getItem('userPlanPurchased'),
+        hasValidSubscription: localStorage.getItem('hasValidSubscription')
+      });
       
       let initialPlan: SubscriptionPlan = 'FREE';
       
@@ -119,26 +138,59 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         initialPlan = storedPlan;
       }
       
+      console.log('🔄 SubscriptionContext: Initial plan from localStorage:', initialPlan);
       setCurrentPlan(initialPlan);
       
       if (user) {
+        console.log('🔄 SubscriptionContext: User authenticated, fetching plan from database...');
+        console.log('🔄 SubscriptionContext: User ID:', user.id);
         try {
           // Try to fetch user's current plan from the database
           const response = await fetch('/api/user/subscription');
+          console.log('🔄 SubscriptionContext: API response status:', response.status);
+          
           if (response.ok) {
             const data = await response.json();
-            const serverPlan = data.currentPlan || 'STARTER';
+            console.log('🔄 SubscriptionContext: API response data:', data);
+            
+            // Map the database plan to our internal plan type
+            console.log('🔄 SubscriptionContext: Looking up plan in PLAN_MAPPING:', data.currentPlan);
+            const serverPlan = PLAN_MAPPING[data.currentPlan] || 'FREE';
+            console.log('🔄 SubscriptionContext: Mapped server plan:', serverPlan);
+            
             if (SUBSCRIPTION_PLANS[serverPlan]) {
+              console.log('🔄 SubscriptionContext: Setting plan to:', serverPlan);
               setCurrentPlan(serverPlan);
               // Sync localStorage with server
               localStorage.setItem('userSubscriptionPlan', serverPlan);
+              localStorage.setItem('hasPurchasedPlan', 'true');
+              localStorage.setItem('hasValidSubscription', 'true');
+            } else {
+              console.log('🔄 SubscriptionContext: Invalid plan, not setting');
+            }
+          } else {
+            console.error('🔄 SubscriptionContext: Failed to fetch user plan from server, status:', response.status);
+            const errorData = await response.json().catch(() => ({}));
+            console.error('🔄 SubscriptionContext: Error data:', errorData);
+            
+            // If it's an auth error, clear localStorage and reset to FREE
+            if (response.status === 401) {
+              console.log('🔄 SubscriptionContext: Clearing localStorage due to auth error');
+              localStorage.removeItem('hasPurchasedPlan');
+              localStorage.removeItem('userSubscriptionPlan');
+              localStorage.removeItem('hasValidSubscription');
+              localStorage.removeItem('userPlanPurchased');
+              setCurrentPlan('FREE');
             }
           }
         } catch (error) {
-          console.error('Error fetching user plan from server:', error);
+          console.error('🔄 SubscriptionContext: Error fetching user plan from server:', error);
           // Continue using localStorage value
         }
+      } else {
+        console.log('🔄 SubscriptionContext: No user authenticated');
       }
+      console.log('🔄 SubscriptionContext: Finished initialization');
       setLoading(false);
     };
 
@@ -192,6 +244,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       case 'FREE': return 'STARTER';
       case 'STARTER': return 'PLUS';
       case 'PLUS': return 'PRO';
+      case 'PRO': return null;
       default: return null;
     }
   };
@@ -205,17 +258,39 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const userPlanPurchased = localStorage.getItem('userPlanPurchased');
     const hasValidSubscription = localStorage.getItem('hasValidSubscription') === 'true';
     
-    return hasPurchasedPlan || hasValidSubscription || !!userPlanPurchased;
+    // Check if user has a non-FREE plan in the database
+    const hasDatabasePlan = currentPlan !== 'FREE';
+    
+    console.log('🔄 SubscriptionContext: hasActiveSubscription checks:', {
+      hasPurchasedPlan,
+      userPlanPurchased,
+      hasValidSubscription,
+      hasDatabasePlan,
+      currentPlan
+    });
+    
+    // A user has an active subscription if:
+    // 1. They have a non-FREE plan from the database, OR
+    // 2. They have purchased a plan according to localStorage
+    return hasDatabasePlan || hasPurchasedPlan || hasValidSubscription || !!userPlanPurchased;
   };
 
-  const subscriptionStatus: SubscriptionStatus = {
-    isActive: hasActiveSubscription(),
-    planType: currentPlan,
-    purchaseDate: localStorage.getItem('subscriptionPurchaseDate') || undefined,
-    canUpgrade: currentPlan !== 'PRO',
-    canDowngrade: false, // No downgrades allowed
-    nextUpgradePlan: getNextUpgradePlan()
-  };
+  // Calculate subscription status dynamically - this will update when currentPlan changes
+  const subscriptionStatus = useMemo<SubscriptionStatus>(() => {
+    const isActive = hasActiveSubscription();
+    const status = {
+      isActive,
+      planType: currentPlan,
+      purchaseDate: localStorage.getItem('subscriptionPurchaseDate') || undefined,
+      canUpgrade: currentPlan !== 'PRO',
+      canDowngrade: false, // No downgrades allowed
+      nextUpgradePlan: getNextUpgradePlan()
+    };
+    
+    console.log('🔄 SubscriptionContext: Calculated subscriptionStatus:', status);
+    
+    return status;
+  }, [currentPlan]);
 
   const updateUserPlan = async (newPlan: SubscriptionPlan): Promise<void> => {
     try {
@@ -224,6 +299,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       // Update local state and localStorage immediately for instant UI feedback
       setCurrentPlan(newPlan);
       localStorage.setItem('userSubscriptionPlan', newPlan);
+      localStorage.setItem('hasPurchasedPlan', 'true');
+      localStorage.setItem('hasValidSubscription', 'true');
       
       // Show success notification immediately
       if (typeof window !== 'undefined' && window.dispatchEvent) {

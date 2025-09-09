@@ -48,7 +48,17 @@ const planColors = {
 
 export function Header() {
   const { user, signOut, isSigningOut } = useAuth();
-  const { currentPlan, planDetails, subscriptionStatus, updateUserPlan, canUpgradeTo, loading } = useSubscription();
+  const { currentPlan, planDetails, subscriptionStatus, canUpgradeTo } = useSubscription();
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('HomeAsHeader: Subscription context values:', {
+      currentPlan,
+      planDetails,
+      subscriptionStatus,
+      isActive: subscriptionStatus.isActive
+    });
+  }, [currentPlan, planDetails, subscriptionStatus]);
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
   const [userDisplayName, setUserDisplayName] = useState<string>('');
 
@@ -88,6 +98,23 @@ export function Header() {
     };
   }, [user]);
 
+  // Listen for subscription updates
+  useEffect(() => {
+    const handleSubscriptionUpdate = (event: CustomEvent) => {
+      // Refresh the component when subscription is updated
+      // Instead of full page reload, just force a re-render
+      window.dispatchEvent(new Event('storage'));
+    };
+
+    window.addEventListener('subscription-purchased', handleSubscriptionUpdate as EventListener);
+    window.addEventListener('subscription-updated', handleSubscriptionUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('subscription-purchased', handleSubscriptionUpdate as EventListener);
+      window.removeEventListener('subscription-updated', handleSubscriptionUpdate as EventListener);
+    };
+  }, []);
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
@@ -113,8 +140,6 @@ export function Header() {
                   <Calendar className="h-4 w-4" />
                   <span className="hidden md:inline text-sm">Dashboard</span>
                 </Link>
-
-
 
                 {/* User Menu */}
                 <DropdownMenu>

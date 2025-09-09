@@ -35,7 +35,7 @@ import {
   Headphones
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useSubscription, type SubscriptionPlan } from "@/contexts/SubscriptionContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -136,42 +136,42 @@ export default function AccountPage() {
     }
   };
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/signin");
-      return;
+  // Map the current plan to a valid plan type for the UserProfile
+  const getValidPlanType = (plan: SubscriptionPlan): 'STARTER' | 'PLUS' | 'PRO' => {
+    switch (plan) {
+      case 'STARTER':
+        return 'STARTER';
+      case 'PLUS':
+        return 'PLUS';
+      case 'PRO':
+      case 'PROFESSIONAL':
+        return 'PRO';
+      case 'FREE':
+      default:
+        return 'STARTER';
     }
+  };
 
-    if (user) {
-      // Fetch actual user profile from API with timeout
+  useEffect(() => {
+    if (user && !loading) {
       const fetchProfile = async () => {
         try {
-          // Create abort controller for timeout
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-          
-          const response = await fetch('/api/user/profile', {
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
+          const response = await fetch('/api/user/profile');
           
           if (response.ok) {
             const profileData = await response.json();
             
-            // Check if user is superadmin
-            const isSupeadmin = user.email === "arunexprasad@gmail.com";
-            
+            // Create complete profile object
             const profile: UserProfile = {
               id: profileData.id,
               email: profileData.email,
               name: profileData.name,
-              displayName: profileData.displayName,
+              displayName: profileData.displayName || "",
               createdAt: profileData.createdAt,
-              isSupeadmin,
+              isSupeadmin: profileData.email === "arunexprasad@gmail.com",
               subscription: {
-                planType: "STARTER",
-                status: "ACTIVE",
+                planType: getValidPlanType(currentPlan), // Use the mapped plan type
+                status: subscriptionStatus.isActive ? "ACTIVE" : "CANCELED",
                 currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 cancelAtPeriodEnd: false
               },
@@ -204,8 +204,8 @@ export default function AccountPage() {
               createdAt: new Date().toISOString(),
               isSupeadmin: user.email === "arunexprasad@gmail.com",
               subscription: {
-                planType: "STARTER",
-                status: "ACTIVE",
+                planType: getValidPlanType(currentPlan), // Use the mapped plan type
+                status: subscriptionStatus.isActive ? "ACTIVE" : "CANCELED",
                 currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 cancelAtPeriodEnd: false
               },
@@ -233,8 +233,8 @@ export default function AccountPage() {
             createdAt: new Date().toISOString(),
             isSupeadmin: user.email === "arunexprasad@gmail.com",
             subscription: {
-              planType: "STARTER",
-              status: "ACTIVE",
+              planType: getValidPlanType(currentPlan), // Use the mapped plan type
+              status: subscriptionStatus.isActive ? "ACTIVE" : "CANCELED",
               currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
               cancelAtPeriodEnd: false
             },
@@ -255,7 +255,7 @@ export default function AccountPage() {
 
       fetchProfile();
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, currentPlan, subscriptionStatus]);
 
   const handleSaveProfile = async () => {
     // Clear previous states

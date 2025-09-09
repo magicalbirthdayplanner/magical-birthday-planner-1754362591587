@@ -126,6 +126,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.removeItem('partyBudget')
             localStorage.removeItem('partyShoppingList')
             localStorage.removeItem('demoPartyData')
+            // Clear subscription-related localStorage items
+            localStorage.removeItem('hasPurchasedPlan')
+            localStorage.removeItem('userSubscriptionPlan')
+            localStorage.removeItem('userPlanPurchased')
+            localStorage.removeItem('hasValidSubscription')
+            localStorage.removeItem('subscriptionPurchaseDate')
           } catch (error) {
             console.warn('Failed to clear localStorage on signup:', error)
           }
@@ -167,6 +173,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.removeItem('partyBudget')
             localStorage.removeItem('partyShoppingList')
             localStorage.removeItem('demoPartyData')
+            // Clear subscription-related localStorage items
+            localStorage.removeItem('hasPurchasedPlan')
+            localStorage.removeItem('userSubscriptionPlan')
+            localStorage.removeItem('userPlanPurchased')
+            localStorage.removeItem('hasValidSubscription')
+            localStorage.removeItem('subscriptionPurchaseDate')
           } catch (error) {
             console.warn('Failed to clear localStorage on signin:', error)
           }
@@ -236,6 +248,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem('partyInvitations_timestamp')
           localStorage.removeItem('partyBudget')
           localStorage.removeItem('partyShoppingList')
+          // Clear subscription-related localStorage items
+          localStorage.removeItem('hasPurchasedPlan')
+          localStorage.removeItem('userSubscriptionPlan')
+          localStorage.removeItem('userPlanPurchased')
+          localStorage.removeItem('hasValidSubscription')
+          localStorage.removeItem('subscriptionPurchaseDate')
           // Clear any auth-related localStorage
           Object.keys(localStorage).forEach(key => {
             if (key.startsWith('supabase.auth.')) {
