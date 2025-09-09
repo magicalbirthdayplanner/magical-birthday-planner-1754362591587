@@ -1,0 +1,26 @@
+{
+  "id": "prt_92731c0f7001ZddBLdeR3I1TAY",
+  "messageID": "msg_92730828f001O1gKUMPsoEnE4x",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01DrWxzhJRWFKNbM5agUvU6W",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "oldString": "                          <div className=\"flex items-center justify-between\">\n                            <span className=\"text-sm text-gray-600 dark:text-gray-400\">Location</span>\n                            <span className=\"font-medium\">\n                              {partyData?.venue && typeof partyData.venue === 'object' && 'name' in partyData.venue \n                                ? partyData.venue.name \n                                : partyData?.zipCode || 'Not specified'}\n                            </span>\n                          </div>\n                          {!partyData?.venue && partyData?.zipCode && (\n                            <div className=\"flex items-center justify-between\">\n                              <span className=\"text-sm text-gray-600 dark:text-gray-400\">ZIP Code</span>\n                              <span className=\"font-medium\">{partyData.zipCode}</span>\n                            </div>\n                          )}",
+      "newString": "                          <div className=\"flex items-center justify-between\">\n                            <span className=\"text-sm text-gray-600 dark:text-gray-400\">Location</span>\n                            <span className=\"font-medium\">\n                              {partyData?.venue && typeof partyData.venue === 'object' && 'name' in partyData.venue \n                                ? partyData.venue.name \n                                : partyData?.zipCode || 'Not specified'}\n                            </span>\n                          </div>"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/party-plan/page.tsx\n===================================================================\n--- /home/user/project/app/party-plan/page.tsx\n+++ /home/user/project/app/party-plan/page.tsx\n@@ -2111,14 +2111,8 @@\n       ? partyData.venue.name \n       : partyData?.zipCode || 'Not specified'}\n   </span>\n </div>\n-{!partyData?.venue && partyData?.zipCode && (\n-  <div className=\"flex items-center justify-between\">\n-    <span className=\"text-sm text-gray-600 dark:text-gray-400\">ZIP Code</span>\n-    <span className=\"font-medium\">{partyData.zipCode}</span>\n-  </div>\n-)}\n {partyData?.venue && typeof partyData.venue === 'object' && 'name' in partyData.venue && (\n   <>\n     {partyData.venue.address && (\n       <div className=\"flex items-center justify-between\">\n"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757299199385,
+      "end": 1757299199403
+    }
+  }
+}

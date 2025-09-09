@@ -1,0 +1,24 @@
+{
+  "id": "prt_92730ada20014lm2asB6OCpLTX",
+  "messageID": "msg_92730828f001O1gKUMPsoEnE4x",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "glob",
+  "callID": "toolu_011QTqxDWfPnXEHAQSoNzmLz",
+  "state": {
+    "status": "completed",
+    "input": {
+      "pattern": "**/dashboard/**"
+    },
+    "output": "/home/user/project/components/dashboard/PartyCard.tsx\n/home/user/project/components/dashboard/Dashboard.tsx\n/home/user/project/app/dashboard/page.tsx",
+    "metadata": {
+      "count": 3,
+      "truncated": false
+    },
+    "title": "",
+    "time": {
+      "start": 1757299125718,
+      "end": 1757299125731
+    }
+  }
+}

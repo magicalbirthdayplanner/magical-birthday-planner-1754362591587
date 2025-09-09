@@ -1,0 +1,7 @@
+{
+  "id": "prt_927307f72001YsfitZS7DZL2AU",
+  "type": "text",
+  "text": "In the party management, under the overview tab, the location is showing as not specified. It should be the zip code that was entered in the wizard. All parties have a unique zip code and it is a mandatoy field in the wizard. So in the overview section it should show the right zip code. This will help in suggesting accurate local listing ",
+  "messageID": "msg_927307f71001kQL5kl73KT8AsY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B"
+}

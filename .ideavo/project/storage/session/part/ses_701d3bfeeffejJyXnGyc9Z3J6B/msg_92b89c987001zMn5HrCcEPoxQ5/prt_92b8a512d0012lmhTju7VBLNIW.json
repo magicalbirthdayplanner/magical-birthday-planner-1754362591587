@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b8a512d0012lmhTju7VBLNIW",
+  "messageID": "msg_92b89c987001zMn5HrCcEPoxQ5",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01UHN6QuqmKjgpXnQzTcJiFk",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "git show --name-only 4f0e52b | head -20",
+      "description": "Check the guest enhancement commit"
+    },
+    "output": "commit 4f0e52bbb33a57468e82ce1b74532214d4d91e3f\nAuthor: magicalbirthdayplanner <magicalbirthdayplanner@gmail.com>\nDate:   Mon Sep 1 22:43:29 2025 -0400\n\n    Enhanced guest management system with adult/kid breakdown, fixed guest type constraints, and improved theme selection UI\n\nGUEST-CONSTRAINT-FIX-SUMMARY.md\nGUEST-REDESIGN-SUMMARY.md\napp/api/guests/route.ts\napp/create-party/page.tsx\napp/party-plan/page.tsx\ncomponents/ModernGuestRSVP.tsx\ncomponents/ThemeSelectionSplash.tsx\ncomponents/ThemesTab.tsx\ndatabase/fix-guest-type-constraint.sql\n",
+    "metadata": {
+      "output": "commit 4f0e52bbb33a57468e82ce1b74532214d4d91e3f\nAuthor: magicalbirthdayplanner <magicalbirthdayplanner@gmail.com>\nDate:   Mon Sep 1 22:43:29 2025 -0400\n\n    Enhanced guest management system with adult/kid breakdown, fixed guest type constraints, and improved theme selection UI\n\nGUEST-CONSTRAINT-FIX-SUMMARY.md\nGUEST-REDESIGN-SUMMARY.md\napp/api/guests/route.ts\napp/create-party/page.tsx\napp/party-plan/page.tsx\ncomponents/ModernGuestRSVP.tsx\ncomponents/ThemeSelectionSplash.tsx\ncomponents/ThemesTab.tsx\ndatabase/fix-guest-type-constraint.sql\n",
+      "exit": 0,
+      "description": "Check the guest enhancement commit"
+    },
+    "title": "git show --name-only 4f0e52b | head -20",
+    "time": {
+      "start": 1757372109881,
+      "end": 1757372109887
+    }
+  }
+}

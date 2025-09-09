@@ -1,0 +1,11 @@
+{
+  "id": "prt_92749c69c0011N6TqKecsRg2r3",
+  "messageID": "msg_92746f010001x1uR1aVxND1gH0",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "Now I need to make sure the database schema is set up. Let me run the venues schema SQL:",
+  "time": {
+    "start": 1757300771058,
+    "end": 1757300771058
+  }
+}

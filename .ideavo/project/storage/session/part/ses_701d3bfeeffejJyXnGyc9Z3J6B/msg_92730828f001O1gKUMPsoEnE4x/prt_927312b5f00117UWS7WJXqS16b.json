@@ -1,0 +1,25 @@
+{
+  "id": "prt_927312b5f00117UWS7WJXqS16b",
+  "messageID": "msg_92730828f001O1gKUMPsoEnE4x",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01L5tZvVKtSZiUFnJCkMqQJd",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "offset": 930,
+      "limit": 50
+    },
+    "output": "<file>\n00931|               childName: result.party.child_name,\n00932|               childAge: result.party.child_age,\n00933|               partyDate: result.party.party_date,\n00934|               theme: result.party.theme,\n00935|               interests: result.party.interests || [],\n00936|               favoriteColors: result.party.favorite_colors || [],\n00937|               budget: result.party.budget,\n00938|               zipCode: result.party.zip_code,\n00939|               guestCount: result.party.guest_count,\n00940|               venue: result.party.venue_type,\n00941|               duration: result.party.duration,\n00942|               guests: result.party.guests || [],\n00943|               invitations: result.party.invitations || [],\n00944|               checklistData: result.party.checklist_data,\n00945|             };\n00946|             \n00947|             console.log('Party loaded successfully via API:', { partyId: party.id, childName: party.childName });\n00948|             loadPartyDetails(party);\n00949|             \n00950|           } catch (apiError) {\n00951|             console.error('Error loading party via API:', apiError);\n00952|             setError('Network error: Failed to connect to the server. Please check your internet connection.');\n00953|             setLoading(false);\n00954|             return;\n00955|           }\n00956|         }\n00957|       } catch (error) {\n00958|         console.error('Error loading party data:', error);\n00959|         setError(error instanceof Error ? error.message : 'Failed to load party data');\n00960|       } finally {\n00961|         setLoading(false);\n00962|       }\n00963|     };\n00964| \n00965|     const loadPartyDetails = (party: any) => {\n00966|       // CRITICAL: Set the current party ID for all subsequent operations\n00967|       setCurrentPartyId(party.id);\n00968|       \n00969|       // Check if this is a newly created party (coming from wizard)\n00970|       const checkForNewPartyConfetti = () => {\n00971|         try {\n00972|           console.log('🔍 DEBUG: Checking for new party confetti triggers...');\n00973|           \n00974|           // Check if we're coming from the create party wizard\n00975|           const urlParams = new URLSearchParams(window.location.search);\n00976|           const fromCreate = urlParams.get('created') === 'true';\n00977|           const partyId = urlParams.get('id');\n00978|           \n00979|           console.log('🔍 DEBUG: URL parameters:', { fromCreate, partyId, currentPartyId: party.id });\n00980|           \n\n(File has more lines. Use 'offset' parameter to read beyond line 980)\n</file>",
+    "metadata": {
+      "preview": "              childName: result.party.child_name,\n              childAge: result.party.child_age,\n              partyDate: result.party.party_date,\n              theme: result.party.theme,\n              interests: result.party.interests || [],\n              favoriteColors: result.party.favorite_colors || [],\n              budget: result.party.budget,\n              zipCode: result.party.zip_code,\n              guestCount: result.party.guest_count,\n              venue: result.party.venue_type,\n              duration: result.party.duration,\n              guests: result.party.guests || [],\n              invitations: result.party.invitations || [],\n              checklistData: result.party.checklist_data,\n            };\n            \n            console.log('Party loaded successfully via API:', { partyId: party.id, childName: party.childName });\n            loadPartyDetails(party);\n            \n          } catch (apiError) {"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757299160770,
+      "end": 1757299160775
+    }
+  }
+}

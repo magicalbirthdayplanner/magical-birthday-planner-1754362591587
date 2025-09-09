@@ -1,0 +1,23 @@
+{
+  "id": "prt_92b8a24b4001GgbpP35d256RZx",
+  "messageID": "msg_92b89c987001zMn5HrCcEPoxQ5",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01XEKw722vXsJUJfw969tsEp",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/database/fix-guest-type-constraint.sql"
+    },
+    "output": "<file>\n00001| -- =====================================================\n00002| -- GUEST TYPE CONSTRAINT FIX\n00003| -- =====================================================\n00004| -- This script fixes the guest type constraint to match frontend expectations\n00005| -- Frontend uses: 'ADULT', 'CHILD', 'FAMILY', 'COUPLE'\n00006| -- Database currently expects: 'GUEST', 'HELPER', 'HOST'\n00007| \n00008| -- Step 1: Drop the existing constraint\n00009| DO $$ \n00010| BEGIN\n00011|     -- Check if the constraint exists and drop it\n00012|     IF EXISTS (\n00013|         SELECT 1 FROM information_schema.check_constraints \n00014|         WHERE constraint_name = 'guests_type_check'\n00015|         AND table_name = 'guests'\n00016|     ) THEN\n00017|         ALTER TABLE public.guests DROP CONSTRAINT guests_type_check;\n00018|         RAISE NOTICE 'Dropped existing guests_type_check constraint';\n00019|     END IF;\n00020| END $$;\n00021| \n00022| -- Step 2: Add the new constraint with correct values\n00023| ALTER TABLE public.guests \n00024| ADD CONSTRAINT guests_type_check \n00025| CHECK (type IN ('ADULT', 'CHILD', 'FAMILY', 'COUPLE'));\n00026| \n00027| -- Step 3: Update the default value to match frontend expectations\n00028| ALTER TABLE public.guests \n00029| ALTER COLUMN type SET DEFAULT 'ADULT';\n00030| \n00031| -- Step 4: Update any existing data (if any) to use the new format\n00032| -- This is safe because we're mapping from old system to new system\n00033| UPDATE public.guests \n00034| SET type = CASE \n00035|     WHEN type = 'GUEST' THEN 'ADULT'\n00036|     WHEN type = 'HELPER' THEN 'ADULT'\n00037|     WHEN type = 'HOST' THEN 'ADULT'\n00038|     ELSE 'ADULT'\n00039| END\n00040| WHERE type IN ('GUEST', 'HELPER', 'HOST');\n00041| \n00042| -- Step 5: Verify the change\n00043| SELECT \n00044|     column_name,\n00045|     data_type,\n00046|     column_default,\n00047|     is_nullable\n00048| FROM information_schema.columns \n00049| WHERE table_name = 'guests' \n00050| AND column_name = 'type';\n00051| \n00052| -- Step 6: Test the constraint by attempting a valid insert (this should work)\n00053| -- Note: This is just a test - the actual insert will be done by the application\n00054| DO $$\n00055| BEGIN\n00056|     RAISE NOTICE 'Guest type constraint updated successfully!';\n00057|     RAISE NOTICE 'Valid types are now: ADULT, CHILD, FAMILY, COUPLE';\n00058|     RAISE NOTICE 'Default type is now: ADULT';\n00059| END $$;\n</file>",
+    "metadata": {
+      "preview": "-- =====================================================\n-- GUEST TYPE CONSTRAINT FIX\n-- =====================================================\n-- This script fixes the guest type constraint to match frontend expectations\n-- Frontend uses: 'ADULT', 'CHILD', 'FAMILY', 'COUPLE'\n-- Database currently expects: 'GUEST', 'HELPER', 'HOST'\n\n-- Step 1: Drop the existing constraint\nDO $$ \nBEGIN\n    -- Check if the constraint exists and drop it\n    IF EXISTS (\n        SELECT 1 FROM information_schema.check_constraints \n        WHERE constraint_name = 'guests_type_check'\n        AND table_name = 'guests'\n    ) THEN\n        ALTER TABLE public.guests DROP CONSTRAINT guests_type_check;\n        RAISE NOTICE 'Dropped existing guests_type_check constraint';\n    END IF;\nEND $$;"
+    },
+    "title": "database/fix-guest-type-constraint.sql",
+    "time": {
+      "start": 1757372098087,
+      "end": 1757372098088
+    }
+  }
+}

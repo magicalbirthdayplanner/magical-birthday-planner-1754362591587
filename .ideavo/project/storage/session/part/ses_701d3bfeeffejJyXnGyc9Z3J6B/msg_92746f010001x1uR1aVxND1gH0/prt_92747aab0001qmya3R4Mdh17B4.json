@@ -1,0 +1,26 @@
+{
+  "id": "prt_92747aab0001qmya3R4Mdh17B4",
+  "messageID": "msg_92746f010001x1uR1aVxND1gH0",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01NjWhdYBgp7GtaFrFL5YzAi",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/lib/google-places.ts",
+      "oldString": "const GOOGLE_PLACES_API_KEY = 'AIzaSyDWCLa9aKpRHX5y7LTc9rvQXTzJefjaCZw';",
+      "newString": "const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyDWCLa9aKpRHX5y7LTc9rvQXTzJefjaCZw';"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/lib/google-places.ts\n===================================================================\n--- /home/user/project/lib/google-places.ts\n+++ /home/user/project/lib/google-places.ts\n@@ -1,8 +1,8 @@\n // Google Places API integration with caching\n import { createClient } from '@supabase/supabase-js';\n \n-const GOOGLE_PLACES_API_KEY = 'AIzaSyDWCLa9aKpRHX5y7LTc9rvQXTzJefjaCZw';\n+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyDWCLa9aKpRHX5y7LTc9rvQXTzJefjaCZw';\n const GOOGLE_PLACES_BASE_URL = 'https://maps.googleapis.com/maps/api/place';\n \n // Initialize Supabase client with service role for database operations\n const supabase = createClient(\n"
+    },
+    "title": "lib/google-places.ts",
+    "time": {
+      "start": 1757300634373,
+      "end": 1757300634380
+    }
+  }
+}

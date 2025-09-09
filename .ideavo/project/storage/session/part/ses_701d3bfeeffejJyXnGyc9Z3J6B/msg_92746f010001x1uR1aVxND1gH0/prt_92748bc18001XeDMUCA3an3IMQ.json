@@ -1,0 +1,25 @@
+{
+  "id": "prt_92748bc18001XeDMUCA3an3IMQ",
+  "messageID": "msg_92746f010001x1uR1aVxND1gH0",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01UJNuSjqTzss1MvFCTsfXPW",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "offset": 230,
+      "limit": 50
+    },
+    "output": "<file>\n00231|   const handleVenueTypeSelect = async (type: 'home' | 'indoor' | 'outdoor' | 'specialty') => {\n00232|     setSelectedVenueType(type);\n00233|     \n00234|     if (type === 'home') {\n00235|       return; // Show home venue options\n00236|     }\n00237|     \n00238|     // Fetch venues for other types using the new local venues API\n00239|     setVenueLoading(true);\n00240|     try {\n00241|       const response = await fetch(`/api/venues-local?zip=${partyData?.zipCode || '48226'}&category=${type}&radius=15`);\n00242|       if (!response.ok) throw new Error('Failed to fetch venues');\n00243|       \n00244|       const data = await response.json();\n00245|       setVenues(data);\n00246|       console.log(`Found ${data.length} local venues for ${type} near ${partyData?.zipCode}`);\n00247|     } catch (err) {\n00248|       console.error('Error fetching venues:', err);\n00249|     } finally {\n00250|       setVenueLoading(false);\n00251|     }\n00252|   };\n00253| \n00254|   const handleVenueSearch = async () => {\n00255|     if (!selectedVenueType || selectedVenueType === 'home') return;\n00256|     \n00257|     setVenueLoading(true);\n00258|     try {\n00259|       const params = new URLSearchParams({\n00260|         zip: partyData?.zipCode || '48226',\n00261|         category: selectedVenueType,\n00262|         sortBy: venueSortBy,\n00263|         minRating: venueMinRating.toString(),\n00264|         maxDistance: '50'\n00265|       });\n00266|       \n00267|       if (venueSearchQuery.trim()) {\n00268|         params.append('search', venueSearchQuery.trim());\n00269|       }\n00270|       \n00271|       const response = await fetch(`/api/venues-local?${params}`);\n00272|       if (response.ok) {\n00273|         const data = await response.json();\n00274|         setVenues(data);\n00275|         console.log(`Search found ${data.length} local venues`);\n00276|       } else {\n00277|         console.error('Failed to search venues');\n00278|       }\n00279|     } catch (error) {\n00280|       console.error('Error searching venues:', error);\n\n(File has more lines. Use 'offset' parameter to read beyond line 280)\n</file>",
+    "metadata": {
+      "preview": "  const handleVenueTypeSelect = async (type: 'home' | 'indoor' | 'outdoor' | 'specialty') => {\n    setSelectedVenueType(type);\n    \n    if (type === 'home') {\n      return; // Show home venue options\n    }\n    \n    // Fetch venues for other types using the new local venues API\n    setVenueLoading(true);\n    try {\n      const response = await fetch(`/api/venues-local?zip=${partyData?.zipCode || '48226'}&category=${type}&radius=15`);\n      if (!response.ok) throw new Error('Failed to fetch venues');\n      \n      const data = await response.json();\n      setVenues(data);\n      console.log(`Found ${data.length} local venues for ${type} near ${partyData?.zipCode}`);\n    } catch (err) {\n      console.error('Error fetching venues:', err);\n    } finally {\n      setVenueLoading(false);"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757300702866,
+      "end": 1757300702868
+    }
+  }
+}

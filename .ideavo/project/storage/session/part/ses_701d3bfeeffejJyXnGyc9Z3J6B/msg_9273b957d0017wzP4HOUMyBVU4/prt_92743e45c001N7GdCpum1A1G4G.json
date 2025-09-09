@@ -1,0 +1,26 @@
+{
+  "id": "prt_92743e45c001N7GdCpum1A1G4G",
+  "messageID": "msg_9273b957d0017wzP4HOUMyBVU4",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01GdU1dN6CKWDkDZaTAUitir",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "oldString": "  const handleVenueSelect = async (venue: VenueData) => {\n    setSelectedVenue(venue);\n    console.log('Venue selected:', venue);\n    \n    // Automatically add venue to party data\n    if (partyData) {\n      const updatedPartyData: PartyData = {\n        ...partyData,\n        venue: venue\n      };\n      \n      setPartyData(updatedPartyData);\n      console.log('Venue automatically added to party:', venue.name);\n    }\n  };",
+      "newString": "  const handleVenueSelect = async (venue: VenueData) => {\n    setSelectedVenue(venue);\n    console.log('Venue selected:', venue);\n    \n    // Save venue selection to database\n    if (currentPartyId && currentUser) {\n      try {\n        const response = await fetch('/api/party-venue', {\n          method: 'POST',\n          headers: { 'Content-Type': 'application/json' },\n          body: JSON.stringify({\n            partyId: currentPartyId,\n            userId: currentUser.id,\n            venue,\n            isCustom: false\n          })\n        });\n\n        if (response.ok) {\n          console.log('Venue selection saved to database');\n        } else {\n          console.error('Failed to save venue selection');\n        }\n      } catch (error) {\n        console.error('Error saving venue selection:', error);\n      }\n    }\n    \n    // Update local party data\n    if (partyData) {\n      const updatedPartyData: PartyData = {\n        ...partyData,\n        venue: venue\n      };\n      \n      setPartyData(updatedPartyData);\n      console.log('Venue automatically added to party:', venue.name);\n    }\n  };"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/party-plan/page.tsx\n===================================================================\n--- /home/user/project/app/party-plan/page.tsx\n+++ /home/user/project/app/party-plan/page.tsx\n@@ -286,9 +286,33 @@\n const handleVenueSelect = async (venue: VenueData) => {\n   setSelectedVenue(venue);\n   console.log('Venue selected:', venue);\n   \n-  // Automatically add venue to party data\n+  // Save venue selection to database\n+  if (currentPartyId && currentUser) {\n+    try {\n+      const response = await fetch('/api/party-venue', {\n+        method: 'POST',\n+        headers: { 'Content-Type': 'application/json' },\n+        body: JSON.stringify({\n+          partyId: currentPartyId,\n+          userId: currentUser.id,\n+          venue,\n+          isCustom: false\n+        })\n+      });\n+\n+      if (response.ok) {\n+        console.log('Venue selection saved to database');\n+      } else {\n+        console.error('Failed to save venue selection');\n+      }\n+    } catch (error) {\n+      console.error('Error saving venue selection:', error);\n+    }\n+  }\n+  \n+  // Update local party data\n   if (partyData) {\n     const updatedPartyData: PartyData = {\n       ...partyData,\n       venue: venue\n"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757300389358,
+      "end": 1757300389375
+    }
+  }
+}

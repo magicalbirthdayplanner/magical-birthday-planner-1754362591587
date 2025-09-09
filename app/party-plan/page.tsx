@@ -235,17 +235,25 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
       return; // Show home venue options
     }
     
-    // Fetch venues for other types using the new local venues API
+    // Fetch venues using Google Places API
     setVenueLoading(true);
     try {
-      const response = await fetch(`/api/venues-local?zip=${partyData?.zipCode || '48226'}&category=${type}&radius=15`);
+      const params = new URLSearchParams({
+        zipCode: partyData?.zipCode || '48226',
+        category: type,
+        radius: '20',
+        sortBy: 'distance'
+      });
+      
+      const response = await fetch(`/api/venues-search?${params}`);
       if (!response.ok) throw new Error('Failed to fetch venues');
       
       const data = await response.json();
-      setVenues(data);
-      console.log(`Found ${data.length} local venues for ${type} near ${partyData?.zipCode}`);
+      setVenues(data.venues || []);
+      console.log(`Found ${data.venues?.length || 0} venues for ${type} near ${partyData?.zipCode}`);
     } catch (err) {
       console.error('Error fetching venues:', err);
+      setVenues([]);
     } finally {
       setVenueLoading(false);
     }
@@ -257,27 +265,29 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
     setVenueLoading(true);
     try {
       const params = new URLSearchParams({
-        zip: partyData?.zipCode || '48226',
+        zipCode: partyData?.zipCode || '48226',
         category: selectedVenueType,
+        radius: '20',
         sortBy: venueSortBy,
-        minRating: venueMinRating.toString(),
-        maxDistance: '50'
+        minRating: venueMinRating.toString()
       });
       
       if (venueSearchQuery.trim()) {
         params.append('search', venueSearchQuery.trim());
       }
       
-      const response = await fetch(`/api/venues-local?${params}`);
+      const response = await fetch(`/api/venues-search?${params}`);
       if (response.ok) {
         const data = await response.json();
-        setVenues(data);
-        console.log(`Search found ${data.length} local venues`);
+        setVenues(data.venues || []);
+        console.log(`Search found ${data.venues?.length || 0} venues`);
       } else {
         console.error('Failed to search venues');
+        setVenues([]);
       }
     } catch (error) {
       console.error('Error searching venues:', error);
+      setVenues([]);
     } finally {
       setVenueLoading(false);
     }
@@ -287,7 +297,34 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
     setSelectedVenue(venue);
     console.log('Venue selected:', venue);
     
-    // Automatically add venue to party data
+    // Save venue selection to database
+    if (currentPartyId && user?.id) {
+      try {
+        const response = await fetch('/api/party-venue', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            partyId: currentPartyId,
+            userId: user.id,
+            venue: venue,
+            isCustom: false
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save venue selection');
+        }
+
+        const result = await response.json();
+        console.log('Venue saved to database:', result);
+      } catch (error) {
+        console.error('Error saving venue:', error);
+      }
+    }
+    
+    // Update local party data
     if (partyData) {
       const updatedPartyData: PartyData = {
         ...partyData,
@@ -305,7 +342,7 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
     
     const venueData: VenueData = {
       name: 'Home Venue',
-      address: 'Your Home',
+      address: `Your Home - ${selectedHomeSize} party`,
       rating: 5,
       distance: '0 miles',
       type: 'home',
@@ -316,7 +353,34 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
     setSelectedVenue(venueData);
     console.log('Home venue selected:', venueData);
     
-    // Automatically add home venue to party data
+    // Save home venue selection to database
+    if (currentPartyId && user?.id) {
+      try {
+        const response = await fetch('/api/party-venue', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            partyId: currentPartyId,
+            userId: user.id,
+            venue: venueData,
+            isCustom: true
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save home venue selection');
+        }
+
+        const result = await response.json();
+        console.log('Home venue saved to database:', result);
+      } catch (error) {
+        console.error('Error saving home venue:', error);
+      }
+    }
+    
+    // Update local party data
     if (partyData) {
       const updatedPartyData: PartyData = {
         ...partyData,
@@ -1113,7 +1177,7 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
         interests: party.interests || [],
         favoriteColors: party.favoriteColors || [],
         budget: party.budget || undefined,
-        zipCode: party.location || undefined,
+        zipCode: party.location || party.zipCode || undefined,
         guestCount: party.guestCount || undefined,
         venue: party.venue || 'mixed',
         duration: party.duration || '2-3 hours',
