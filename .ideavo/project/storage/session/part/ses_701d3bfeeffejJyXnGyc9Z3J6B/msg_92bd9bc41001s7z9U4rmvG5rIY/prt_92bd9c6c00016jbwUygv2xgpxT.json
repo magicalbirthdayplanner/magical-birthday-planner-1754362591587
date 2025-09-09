@@ -1,0 +1,11 @@
+{
+  "id": "prt_92bd9c6c00016jbwUygv2xgpxT",
+  "messageID": "msg_92bd9bc41001s7z9U4rmvG5rIY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "I can see there are module resolution errors in your Vercel deployment. The main issues are:\n\n1. **Missing module**: `@/components/ui/toast` \n2. **Import errors** in multiple files\n\nLet me check what's happening with the toast module and fix these import issues:",
+  "time": {
+    "start": 1757377318849,
+    "end": 1757377318849
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "prt_92bdc73da0014Zy3DStNbv7xuZ",
+  "messageID": "msg_92bd9bc41001s7z9U4rmvG5rIY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "grep",
+  "callID": "toolu_01433CMVBLm84snT8LByzxkd",
+  "state": {
+    "status": "completed",
+    "input": {
+      "pattern": "const.*=.*useSubscription|const.*planDetails",
+      "include": "app/account/page.tsx"
+    },
+    "output": "Found 4 matches\n/home/user/project/app/account/page.tsx:\n  Line 64: const planDetails = {\n  Line 101:   const { currentPlan, subscriptionStatus, canUpgradeTo } = useSubscription();\n  Line 368:   const currentPlanDetails = planDetails[currentPlan];\n  Line 604:                       const plan = planDetails[planKey];",
+    "metadata": {
+      "matches": 4,
+      "truncated": false
+    },
+    "title": "const.*=.*useSubscription|const.*planDetails",
+    "time": {
+      "start": 1757377492687,
+      "end": 1757377492697
+    }
+  }
+}

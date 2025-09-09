@@ -31,7 +31,8 @@ import {
   CheckCircle,
   AlertCircle,
   Key,
-  Trash2
+  Trash2,
+  Headphones
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -646,7 +647,7 @@ export default function AccountPage() {
                   {/* Support Information */}
                   <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <HeadphonesIcon className="h-4 w-4 text-blue-600" />
+                      <Headphones className="h-4 w-4 text-blue-600" />
                       <h4 className="font-medium text-gray-900 dark:text-gray-100">Need Help Choosing?</h4>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -737,7 +738,7 @@ export default function AccountPage() {
                         <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                           <div className="text-center">
                             <div className="text-xl font-bold text-pink-600 dark:text-pink-400">
-                              {currentPlan.name}
+                              {currentPlanDetails.name}
                             </div>
                             <div className="text-xs text-gray-600 dark:text-gray-300">Current Plan</div>
                           </div>

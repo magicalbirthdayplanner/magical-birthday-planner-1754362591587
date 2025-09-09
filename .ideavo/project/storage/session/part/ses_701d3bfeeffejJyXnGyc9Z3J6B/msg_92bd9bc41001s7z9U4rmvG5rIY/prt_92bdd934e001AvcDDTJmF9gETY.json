@@ -1,0 +1,25 @@
+{
+  "id": "prt_92bdd934e001AvcDDTJmF9gETY",
+  "messageID": "msg_92bd9bc41001s7z9U4rmvG5rIY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01K8P46g3B47jjyqFxiu2L7s",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "offset": 15,
+      "limit": 15
+    },
+    "output": "<file>\n00016| \n00017| export interface SubscriptionStatus {\n00018|   isActive: boolean;\n00019|   planType: SubscriptionPlan;\n00020|   purchaseDate?: string;\n00021|   canUpgrade: boolean;\n00022|   canDowngrade: boolean;\n00023|   nextUpgradePlan?: SubscriptionPlan;\n00024| }\n00025| \n00026| export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetails> = {\n00027|   FREE: {\n00028|     name: 'FREE',\n00029|     displayName: 'Free',\n00030|     description: 'Create parties with basic wizard access only.',\n\n(File has more lines. Use 'offset' parameter to read beyond line 30)\n</file>",
+    "metadata": {
+      "preview": "\nexport interface SubscriptionStatus {\n  isActive: boolean;\n  planType: SubscriptionPlan;\n  purchaseDate?: string;\n  canUpgrade: boolean;\n  canDowngrade: boolean;\n  nextUpgradePlan?: SubscriptionPlan;\n}\n\nexport const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetails> = {\n  FREE: {\n    name: 'FREE',\n    displayName: 'Free',\n    description: 'Create parties with basic wizard access only.',"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1757377566098,
+      "end": 1757377566100
+    }
+  }
+}

@@ -20,7 +20,7 @@ export interface SubscriptionStatus {
   purchaseDate?: string;
   canUpgrade: boolean;
   canDowngrade: boolean;
-  nextUpgradePlan?: SubscriptionPlan;
+  nextUpgradePlan?: SubscriptionPlan | null;
 }
 
 export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetails> = {

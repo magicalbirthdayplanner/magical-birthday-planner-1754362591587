@@ -1,0 +1,24 @@
+{
+  "id": "prt_92bd9ed2e001zlhAcJse6drlIv",
+  "messageID": "msg_92bd9bc41001s7z9U4rmvG5rIY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "grep",
+  "callID": "toolu_014rNqMvfUU8RTJJ6HwEBErJ",
+  "state": {
+    "status": "completed",
+    "input": {
+      "pattern": "from.*@/components/ui/toast"
+    },
+    "output": "Found 2 matches\n/home/user/project/components/ui/toaster.tsx:\n  Line 11: } from '@/components/ui/toast';\n\n/home/user/project/hooks/use-toast.ts:\n  Line 6: import type { ToastActionElement, ToastProps } from '@/components/ui/toast';",
+    "metadata": {
+      "matches": 2,
+      "truncated": false
+    },
+    "title": "from.*@/components/ui/toast",
+    "time": {
+      "start": 1757377326721,
+      "end": 1757377326732
+    }
+  }
+}

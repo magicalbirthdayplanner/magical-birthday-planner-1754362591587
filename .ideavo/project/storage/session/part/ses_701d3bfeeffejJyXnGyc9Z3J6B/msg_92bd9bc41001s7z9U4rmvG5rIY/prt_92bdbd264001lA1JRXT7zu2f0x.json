@@ -1,0 +1,26 @@
+{
+  "id": "prt_92bdbd264001lA1JRXT7zu2f0x",
+  "messageID": "msg_92bd9bc41001s7z9U4rmvG5rIY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01LGSqmBh3ZqQ81gx6QMpfn4",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/account/page.tsx",
+      "oldString": "  CheckCircle,\n  AlertCircle,\n  Key,\n  Trash2\n} from \"lucide-react\";",
+      "newString": "  CheckCircle,\n  AlertCircle,\n  Key,\n  Trash2,\n  Headphones\n} from \"lucide-react\";"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/account/page.tsx\n===================================================================\n--- /home/user/project/app/account/page.tsx\n+++ /home/user/project/app/account/page.tsx\n@@ -30,9 +30,10 @@\n   Loader2,\n   CheckCircle,\n   AlertCircle,\n   Key,\n-  Trash2\n+  Trash2,\n+  Headphones\n } from \"lucide-react\";\n import { useAuth } from \"@/contexts/AuthContext\";\n import { useSubscription } from \"@/contexts/SubscriptionContext\";\n import { useRouter } from \"next/navigation\";\n"
+    },
+    "title": "app/account/page.tsx",
+    "time": {
+      "start": 1757377451971,
+      "end": 1757377451978
+    }
+  }
+}

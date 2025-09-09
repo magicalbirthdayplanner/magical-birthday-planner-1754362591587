@@ -1,0 +1,25 @@
+{
+  "id": "prt_92bdc5f38001xg3akgBEReaa86",
+  "messageID": "msg_92bd9bc41001s7z9U4rmvG5rIY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_016MnXSUjT5YU9upYVhuG623",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/account/page.tsx",
+      "offset": 735,
+      "limit": 20
+    },
+    "output": "<file>\n00736|                         </div>\n00737|                         \n00738|                         <div className=\"bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700\">\n00739|                           <div className=\"text-center\">\n00740|                             <div className=\"text-xl font-bold text-pink-600 dark:text-pink-400\">\n00741|                               {currentPlan.name}\n00742|                             </div>\n00743|                             <div className=\"text-xs text-gray-600 dark:text-gray-300\">Current Plan</div>\n00744|                           </div>\n00745|                         </div>\n00746|                         \n00747|                         <div className=\"bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700\">\n00748|                           <div className=\"text-center\">\n00749|                             <div className=\"text-xl font-bold text-amber-600 dark:text-amber-400\">\n00750|                               {new Date(userProfile.createdAt).toLocaleDateString()}\n00751|                             </div>\n00752|                             <div className=\"text-xs text-gray-600 dark:text-gray-300\">Member Since</div>\n00753|                           </div>\n00754|                         </div>\n00755|                       </div>\n\n(File has more lines. Use 'offset' parameter to read beyond line 755)\n</file>",
+    "metadata": {
+      "preview": "                        </div>\n                        \n                        <div className=\"bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700\">\n                          <div className=\"text-center\">\n                            <div className=\"text-xl font-bold text-pink-600 dark:text-pink-400\">\n                              {currentPlan.name}\n                            </div>\n                            <div className=\"text-xs text-gray-600 dark:text-gray-300\">Current Plan</div>\n                          </div>\n                        </div>\n                        \n                        <div className=\"bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700\">\n                          <div className=\"text-center\">\n                            <div className=\"text-xl font-bold text-amber-600 dark:text-amber-400\">\n                              {new Date(userProfile.createdAt).toLocaleDateString()}\n                            </div>\n                            <div className=\"text-xs text-gray-600 dark:text-gray-300\">Member Since</div>\n                          </div>\n                        </div>\n                      </div>"
+    },
+    "title": "app/account/page.tsx",
+    "time": {
+      "start": 1757377487152,
+      "end": 1757377487153
+    }
+  }
+}
