@@ -1,0 +1,26 @@
+{
+  "id": "prt_92c9dcadb001lvby4pxxmid7l6",
+  "messageID": "msg_92c9d197c001iyIrsNeQ06Wv5Y",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01X5Qe77jaHW6qBPfYJfa2VD",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/middleware.ts",
+      "oldString": "import { NextResponse } from 'next/server'\nimport type { NextRequest } from 'next/server'\n\nexport async function middleware(request: NextRequest) {\n  // Skip middleware for the env-check page itself to avoid infinite redirects\n  if (request.nextUrl.pathname === '/env-check') {\n    return NextResponse.next()\n  }\n\n  // Skip middleware for API routes, static files, and Next.js internals\n  if (\n    request.nextUrl.pathname.startsWith('/api/') ||\n    request.nextUrl.pathname.startsWith('/_next/') ||\n    request.nextUrl.pathname.includes('.')\n  ) {\n    return NextResponse.next()\n  }\n\n  // Simple environment check without using process.env (Edge Runtime compatible)\n  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL\n  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY\n  \n  if (!supabaseUrl || !supabaseKey) {\n    console.warn('Missing Supabase environment variables')\n    return NextResponse.redirect(new URL('/env-check', request.url))\n  }\n\n  // Create simple response without Supabase client to avoid Edge Runtime issues\n  return NextResponse.next({\n    request: {\n      headers: request.headers,\n    },\n  })\n}",
+      "newString": "import { NextResponse } from 'next/server'\nimport type { NextRequest } from 'next/server'\n\nexport async function middleware(request: NextRequest) {\n  // Skip middleware for the env-check page itself to avoid infinite redirects\n  if (request.nextUrl.pathname === '/env-check') {\n    return NextResponse.next()\n  }\n\n  // Skip middleware for API routes, static files, and Next.js internals\n  if (\n    request.nextUrl.pathname.startsWith('/api/') ||\n    request.nextUrl.pathname.startsWith('/_next/') ||\n    request.nextUrl.pathname.includes('.')\n  ) {\n    return NextResponse.next()\n  }\n\n  // Simplified middleware - just pass through requests\n  // Environment validation will be handled in the pages themselves\n  return NextResponse.next()\n}"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/middleware.ts\n===================================================================\n--- /home/user/project/middleware.ts\n+++ /home/user/project/middleware.ts\n@@ -15,23 +15,11 @@\n   ) {\n     return NextResponse.next()\n   }\n \n-  // Simple environment check without using process.env (Edge Runtime compatible)\n-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL\n-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY\n-  \n-  if (!supabaseUrl || !supabaseKey) {\n-    console.warn('Missing Supabase environment variables')\n-    return NextResponse.redirect(new URL('/env-check', request.url))\n-  }\n-\n-  // Create simple response without Supabase client to avoid Edge Runtime issues\n-  return NextResponse.next({\n-    request: {\n-      headers: request.headers,\n-    },\n-  })\n+  // Simplified middleware - just pass through requests\n+  // Environment validation will be handled in the pages themselves\n+  return NextResponse.next()\n }\n \n export const config = {\n   matcher: [\n"
+    },
+    "title": "middleware.ts",
+    "time": {
+      "start": 1757390167918,
+      "end": 1757390167925
+    }
+  }
+}

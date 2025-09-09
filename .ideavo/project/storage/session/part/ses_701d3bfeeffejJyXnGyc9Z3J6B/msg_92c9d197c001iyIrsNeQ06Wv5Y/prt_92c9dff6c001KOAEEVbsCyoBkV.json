@@ -1,0 +1,23 @@
+{
+  "id": "prt_92c9dff6c001KOAEEVbsCyoBkV",
+  "messageID": "msg_92c9d197c001iyIrsNeQ06Wv5Y",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01GeNfPQwrpGskvn8PiWS3AN",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/api/db-test/route.ts"
+    },
+    "output": "<file>\n00001| import { NextResponse } from 'next/server';\n00002| import { createClient } from '@supabase/supabase-js';\n00003| import { isVercel } from '@/lib/env-config';\n00004| \n00005| export async function GET() {\n00006|   try {\n00007|     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;\n00008|     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;\n00009| \n00010|     if (!supabaseUrl || !supabaseKey) {\n00011|       return NextResponse.json({\n00012|         success: false,\n00013|         message: 'Missing environment variables',\n00014|         error: `URL: ${supabaseUrl ? 'Present' : 'Missing'}, Key: ${supabaseKey ? 'Present' : 'Missing'}`,\n00015|         environment: process.env.NODE_ENV,\n00016|         isVercel: isVercel,\n00017|         vercelUrl: process.env.VERCEL_URL,\n00018|         timestamp: new Date().toISOString()\n00019|       }, { status: 500 });\n00020|     }\n00021| \n00022|     console.log('Testing connection with:', { \n00023|       url: supabaseUrl, \n00024|       keyPresent: !!supabaseKey,\n00025|       environment: process.env.NODE_ENV,\n00026|       isVercel: isVercel\n00027|     });\n00028| \n00029|     const supabase = createClient(supabaseUrl, supabaseKey);\n00030| \n00031|     // Try to access a simple table\n00032|     const { data, error } = await supabase\n00033|       .from('activities')\n00034|       .select('id')\n00035|       .limit(1);\n00036| \n00037|     if (error) {\n00038|       console.error('Supabase error:', error);\n00039|       return NextResponse.json({\n00040|         success: false,\n00041|         message: 'Database connection failed',\n00042|         error: error.message,\n00043|         code: error.code,\n00044|         details: error.details,\n00045|         hint: error.hint,\n00046|         environment: process.env.NODE_ENV,\n00047|         isVercel: isVercel,\n00048|         timestamp: new Date().toISOString()\n00049|       }, { status: 500 });\n00050|     }\n00051| \n00052|     return NextResponse.json({\n00053|       success: true,\n00054|       message: 'Database connection successful',\n00055|       data: data,\n00056|       environment: process.env.NODE_ENV,\n00057|       isVercel: isVercel,\n00058|       vercelUrl: process.env.VERCEL_URL,\n00059|       timestamp: new Date().toISOString()\n00060|     });\n00061| \n00062|   } catch (error) {\n00063|     console.error('Unexpected error:', error);\n00064|     return NextResponse.json({\n00065|       success: false,\n00066|       message: 'Unexpected error occurred',\n00067|       error: error instanceof Error ? error.message : 'Unknown error',\n00068|       environment: process.env.NODE_ENV,\n00069|       isVercel: isVercel,\n00070|       vercelUrl: process.env.VERCEL_URL,\n00071|       timestamp: new Date().toISOString()\n00072|     }, { status: 500 });\n00073|   }\n00074| }\n00075| \n</file>",
+    "metadata": {
+      "preview": "import { NextResponse } from 'next/server';\nimport { createClient } from '@supabase/supabase-js';\nimport { isVercel } from '@/lib/env-config';\n\nexport async function GET() {\n  try {\n    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;\n    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;\n\n    if (!supabaseUrl || !supabaseKey) {\n      return NextResponse.json({\n        success: false,\n        message: 'Missing environment variables',\n        error: `URL: ${supabaseUrl ? 'Present' : 'Missing'}, Key: ${supabaseKey ? 'Present' : 'Missing'}`,\n        environment: process.env.NODE_ENV,\n        isVercel: isVercel,\n        vercelUrl: process.env.VERCEL_URL,\n        timestamp: new Date().toISOString()\n      }, { status: 500 });\n    }"
+    },
+    "title": "app/api/db-test/route.ts",
+    "time": {
+      "start": 1757390176704,
+      "end": 1757390176705
+    }
+  }
+}
