@@ -1,0 +1,26 @@
+{
+  "id": "prt_92bcb7fdc001w2kl3w7ckdRrHh",
+  "messageID": "msg_92bcb4727001xrjcFTQCfPRdI5",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_016jGyHNa72rydbbAfQgXJ25",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "git push --set-upstream origin master",
+      "description": "Push to origin and set upstream"
+    },
+    "output": "To https://github.com/magicalbirthdayplanner/magical-birthday-planner-1754362591587.git\n ! [rejected]        master -> master (non-fast-forward)\nerror: failed to push some refs to 'https://github.com/magicalbirthdayplanner/magical-birthday-planner-1754362591587.git'\nhint: Updates were rejected because the tip of your current branch is behind\nhint: its remote counterpart. Integrate the remote changes (e.g.\nhint: 'git pull ...') before pushing again.\nhint: See the 'Note about fast-forwards' in 'git push --help' for details.\n",
+    "metadata": {
+      "output": "To https://github.com/magicalbirthdayplanner/magical-birthday-planner-1754362591587.git\n ! [rejected]        master -> master (non-fast-forward)\nerror: failed to push some refs to 'https://github.com/magicalbirthdayplanner/magical-birthday-planner-1754362591587.git'\nhint: Updates were rejected because the tip of your current branch is behind\nhint: its remote counterpart. Integrate the remote changes (e.g.\nhint: 'git pull ...') before pushing again.\nhint: See the 'Note about fast-forwards' in 'git push --help' for details.\n",
+      "exit": 1,
+      "description": "Push to origin and set upstream"
+    },
+    "title": "git push --set-upstream origin master",
+    "time": {
+      "start": 1757376381529,
+      "end": 1757376382014
+    }
+  }
+}
