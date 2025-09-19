@@ -1,0 +1,11 @@
+{
+  "id": "prt_92bc6f6d1001Plhou0vJ7th4su",
+  "messageID": "msg_92bc6dd98001M4GGxTDuKULFlv",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "I found the issue! The problem is on line 200 where `hasActiveSubscription()` is being called inside the `subscriptionStatus` object definition, but the function `hasActiveSubscription` is defined later on line 250. This creates a temporal dead zone error.\n\nLet me fix this by reordering the code:",
+  "time": {
+    "start": 1757376085239,
+    "end": 1757376085239
+  }
+}

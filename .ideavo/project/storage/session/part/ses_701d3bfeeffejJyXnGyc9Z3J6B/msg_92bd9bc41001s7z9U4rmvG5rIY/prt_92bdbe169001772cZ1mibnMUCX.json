@@ -1,0 +1,26 @@
+{
+  "id": "prt_92bdbe169001772cZ1mibnMUCX",
+  "messageID": "msg_92bd9bc41001s7z9U4rmvG5rIY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_013J1EHjPJ8ijgTEbG6cQbyT",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/account/page.tsx",
+      "oldString": "                      <HeadphonesIcon className=\"h-4 w-4 text-blue-600\" />",
+      "newString": "                      <Headphones className=\"h-4 w-4 text-blue-600\" />"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/account/page.tsx\n===================================================================\n--- /home/user/project/app/account/page.tsx\n+++ /home/user/project/app/account/page.tsx\n@@ -646,9 +646,9 @@\n \n {/* Support Information */}\n <div className=\"mt-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg\">\n   <div className=\"flex items-center gap-2 mb-2\">\n-    <HeadphonesIcon className=\"h-4 w-4 text-blue-600\" />\n+    <Headphones className=\"h-4 w-4 text-blue-600\" />\n     <h4 className=\"font-medium text-gray-900 dark:text-gray-100\">Need Help Choosing?</h4>\n   </div>\n   <p className=\"text-sm text-gray-600 dark:text-gray-300\">\n     Contact our support team for personalized recommendations based on your party planning needs.\n"
+    },
+    "title": "app/account/page.tsx",
+    "time": {
+      "start": 1757377455531,
+      "end": 1757377455536
+    }
+  }
+}

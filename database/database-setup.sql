@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     email TEXT UNIQUE NOT NULL,
     full_name TEXT,
     avatar_url TEXT,
-    current_plan TEXT DEFAULT 'FREE' CHECK (current_plan IN ('FREE', 'STARTER', 'PROFESSIONAL')),
+    current_plan TEXT DEFAULT 'FREE' CHECK (current_plan IN ('FREE', 'STARTER', 'PLUS', 'PRO')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

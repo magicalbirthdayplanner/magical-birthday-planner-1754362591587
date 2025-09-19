@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b9fd810001VX9tZFfd5274au",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01G2s5XffyXxTiUtRr7FHCjF",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "grep -n \"checkoutUrl\" /home/user/project/components/SubscriptionGate.tsx",
+      "description": "Find checkout URLs in SubscriptionGate"
+    },
+    "output": "26:    checkoutUrl: \"https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1\",\n44:    checkoutUrl: \"https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1\",\n62:    checkoutUrl: \"https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1\",\n174:                    <Link href={plan.checkoutUrl} target=\"_blank\">\n",
+    "metadata": {
+      "output": "26:    checkoutUrl: \"https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1\",\n44:    checkoutUrl: \"https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1\",\n62:    checkoutUrl: \"https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1\",\n174:                    <Link href={plan.checkoutUrl} target=\"_blank\">\n",
+      "exit": 0,
+      "description": "Find checkout URLs in SubscriptionGate"
+    },
+    "title": "grep -n \"checkoutUrl\" /home/user/project/components/SubscriptionGate.tsx",
+    "time": {
+      "start": 1757373520514,
+      "end": 1757373520518
+    }
+  }
+}

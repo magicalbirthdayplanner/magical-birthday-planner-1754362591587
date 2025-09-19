@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import ConfettiCanvas from '@cwahlers/react-confetti-canvas';
+import ConfettiCanvas from 'react-canvas-confetti';
 
 interface ConfettiSplashProps {
   isOpen: boolean;

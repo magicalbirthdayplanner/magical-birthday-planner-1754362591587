@@ -31,9 +31,11 @@ import {
   CheckCircle,
   AlertCircle,
   Key,
-  Trash2
+  Trash2,
+  Headphones
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription, type SubscriptionPlan } from "@/contexts/SubscriptionContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -60,13 +62,21 @@ interface UserProfile {
 }
 
 const planDetails = {
+  FREE: {
+    name: "🆓 Free",
+    icon: User,
+    color: "text-gray-600 dark:text-gray-400",
+    bgColor: "bg-gray-100 dark:bg-gray-800",
+    features: ["Party creation wizard", "Basic theme selection", "Guest count planning"],
+    price: "$0"
+  },
   STARTER: {
     name: "🎈 Starter",
     icon: Star,
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
     features: ["Theme suggestions based on age", "Smart checklist & timeline", "Simple invitation creator"],
-    price: "$0 - Introductory Offer"
+    price: "$9.99 per party"
   },
   PLUS: {
     name: "🧁 Plus", 
@@ -74,7 +84,7 @@ const planDetails = {
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     features: ["Everything in Starter", "Personalized activity ideas", "RSVP tracking", "Task reminders", "Basic budget tracker"],
-    price: "$14.99 (One-Time)"
+    price: "$19.99 per party"
   },
   PRO: {
     name: "✨ Pro",
@@ -82,12 +92,13 @@ const planDetails = {
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
     features: ["Everything in Plus", "Vendor recommendations", "Personalized food suggestions", "Smart budget tracker with insights"],
-    price: "$29.99 (One-Time)"
+    price: "$29.99 per party"
   }
 };
 
 export default function AccountPage() {
   const { user, loading } = useAuth();
+  const { currentPlan, subscriptionStatus, canUpgradeTo } = useSubscription();
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -125,42 +136,42 @@ export default function AccountPage() {
     }
   };
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/signin");
-      return;
+  // Map the current plan to a valid plan type for the UserProfile
+  const getValidPlanType = (plan: SubscriptionPlan): 'STARTER' | 'PLUS' | 'PRO' => {
+    switch (plan) {
+      case 'STARTER':
+        return 'STARTER';
+      case 'PLUS':
+        return 'PLUS';
+      case 'PRO':
+      case 'PROFESSIONAL':
+        return 'PRO';
+      case 'FREE':
+      default:
+        return 'STARTER';
     }
+  };
 
-    if (user) {
-      // Fetch actual user profile from API with timeout
+  useEffect(() => {
+    if (user && !loading) {
       const fetchProfile = async () => {
         try {
-          // Create abort controller for timeout
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-          
-          const response = await fetch('/api/user/profile', {
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
+          const response = await fetch('/api/user/profile');
           
           if (response.ok) {
             const profileData = await response.json();
             
-            // Check if user is superadmin
-            const isSupeadmin = user.email === "arunexprasad@gmail.com";
-            
+            // Create complete profile object
             const profile: UserProfile = {
               id: profileData.id,
               email: profileData.email,
               name: profileData.name,
-              displayName: profileData.displayName,
+              displayName: profileData.displayName || "",
               createdAt: profileData.createdAt,
-              isSupeadmin,
+              isSupeadmin: profileData.email === "arunexprasad@gmail.com",
               subscription: {
-                planType: "STARTER",
-                status: "ACTIVE",
+                planType: getValidPlanType(currentPlan), // Use the mapped plan type
+                status: subscriptionStatus.isActive ? "ACTIVE" : "CANCELED",
                 currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 cancelAtPeriodEnd: false
               },
@@ -193,8 +204,8 @@ export default function AccountPage() {
               createdAt: new Date().toISOString(),
               isSupeadmin: user.email === "arunexprasad@gmail.com",
               subscription: {
-                planType: "STARTER",
-                status: "ACTIVE",
+                planType: getValidPlanType(currentPlan), // Use the mapped plan type
+                status: subscriptionStatus.isActive ? "ACTIVE" : "CANCELED",
                 currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 cancelAtPeriodEnd: false
               },
@@ -222,8 +233,8 @@ export default function AccountPage() {
             createdAt: new Date().toISOString(),
             isSupeadmin: user.email === "arunexprasad@gmail.com",
             subscription: {
-              planType: "STARTER",
-              status: "ACTIVE",
+              planType: getValidPlanType(currentPlan), // Use the mapped plan type
+              status: subscriptionStatus.isActive ? "ACTIVE" : "CANCELED",
               currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
               cancelAtPeriodEnd: false
             },
@@ -244,7 +255,7 @@ export default function AccountPage() {
 
       fetchProfile();
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, currentPlan, subscriptionStatus]);
 
   const handleSaveProfile = async () => {
     // Clear previous states
@@ -354,8 +365,8 @@ export default function AccountPage() {
     );
   }
 
-  const currentPlan = planDetails[userProfile.subscription?.planType || 'STARTER'];
-  const PlanIcon = currentPlan.icon;
+  const currentPlanDetails = planDetails[currentPlan];
+  const PlanIcon = currentPlanDetails.icon;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -541,17 +552,17 @@ export default function AccountPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2">
-                      <div className={`p-2 rounded-full ${currentPlan.bgColor}`}>
-                        <PlanIcon className={`h-5 w-5 ${currentPlan.color}`} />
+                      <div className={`p-2 rounded-full ${currentPlanDetails.bgColor}`}>
+                        <PlanIcon className={`h-5 w-5 ${currentPlanDetails.color}`} />
                       </div>
-                      Current Plan: {currentPlan.name}
+                      Current Plan: {currentPlanDetails.name}
                     </CardTitle>
                     <CardDescription>
                       Your current subscription details and usage
                     </CardDescription>
                   </div>
-                  <Badge className={currentPlan.bgColor}>
-                    {userProfile.subscription?.status || 'ACTIVE'}
+                  <Badge className={subscriptionStatus.isActive ? currentPlanDetails.bgColor : 'bg-gray-100 dark:bg-gray-800'}>
+                    {subscriptionStatus.isActive ? 'ACTIVE' : 'FREE'}
                   </Badge>
                 </div>
               </CardHeader>
@@ -559,7 +570,7 @@ export default function AccountPage() {
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Plan Features</h4>
                   <ul className="space-y-1">
-                    {currentPlan.features.map((feature, index) => (
+                    {currentPlanDetails.features.map((feature, index) => (
                       <li key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                         <Check className="h-3 w-3 text-green-500 mr-2" />
                         {feature}
@@ -570,146 +581,82 @@ export default function AccountPage() {
               </CardContent>
             </Card>
 
-            {/* Upgrade Options */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-amber-500" />
-                  Upgrade Your Plan
-                </CardTitle>
-                <CardDescription>
-                  Unlock more features with our updated plans
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Starter Plan */}
-                  <div className={`border rounded-lg p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 ${
-                    userProfile.subscription?.planType === 'STARTER' ? 'border-purple-300 bg-purple-50/50' : ''
-                  }`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-5 w-5 text-purple-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎈 Starter</h3>
-                      </div>
-                      <Badge variant="outline" className="text-xs">$9.99</Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      A quick and easy starting point for parents seeking basic help.
-                    </p>
-                    <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• Theme suggestions based on age</li>
-                      <li>• Smart checklist & timeline</li>
-                      <li>• Simple invitation creator</li>
-                    </ul>
-                    {userProfile.subscription?.planType === 'STARTER' ? (
-                      <Badge className="w-full text-center py-2 bg-purple-100 text-purple-800">
-                        Current Plan
-                      </Badge>
-                    ) : (
-                      <Button 
-                        className="w-full text-xs bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                        asChild
-                      >
-                        <Link href="https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1">
-                          Choose Starter
-                        </Link>
-                      </Button>
-                    )}
+            {/* Plan Upgrade Options */}
+            {subscriptionStatus.canUpgrade && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-blue-600" />
+                    {currentPlan === 'FREE' ? 'Choose Your Plan' : 'Upgrade Your Plan'}
+                  </CardTitle>
+                  <CardDescription>
+                    {currentPlan === 'FREE' 
+                      ? 'Select a plan to unlock party management features'
+                      : 'Unlock more features with our advanced plans'
+                    }
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {(['STARTER', 'PLUS', 'PRO'] as const).map((planKey) => {
+                      if (!canUpgradeTo(planKey)) return null;
+                      
+                      const plan = planDetails[planKey];
+                      const PlanIcon = plan.icon;
+                      
+                      return (
+                        <div key={planKey} className={`border rounded-lg p-4 bg-gradient-to-br ${
+                          planKey === 'PLUS' ? 'border-2 border-blue-200 from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 relative' :
+                          planKey === 'STARTER' ? 'from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30' :
+                          'from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30'
+                        }`}>
+                          {planKey === 'PLUS' && (
+                            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs">
+                              Most Popular
+                            </Badge>
+                          )}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <PlanIcon className={`h-5 w-5 ${plan.color}`} />
+                              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{plan.name}</h3>
+                            </div>
+                            <Badge variant="outline" className="text-xs">{plan.price}</Badge>
+                          </div>
+                          <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
+                            {plan.features.map((feature, index) => (
+                              <li key={index}>• {feature}</li>
+                            ))}
+                          </ul>
+                          <Button 
+                            className={`w-full text-xs ${
+                              planKey === 'STARTER' ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' :
+                              planKey === 'PLUS' ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' :
+                              'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'
+                            }`}
+                            asChild
+                          >
+                            <Link href={`/pricing?upgrade=${planKey.toLowerCase()}`}>
+                              {currentPlan === 'FREE' ? 'Choose' : 'Upgrade to'} {planKey === 'STARTER' ? 'Starter' : planKey === 'PLUS' ? 'Plus' : 'Pro'}
+                            </Link>
+                          </Button>
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {/* Plus Plan */}
-                  <div className={`border-2 border-blue-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 relative ${
-                    userProfile.subscription?.planType === 'PLUS' ? 'border-blue-300 bg-blue-50/50' : ''
-                  }`}>
-                    <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs">
-                      Most Popular
-                    </Badge>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Zap className="h-5 w-5 text-blue-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">🧁 Plus</h3>
-                      </div>
-                      <Badge variant="outline" className="text-xs">$14.99</Badge>
+                  {/* Support Information */}
+                  <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Headphones className="h-4 w-4 text-blue-600" />
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">Need Help Choosing?</h4>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      Smart and simple AI-powered birthday planning for busy parents.
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Contact our support team for personalized recommendations based on your party planning needs.
                     </p>
-                    <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• Everything in Starter</li>
-                      <li>• Personalized activity ideas</li>
-                      <li>• RSVP tracking</li>
-                      <li>• Task reminders</li>
-                      <li>• Basic budget tracker</li>
-                    </ul>
-                    {userProfile.subscription?.planType === 'PLUS' ? (
-                      <Badge className="w-full text-center py-2 bg-blue-100 text-blue-800">
-                        Current Plan
-                      </Badge>
-                    ) : (
-                      <Button 
-                        className="w-full text-xs bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
-                        asChild
-                      >
-                        <Link href="https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1">
-                          Upgrade to Plus
-                        </Link>
-                      </Button>
-                    )}
                   </div>
-
-                  {/* Pro Plan */}
-                  <div className={`border rounded-lg p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 ${
-                    userProfile.subscription?.planType === 'PRO' ? 'border-emerald-300 bg-emerald-50/50' : ''
-                  }`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Crown className="h-5 w-5 text-emerald-600" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">✨ Pro</h3>
-                      </div>
-                      <Badge variant="outline" className="text-xs">$29.99</Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      All-in-one planning experience with advanced support and recommendations.
-                    </p>
-                    <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                      <li>• Everything in Plus</li>
-                      <li>• Vendor recommendations</li>
-                      <li>• Personalized food suggestions</li>
-                      <li>• Smart budget tracker</li>
-                    </ul>
-                    {userProfile.subscription?.planType === 'PRO' ? (
-                      <Badge className="w-full text-center py-2 bg-emerald-100 text-emerald-800">
-                        Current Plan
-                      </Badge>
-                    ) : (
-                      <Button 
-                        className="w-full text-xs bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                        asChild
-                      >
-                        <Link href="https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1">
-                          Upgrade to Pro
-                        </Link>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <Sparkles className="h-4 w-4 text-blue-500 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Need help choosing?
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                        Contact our support team for personalized recommendations based on your party planning needs.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Plan Management */}
             {userProfile.subscription && (
@@ -791,7 +738,7 @@ export default function AccountPage() {
                         <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                           <div className="text-center">
                             <div className="text-xl font-bold text-pink-600 dark:text-pink-400">
-                              {currentPlan.name}
+                              {currentPlanDetails.name}
                             </div>
                             <div className="text-xs text-gray-600 dark:text-gray-300">Current Plan</div>
                           </div>

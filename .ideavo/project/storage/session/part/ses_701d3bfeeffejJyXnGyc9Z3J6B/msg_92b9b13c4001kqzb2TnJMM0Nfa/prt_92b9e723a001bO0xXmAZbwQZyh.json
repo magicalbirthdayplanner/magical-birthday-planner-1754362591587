@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b9e723a001bO0xXmAZbwQZyh",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_016Nr1TgScxiRanxtUugaw4s",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "oldString": "        // Get party ID from URL query parameter\n        const urlParams = new URLSearchParams(window.location.search);\n        const partyId = urlParams.get('id');\n        const isLocal = urlParams.get('local') === 'true';",
+      "newString": "        const isLocal = urlParams.get('local') === 'true';"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/party-plan/page.tsx\n===================================================================\n--- /home/user/project/app/party-plan/page.tsx\n+++ /home/user/project/app/party-plan/page.tsx\n@@ -879,11 +879,8 @@\n try {\n   setLoading(true);\n   setError(null);\n   \n-  // Get party ID from URL query parameter\n-  const urlParams = new URLSearchParams(window.location.search);\n-  const partyId = urlParams.get('id');\n   const isLocal = urlParams.get('local') === 'true';\n   \n   console.log('Debug - Party loading:', { partyId, isLocal, currentPath: window.location.pathname + window.location.search });\n   \n"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757373429638,
+      "end": 1757373429658
+    }
+  }
+}

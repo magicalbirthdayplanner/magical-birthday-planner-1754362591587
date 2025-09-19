@@ -1,0 +1,25 @@
+{
+  "id": "prt_92b9fc27a001WAgIsDTRtR1V3e",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01YVrysV11GJ8TkCq8FXDWtj",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/components/SubscriptionGate.tsx",
+      "offset": 90,
+      "limit": 10
+    },
+    "output": "<file>\n00091|                 <h3 className=\"text-lg font-semibold text-green-800 dark:text-green-200\">\n00092|                   🎉 Party Created Successfully!\n00093|                 </h3>\n00094|               </div>\n00095|               <p className=\"text-green-700 dark:text-green-300\">\n00096|                 Your party details have been saved. Now choose a plan to access the full party management dashboard and start detailed planning.\n00097|               </p>\n00098|             </CardContent>\n00099|           </Card>\n00100|         )}\n\n(File has more lines. Use 'offset' parameter to read beyond line 100)\n</file>",
+    "metadata": {
+      "preview": "                <h3 className=\"text-lg font-semibold text-green-800 dark:text-green-200\">\n                  🎉 Party Created Successfully!\n                </h3>\n              </div>\n              <p className=\"text-green-700 dark:text-green-300\">\n                Your party details have been saved. Now choose a plan to access the full party management dashboard and start detailed planning.\n              </p>\n            </CardContent>\n          </Card>\n        )}"
+    },
+    "title": "components/SubscriptionGate.tsx",
+    "time": {
+      "start": 1757373515023,
+      "end": 1757373515025
+    }
+  }
+}

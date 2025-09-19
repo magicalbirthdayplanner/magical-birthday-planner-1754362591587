@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b9cb230001fg3624un4ZuDUb",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_016F5Wa1GQoB939yJaWw75Es",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "oldString": "  const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();",
+      "newString": "  const { currentPlan, isTabAllowed, getRestrictedMessage, hasActiveSubscription } = useSubscription();"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/party-plan/page.tsx\n===================================================================\n--- /home/user/project/app/party-plan/page.tsx\n+++ /home/user/project/app/party-plan/page.tsx\n@@ -178,9 +178,9 @@\n }\n \n function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {\n   const { user, session } = useAuth();\n-  const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();\n+  const { currentPlan, isTabAllowed, getRestrictedMessage, hasActiveSubscription } = useSubscription();\n   const [partyData, setPartyData] = useState<PartyData | null>(null);\n   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);\n   const [guests, setGuests] = useState<ModernGuest[]>([]);\n   const [showCompleted, setShowCompleted] = useState(true);\n"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757373314829,
+      "end": 1757373314851
+    }
+  }
+}

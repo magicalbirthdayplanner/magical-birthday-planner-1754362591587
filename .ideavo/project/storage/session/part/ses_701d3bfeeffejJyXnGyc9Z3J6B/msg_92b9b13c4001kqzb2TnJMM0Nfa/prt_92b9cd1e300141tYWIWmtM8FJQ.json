@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b9cd1e300141tYWIWmtM8FJQ",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_013eWkxD8SzuTrhrzhtJZTyP",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "oldString": "import SharePlanModal from \"@/components/SharePlanModal\";\nimport { useAuth } from \"@/contexts/AuthContext\";",
+      "newString": "import SharePlanModal from \"@/components/SharePlanModal\";\nimport SubscriptionGate from \"@/components/SubscriptionGate\";\nimport { useAuth } from \"@/contexts/AuthContext\";"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/party-plan/page.tsx\n===================================================================\n--- /home/user/project/app/party-plan/page.tsx\n+++ /home/user/project/app/party-plan/page.tsx\n@@ -21,8 +21,9 @@\n import ActivitiesTab from \"@/components/ActivitiesTab\";\n import HostModeTab from \"@/components/HostModeTab\";\n import ThemesTab from \"@/components/ThemesTab\";\n import SharePlanModal from \"@/components/SharePlanModal\";\n+import SubscriptionGate from \"@/components/SubscriptionGate\";\n import { useAuth } from \"@/contexts/AuthContext\";\n import { useSubscription } from \"@/contexts/SubscriptionContext\";\n import { generatePartyPlanPDF } from \"@/lib/pdf-generator\";\n import { \n"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757373322991,
+      "end": 1757373323007
+    }
+  }
+}

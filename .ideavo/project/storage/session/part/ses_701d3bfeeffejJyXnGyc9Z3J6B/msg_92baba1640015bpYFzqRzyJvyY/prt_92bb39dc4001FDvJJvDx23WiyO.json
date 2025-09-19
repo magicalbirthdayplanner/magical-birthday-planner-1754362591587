@@ -1,0 +1,21 @@
+{
+  "id": "prt_92bb39dc4001FDvJJvDx23WiyO",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01RpGKooHy3sdzjb1Zag7f5r",
+  "state": {
+    "status": "error",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "oldString": "  // Check if user has an active subscription to access party management\n  if (!hasActiveSubscription()) {\n    const isNewParty = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('created') === 'true';",
+      "newString": "  // Check if user has an active subscription to access party management\n  // FREE users need to purchase a plan to access party management features\n  if (!hasActiveSubscription() || currentPlan === 'FREE') {\n    const isNewParty = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('created') === 'true';"
+    },
+    "error": "Error: You must read the file /home/user/project/app/party-plan/page.tsx before overwriting it. Use the Read tool first",
+    "time": {
+      "start": 1757374818683,
+      "end": 1757374818704
+    }
+  }
+}

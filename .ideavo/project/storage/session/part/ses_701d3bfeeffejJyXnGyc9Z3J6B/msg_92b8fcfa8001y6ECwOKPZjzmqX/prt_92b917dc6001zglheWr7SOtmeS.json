@@ -1,0 +1,25 @@
+{
+  "id": "prt_92b917dc6001zglheWr7SOtmeS",
+  "messageID": "msg_92b8fcfa8001y6ECwOKPZjzmqX",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01TkgM6kEKBFjjYJYf7KWwh2",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/terms/page.tsx",
+      "offset": 50,
+      "limit": 10
+    },
+    "output": "<file>\n00051|               <p className=\"text-gray-600 dark:text-gray-300 mb-4\">\n00052|                 Our service offers multiple subscription tiers:\n00053|               </p>\n00054|               <ul className=\"list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2\">\n00055|                 <li>Starter Plan: $0 (Introductory Offer) with basic features</li>\n00056|                 <li>Plus Plan: Enhanced features with additional capabilities</li>\n00057|                 <li>Pro Plan: Full access to all platform features</li>\n00058|               </ul>\n00059|               <p className=\"text-gray-600 dark:text-gray-300 mt-4\">\n00060|                 Billing is processed annually. All fees are non-refundable except as required by law. \n\n(File has more lines. Use 'offset' parameter to read beyond line 60)\n</file>",
+    "metadata": {
+      "preview": "              <p className=\"text-gray-600 dark:text-gray-300 mb-4\">\n                Our service offers multiple subscription tiers:\n              </p>\n              <ul className=\"list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2\">\n                <li>Starter Plan: $0 (Introductory Offer) with basic features</li>\n                <li>Plus Plan: Enhanced features with additional capabilities</li>\n                <li>Pro Plan: Full access to all platform features</li>\n              </ul>\n              <p className=\"text-gray-600 dark:text-gray-300 mt-4\">\n                Billing is processed annually. All fees are non-refundable except as required by law. "
+    },
+    "title": "app/terms/page.tsx",
+    "time": {
+      "start": 1757372579846,
+      "end": 1757372579847
+    }
+  }
+}

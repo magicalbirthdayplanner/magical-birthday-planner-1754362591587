@@ -1,0 +1,26 @@
+{
+  "id": "prt_92bb2c95f001mMzLqEFnS437mA",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01EpTE1qoWCM7GYsqTwqiwzT",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/pricing/page.tsx",
+      "oldString": "                <CardHeader className={`bg-gradient-to-br ${tier.bgGradient} ${tier.popular ? 'pt-12' : 'pt-6'}`}>",
+      "newString": "                <CardHeader className={`bg-gradient-to-br ${tier.bgGradient} ${(isCurrentPlan || tier.popular) ? 'pt-12' : 'pt-6'}`}>"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/pricing/page.tsx\n===================================================================\n--- /home/user/project/app/pricing/page.tsx\n+++ /home/user/project/app/pricing/page.tsx\n@@ -166,9 +166,9 @@\n     🌟 Most Popular\n   </div>\n )}\n \n-<CardHeader className={`bg-gradient-to-br ${tier.bgGradient} ${tier.popular ? 'pt-12' : 'pt-6'}`}>\n+<CardHeader className={`bg-gradient-to-br ${tier.bgGradient} ${(isCurrentPlan || tier.popular) ? 'pt-12' : 'pt-6'}`}>\n   <div className=\"flex items-center justify-between mb-4\">\n     <div className={`p-3 rounded-full bg-gradient-to-r ${tier.gradient}`}>\n       <tier.icon className=\"h-6 w-6 text-white\" />\n     </div>\n"
+    },
+    "title": "app/pricing/page.tsx",
+    "time": {
+      "start": 1757374763383,
+      "end": 1757374763388
+    }
+  }
+}

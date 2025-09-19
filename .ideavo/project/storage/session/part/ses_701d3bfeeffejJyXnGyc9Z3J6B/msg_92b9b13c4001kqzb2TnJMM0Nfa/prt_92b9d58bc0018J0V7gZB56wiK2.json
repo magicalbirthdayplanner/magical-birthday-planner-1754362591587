@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b9d58bc0018J0V7gZB56wiK2",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01584MYWpjmqtJQp2UQB2s1E",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "grep -n \"showAuthModal\" /home/user/project/app/create-party/page.tsx",
+      "description": "Find auth modal usage in create-party"
+    },
+    "output": "424:  const [showAuthModal, setShowAuthModal] = useState(false);\n1712:        isOpen={showAuthModal}\n",
+    "metadata": {
+      "output": "424:  const [showAuthModal, setShowAuthModal] = useState(false);\n1712:        isOpen={showAuthModal}\n",
+      "exit": 0,
+      "description": "Find auth modal usage in create-party"
+    },
+    "title": "grep -n \"showAuthModal\" /home/user/project/app/create-party/page.tsx",
+    "time": {
+      "start": 1757373357141,
+      "end": 1757373357149
+    }
+  }
+}

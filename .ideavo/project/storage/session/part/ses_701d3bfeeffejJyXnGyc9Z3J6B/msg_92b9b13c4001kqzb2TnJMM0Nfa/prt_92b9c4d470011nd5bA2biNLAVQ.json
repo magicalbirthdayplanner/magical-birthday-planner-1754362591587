@@ -1,0 +1,25 @@
+{
+  "id": "prt_92b9c4d470011nd5bA2biNLAVQ",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01NzrnxNNsJBXtrmDo71vkFS",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "offset": 170,
+      "limit": 20
+    },
+    "output": "<file>\n00171|       throw error;\n00172|     } finally {\n00173|       setLoading(false);\n00174|     }\n00175|   };\n00176| \n00177|   return (\n00178|     <SubscriptionContext.Provider\n00179|       value={{\n00180|         currentPlan,\n00181|         planDetails,\n00182|         isTabAllowed,\n00183|         updateUserPlan,\n00184|         getRestrictedMessage,\n00185|         loading,\n00186|       }}\n00187|     >\n00188|       {children}\n00189|     </SubscriptionContext.Provider>\n00190|   );\n\n(File has more lines. Use 'offset' parameter to read beyond line 190)\n</file>",
+    "metadata": {
+      "preview": "      throw error;\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  return (\n    <SubscriptionContext.Provider\n      value={{\n        currentPlan,\n        planDetails,\n        isTabAllowed,\n        updateUserPlan,\n        getRestrictedMessage,\n        loading,\n      }}\n    >\n      {children}\n    </SubscriptionContext.Provider>\n  );"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1757373288249,
+      "end": 1757373288250
+    }
+  }
+}

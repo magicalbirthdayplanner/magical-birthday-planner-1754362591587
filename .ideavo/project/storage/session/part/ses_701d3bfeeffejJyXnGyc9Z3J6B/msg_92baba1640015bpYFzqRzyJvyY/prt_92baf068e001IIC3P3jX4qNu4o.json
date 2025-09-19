@@ -1,0 +1,25 @@
+{
+  "id": "prt_92baf068e001IIC3P3jX4qNu4o",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01CeDeibXg14z5yc36ZZRodg",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/account/page.tsx",
+      "offset": 89,
+      "limit": 10
+    },
+    "output": "<file>\n00090|     icon: Crown,\n00091|     color: \"text-emerald-600 dark:text-emerald-400\",\n00092|     bgColor: \"bg-emerald-100 dark:bg-emerald-900/30\",\n00093|     features: [\"Everything in Plus\", \"Vendor recommendations\", \"Personalized food suggestions\", \"Smart budget tracker with insights\"],\n00094|     price: \"$29.99 per party\"\n00095|   }\n00096| };\n00097| \n00098| export default function AccountPage() {\n00099|   const { user, loading } = useAuth();\n\n(File has more lines. Use 'offset' parameter to read beyond line 99)\n</file>",
+    "metadata": {
+      "preview": "    icon: Crown,\n    color: \"text-emerald-600 dark:text-emerald-400\",\n    bgColor: \"bg-emerald-100 dark:bg-emerald-900/30\",\n    features: [\"Everything in Plus\", \"Vendor recommendations\", \"Personalized food suggestions\", \"Smart budget tracker with insights\"],\n    price: \"$29.99 per party\"\n  }\n};\n\nexport default function AccountPage() {\n  const { user, loading } = useAuth();"
+    },
+    "title": "app/account/page.tsx",
+    "time": {
+      "start": 1757374515644,
+      "end": 1757374515646
+    }
+  }
+}

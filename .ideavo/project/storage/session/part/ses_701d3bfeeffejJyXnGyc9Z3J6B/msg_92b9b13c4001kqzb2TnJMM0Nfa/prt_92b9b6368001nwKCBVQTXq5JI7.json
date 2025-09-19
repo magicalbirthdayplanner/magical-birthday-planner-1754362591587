@@ -1,0 +1,25 @@
+{
+  "id": "prt_92b9b6368001nwKCBVQTXq5JI7",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "grep",
+  "callID": "toolu_01BEhDhERNES6KKXhQs9LVd2",
+  "state": {
+    "status": "completed",
+    "input": {
+      "pattern": "useSubscription|currentPlan|isTabAllowed",
+      "include": "*.tsx"
+    },
+    "output": "Found 48 matches\n/home/user/project/app/account/page.tsx:\n  Line 357:   const currentPlan = planDetails[userProfile.subscription?.planType || 'STARTER'];\n  Line 358:   const PlanIcon = currentPlan.icon;\n  Line 544:                       <div className={`p-2 rounded-full ${currentPlan.bgColor}`}>\n  Line 545:                         <PlanIcon className={`h-5 w-5 ${currentPlan.color}`} />\n  Line 547:                       Current Plan: {currentPlan.name}\n  Line 553:                   <Badge className={currentPlan.bgColor}>\n  Line 562:                     {currentPlan.features.map((feature, index) => (\n  Line 794:                               {currentPlan.name}\n\n/home/user/project/app/party-plan/page.tsx:\n  Line 26: import { useSubscription } from \"@/contexts/SubscriptionContext\";\n  Line 182:   const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();\n  Line 701:     const currentPlanLevel = getPlanLevel(currentPlan);\n  Line 703:     return currentPlanLevel >= requiredPlanLevel;\n  Line 722:       if (isTabAllowed('budget')) {\n  Line 743:       if (isTabAllowed('vendor-suggestions')) {\n  Line 810:       {isTabAllowed(tabName) ? children : <UpgradeNotification tabName={tabName} />}\n  Line 1964:                 <div className={`grid grid-cols-1 ${isTabAllowed('budget') ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6`}>\n  Line 1995:                   {isTabAllowed('budget') && (\n  Line 2391:                     {isTabAllowed('activities') && (\n  Line 2400:                     {isTabAllowed('vendor-suggestions') && (\n\n/home/user/project/contexts/SubscriptionContext.tsx:\n  Line 64:   currentPlan: SubscriptionPlan;\n  Line 66:   isTabAllowed: (tabName: string) => boolean;\n  Line 80:   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>('STARTER');\n  Line 97:             const serverPlan = data.currentPlan || 'STARTER';\n  Line 115:   const planDetails = SUBSCRIPTION_PLANS[currentPlan];\n  Line 117:   const isTabAllowed = (tabName: string): boolean => {\n  Line 157:             body: JSON.stringify({ currentPlan: newPlan }),\n  Line 179:         currentPlan,\n  Line 181:         isTabAllowed,\n  Line 192: export function useSubscription() {\n  Line 195:     throw new Error('useSubscription must be used within a SubscriptionProvider');\n\n/home/user/project/components/Header.tsx:\n  Line 7: import { useSubscription } from '@/contexts/SubscriptionContext';\n  Line 46:   const { currentPlan, planDetails, updateUserPlan, loading } = useSubscription();\n  Line 65:     if (isUpdatingPlan || newPlan === currentPlan) return;\n  Line 164:                             const PlanIcon = planIcons[currentPlan];\n  Line 165:                             const colors = planColors[currentPlan];\n  Line 194:                           const isActive = currentPlan === planKey;\n\n/home/user/project/components/EnhancedRSVPTracker.tsx:\n  Line 94:   currentPlan: string\n  Line 221:   currentPlan = 'FREE',\n  Line 242:   const planFeatures = PLAN_FEATURES[currentPlan as keyof typeof PLAN_FEATURES]\n\n/home/user/project/components/EnhancedGuestList.tsx:\n  Line 81:   currentPlan: string\n  Line 102:   currentPlan = 'FREE',\n  Line 141:   const planLimits = PLAN_LIMITS[currentPlan as keyof typeof PLAN_LIMITS]\n  Line 370:             You've reached your guest limit of {maxGuests} for the {currentPlan} plan. Upgrade to add more guests.\n\n/home/user/project/components/EnhancedBulkInvitations.tsx:\n  Line 78:   currentPlan: string\n  Line 263:   currentPlan = 'FREE',\n  Line 295:   const planFeatures = PLAN_FEATURES[currentPlan as keyof typeof PLAN_FEATURES]\n  Line 508:             Send personalized invitations with {currentPlan} plan features\n  Line 513:           {currentPlan} Plan",
+    "metadata": {
+      "matches": 48,
+      "truncated": false
+    },
+    "title": "useSubscription|currentPlan|isTabAllowed",
+    "time": {
+      "start": 1757373228370,
+      "end": 1757373228406
+    }
+  }
+}

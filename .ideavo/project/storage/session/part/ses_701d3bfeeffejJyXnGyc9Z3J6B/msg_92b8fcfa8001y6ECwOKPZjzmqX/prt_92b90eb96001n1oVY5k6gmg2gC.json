@@ -1,0 +1,21 @@
+{
+  "id": "prt_92b90eb96001n1oVY5k6gmg2gC",
+  "messageID": "msg_92b8fcfa8001y6ECwOKPZjzmqX",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_014DNErCWV37MgkkgN1THyEe",
+  "state": {
+    "status": "error",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "oldString": "  STARTER: {\n    name: 'STARTER',\n    displayName: 'Starter',\n    description: 'Essential party planning tools for getting started.',\n    price: '$9.99',",
+      "newString": "  STARTER: {\n    name: 'STARTER',\n    displayName: 'Starter',\n    description: 'Essential party planning tools for getting started.',\n    price: '$9.99',"
+    },
+    "error": "Error: oldString and newString must be different",
+    "time": {
+      "start": 1757372543838,
+      "end": 1757372543846
+    }
+  }
+}

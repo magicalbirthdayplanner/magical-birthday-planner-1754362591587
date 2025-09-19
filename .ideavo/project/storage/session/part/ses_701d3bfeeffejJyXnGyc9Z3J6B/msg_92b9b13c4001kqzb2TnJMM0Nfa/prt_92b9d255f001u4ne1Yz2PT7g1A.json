@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b9d255f001u4ne1Yz2PT7g1A",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_011pBhDGr3oUoGRusEzo9yZ9",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/party-plan/page.tsx",
+      "oldString": "  }\n\n  return (",
+      "newString": "  }\n\n  // Check if user has an active subscription to access party management\n  if (!hasActiveSubscription()) {\n    const searchParams = new URLSearchParams(window.location.search);\n    const isNewParty = searchParams.get('created') === 'true';\n    \n    return (\n      <SubscriptionGate\n        showPartyCreationSuccess={isNewParty}\n        title={isNewParty ? \"🎉 Party Created! Now Unlock Full Planning Tools\" : \"Unlock Your Party Management Dashboard\"}\n        description={\n          isNewParty \n            ? \"Great start! Your party details are saved. Choose a plan to access all planning features, detailed tabs, and party management tools.\"\n            : \"Access your complete party planning dashboard with detailed tabs, guest management, timeline tracking, and more.\"\n        }\n      />\n    );\n  }\n\n  return ("
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/app/party-plan/page.tsx\n===================================================================\n--- /home/user/project/app/party-plan/page.tsx\n+++ /home/user/project/app/party-plan/page.tsx\n@@ -1927,8 +1927,26 @@\n     </div>\n   );\n }\n \n+// Check if user has an active subscription to access party management\n+if (!hasActiveSubscription()) {\n+  const searchParams = new URLSearchParams(window.location.search);\n+  const isNewParty = searchParams.get('created') === 'true';\n+  \n+  return (\n+    <SubscriptionGate\n+      showPartyCreationSuccess={isNewParty}\n+      title={isNewParty ? \"🎉 Party Created! Now Unlock Full Planning Tools\" : \"Unlock Your Party Management Dashboard\"}\n+      description={\n+        isNewParty \n+          ? \"Great start! Your party details are saved. Choose a plan to access all planning features, detailed tabs, and party management tools.\"\n+          : \"Access your complete party planning dashboard with detailed tabs, guest management, timeline tracking, and more.\"\n+      }\n+    />\n+  );\n+}\n+\n return (\n   <div className=\"min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-4 sm:py-6 lg:py-8\">\n     <div className=\"max-w-6xl mx-auto px-3 sm:px-4 lg:px-8\">\n       {/* Header */}\n"
+    },
+    "title": "app/party-plan/page.tsx",
+    "time": {
+      "start": 1757373348515,
+      "end": 1757373348550
+    }
+  }
+}

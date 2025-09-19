@@ -1,0 +1,25 @@
+{
+  "id": "prt_92b91dc4a001r48VSiC1K7o1Ij",
+  "messageID": "msg_92b8fcfa8001y6ECwOKPZjzmqX",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01Whg36S5sfuUR3n4KG7Xitm",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/pricing/page.tsx",
+      "offset": 77,
+      "limit": 5
+    },
+    "output": "<file>\n00078|   {\n00079|     question: \"Are all plans one-time payments?\",\n00080|     answer: \"Yes! All our plans (Starter, Plus, and Pro) are per-party payments with no monthly subscriptions. Pay only when you plan a birthday party.\"\n00081|   },\n00082|   {\n\n(File has more lines. Use 'offset' parameter to read beyond line 82)\n</file>",
+    "metadata": {
+      "preview": "  {\n    question: \"Are all plans one-time payments?\",\n    answer: \"Yes! All our plans (Starter, Plus, and Pro) are per-party payments with no monthly subscriptions. Pay only when you plan a birthday party.\"\n  },\n  {"
+    },
+    "title": "app/pricing/page.tsx",
+    "time": {
+      "start": 1757372604175,
+      "end": 1757372604177
+    }
+  }
+}

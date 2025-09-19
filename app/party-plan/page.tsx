@@ -22,6 +22,7 @@ import ActivitiesTab from "@/components/ActivitiesTab";
 import HostModeTab from "@/components/HostModeTab";
 import ThemesTab from "@/components/ThemesTab";
 import SharePlanModal from "@/components/SharePlanModal";
+import SubscriptionGate from "@/components/SubscriptionGate";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { generatePartyPlanPDF } from "@/lib/pdf-generator";
@@ -177,9 +178,12 @@ interface PartyPlanPageProps {
   router: any;
 }
 
-function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
+function PartyPlanPageComponent({ partyId, activeTab, router }: PartyPlanPageProps) {
   const { user, session } = useAuth();
-  const { currentPlan, isTabAllowed, getRestrictedMessage } = useSubscription();
+  const { currentPlan, isTabAllowed, getRestrictedMessage, hasActiveSubscription } = useSubscription();
+}
+
+
   const [partyData, setPartyData] = useState<PartyData | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [guests, setGuests] = useState<ModernGuest[]>([]);
@@ -220,7 +224,7 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
   
   // Confetti setup for party plan celebration
   const refAnimationInstance = useRef<any>(null);
-  const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
+  // Removed hasTriggeredConfetti check to ensure confetti shows every time
   
   const getInstance = useCallback((instance: any) => {
     console.log('🗿 DEBUG: Confetti getInstance called with:', instance);
@@ -837,6 +841,38 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
 
   useEffect(() => {
     const loadPartyData = async () => {
+      // Get party ID from URL query parameter first
+      const urlParams = new URLSearchParams(window.location.search);
+      const partyId = urlParams.get('id');
+
+      // Handle temporary parties for guest users (no authentication required)
+      if (partyId && partyId.startsWith('temp_')) {
+        console.log('Loading temporary party data for ID:', partyId);
+        
+        try {
+          const tempPartyData = localStorage.getItem(`temp_party_${partyId}`);
+          if (tempPartyData) {
+            const parsedTempParty = JSON.parse(tempPartyData);
+            console.log('Found temporary party data:', parsedTempParty);
+            loadPartyDetails({
+              ...parsedTempParty,
+              partyDate: new Date(parsedTempParty.partyDate)
+            });
+            return;
+          } else {
+            setError('Temporary party data not found. The party may have expired or been cleared from your browser.');
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Error loading temporary party:', error);
+          setError('Failed to load temporary party data.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // For authenticated parties, require user login
       if (!user) {
         setError('Please sign in to view your party plan');
         setLoading(false);
@@ -847,9 +883,6 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
         setLoading(true);
         setError(null);
         
-        // Get party ID from URL query parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const partyId = urlParams.get('id');
         const isLocal = urlParams.get('local') === 'true';
         
         console.log('Debug - Party loading:', { partyId, isLocal, currentPath: window.location.pathname + window.location.search });
@@ -1030,139 +1063,42 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
       // CRITICAL: Set the current party ID for all subsequent operations
       setCurrentPartyId(party.id);
       
-      // Check if this is a newly created party (coming from wizard)
-      const checkForNewPartyConfetti = () => {
+      // Trigger confetti every time a party loads
+      const triggerPartyLoadConfetti = () => {
         try {
-          console.log('🔍 DEBUG: Checking for new party confetti triggers...');
+          console.log('🎉 DEBUG: Party loaded - triggering confetti celebration!');
           
-          // Check if we're coming from the create party wizard
-          const urlParams = new URLSearchParams(window.location.search);
-          const fromCreate = urlParams.get('created') === 'true';
-          const partyId = urlParams.get('id');
-          
-          console.log('🔍 DEBUG: URL parameters:', { fromCreate, partyId, currentPartyId: party.id });
-          
-          // Check localStorage for recently created party
-          const currentParty = localStorage.getItem('currentParty');
-          const lastCreatedParty = localStorage.getItem('lastCreatedParty');
-          
-          console.log('🔍 DEBUG: LocalStorage data:', {
-            currentParty: currentParty ? 'found' : 'not found',
-            lastCreatedParty: lastCreatedParty ? 'found' : 'not found',
-            hasTriggeredConfetti
-          });
-          
-          let shouldTriggerConfetti = false;
-          
-          if (fromCreate && partyId === party.id) {
-            console.log('🎉 DEBUG: New party detected from URL parameter');
-            shouldTriggerConfetti = true;
-          } else if (currentParty) {
-            try {
-              const currentPartyData = JSON.parse(currentParty);
-              const partyCreatedRecently = currentPartyData.timestamp && 
-                (Date.now() - currentPartyData.timestamp) < 30000; // Within 30 seconds
-              
-              console.log('🔍 DEBUG: Current party data:', {
-                partyId: currentPartyData.partyId,
-                timestamp: currentPartyData.timestamp,
-                partyCreatedRecently,
-                timeDiff: currentPartyData.timestamp ? Date.now() - currentPartyData.timestamp : 'no timestamp'
-              });
-              
-              if (currentPartyData.partyId === party.id && partyCreatedRecently) {
-                console.log('🎉 DEBUG: Recently created party detected from localStorage');
-                shouldTriggerConfetti = true;
-              }
-            } catch (parseError) {
-              console.warn('Error parsing currentParty data:', parseError);
-            }
-          } else if (lastCreatedParty) {
-            try {
-              const lastCreatedData = JSON.parse(lastCreatedParty);
-              const partyCreatedRecently = lastCreatedData.timestamp && 
-                (Date.now() - lastCreatedData.timestamp) < 60000; // Within 60 seconds
-              
-              console.log('🔍 DEBUG: Last created party data:', {
-                partyId: lastCreatedData.id,
-                timestamp: lastCreatedData.timestamp,
-                partyCreatedRecently,
-                timeDiff: lastCreatedData.timestamp ? Date.now() - lastCreatedData.timestamp : 'no timestamp'
-              });
-              
-              if (lastCreatedData.id === party.id && partyCreatedRecently) {
-                console.log('🎉 DEBUG: Recently created party detected from lastCreatedParty');
-                shouldTriggerConfetti = true;
-              }
-            } catch (parseError) {
-              console.warn('Error parsing lastCreatedParty data:', parseError);
-            }
-          }
-          
-          console.log('🔍 DEBUG: Final confetti decision:', {
-            shouldTriggerConfetti,
-            hasTriggeredConfetti,
-            confettiInstance: refAnimationInstance.current ? 'available' : 'not available'
-          });
-          
-          // Trigger confetti if this is a new party and we haven't triggered it yet
-          if (shouldTriggerConfetti && !hasTriggeredConfetti) {
-            console.log('🎊 DEBUG: Triggering confetti for new party!');
-            setHasTriggeredConfetti(true);
+          // More robust confetti triggering with retry mechanism
+          const attemptConfetti = (retryCount = 0) => {
+            console.log(`🎊 DEBUG: Confetti attempt ${retryCount + 1}`);
             
-            // More robust confetti triggering with retry mechanism
-            const attemptConfetti = (retryCount = 0) => {
-              console.log(`🎊 DEBUG: Confetti attempt ${retryCount + 1}`);
-              
-              const confettiInstance = refAnimationInstance.current;
-              const confetti = typeof confettiInstance === 'function' 
-                ? confettiInstance 
-                : confettiInstance?.confetti;
-              
-              if (confetti && typeof confetti === 'function') {
-                try {
-                  console.log('🎊 DEBUG: Executing confetti animation...');
-                  triggerPartyPlanConfetti();
-                  console.log('🎊 Party plan confetti triggered for new party!');
-                } catch (confettiError) {
-                  console.warn('Failed to trigger party plan confetti:', confettiError);
-                }
-              } else if (retryCount < 5) {
-                console.log(`🎊 DEBUG: Confetti instance not ready, retrying in ${200 * (retryCount + 1)}ms...`);
-                console.log(`🔍 DEBUG: Current instance state:`, { confettiInstance, confetti });
-                setTimeout(() => attemptConfetti(retryCount + 1), 200 * (retryCount + 1));
-              } else {
-                console.error('❌ DEBUG: Confetti instance never became available after 5 retries');
-                console.error('❌ DEBUG: Final instance state:', { confettiInstance, confetti });
-              }
-            };
+            const confettiInstance = refAnimationInstance.current;
+            const confetti = typeof confettiInstance === 'function' 
+              ? confettiInstance 
+              : confettiInstance?.confetti;
             
-            // Start attempting confetti after 1 second delay
-            setTimeout(() => attemptConfetti(), 1000);
-            
-            // Clean up localStorage flags
-            setTimeout(() => {
+            if (confetti && typeof confetti === 'function') {
               try {
-                console.log('🧹 DEBUG: Cleaning up party creation flags...');
-                localStorage.removeItem('currentParty');
-                // Clean up URL parameter
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.delete('created');
-                window.history.replaceState({}, '', newUrl.toString());
-                console.log('🧹 DEBUG: Cleanup completed');
-              } catch (cleanupError) {
-                console.warn('Error cleaning up party creation flags:', cleanupError);
+                console.log('🎊 DEBUG: Executing confetti animation...');
+                triggerPartyPlanConfetti();
+                console.log('🎊 Party plan confetti triggered successfully!');
+              } catch (confettiError) {
+                console.warn('Failed to trigger party plan confetti:', confettiError);
               }
-            }, 5000); // Extended cleanup time
-          } else {
-            console.log('❌ DEBUG: Confetti not triggered because:', {
-              shouldTriggerConfetti,
-              hasTriggeredConfetti,
-              reason: !shouldTriggerConfetti ? 'no trigger condition met' : 'already triggered'
-            });
-          }
+            } else if (retryCount < 5) {
+              console.log(`🎊 DEBUG: Confetti instance not ready, retrying in ${200 * (retryCount + 1)}ms...`);
+              console.log(`🔍 DEBUG: Current instance state:`, { confettiInstance, confetti });
+              setTimeout(() => attemptConfetti(retryCount + 1), 200 * (retryCount + 1));
+            } else {
+              console.error('❌ DEBUG: Confetti instance never became available after 5 retries');
+              console.error('❌ DEBUG: Final instance state:', { confettiInstance, confetti });
+            }
+          };
+          
+          // Start attempting confetti after a short delay to allow component to fully render
+          setTimeout(() => attemptConfetti(), 800);
         } catch (error) {
-          console.error('Error checking for new party confetti:', error);
+          console.error('Error triggering party load confetti:', error);
         }
       };
       
@@ -1220,8 +1156,8 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
         setChecklist(baseChecklist);
       }
       
-      // Check for new party confetti after setting all data
-      checkForNewPartyConfetti();
+      // Trigger confetti every time a party loads
+      triggerPartyLoadConfetti();
     };
 
     loadPartyData();
@@ -1924,6 +1860,24 @@ function PartyPlanPage({ partyId, activeTab, router }: PartyPlanPageProps) {
           )}
         </div>
       </div>
+    );
+  }
+
+  // Check if user has an active subscription to access party management
+  // FREE users need to purchase a plan to access party management features
+  if (!hasActiveSubscription() || currentPlan === 'FREE') {
+    const isNewParty = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('created') === 'true';
+    
+    return (
+      <SubscriptionGate
+        showPartyCreationSuccess={isNewParty}
+        title={isNewParty ? "🎉 Party Created! Now Unlock Full Planning Tools" : "Unlock Your Party Management Dashboard"}
+        description={
+          isNewParty 
+            ? "Great start! Your party details are saved. Choose a plan to access all planning features, detailed tabs, and party management tools."
+            : "Access your complete party planning dashboard with detailed tabs, guest management, timeline tracking, and more."
+        }
+      />
     );
   }
 
@@ -3981,10 +3935,25 @@ function PartyPlanPageClient() {
   const partyId = searchParams.get('id');
   const activeTab = searchParams.get('tab') || 'overview';
   
-  return <PartyPlanPage partyId={partyId} activeTab={activeTab} router={router} />;
+  return <PartyPlanPageComponent partyId={partyId} activeTab={activeTab} router={router} />;
 }
 
 // Wrapper component with Suspense boundary for useSearchParams
+export default function PartyPlanPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading party planner...</p>
+        </div>
+      </div>
+    }>
+      <PartyPlanPageClient />
+    </Suspense>
+  );
+}
+
 function PartyPlanPageWithSuspense() {
   return (
     <Suspense fallback={

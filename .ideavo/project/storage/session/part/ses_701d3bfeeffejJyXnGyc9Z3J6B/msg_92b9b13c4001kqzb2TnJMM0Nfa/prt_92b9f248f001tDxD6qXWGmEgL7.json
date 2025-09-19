@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b9f248f001tDxD6qXWGmEgL7",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01VG6ttFtSFqptYwkWCYX4XC",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "oldString": "  updateUserPlan: (newPlan: SubscriptionPlan) => Promise<void>;\n  getRestrictedMessage: (tabName: string) => string;\n  hasActiveSubscription: () => boolean;\n  loading: boolean;",
+      "newString": "  updateUserPlan: (newPlan: SubscriptionPlan) => Promise<void>;\n  getRestrictedMessage: (tabName: string) => string;\n  hasActiveSubscription: () => boolean;\n  markPlanAsPurchased: (plan: SubscriptionPlan) => void;\n  loading: boolean;"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/contexts/SubscriptionContext.tsx\n===================================================================\n--- /home/user/project/contexts/SubscriptionContext.tsx\n+++ /home/user/project/contexts/SubscriptionContext.tsx\n@@ -66,8 +66,9 @@\n   isTabAllowed: (tabName: string) => boolean;\n   updateUserPlan: (newPlan: SubscriptionPlan) => Promise<void>;\n   getRestrictedMessage: (tabName: string) => string;\n   hasActiveSubscription: () => boolean;\n+  markPlanAsPurchased: (plan: SubscriptionPlan) => void;\n   loading: boolean;\n }\n \n const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);\n"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1757373474893,
+      "end": 1757373474896
+    }
+  }
+}

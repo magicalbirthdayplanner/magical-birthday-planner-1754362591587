@@ -1,0 +1,71 @@
+{
+  "id": "prt_92b90a6c8001deMh92NzpThMCC",
+  "messageID": "msg_92b8fcfa8001y6ECwOKPZjzmqX",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "multiedit",
+  "callID": "toolu_01G9Sf7r2b3Ya4DGvtsoKbdt",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/page.tsx",
+      "edits": [
+        {
+          "filePath": "/home/user/project/app/page.tsx",
+          "oldString": "            <Badge className=\"mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0\">\n              🎂 Annual birthday pricing. No monthly subscriptions.\n            </Badge>",
+          "newString": "            <Badge className=\"mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0\">\n              🎂 Pay per party. No monthly subscriptions.\n            </Badge>"
+        },
+        {
+          "filePath": "/home/user/project/app/page.tsx",
+          "oldString": "              From single birthday celebrations to multi-child families, find the annual package that makes every birthday magical",
+          "newString": "              From single birthday celebrations to multi-child families, find the perfect package that makes every birthday magical"
+        },
+        {
+          "filePath": "/home/user/project/app/page.tsx",
+          "oldString": "                 <div className=\"flex items-baseline mt-4\">\n                   <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$0</span>\n                   <span className=\"text-gray-600 dark:text-gray-400 ml-2\">Introductory Offer</span>\n                 </div>",
+          "newString": "                 <div className=\"flex items-baseline mt-4\">\n                   <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$9.99</span>\n                   <span className=\"text-gray-600 dark:text-gray-400 ml-2\">per party</span>\n                 </div>"
+        },
+        {
+          "filePath": "/home/user/project/app/page.tsx",
+          "oldString": "                 <div className=\"flex items-baseline mt-4\">\n                   <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$14.99</span>\n                   <span className=\"text-gray-600 dark:text-gray-400 ml-2\">(One-Time)</span>\n                 </div>",
+          "newString": "                 <div className=\"flex items-baseline mt-4\">\n                   <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$19.99</span>\n                   <span className=\"text-gray-600 dark:text-gray-400 ml-2\">per party</span>\n                 </div>"
+        },
+        {
+          "filePath": "/home/user/project/app/page.tsx",
+          "oldString": "                 <div className=\"flex items-baseline mt-4\">\n                   <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$29.99</span>\n                   <span className=\"text-gray-600 dark:text-gray-400 ml-2\">(One-Time)</span>\n                 </div>",
+          "newString": "                 <div className=\"flex items-baseline mt-4\">\n                   <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$29.99</span>\n                   <span className=\"text-gray-600 dark:text-gray-400 ml-2\">per party</span>\n                 </div>"
+        }
+      ]
+    },
+    "output": "",
+    "metadata": {
+      "results": [
+        {
+          "diagnostics": {},
+          "diff": "Index: /home/user/project/app/page.tsx\n===================================================================\n--- /home/user/project/app/page.tsx\n+++ /home/user/project/app/page.tsx\n@@ -462,9 +462,9 @@\n <section className=\"py-16 bg-white dark:bg-slate-900\">\n   <div className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\">\n     <div className=\"text-center mb-12\">\n       <Badge className=\"mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0\">\n-        🎂 Annual birthday pricing. No monthly subscriptions.\n+        🎂 Pay per party. No monthly subscriptions.\n       </Badge>\n       <h2 className=\"text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4\">\n         Choose Your Perfect Package\n       </h2>\n"
+        },
+        {
+          "diagnostics": {},
+          "diff": "Index: /home/user/project/app/page.tsx\n===================================================================\n--- /home/user/project/app/page.tsx\n+++ /home/user/project/app/page.tsx\n@@ -468,9 +468,9 @@\n   <h2 className=\"text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4\">\n     Choose Your Perfect Package\n   </h2>\n   <p className=\"text-lg text-gray-600 dark:text-gray-300\">\n-    From single birthday celebrations to multi-child families, find the annual package that makes every birthday magical\n+    From single birthday celebrations to multi-child families, find the perfect package that makes every birthday magical\n   </p>\n </div>\n \n <div className=\"grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto\">\n"
+        },
+        {
+          "diagnostics": {},
+          "diff": "Index: /home/user/project/app/page.tsx\n===================================================================\n--- /home/user/project/app/page.tsx\n+++ /home/user/project/app/page.tsx\n@@ -494,12 +494,12 @@\n   </CardTitle>\n   <CardDescription className=\"text-gray-600 dark:text-gray-300\">\n     A quick and easy starting point for parents seeking basic help.\n   </CardDescription>\n-  <div className=\"flex items-baseline mt-4\">\n-    <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$0</span>\n-    <span className=\"text-gray-600 dark:text-gray-400 ml-2\">Introductory Offer</span>\n-  </div>\n+   <div className=\"flex items-baseline mt-4\">\n+     <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$9.99</span>\n+     <span className=\"text-gray-600 dark:text-gray-400 ml-2\">per party</span>\n+   </div>\n </CardHeader>\n <CardContent className=\"p-6\">\n   <ul className=\"space-y-3 mb-6\">\n     <li className=\"flex items-start\">\n"
+        },
+        {
+          "diagnostics": {},
+          "diff": "Index: /home/user/project/app/page.tsx\n===================================================================\n--- /home/user/project/app/page.tsx\n+++ /home/user/project/app/page.tsx\n@@ -545,12 +545,12 @@\n   </CardTitle>\n   <CardDescription className=\"text-gray-600 dark:text-gray-300\">\n     Smart and simple AI-powered birthday planning for busy parents.\n   </CardDescription>\n-  <div className=\"flex items-baseline mt-4\">\n-    <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$14.99</span>\n-    <span className=\"text-gray-600 dark:text-gray-400 ml-2\">(One-Time)</span>\n-  </div>\n+   <div className=\"flex items-baseline mt-4\">\n+     <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$19.99</span>\n+     <span className=\"text-gray-600 dark:text-gray-400 ml-2\">per party</span>\n+   </div>\n </CardHeader>\n <CardContent className=\"p-6\">\n   <div className=\"text-sm text-gray-600 dark:text-gray-400 mb-4\">Includes everything in Starter, plus:</div>\n   <ul className=\"space-y-3 mb-6\">\n"
+        },
+        {
+          "diagnostics": {},
+          "diff": "Index: /home/user/project/app/page.tsx\n===================================================================\n--- /home/user/project/app/page.tsx\n+++ /home/user/project/app/page.tsx\n@@ -598,12 +598,12 @@\n   </CardTitle>\n   <CardDescription className=\"text-gray-600 dark:text-gray-300\">\n     All-in-one planning experience with advanced support and recommendations.\n   </CardDescription>\n-  <div className=\"flex items-baseline mt-4\">\n-    <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$29.99</span>\n-    <span className=\"text-gray-600 dark:text-gray-400 ml-2\">(One-Time)</span>\n-  </div>\n+   <div className=\"flex items-baseline mt-4\">\n+     <span className=\"text-4xl font-bold text-gray-900 dark:text-gray-100\">$29.99</span>\n+     <span className=\"text-gray-600 dark:text-gray-400 ml-2\">per party</span>\n+   </div>\n </CardHeader>\n <CardContent className=\"p-6\">\n   <div className=\"text-sm text-gray-600 dark:text-gray-400 mb-4\">Includes everything in Plus, plus:</div>\n   <ul className=\"space-y-3 mb-6\">\n"
+        }
+      ]
+    },
+    "title": "app/page.tsx",
+    "time": {
+      "start": 1757372533820,
+      "end": 1757372533847
+    }
+  }
+}

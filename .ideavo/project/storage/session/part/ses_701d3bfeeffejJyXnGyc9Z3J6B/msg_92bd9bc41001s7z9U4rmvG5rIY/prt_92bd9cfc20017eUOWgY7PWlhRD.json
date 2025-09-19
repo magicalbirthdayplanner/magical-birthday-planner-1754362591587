@@ -1,0 +1,24 @@
+{
+  "id": "prt_92bd9cfc20017eUOWgY7PWlhRD",
+  "messageID": "msg_92bd9bc41001s7z9U4rmvG5rIY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "glob",
+  "callID": "toolu_01RkB7JMXHMzQNcGiCfc6hT1",
+  "state": {
+    "status": "completed",
+    "input": {
+      "pattern": "**/toast*"
+    },
+    "output": "/home/user/project/components/ui/toaster.tsx\n/home/user/project/components/ui/toast.tsx",
+    "metadata": {
+      "count": 2,
+      "truncated": false
+    },
+    "title": "",
+    "time": {
+      "start": 1757377319248,
+      "end": 1757377319259
+    }
+  }
+}

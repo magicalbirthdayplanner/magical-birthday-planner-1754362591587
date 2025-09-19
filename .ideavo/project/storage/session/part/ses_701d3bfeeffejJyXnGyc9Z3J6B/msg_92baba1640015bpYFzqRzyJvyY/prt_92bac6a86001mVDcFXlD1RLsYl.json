@@ -1,0 +1,26 @@
+{
+  "id": "prt_92bac6a86001mVDcFXlD1RLsYl",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_013f87d6Qe6vmwjaER5Debqu",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "oldString": "  const markPlanAsPurchased = (plan: SubscriptionPlan): void => {\n    localStorage.setItem('hasPurchasedPlan', 'true');\n    localStorage.setItem('userPlanPurchased', plan);\n    localStorage.setItem('hasValidSubscription', 'true');\n    setCurrentPlan(plan);\n    \n    // Dispatch event for any components listening\n    if (typeof window !== 'undefined' && window.dispatchEvent) {\n      window.dispatchEvent(new CustomEvent('subscription-purchased', {\n        detail: { plan, planDetails: SUBSCRIPTION_PLANS[plan] }\n      }));\n    }\n  };",
+      "newString": "  const markPlanAsPurchased = (plan: SubscriptionPlan): void => {\n    localStorage.setItem('hasPurchasedPlan', 'true');\n    localStorage.setItem('userPlanPurchased', plan);\n    localStorage.setItem('hasValidSubscription', 'true');\n    localStorage.setItem('userSubscriptionPlan', plan);\n    localStorage.setItem('subscriptionPurchaseDate', new Date().toISOString());\n    setCurrentPlan(plan);\n    \n    // Dispatch event for any components listening\n    if (typeof window !== 'undefined' && window.dispatchEvent) {\n      window.dispatchEvent(new CustomEvent('subscription-purchased', {\n        detail: { plan, planDetails: SUBSCRIPTION_PLANS[plan] }\n      }));\n    }\n  };\n\n  const canUpgradeTo = (targetPlan: SubscriptionPlan): boolean => {\n    const planHierarchy = ['FREE', 'STARTER', 'PLUS', 'PRO'];\n    const currentIndex = planHierarchy.indexOf(currentPlan);\n    const targetIndex = planHierarchy.indexOf(targetPlan);\n    return targetIndex > currentIndex;\n  };\n\n  const getNextUpgradePlan = (): SubscriptionPlan | null => {\n    switch (currentPlan) {\n      case 'FREE': return 'STARTER';\n      case 'STARTER': return 'PLUS';\n      case 'PLUS': return 'PRO';\n      default: return null;\n    }\n  };\n\n  const subscriptionStatus: SubscriptionStatus = {\n    isActive: hasActiveSubscription(),\n    planType: currentPlan,\n    purchaseDate: localStorage.getItem('subscriptionPurchaseDate') || undefined,\n    canUpgrade: currentPlan !== 'PRO',\n    canDowngrade: false, // No downgrades allowed\n    nextUpgradePlan: getNextUpgradePlan()\n  };"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/contexts/SubscriptionContext.tsx\n===================================================================\n--- /home/user/project/contexts/SubscriptionContext.tsx\n+++ /home/user/project/contexts/SubscriptionContext.tsx\n@@ -167,8 +167,10 @@\n const markPlanAsPurchased = (plan: SubscriptionPlan): void => {\n   localStorage.setItem('hasPurchasedPlan', 'true');\n   localStorage.setItem('userPlanPurchased', plan);\n   localStorage.setItem('hasValidSubscription', 'true');\n+  localStorage.setItem('userSubscriptionPlan', plan);\n+  localStorage.setItem('subscriptionPurchaseDate', new Date().toISOString());\n   setCurrentPlan(plan);\n   \n   // Dispatch event for any components listening\n   if (typeof window !== 'undefined' && window.dispatchEvent) {\n@@ -177,8 +179,33 @@\n     }));\n   }\n };\n \n+const canUpgradeTo = (targetPlan: SubscriptionPlan): boolean => {\n+  const planHierarchy = ['FREE', 'STARTER', 'PLUS', 'PRO'];\n+  const currentIndex = planHierarchy.indexOf(currentPlan);\n+  const targetIndex = planHierarchy.indexOf(targetPlan);\n+  return targetIndex > currentIndex;\n+};\n+\n+const getNextUpgradePlan = (): SubscriptionPlan | null => {\n+  switch (currentPlan) {\n+    case 'FREE': return 'STARTER';\n+    case 'STARTER': return 'PLUS';\n+    case 'PLUS': return 'PRO';\n+    default: return null;\n+  }\n+};\n+\n+const subscriptionStatus: SubscriptionStatus = {\n+  isActive: hasActiveSubscription(),\n+  planType: currentPlan,\n+  purchaseDate: localStorage.getItem('subscriptionPurchaseDate') || undefined,\n+  canUpgrade: currentPlan !== 'PRO',\n+  canDowngrade: false, // No downgrades allowed\n+  nextUpgradePlan: getNextUpgradePlan()\n+};\n+\n const updateUserPlan = async (newPlan: SubscriptionPlan): Promise<void> => {\n   try {\n     setLoading(true);\n     \n"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1757374350151,
+      "end": 1757374350164
+    }
+  }
+}

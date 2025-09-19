@@ -1,0 +1,53 @@
+{
+  "id": "prt_92baf7617001t34M5afnaqFslG",
+  "messageID": "msg_92baba1640015bpYFzqRzyJvyY",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "multiedit",
+  "callID": "toolu_01JvBDuUMbcMtL2HdkxwLLTA",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/account/page.tsx",
+      "edits": [
+        {
+          "filePath": "/home/user/project/app/account/page.tsx",
+          "oldString": "                      <div className={`p-2 rounded-full ${currentPlan.bgColor}`}>\n                        <PlanIcon className={`h-5 w-5 ${currentPlan.color}`} />\n                      </div>\n                      Current Plan: {currentPlan.name}",
+          "newString": "                      <div className={`p-2 rounded-full ${currentPlanDetails.bgColor}`}>\n                        <PlanIcon className={`h-5 w-5 ${currentPlanDetails.color}`} />\n                      </div>\n                      Current Plan: {currentPlanDetails.name}"
+        },
+        {
+          "filePath": "/home/user/project/app/account/page.tsx",
+          "oldString": "                  <Badge className={currentPlan.bgColor}>\n                    {userProfile.subscription?.status || 'ACTIVE'}\n                  </Badge>",
+          "newString": "                  <Badge className={subscriptionStatus.isActive ? currentPlanDetails.bgColor : 'bg-gray-100 dark:bg-gray-800'}>\n                    {subscriptionStatus.isActive ? 'ACTIVE' : 'FREE'}\n                  </Badge>"
+        },
+        {
+          "filePath": "/home/user/project/app/account/page.tsx",
+          "oldString": "                    {currentPlan.features.map((feature, index) => (",
+          "newString": "                    {currentPlanDetails.features.map((feature, index) => ("
+        }
+      ]
+    },
+    "output": "",
+    "metadata": {
+      "results": [
+        {
+          "diagnostics": {},
+          "diff": "Index: /home/user/project/app/account/page.tsx\n===================================================================\n--- /home/user/project/app/account/page.tsx\n+++ /home/user/project/app/account/page.tsx\n@@ -550,12 +550,12 @@\n <CardHeader>\n   <div className=\"flex items-center justify-between\">\n     <div>\n       <CardTitle className=\"flex items-center gap-2\">\n-        <div className={`p-2 rounded-full ${currentPlan.bgColor}`}>\n-          <PlanIcon className={`h-5 w-5 ${currentPlan.color}`} />\n+        <div className={`p-2 rounded-full ${currentPlanDetails.bgColor}`}>\n+          <PlanIcon className={`h-5 w-5 ${currentPlanDetails.color}`} />\n         </div>\n-        Current Plan: {currentPlan.name}\n+        Current Plan: {currentPlanDetails.name}\n       </CardTitle>\n       <CardDescription>\n         Your current subscription details and usage\n       </CardDescription>\n"
+        },
+        {
+          "diagnostics": {},
+          "diff": "Index: /home/user/project/app/account/page.tsx\n===================================================================\n--- /home/user/project/app/account/page.tsx\n+++ /home/user/project/app/account/page.tsx\n@@ -559,10 +559,10 @@\n       <CardDescription>\n         Your current subscription details and usage\n       </CardDescription>\n     </div>\n-    <Badge className={currentPlan.bgColor}>\n-      {userProfile.subscription?.status || 'ACTIVE'}\n+    <Badge className={subscriptionStatus.isActive ? currentPlanDetails.bgColor : 'bg-gray-100 dark:bg-gray-800'}>\n+      {subscriptionStatus.isActive ? 'ACTIVE' : 'FREE'}\n     </Badge>\n   </div>\n </CardHeader>\n <CardContent className=\"space-y-4\">\n"
+        },
+        {
+          "diagnostics": {},
+          "diff": "Index: /home/user/project/app/account/page.tsx\n===================================================================\n--- /home/user/project/app/account/page.tsx\n+++ /home/user/project/app/account/page.tsx\n@@ -568,9 +568,9 @@\n <CardContent className=\"space-y-4\">\n   <div>\n     <h4 className=\"font-medium text-gray-900 dark:text-gray-100 mb-2\">Plan Features</h4>\n     <ul className=\"space-y-1\">\n-      {currentPlan.features.map((feature, index) => (\n+      {currentPlanDetails.features.map((feature, index) => (\n         <li key={index} className=\"flex items-center text-sm text-gray-600 dark:text-gray-300\">\n           <Check className=\"h-3 w-3 text-green-500 mr-2\" />\n           {feature}\n         </li>\n"
+        }
+      ]
+    },
+    "title": "app/account/page.tsx",
+    "time": {
+      "start": 1757374549738,
+      "end": 1757374549765
+    }
+  }
+}

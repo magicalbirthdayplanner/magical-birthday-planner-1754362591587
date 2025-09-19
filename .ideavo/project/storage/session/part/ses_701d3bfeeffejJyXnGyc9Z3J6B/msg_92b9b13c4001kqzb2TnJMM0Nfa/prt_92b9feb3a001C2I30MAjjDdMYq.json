@@ -1,0 +1,26 @@
+{
+  "id": "prt_92b9feb3a001C2I30MAjjDdMYq",
+  "messageID": "msg_92b9b13c4001kqzb2TnJMM0Nfa",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01C8qb6KghuXABcThNcfAEUQ",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/components/SubscriptionGate.tsx",
+      "oldString": "export default function SubscriptionGate({ \n  onClose, \n  title = \"Unlock Your Party Planning Tools\",\n  description = \"Continue planning your magical birthday celebration with full access to all our features.\",\n  showPartyCreationSuccess = false \n}: SubscriptionGateProps) {\n  const { user } = useAuth();",
+      "newString": "export default function SubscriptionGate({ \n  onClose, \n  title = \"Unlock Your Party Planning Tools\",\n  description = \"Continue planning your magical birthday celebration with full access to all our features.\",\n  showPartyCreationSuccess = false \n}: SubscriptionGateProps) {\n  const { user } = useAuth();\n\n  // Get current URL for return after purchase\n  const getCheckoutUrl = (baseUrl: string, planKey: string) => {\n    if (typeof window === 'undefined') return baseUrl;\n    \n    const returnUrl = encodeURIComponent(window.location.href);\n    const successUrl = encodeURIComponent(`${window.location.origin}/checkout-success?plan=${planKey}&return_url=${returnUrl}`);\n    \n    // Add success_url parameter to DoDo Payments\n    return `${baseUrl}&success_url=${successUrl}`;\n  };"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/components/SubscriptionGate.tsx\n===================================================================\n--- /home/user/project/components/SubscriptionGate.tsx\n+++ /home/user/project/components/SubscriptionGate.tsx\n@@ -78,8 +78,19 @@\n   showPartyCreationSuccess = false \n }: SubscriptionGateProps) {\n   const { user } = useAuth();\n \n+  // Get current URL for return after purchase\n+  const getCheckoutUrl = (baseUrl: string, planKey: string) => {\n+    if (typeof window === 'undefined') return baseUrl;\n+    \n+    const returnUrl = encodeURIComponent(window.location.href);\n+    const successUrl = encodeURIComponent(`${window.location.origin}/checkout-success?plan=${planKey}&return_url=${returnUrl}`);\n+    \n+    // Add success_url parameter to DoDo Payments\n+    return `${baseUrl}&success_url=${successUrl}`;\n+  };\n+\n   return (\n     <div className=\"min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4\">\n       <div className=\"max-w-6xl mx-auto\">\n         {/* Success Message for Party Creation */}\n"
+    },
+    "title": "components/SubscriptionGate.tsx",
+    "time": {
+      "start": 1757373530076,
+      "end": 1757373530085
+    }
+  }
+}
