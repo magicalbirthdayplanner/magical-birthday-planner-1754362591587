@@ -1,0 +1,11 @@
+{
+  "id": "prt_92c9e0c47002fXkbppQlJEM1pM",
+  "messageID": "msg_92c9d197c001iyIrsNeQ06Wv5Y",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "This API route is not the issue since it's using Node.js runtime. The problem is likely with the env-config file itself being imported. Let me create a simplified version that's Edge Runtime compatible. But first, let me check if there's a simpler solution by looking at the actual error more carefully.\n\nThe issue is that we shouldn't be using any Node.js APIs in files that might be imported by Edge Runtime contexts. Let me temporarily disable the middleware entirely to get the deployment working:",
+  "time": {
+    "start": 1757390182098,
+    "end": 1757390182098
+  }
+}

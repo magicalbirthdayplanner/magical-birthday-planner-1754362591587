@@ -1,0 +1,18 @@
+{
+  "id": "prt_92c9e837f001DYCj0bmZt5ejp1",
+  "messageID": "msg_92c9d197c001iyIrsNeQ06Wv5Y",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "model": "Claude Sonnet 4",
+  "type": "finish",
+  "commitMessage": "fix(middleware): resolve Edge Runtime compatibility issues",
+  "cost": 0.56321895,
+  "tokens": {
+    "input": 3,
+    "output": 292,
+    "reasoning": 0,
+    "cache": {
+      "write": 136,
+      "read": 76771
+    }
+  }
+}
