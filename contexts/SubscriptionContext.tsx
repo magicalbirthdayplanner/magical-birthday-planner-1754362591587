@@ -192,7 +192,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             console.error('🔄 SubscriptionContext: Error data:', errorData);
             
             // If it's an auth error, clear localStorage and reset to FREE
-            if (error.message?.includes('Authentication required')) {
+            if (errorData.message?.includes('Authentication required')) {
               console.log('🔄 SubscriptionContext: Clearing localStorage due to auth error');
               if (typeof window !== 'undefined') {
                 localStorage.removeItem('hasPurchasedPlan');
