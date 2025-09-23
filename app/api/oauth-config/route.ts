@@ -33,18 +33,22 @@ export async function GET() {
         node_env: process.env.NODE_ENV
       },
       instructions: {
-        message: 'If Google OAuth is failing, check these settings:',
+        message: 'CRITICAL: Google is redirecting to Supabase URL instead of your app!',
+        current_issue: 'Google redirects to: https://hgczncztmdqtfhqimfar.supabase.co/auth/v1/callback',
+        should_redirect_to: redirectTo,
         supabase_steps: [
           '1. Go to Supabase Dashboard → Authentication → Providers → Google',
-          '2. Ensure Google provider is enabled',
-          '3. Check that redirect URL matches: ' + redirectTo,
-          '4. Verify Google Client ID and Secret are configured'
+          '2. Set Site URL to: https://www.magicalbirthdayplanner.com (NO trailing slash)',
+          '3. Add Redirect URL: ' + redirectTo,
+          '4. Verify Google Client ID and Secret are configured',
+          '5. Save settings and test again'
         ],
         google_console_steps: [
           '1. Go to Google Cloud Console → APIs & Services → Credentials',
           '2. Find your OAuth 2.0 Client ID',
           '3. Add authorized redirect URI: ' + redirectTo,
-          '4. Ensure authorized JavaScript origins includes: ' + baseUrl
+          '4. Remove any Supabase URLs from authorized redirect URIs',
+          '5. Ensure authorized JavaScript origins includes: ' + baseUrl
         ]
       },
       troubleshooting: {

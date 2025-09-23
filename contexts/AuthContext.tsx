@@ -217,6 +217,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('- Redirect URL:', redirectTo)
       console.log('- Environment NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL)
       console.log('- Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      console.log('⚠️ IMPORTANT: Google should redirect to YOUR app, not directly to Supabase!')
+      console.log('⚠️ Expected: https://www.magicalbirthdayplanner.com/auth/callback')
+      console.log('⚠️ NOT: https://hgczncztmdqtfhqimfar.supabase.co/auth/v1/callback')
       
       // Add a unique state parameter to track this specific OAuth attempt
       const oauthState = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
