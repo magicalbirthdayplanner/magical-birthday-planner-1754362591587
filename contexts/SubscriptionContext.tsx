@@ -135,16 +135,18 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const initializePlan = async () => {
       console.log('🔄 SubscriptionContext: Initializing plan...');
       
-      // Check if user has purchased a plan
-      const hasPurchased = localStorage.getItem('hasPurchasedPlan') === 'true';
-      const storedPlan = localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan;
+      // Check if user has purchased a plan (client-side only)
+      const hasPurchased = typeof window !== 'undefined' ? localStorage.getItem('hasPurchasedPlan') === 'true' : false;
+      const storedPlan = typeof window !== 'undefined' ? localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan : null;
       
-      console.log('🔄 SubscriptionContext: localStorage values:', {
-        hasPurchasedPlan: localStorage.getItem('hasPurchasedPlan'),
-        userSubscriptionPlan: localStorage.getItem('userSubscriptionPlan'),
-        userPlanPurchased: localStorage.getItem('userPlanPurchased'),
-        hasValidSubscription: localStorage.getItem('hasValidSubscription')
-      });
+      if (typeof window !== 'undefined') {
+        console.log('🔄 SubscriptionContext: localStorage values:', {
+          hasPurchasedPlan: localStorage.getItem('hasPurchasedPlan'),
+          userSubscriptionPlan: localStorage.getItem('userSubscriptionPlan'),
+          userPlanPurchased: localStorage.getItem('userPlanPurchased'),
+          hasValidSubscription: localStorage.getItem('hasValidSubscription')
+        });
+      }
       
       let initialPlan: SubscriptionPlan = 'FREE';
       
@@ -175,10 +177,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             if (SUBSCRIPTION_PLANS[serverPlan]) {
               console.log('🔄 SubscriptionContext: Setting plan to:', serverPlan);
               setCurrentPlan(serverPlan);
-              // Sync localStorage with server
-              localStorage.setItem('userSubscriptionPlan', serverPlan);
-              localStorage.setItem('hasPurchasedPlan', 'true');
-              localStorage.setItem('hasValidSubscription', 'true');
+              // Sync localStorage with server (client-side only)
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('userSubscriptionPlan', serverPlan);
+                localStorage.setItem('hasPurchasedPlan', 'true');
+                localStorage.setItem('hasValidSubscription', 'true');
+              }
             } else {
               console.log('🔄 SubscriptionContext: Invalid plan, not setting');
             }
@@ -188,18 +192,20 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             console.error('🔄 SubscriptionContext: Error data:', errorData);
             
             // If it's an auth error, clear localStorage and reset to FREE
-            if (response.status === 401) {
+            if (error.message?.includes('Authentication required')) {
               console.log('🔄 SubscriptionContext: Clearing localStorage due to auth error');
-              localStorage.removeItem('hasPurchasedPlan');
-              localStorage.removeItem('userSubscriptionPlan');
-              localStorage.removeItem('hasValidSubscription');
-              localStorage.removeItem('userPlanPurchased');
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('hasPurchasedPlan');
+                localStorage.removeItem('userSubscriptionPlan');
+                localStorage.removeItem('hasValidSubscription');
+                localStorage.removeItem('userPlanPurchased');
+              }
               setCurrentPlan('FREE');
             }
           }
         } catch (error) {
           console.error('🔄 SubscriptionContext: Error fetching user plan from server:', error);
-          // Continue using localStorage value
+          // Continue using localStorage value (client-side only)
         }
       } else {
         console.log('🔄 SubscriptionContext: No user authenticated');
@@ -231,11 +237,13 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   };
 
   const markPlanAsPurchased = (plan: SubscriptionPlan): void => {
-    localStorage.setItem('hasPurchasedPlan', 'true');
-    localStorage.setItem('userPlanPurchased', plan);
-    localStorage.setItem('hasValidSubscription', 'true');
-    localStorage.setItem('userSubscriptionPlan', plan);
-    localStorage.setItem('subscriptionPurchaseDate', new Date().toISOString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hasPurchasedPlan', 'true');
+      localStorage.setItem('userPlanPurchased', plan);
+      localStorage.setItem('hasValidSubscription', 'true');
+      localStorage.setItem('userSubscriptionPlan', plan);
+      localStorage.setItem('subscriptionPurchaseDate', new Date().toISOString());
+    }
     setCurrentPlan(plan);
     
     // Dispatch event for any components listening
@@ -264,13 +272,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   };
 
   const hasActiveSubscription = (): boolean => {
-    // Check if user has purchased any plan
-    // This should be set to 'true' after successful payment
-    const hasPurchasedPlan = localStorage.getItem('hasPurchasedPlan') === 'true';
+    // Check if user has purchased any plan (client-side only)
+    const hasPurchasedPlan = typeof window !== 'undefined' ? localStorage.getItem('hasPurchasedPlan') === 'true' : false;
     
     // Also check for any subscription indicator in user data or localStorage
-    const userPlanPurchased = localStorage.getItem('userPlanPurchased');
-    const hasValidSubscription = localStorage.getItem('hasValidSubscription') === 'true';
+    const userPlanPurchased = typeof window !== 'undefined' ? localStorage.getItem('userPlanPurchased') : null;
+    const hasValidSubscription = typeof window !== 'undefined' ? localStorage.getItem('hasValidSubscription') === 'true' : false;
     
     // Check if user has a non-FREE plan in the database
     const hasDatabasePlan = currentPlan !== 'FREE';
@@ -295,7 +302,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const status = {
       isActive,
       planType: currentPlan,
-      purchaseDate: localStorage.getItem('subscriptionPurchaseDate') || undefined,
+      purchaseDate: typeof window !== 'undefined' ? localStorage.getItem('subscriptionPurchaseDate') || undefined : undefined,
       canUpgrade: currentPlan !== 'PRO',
       canDowngrade: false, // No downgrades allowed
       nextUpgradePlan: getNextUpgradePlan()
@@ -312,9 +319,11 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       
       // Update local state and localStorage immediately for instant UI feedback
       setCurrentPlan(newPlan);
-      localStorage.setItem('userSubscriptionPlan', newPlan);
-      localStorage.setItem('hasPurchasedPlan', 'true');
-      localStorage.setItem('hasValidSubscription', 'true');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userSubscriptionPlan', newPlan);
+        localStorage.setItem('hasPurchasedPlan', 'true');
+        localStorage.setItem('hasValidSubscription', 'true');
+      }
       
       // Show success notification immediately
       if (typeof window !== 'undefined' && window.dispatchEvent) {
