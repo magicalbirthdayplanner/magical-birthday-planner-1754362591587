@@ -12,7 +12,6 @@ interface AuthContextType {
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signInWithGoogle: () => Promise<{ error: any }>
-  signInWithFacebook: () => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
 }
 
@@ -202,15 +201,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }
 
-  const signInWithFacebook = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'facebook',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'}/auth/callback?next=/dashboard`
-      }
-    })
-    return { error }
-  }
 
 
   const signOut = async () => {
@@ -286,7 +276,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signInWithGoogle,
-    signInWithFacebook,
     signOut,
   }
 
