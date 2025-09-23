@@ -1,0 +1,25 @@
+{
+  "id": "prt_97422de8b001InliOlVstFYesR",
+  "messageID": "msg_974228586001UwHqIU8LjzekAc",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01HgZnqsyvuwh3C8zGFmvDPF",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/components/auth/SignUp.tsx",
+      "offset": 45,
+      "limit": 20
+    },
+    "output": "<file>\n00046|     setSocialLoading('google')\n00047|     setError('')\n00048| \n00049|     const result = await signInWithGoogle()\n00050| \n00051|     if (result.error) {\n00052|       setError(result.error.message)\n00053|     }\n00054|     // Note: OAuth redirects happen automatically on success\n00055|     setSocialLoading('')\n00056|   }\n00057| \n00058|   return (\n00059|     <div className=\"min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4\">\n00060|       <Card className=\"w-full max-w-md sm:max-w-lg dark:bg-slate-800/90 dark:backdrop-blur-sm\">\n00061|         <CardHeader className=\"text-center\">\n00062|           <CardTitle className=\"text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent\">\n00063|             Create Account\n00064|           </CardTitle>\n00065|           <CardDescription>\n\n(File has more lines. Use 'offset' parameter to read beyond line 65)\n</file>",
+    "metadata": {
+      "preview": "    setSocialLoading('google')\n    setError('')\n\n    const result = await signInWithGoogle()\n\n    if (result.error) {\n      setError(result.error.message)\n    }\n    // Note: OAuth redirects happen automatically on success\n    setSocialLoading('')\n  }\n\n  return (\n    <div className=\"min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4\">\n      <Card className=\"w-full max-w-md sm:max-w-lg dark:bg-slate-800/90 dark:backdrop-blur-sm\">\n        <CardHeader className=\"text-center\">\n          <CardTitle className=\"text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent\">\n            Create Account\n          </CardTitle>\n          <CardDescription>"
+    },
+    "title": "components/auth/SignUp.tsx",
+    "time": {
+      "start": 1758590066948,
+      "end": 1758590066950
+    }
+  }
+}

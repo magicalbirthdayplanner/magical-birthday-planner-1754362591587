@@ -192,13 +192,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signInWithGoogle = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'}/auth/callback?next=/dashboard`
+    try {
+      // Get the current domain for redirect
+      const baseUrl = typeof window !== 'undefined' 
+        ? `${window.location.protocol}//${window.location.host}`
+        : process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'
+      
+      const redirectTo = `${baseUrl}/auth/callback?next=/dashboard`
+      console.log('Google OAuth redirect URL:', redirectTo)
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo
+        }
+      })
+      
+      if (error) {
+        console.error('Google OAuth error:', error)
       }
-    })
-    return { error }
+      
+      return { error }
+    } catch (err) {
+      console.error('Google OAuth exception:', err)
+      return { error: err }
+    }
   }
 
 

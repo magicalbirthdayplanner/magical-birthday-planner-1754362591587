@@ -1,0 +1,23 @@
+{
+  "id": "prt_97422b396001Xfn1f6Ucfbw26m",
+  "messageID": "msg_974228586001UwHqIU8LjzekAc",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01MemaRd8QWnmMzjbmtCxkSx",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/auth/callback/route.ts"
+    },
+    "output": "<file>\n00001| import { createServerComponentClient } from '@/lib/supabase'\n00002| import { cookies } from 'next/headers'\n00003| import { NextResponse } from 'next/server'\n00004| \n00005| export async function GET(request: Request) {\n00006|   const requestUrl = new URL(request.url)\n00007|   const code = requestUrl.searchParams.get('code')\n00008|   const next = requestUrl.searchParams.get('next') ?? '/dashboard'\n00009| \n00010|   if (code) {\n00011|     const supabase = createServerComponentClient({ cookies })\n00012|     \n00013|     try {\n00014|       const { data, error } = await supabase.auth.exchangeCodeForSession(code)\n00015|       \n00016|       if (error) {\n00017|         console.error('Auth callback error:', error)\n00018|         return NextResponse.redirect(new URL(`/signin?error=${encodeURIComponent(error.message)}`, requestUrl.origin))\n00019|       }\n00020| \n00021|       if (data?.session) {\n00022|         console.log('Auth callback successful for user:', data.user?.email)\n00023|         // Redirect to dashboard or specified next URL\n00024|         return NextResponse.redirect(new URL(next, requestUrl.origin))\n00025|       }\n00026|     } catch (err) {\n00027|       console.error('Auth callback exception:', err)\n00028|       return NextResponse.redirect(new URL('/signin?error=callback_failed', requestUrl.origin))\n00029|     }\n00030|   }\n00031| \n00032|   // If no code or session, redirect to signin\n00033|   return NextResponse.redirect(new URL('/signin?error=no_code', requestUrl.origin))\n00034| }\n</file>",
+    "metadata": {
+      "preview": "import { createServerComponentClient } from '@/lib/supabase'\nimport { cookies } from 'next/headers'\nimport { NextResponse } from 'next/server'\n\nexport async function GET(request: Request) {\n  const requestUrl = new URL(request.url)\n  const code = requestUrl.searchParams.get('code')\n  const next = requestUrl.searchParams.get('next') ?? '/dashboard'\n\n  if (code) {\n    const supabase = createServerComponentClient({ cookies })\n    \n    try {\n      const { data, error } = await supabase.auth.exchangeCodeForSession(code)\n      \n      if (error) {\n        console.error('Auth callback error:', error)\n        return NextResponse.redirect(new URL(`/signin?error=${encodeURIComponent(error.message)}`, requestUrl.origin))\n      }\n"
+    },
+    "title": "app/auth/callback/route.ts",
+    "time": {
+      "start": 1758590055967,
+      "end": 1758590055986
+    }
+  }
+}

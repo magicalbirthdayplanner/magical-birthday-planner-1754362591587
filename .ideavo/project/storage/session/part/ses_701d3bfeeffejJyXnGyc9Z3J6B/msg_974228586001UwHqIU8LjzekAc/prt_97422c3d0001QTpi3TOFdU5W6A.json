@@ -1,0 +1,25 @@
+{
+  "id": "prt_97422c3d0001QTpi3TOFdU5W6A",
+  "messageID": "msg_974228586001UwHqIU8LjzekAc",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01AyZTLXnC5zkeY1DwwaeMbR",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/app/signup/page.tsx",
+      "offset": 0,
+      "limit": 50
+    },
+    "output": "<file>\n00001| import SignUp from '@/components/auth/SignUp'\n00002| \n00003| export default function SignUpPage() {\n00004|   return <SignUp />\n00005| }\n</file>",
+    "metadata": {
+      "preview": "import SignUp from '@/components/auth/SignUp'\n\nexport default function SignUpPage() {\n  return <SignUp />\n}"
+    },
+    "title": "app/signup/page.tsx",
+    "time": {
+      "start": 1758590060166,
+      "end": 1758590060168
+    }
+  }
+}

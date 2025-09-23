@@ -1,0 +1,25 @@
+{
+  "id": "prt_97422ff000011G3ekZIrnUiCv9",
+  "messageID": "msg_974228586001UwHqIU8LjzekAc",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_019otNAeumUf3dTZHHWZGP1i",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/AuthContext.tsx",
+      "offset": 190,
+      "limit": 20
+    },
+    "output": "<file>\n00191|     }\n00192|   }\n00193| \n00194|   const signInWithGoogle = async () => {\n00195|     const { data, error } = await supabase.auth.signInWithOAuth({\n00196|       provider: 'google',\n00197|       options: {\n00198|         redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'}/auth/callback?next=/dashboard`\n00199|       }\n00200|     })\n00201|     return { error }\n00202|   }\n00203| \n00204| \n00205| \n00206|   const signOut = async () => {\n00207|     if (isSigningOut) return { error: new Error('Signout already in progress') }\n00208|     \n00209|     try {\n00210|       setIsSigningOut(true)\n\n(File has more lines. Use 'offset' parameter to read beyond line 210)\n</file>",
+    "metadata": {
+      "preview": "    }\n  }\n\n  const signInWithGoogle = async () => {\n    const { data, error } = await supabase.auth.signInWithOAuth({\n      provider: 'google',\n      options: {\n        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'}/auth/callback?next=/dashboard`\n      }\n    })\n    return { error }\n  }\n\n\n\n  const signOut = async () => {\n    if (isSigningOut) return { error: new Error('Signout already in progress') }\n    \n    try {\n      setIsSigningOut(true)"
+    },
+    "title": "contexts/AuthContext.tsx",
+    "time": {
+      "start": 1758590074847,
+      "end": 1758590074850
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "prt_97422af2c001EMEaZiiDlvkowZ",
+  "messageID": "msg_974228586001UwHqIU8LjzekAc",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "This is a Google OAuth error during signup. Let me check the authentication configuration and API routes to diagnose the issue.",
+  "time": {
+    "start": 1758590055250,
+    "end": 1758590055250
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "prt_9742432e0001LwT6AkZOh5F3cn",
+  "messageID": "msg_974228586001UwHqIU8LjzekAc",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01TtsPdsHTmSfTCseB5gQ7g5",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/AuthContext.tsx",
+      "oldString": "  const signInWithGoogle = async () => {\n    const { data, error } = await supabase.auth.signInWithOAuth({\n      provider: 'google',\n      options: {\n        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'}/auth/callback?next=/dashboard`\n      }\n    })\n    return { error }\n  }",
+      "newString": "  const signInWithGoogle = async () => {\n    // Get the current domain for redirect\n    const baseUrl = typeof window !== 'undefined' \n      ? `${window.location.protocol}//${window.location.host}`\n      : process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'\n    \n    const { data, error } = await supabase.auth.signInWithOAuth({\n      provider: 'google',\n      options: {\n        redirectTo: `${baseUrl}/auth/callback?next=/dashboard`\n      }\n    })\n    return { error }\n  }"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/contexts/AuthContext.tsx\n===================================================================\n--- /home/user/project/contexts/AuthContext.tsx\n+++ /home/user/project/contexts/AuthContext.tsx\n@@ -191,12 +191,17 @@\n   }\n }\n \n const signInWithGoogle = async () => {\n+  // Get the current domain for redirect\n+  const baseUrl = typeof window !== 'undefined' \n+    ? `${window.location.protocol}//${window.location.host}`\n+    : process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'\n+  \n   const { data, error } = await supabase.auth.signInWithOAuth({\n     provider: 'google',\n     options: {\n-      redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'}/auth/callback?next=/dashboard`\n+      redirectTo: `${baseUrl}/auth/callback?next=/dashboard`\n     }\n   })\n   return { error }\n }\n"
+    },
+    "title": "contexts/AuthContext.tsx",
+    "time": {
+      "start": 1758590157779,
+      "end": 1758590157795
+    }
+  }
+}

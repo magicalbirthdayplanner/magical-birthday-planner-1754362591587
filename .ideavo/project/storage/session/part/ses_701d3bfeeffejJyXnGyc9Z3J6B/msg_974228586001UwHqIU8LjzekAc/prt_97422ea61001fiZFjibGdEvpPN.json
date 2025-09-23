@@ -1,0 +1,11 @@
+{
+  "id": "prt_97422ea61001fiZFjibGdEvpPN",
+  "messageID": "msg_974228586001UwHqIU8LjzekAc",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "Now let me check the AuthContext to see how `signInWithGoogle` is implemented:",
+  "time": {
+    "start": 1758590070086,
+    "end": 1758590070086
+  }
+}

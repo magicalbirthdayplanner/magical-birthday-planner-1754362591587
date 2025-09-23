@@ -1,0 +1,18 @@
+{
+  "id": "prt_97424b8c9001nnsxvfRGmIRVlc",
+  "messageID": "msg_974228586001UwHqIU8LjzekAc",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01NhFpGzRtcDKoBsNrY8ugyn",
+  "state": {
+    "status": "running",
+    "input": {
+      "command": "git add . && git commit -m \"fix: improve Google OAuth authentication flow\n\n- Add dynamic base URL detection for OAuth redirects\n- Improve error handling in auth callback with detailed logging\n- Add automatic profile creation/update for OAuth users\n- Handle OAuth provider errors properly\n- Add debugging for OAuth flow troubleshooting\"",
+      "description": "Commit OAuth improvements"
+    },
+    "time": {
+      "start": 1758590189820
+    }
+  }
+}
