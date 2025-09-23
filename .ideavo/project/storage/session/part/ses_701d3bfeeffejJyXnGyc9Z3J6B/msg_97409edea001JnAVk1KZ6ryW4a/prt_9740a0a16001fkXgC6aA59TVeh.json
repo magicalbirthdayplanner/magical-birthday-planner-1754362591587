@@ -1,0 +1,11 @@
+{
+  "id": "prt_9740a0a16001fkXgC6aA59TVeh",
+  "messageID": "msg_97409edea001JnAVk1KZ6ryW4a",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "The issue is in the `SubscriptionContext.tsx` file where `localStorage` is being accessed during server-side rendering. I need to wrap all `localStorage` calls with proper client-side checks.",
+  "time": {
+    "start": 1758588440785,
+    "end": 1758588440785
+  }
+}

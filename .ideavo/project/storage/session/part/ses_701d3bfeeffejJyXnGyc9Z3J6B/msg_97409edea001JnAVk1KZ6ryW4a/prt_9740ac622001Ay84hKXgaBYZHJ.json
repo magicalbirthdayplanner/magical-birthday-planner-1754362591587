@@ -1,0 +1,26 @@
+{
+  "id": "prt_9740ac622001Ay84hKXgaBYZHJ",
+  "messageID": "msg_97409edea001JnAVk1KZ6ryW4a",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01D7sMQeW2koj5vnZu6v6f5u",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "oldString": "  const hasActiveSubscription = (): boolean => {\n    // Check if user has purchased any plan\n    // This should be set to 'true' after successful payment\n    const hasPurchasedPlan = localStorage.getItem('hasPurchasedPlan') === 'true';\n    \n    // Also check for any subscription indicator in user data or localStorage\n    const userPlanPurchased = localStorage.getItem('userPlanPurchased');\n    const hasValidSubscription = localStorage.getItem('hasValidSubscription') === 'true';",
+      "newString": "  const hasActiveSubscription = (): boolean => {\n    // Check if user has purchased any plan (client-side only)\n    const hasPurchasedPlan = typeof window !== 'undefined' ? localStorage.getItem('hasPurchasedPlan') === 'true' : false;\n    \n    // Also check for any subscription indicator in user data or localStorage\n    const userPlanPurchased = typeof window !== 'undefined' ? localStorage.getItem('userPlanPurchased') : null;\n    const hasValidSubscription = typeof window !== 'undefined' ? localStorage.getItem('hasValidSubscription') === 'true' : false;"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/contexts/SubscriptionContext.tsx\n===================================================================\n--- /home/user/project/contexts/SubscriptionContext.tsx\n+++ /home/user/project/contexts/SubscriptionContext.tsx\n@@ -271,15 +271,14 @@\n   }\n };\n \n const hasActiveSubscription = (): boolean => {\n-  // Check if user has purchased any plan\n-  // This should be set to 'true' after successful payment\n-  const hasPurchasedPlan = localStorage.getItem('hasPurchasedPlan') === 'true';\n+  // Check if user has purchased any plan (client-side only)\n+  const hasPurchasedPlan = typeof window !== 'undefined' ? localStorage.getItem('hasPurchasedPlan') === 'true' : false;\n   \n   // Also check for any subscription indicator in user data or localStorage\n-  const userPlanPurchased = localStorage.getItem('userPlanPurchased');\n-  const hasValidSubscription = localStorage.getItem('hasValidSubscription') === 'true';\n+  const userPlanPurchased = typeof window !== 'undefined' ? localStorage.getItem('userPlanPurchased') : null;\n+  const hasValidSubscription = typeof window !== 'undefined' ? localStorage.getItem('hasValidSubscription') === 'true' : false;\n   \n   // Check if user has a non-FREE plan in the database\n   const hasDatabasePlan = currentPlan !== 'FREE';\n   \n"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1758588490127,
+      "end": 1758588490132
+    }
+  }
+}

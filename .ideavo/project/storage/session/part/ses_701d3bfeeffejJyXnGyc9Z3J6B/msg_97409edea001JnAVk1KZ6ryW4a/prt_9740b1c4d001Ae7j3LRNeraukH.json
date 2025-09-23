@@ -1,0 +1,26 @@
+{
+  "id": "prt_9740b1c4d001Ae7j3LRNeraukH",
+  "messageID": "msg_97409edea001JnAVk1KZ6ryW4a",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01LqdN5VRFMWLMAh7y8j9BpP",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "oldString": "      // Update local state and localStorage immediately for instant UI feedback\n      setCurrentPlan(newPlan);\n      localStorage.setItem('userSubscriptionPlan', newPlan);\n      localStorage.setItem('hasPurchasedPlan', 'true');\n      localStorage.setItem('hasValidSubscription', 'true');",
+      "newString": "      // Update local state and localStorage immediately for instant UI feedback\n      setCurrentPlan(newPlan);\n      if (typeof window !== 'undefined') {\n        localStorage.setItem('userSubscriptionPlan', newPlan);\n        localStorage.setItem('hasPurchasedPlan', 'true');\n        localStorage.setItem('hasValidSubscription', 'true');\n      }"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/contexts/SubscriptionContext.tsx\n===================================================================\n--- /home/user/project/contexts/SubscriptionContext.tsx\n+++ /home/user/project/contexts/SubscriptionContext.tsx\n@@ -318,11 +318,13 @@\n setLoading(true);\n \n // Update local state and localStorage immediately for instant UI feedback\n setCurrentPlan(newPlan);\n-localStorage.setItem('userSubscriptionPlan', newPlan);\n-localStorage.setItem('hasPurchasedPlan', 'true');\n-localStorage.setItem('hasValidSubscription', 'true');\n+if (typeof window !== 'undefined') {\n+  localStorage.setItem('userSubscriptionPlan', newPlan);\n+  localStorage.setItem('hasPurchasedPlan', 'true');\n+  localStorage.setItem('hasValidSubscription', 'true');\n+}\n \n // Show success notification immediately\n if (typeof window !== 'undefined' && window.dispatchEvent) {\n   window.dispatchEvent(new CustomEvent('subscription-updated', {\n"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1758588511168,
+      "end": 1758588511174
+    }
+  }
+}

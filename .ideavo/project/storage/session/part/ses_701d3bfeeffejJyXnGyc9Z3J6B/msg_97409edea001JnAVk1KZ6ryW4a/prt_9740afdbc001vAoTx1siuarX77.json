@@ -1,0 +1,26 @@
+{
+  "id": "prt_9740afdbc001vAoTx1siuarX77",
+  "messageID": "msg_97409edea001JnAVk1KZ6ryW4a",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01HDooxffWtgpMKxAK1CsmUg",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "oldString": "      purchaseDate: localStorage.getItem('subscriptionPurchaseDate') || undefined,",
+      "newString": "      purchaseDate: typeof window !== 'undefined' ? localStorage.getItem('subscriptionPurchaseDate') || undefined : undefined,"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/contexts/SubscriptionContext.tsx\n===================================================================\n--- /home/user/project/contexts/SubscriptionContext.tsx\n+++ /home/user/project/contexts/SubscriptionContext.tsx\n@@ -301,9 +301,9 @@\n const isActive = hasActiveSubscription();\n const status = {\n   isActive,\n   planType: currentPlan,\n-  purchaseDate: localStorage.getItem('subscriptionPurchaseDate') || undefined,\n+  purchaseDate: typeof window !== 'undefined' ? localStorage.getItem('subscriptionPurchaseDate') || undefined : undefined,\n   canUpgrade: currentPlan !== 'PRO',\n   canDowngrade: false, // No downgrades allowed\n   nextUpgradePlan: getNextUpgradePlan()\n };\n"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1758588502863,
+      "end": 1758588502867
+    }
+  }
+}

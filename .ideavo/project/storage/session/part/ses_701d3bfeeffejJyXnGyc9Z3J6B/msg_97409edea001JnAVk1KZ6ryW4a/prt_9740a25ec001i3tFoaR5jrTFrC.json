@@ -1,0 +1,26 @@
+{
+  "id": "prt_9740a25ec001i3tFoaR5jrTFrC",
+  "messageID": "msg_97409edea001JnAVk1KZ6ryW4a",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01LjMRoDc4Q2k9uRPXfWVecf",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "oldString": "      // Check if user has purchased a plan\n      const hasPurchased = localStorage.getItem('hasPurchasedPlan') === 'true';\n      const storedPlan = localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan;\n      \n      console.log('🔄 SubscriptionContext: localStorage values:', {\n        hasPurchasedPlan: localStorage.getItem('hasPurchasedPlan'),\n        userSubscriptionPlan: localStorage.getItem('userSubscriptionPlan'),\n        userPlanPurchased: localStorage.getItem('userPlanPurchased'),\n        hasValidSubscription: localStorage.getItem('hasValidSubscription')\n      });",
+      "newString": "      // Check if user has purchased a plan (client-side only)\n      const hasPurchased = typeof window !== 'undefined' ? localStorage.getItem('hasPurchasedPlan') === 'true' : false;\n      const storedPlan = typeof window !== 'undefined' ? localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan : null;\n      \n      if (typeof window !== 'undefined') {\n        console.log('🔄 SubscriptionContext: localStorage values:', {\n          hasPurchasedPlan: localStorage.getItem('hasPurchasedPlan'),\n          userSubscriptionPlan: localStorage.getItem('userSubscriptionPlan'),\n          userPlanPurchased: localStorage.getItem('userPlanPurchased'),\n          hasValidSubscription: localStorage.getItem('hasValidSubscription')\n        });\n      }"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/contexts/SubscriptionContext.tsx\n===================================================================\n--- /home/user/project/contexts/SubscriptionContext.tsx\n+++ /home/user/project/contexts/SubscriptionContext.tsx\n@@ -134,18 +134,20 @@\n useEffect(() => {\n   const initializePlan = async () => {\n     console.log('🔄 SubscriptionContext: Initializing plan...');\n     \n-    // Check if user has purchased a plan\n-    const hasPurchased = localStorage.getItem('hasPurchasedPlan') === 'true';\n-    const storedPlan = localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan;\n+    // Check if user has purchased a plan (client-side only)\n+    const hasPurchased = typeof window !== 'undefined' ? localStorage.getItem('hasPurchasedPlan') === 'true' : false;\n+    const storedPlan = typeof window !== 'undefined' ? localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan : null;\n     \n-    console.log('🔄 SubscriptionContext: localStorage values:', {\n-      hasPurchasedPlan: localStorage.getItem('hasPurchasedPlan'),\n-      userSubscriptionPlan: localStorage.getItem('userSubscriptionPlan'),\n-      userPlanPurchased: localStorage.getItem('userPlanPurchased'),\n-      hasValidSubscription: localStorage.getItem('hasValidSubscription')\n-    });\n+    if (typeof window !== 'undefined') {\n+      console.log('🔄 SubscriptionContext: localStorage values:', {\n+        hasPurchasedPlan: localStorage.getItem('hasPurchasedPlan'),\n+        userSubscriptionPlan: localStorage.getItem('userSubscriptionPlan'),\n+        userPlanPurchased: localStorage.getItem('userPlanPurchased'),\n+        hasValidSubscription: localStorage.getItem('hasValidSubscription')\n+      });\n+    }\n     \n     let initialPlan: SubscriptionPlan = 'FREE';\n     \n     if (hasPurchased && storedPlan && SUBSCRIPTION_PLANS[storedPlan]) {\n"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1758588450041,
+      "end": 1758588450056
+    }
+  }
+}

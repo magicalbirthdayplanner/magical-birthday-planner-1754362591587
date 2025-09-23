@@ -1,0 +1,26 @@
+{
+  "id": "prt_9740a4cec001060E9jCh9TG1ez",
+  "messageID": "msg_97409edea001JnAVk1KZ6ryW4a",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01CVe95cxRkRqGZasMpAub4g",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/contexts/SubscriptionContext.tsx",
+      "oldString": "              setCurrentPlan(serverPlan);\n              // Sync localStorage with server\n              localStorage.setItem('userSubscriptionPlan', serverPlan);\n              localStorage.setItem('hasPurchasedPlan', 'true');\n              localStorage.setItem('hasValidSubscription', 'true');",
+      "newString": "              setCurrentPlan(serverPlan);\n              // Sync localStorage with server (client-side only)\n              if (typeof window !== 'undefined') {\n                localStorage.setItem('userSubscriptionPlan', serverPlan);\n                localStorage.setItem('hasPurchasedPlan', 'true');\n                localStorage.setItem('hasValidSubscription', 'true');\n              }"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/contexts/SubscriptionContext.tsx\n===================================================================\n--- /home/user/project/contexts/SubscriptionContext.tsx\n+++ /home/user/project/contexts/SubscriptionContext.tsx\n@@ -176,12 +176,14 @@\n   \n   if (SUBSCRIPTION_PLANS[serverPlan]) {\n     console.log('🔄 SubscriptionContext: Setting plan to:', serverPlan);\n     setCurrentPlan(serverPlan);\n-    // Sync localStorage with server\n-    localStorage.setItem('userSubscriptionPlan', serverPlan);\n-    localStorage.setItem('hasPurchasedPlan', 'true');\n-    localStorage.setItem('hasValidSubscription', 'true');\n+    // Sync localStorage with server (client-side only)\n+    if (typeof window !== 'undefined') {\n+      localStorage.setItem('userSubscriptionPlan', serverPlan);\n+      localStorage.setItem('hasPurchasedPlan', 'true');\n+      localStorage.setItem('hasValidSubscription', 'true');\n+    }\n   } else {\n     console.log('🔄 SubscriptionContext: Invalid plan, not setting');\n   }\n } else {\n"
+    },
+    "title": "contexts/SubscriptionContext.tsx",
+    "time": {
+      "start": 1758588458227,
+      "end": 1758588458232
+    }
+  }
+}

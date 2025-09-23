@@ -1,0 +1,11 @@
+{
+  "id": "prt_9740a222e001UEohWyyLkfNWig",
+  "messageID": "msg_97409edea001JnAVk1KZ6ryW4a",
+  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B",
+  "type": "text",
+  "text": "I need to wrap all `localStorage` operations with `typeof window !== 'undefined'` checks to prevent SSR errors. Let me fix the SubscriptionContext:",
+  "time": {
+    "start": 1758588446187,
+    "end": 1758588446187
+  }
+}
