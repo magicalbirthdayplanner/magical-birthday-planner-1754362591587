@@ -7,16 +7,17 @@
     "root": "/home/user/project"
   },
   "tokens": {
-    "input": 1,
-    "output": 1210,
+    "input": 0,
+    "output": 446,
     "reasoning": 0,
     "cache": {
-      "write": 558,
-      "read": 99990
+      "write": 130,
+      "read": 106188
     }
   },
   "time": {
-    "created": 1758590043526
+    "created": 1758590043526,
+    "completed": 1758590207904
   },
   "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B"
 }
