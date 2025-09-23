@@ -10,14 +10,24 @@ export async function GET() {
     const cookieStore = cookies()
     const supabase = createServerComponentClient({ cookies: () => cookieStore })
     
-    // Get the base URL that will be used for OAuth
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'
+    // Get the base URL that will be used for OAuth - ensure proper formatting
+    const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com').replace(/\/$/, '')
     const redirectTo = `${baseUrl}/auth/callback`
+    
+    // Validate the URL format
+    let urlValidation
+    try {
+      new URL(redirectTo)
+      urlValidation = 'Valid URL format'
+    } catch (e) {
+      urlValidation = `Invalid URL format: ${e instanceof Error ? e.message : 'Unknown error'}`
+    }
     
     return NextResponse.json({
       timestamp: new Date().toISOString(),
       oauth_config: {
         expected_redirect_url: redirectTo,
+        url_validation: urlValidation,
         base_url: baseUrl,
         supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL,
         node_env: process.env.NODE_ENV

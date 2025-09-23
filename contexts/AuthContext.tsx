@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'}/auth/callback`,
+          emailRedirectTo: `${(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com').replace(/\/$/, '')}/auth/callback`,
           data: {
             display_name: displayName,
           },
@@ -193,16 +193,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      // Get the current domain for redirect
+      // Get the current domain for redirect - ensure proper URL formatting
       const baseUrl = typeof window !== 'undefined' 
         ? `${window.location.protocol}//${window.location.host}`
         : process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'
       
-      // Don't specify a next parameter - let the callback route handle new user detection
-      const redirectTo = `${baseUrl}/auth/callback`
+      // Ensure baseUrl doesn't end with slash and construct proper callback URL
+      const cleanBaseUrl = baseUrl.replace(/\/$/, '')
+      const redirectTo = `${cleanBaseUrl}/auth/callback`
+      
+      // Validate the redirect URL format
+      try {
+        new URL(redirectTo)
+      } catch (urlError) {
+        console.error('❌ Invalid redirect URL format:', redirectTo)
+        throw new Error('Invalid redirect URL format')
+      }
+      
       console.log('🔐 Google OAuth Configuration:')
       console.log('- Current window location:', typeof window !== 'undefined' ? window.location.href : 'SSR')
       console.log('- Base URL:', baseUrl)
+      console.log('- Clean Base URL:', cleanBaseUrl)
       console.log('- Redirect URL:', redirectTo)
       console.log('- Environment NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL)
       console.log('- Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
@@ -219,12 +230,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             access_type: 'offline',
             prompt: 'consent',
             state: oauthState
-          }
+          },
+          scopes: 'openid email profile'
         }
       })
       
       if (error) {
         console.error('❌ Google OAuth error:', error)
+        if (error.message && error.message.includes('site url is improperly formatted')) {
+          console.error('Site URL formatting error - this usually means:')
+          console.error('1. Redirect URL contains invalid characters')
+          console.error('2. Base URL environment variable is malformed')
+          console.error('3. Supabase site URL configuration issue')
+          console.error('Current redirect URL:', redirectTo)
+        }
       } else {
         console.log('✅ Google OAuth initiated successfully', data)
       }
