@@ -16,8 +16,10 @@ export async function GET() {
       environment_check: {
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
         NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+        NEXT_PUBLIC_BASE_URL_TRIMMED: (process.env.NEXT_PUBLIC_BASE_URL || '').trim(),
         expected_app_callback: 'https://www.magicalbirthdayplanner.com/auth/callback',
-        actual_supabase_callback: 'https://hgczncztmdqtfhqimfar.supabase.co/auth/v1/callback'
+        actual_supabase_callback: 'https://hgczncztmdqtfhqimfar.supabase.co/auth/v1/callback',
+        detected_issue: process.env.NEXT_PUBLIC_BASE_URL?.includes('\n') ? 'NEWLINE CHARACTER DETECTED' : 'No obvious formatting issues'
       },
       fix_required: {
         step1: 'Go to Supabase Dashboard → Authentication → Providers → Google',

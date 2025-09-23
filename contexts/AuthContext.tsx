@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
-          emailRedirectTo: `${(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com').replace(/\/$/, '')}/auth/callback`,
+          emailRedirectTo: `${(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com').trim().replace(/\/$/, '')}/auth/callback`,
           data: {
             display_name: displayName,
           },
@@ -196,10 +196,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Get the current domain for redirect - ensure proper URL formatting
       const baseUrl = typeof window !== 'undefined' 
         ? `${window.location.protocol}//${window.location.host}`
-        : process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'
+        : (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com').trim()
       
       // Ensure baseUrl doesn't end with slash and construct proper callback URL
-      const cleanBaseUrl = baseUrl.replace(/\/$/, '')
+      const cleanBaseUrl = baseUrl.replace(/\/$/, '').trim()
       const redirectTo = `${cleanBaseUrl}/auth/callback`
       
       // Validate the redirect URL format

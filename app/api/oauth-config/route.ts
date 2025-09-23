@@ -11,7 +11,7 @@ export async function GET() {
     const supabase = createServerComponentClient({ cookies: () => cookieStore })
     
     // Get the base URL that will be used for OAuth - ensure proper formatting
-    const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com').replace(/\/$/, '')
+    const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com').trim().replace(/\/$/, '')
     const redirectTo = `${baseUrl}/auth/callback`
     
     // Validate the URL format
