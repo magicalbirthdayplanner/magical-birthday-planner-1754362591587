@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server'
 
-// Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
     return NextResponse.json({
-      status: 'healthy',
-      timestamp: new Date().toISOString()
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      message: 'Basic API endpoint working'
     })
   } catch (error) {
     return NextResponse.json({
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Basic endpoint failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }
