@@ -36,12 +36,7 @@ export default function ConfettiSplash({
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       {showConfetti && (
-        <ConfettiCanvas
-          colors={['#FFD700', '#FF69B4', '#00BFFF', '#32CD32', '#9370DB', '#FF4500', '#FF1493', '#00CED1']}
-          duration={3000}
-          paperCount={100}
-          ribbonCount={20}
-        />
+        <ConfettiCanvas />
       )}
     </div>
   );

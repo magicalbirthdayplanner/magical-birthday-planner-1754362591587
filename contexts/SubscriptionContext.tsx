@@ -88,7 +88,21 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
     ],
     allowedTabs: ['overview', 'themes', 'guests', 'timeline', 'checklist', 'activities', 'host-mode', 'vendor-suggestions', 'venue', 'food']
   },
-  // PROFESSIONAL is mapped to PRO, so we don't need a separate entry
+  PROFESSIONAL: {
+    name: 'PROFESSIONAL',
+    displayName: 'Professional',
+    description: 'Complete party planning ecosystem with vendor recommendations.',
+    price: '$29.99',
+    features: [
+      'Everything in Plus',
+      'Vendor recommendations & suggestions',
+      'Venue selection assistance',
+      'Food & catering recommendations',
+      'Complete party planning ecosystem',
+      'Priority support',
+    ],
+    allowedTabs: ['overview', 'themes', 'guests', 'timeline', 'checklist', 'activities', 'host-mode', 'vendor-suggestions', 'venue', 'food']
+  }
 };
 
 interface SubscriptionContextType {
