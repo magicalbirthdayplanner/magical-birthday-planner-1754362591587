@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
 import { Loader2, Mail, Lock } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
@@ -17,6 +17,28 @@ export default function SignIn() {
   const [error, setError] = useState('')
   const { signIn, signInWithGoogle } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Check for OAuth errors in URL parameters
+  useEffect(() => {
+    const urlError = searchParams.get('error')
+    if (urlError) {
+      const errorMessages: { [key: string]: string } = {
+        'no_code': 'OAuth authorization failed - no code received',
+        'no_session': 'Authentication failed - session could not be established',
+        'callback_failed': 'Authentication callback failed',
+        'session_failed': 'Session establishment failed after OAuth',
+        'access_denied': 'Google OAuth access was denied',
+        'invalid_request': 'Invalid OAuth request',
+      }
+      setError(errorMessages[urlError] || `Authentication error: ${decodeURIComponent(urlError)}`)
+      
+      // Clear the error from URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete('error')
+      window.history.replaceState({}, '', newUrl.toString())
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -10,48 +10,64 @@ export async function GET(request: Request) {
   const next = requestUrl.searchParams.get('next') ?? '/dashboard'
   let isNewUser = false
 
-  console.log('Auth callback received:', { 
+  console.log('🔄 Auth callback received:', { 
     code: code ? 'present' : 'missing', 
     error_code, 
     error_description,
     next,
-    origin: requestUrl.origin
+    origin: requestUrl.origin,
+    userAgent: request.headers.get('user-agent'),
+    referer: request.headers.get('referer')
   })
 
   // Handle OAuth errors from provider
   if (error_code) {
-    console.error('OAuth provider error:', { error_code, error_description })
+    console.error('❌ OAuth provider error:', { error_code, error_description })
     return NextResponse.redirect(new URL(`/signin?error=${encodeURIComponent(error_description || error_code)}`, requestUrl.origin))
   }
 
   if (code) {
-    const supabase = createServerComponentClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient({ cookies: () => cookieStore })
     
     try {
-      console.log('Exchanging code for session...')
+      console.log('🔄 Exchanging code for session...')
       const { data, error } = await supabase.auth.exchangeCodeForSession(code)
       
       if (error) {
-        console.error('Auth callback error:', error)
+        console.error('❌ Auth callback error:', error.message, error)
         return NextResponse.redirect(new URL(`/signin?error=${encodeURIComponent(error.message)}`, requestUrl.origin))
       }
 
-      if (data?.session) {
-        console.log('Auth callback successful for user:', data.user?.email)
+      if (data?.session && data?.user) {
+        console.log('✅ Auth callback successful for user:', data.user.email)
+        console.log('Session expires at:', data.session.expires_at)
+        
+        // Verify session is properly set
+        const { data: sessionCheck } = await supabase.auth.getSession()
+        if (!sessionCheck.session) {
+          console.error('❌ Session not properly established after OAuth')
+          return NextResponse.redirect(new URL('/signin?error=session_failed', requestUrl.origin))
+        }
         
         // Ensure user profile exists and check if user is new
         if (data.user) {
           try {
             // Check if profile already exists
-            const { data: existingProfile } = await supabase
+            const { data: existingProfile, error: profileCheckError } = await supabase
               .from('profiles')
               .select('id, created_at')
               .eq('id', data.user.id)
               .single()
             
-            if (!existingProfile) {
+            if (profileCheckError && profileCheckError.code === 'PGRST116') {
+              // Profile doesn't exist - new user
               isNewUser = true
-              console.log('New user detected, will redirect to party creation wizard')
+              console.log('👤 New user detected, will redirect to party creation wizard')
+            } else if (profileCheckError) {
+              console.warn('⚠️ Error checking profile:', profileCheckError)
+            } else {
+              console.log('👤 Existing user found')
             }
             
             // Create or update profile
@@ -66,50 +82,56 @@ export async function GET(request: Request) {
               })
             
             if (profileError) {
-              console.warn('Profile upsert error (non-blocking):', profileError)
+              console.warn('⚠️ Profile upsert error (non-blocking):', profileError)
             } else {
-              console.log('Profile created/updated successfully')
+              console.log('✅ Profile created/updated successfully')
             }
           } catch (profileErr) {
-            console.warn('Profile creation failed (non-blocking):', profileErr)
+            console.warn('⚠️ Profile creation failed (non-blocking):', profileErr)
           }
           
           // For new users, always redirect to party creation wizard
           if (isNewUser) {
-            console.log('Redirecting new user to party creation wizard')
-            return NextResponse.redirect(new URL('/create-party', requestUrl.origin))
+            console.log('🎉 Redirecting new user to party creation wizard')
+            const redirectResponse = NextResponse.redirect(new URL('/create-party', requestUrl.origin))
+            return redirectResponse
           }
           
           // For existing users, check if they have parties
           try {
-            const { data: userParties } = await supabase
+            const { data: userParties, error: partiesError } = await supabase
               .from('parties')
               .select('id')
               .eq('user_id', data.user.id)
               .limit(1)
             
-            if (!userParties || userParties.length === 0) {
-              console.log('Existing user with no parties, redirecting to wizard')
+            if (partiesError) {
+              console.warn('⚠️ Error checking user parties:', partiesError)
+            } else if (!userParties || userParties.length === 0) {
+              console.log('🎉 Existing user with no parties, redirecting to wizard')
               return NextResponse.redirect(new URL('/create-party', requestUrl.origin))
+            } else {
+              console.log('📊 User has existing parties, redirecting to dashboard')
             }
           } catch (partiesErr) {
-            console.warn('Failed to check user parties, proceeding with normal redirect:', partiesErr)
+            console.warn('⚠️ Failed to check user parties, proceeding with normal redirect:', partiesErr)
           }
         }
         
         // Redirect to dashboard or specified next URL
+        console.log('🏠 Redirecting to:', next)
         return NextResponse.redirect(new URL(next, requestUrl.origin))
       } else {
-        console.error('No session received after code exchange')
+        console.error('❌ No session or user received after code exchange')
         return NextResponse.redirect(new URL('/signin?error=no_session', requestUrl.origin))
       }
     } catch (err) {
-      console.error('Auth callback exception:', err)
+      console.error('❌ Auth callback exception:', err)
       return NextResponse.redirect(new URL('/signin?error=callback_failed', requestUrl.origin))
     }
   }
 
   // If no code or session, redirect to signin
-  console.error('No authorization code received')
+  console.error('❌ No authorization code received')
   return NextResponse.redirect(new URL('/signin?error=no_code', requestUrl.origin))
 }
