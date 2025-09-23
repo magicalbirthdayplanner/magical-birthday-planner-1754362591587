@@ -34,8 +34,26 @@ export default function SignIn() {
     if (error) {
       setError(error.message)
     } else {
-      // Success - redirect to dashboard
-      router.push('/dashboard')
+      // Check if user has existing parties to determine redirect
+      try {
+        const response = await fetch('/api/user/parties')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.parties && data.parties.length === 0) {
+            // New user with no parties - redirect to wizard
+            router.push('/create-party')
+          } else {
+            // Existing user with parties - redirect to dashboard
+            router.push('/dashboard')
+          }
+        } else {
+          // Fallback to dashboard if API call fails
+          router.push('/dashboard')
+        }
+      } catch (err) {
+        console.warn('Failed to check user parties, defaulting to dashboard')
+        router.push('/dashboard')
+      }
     }
     
     setLoading(false)
@@ -49,9 +67,10 @@ export default function SignIn() {
 
     if (result.error) {
       setError(result.error.message)
+      setSocialLoading('')
     }
-    // Note: OAuth redirects happen automatically on success
-    setSocialLoading('')
+    // Note: OAuth redirects happen automatically on success via callback route
+    // The callback route handles new user detection and proper redirection
   }
 
   return (

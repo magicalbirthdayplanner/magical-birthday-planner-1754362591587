@@ -35,8 +35,8 @@ export default function SignUp() {
     if (error) {
       setError(error.message)
     } else {
-      // Success - user will be automatically signed in
-      router.push('/dashboard')
+      // Success - new users should go to party creation wizard
+      router.push('/create-party')
     }
     
     setLoading(false)

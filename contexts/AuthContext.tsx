@@ -198,7 +198,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ? `${window.location.protocol}//${window.location.host}`
         : process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com'
       
-      const redirectTo = `${baseUrl}/auth/callback?next=/dashboard`
+      // Don't specify a next parameter - let the callback route handle new user detection
+      const redirectTo = `${baseUrl}/auth/callback`
       console.log('Google OAuth redirect URL:', redirectTo)
       
       const { data, error } = await supabase.auth.signInWithOAuth({

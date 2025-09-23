@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   const error_code = requestUrl.searchParams.get('error')
   const error_description = requestUrl.searchParams.get('error_description')
   const next = requestUrl.searchParams.get('next') ?? '/dashboard'
+  let isNewUser = false
 
   console.log('Auth callback received:', { 
     code: code ? 'present' : 'missing', 
@@ -38,9 +39,22 @@ export async function GET(request: Request) {
       if (data?.session) {
         console.log('Auth callback successful for user:', data.user?.email)
         
-        // Ensure user profile exists
+        // Ensure user profile exists and check if user is new
         if (data.user) {
           try {
+            // Check if profile already exists
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id, created_at')
+              .eq('id', data.user.id)
+              .single()
+            
+            if (!existingProfile) {
+              isNewUser = true
+              console.log('New user detected, will redirect to party creation wizard')
+            }
+            
+            // Create or update profile
             const { error: profileError } = await supabase
               .from('profiles')
               .upsert({
@@ -58,6 +72,28 @@ export async function GET(request: Request) {
             }
           } catch (profileErr) {
             console.warn('Profile creation failed (non-blocking):', profileErr)
+          }
+          
+          // For new users, always redirect to party creation wizard
+          if (isNewUser) {
+            console.log('Redirecting new user to party creation wizard')
+            return NextResponse.redirect(new URL('/create-party', requestUrl.origin))
+          }
+          
+          // For existing users, check if they have parties
+          try {
+            const { data: userParties } = await supabase
+              .from('parties')
+              .select('id')
+              .eq('user_id', data.user.id)
+              .limit(1)
+            
+            if (!userParties || userParties.length === 0) {
+              console.log('Existing user with no parties, redirecting to wizard')
+              return NextResponse.redirect(new URL('/create-party', requestUrl.origin))
+            }
+          } catch (partiesErr) {
+            console.warn('Failed to check user parties, proceeding with normal redirect:', partiesErr)
           }
         }
         
