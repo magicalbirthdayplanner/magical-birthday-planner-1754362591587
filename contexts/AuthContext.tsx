@@ -205,6 +205,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('- Base URL:', baseUrl)
       console.log('- Redirect URL:', redirectTo)
       console.log('- Environment NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL)
+      console.log('- Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      
+      // Add a unique state parameter to track this specific OAuth attempt
+      const oauthState = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      console.log('- OAuth State:', oauthState)
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -213,6 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
+            state: oauthState
           }
         }
       })

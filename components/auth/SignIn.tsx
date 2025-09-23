@@ -24,7 +24,7 @@ export default function SignIn() {
     const urlError = searchParams.get('error')
     if (urlError) {
       const errorMessages: { [key: string]: string } = {
-        'no_code': 'OAuth authorization failed - no code received',
+        'no_code': 'Google OAuth failed - this usually means the redirect URL is not configured correctly in your Google Console or Supabase settings',
         'no_session': 'Authentication failed - session could not be established',
         'callback_failed': 'Authentication callback failed',
         'session_failed': 'Session establishment failed after OAuth',

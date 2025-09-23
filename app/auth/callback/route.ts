@@ -7,6 +7,7 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code')
   const error_code = requestUrl.searchParams.get('error')
   const error_description = requestUrl.searchParams.get('error_description')
+  const state = requestUrl.searchParams.get('state')
   const next = requestUrl.searchParams.get('next') ?? '/dashboard'
   let isNewUser = false
 
@@ -14,10 +15,13 @@ export async function GET(request: Request) {
     code: code ? 'present' : 'missing', 
     error_code, 
     error_description,
+    state,
     next,
     origin: requestUrl.origin,
+    fullUrl: requestUrl.toString(),
     userAgent: request.headers.get('user-agent'),
-    referer: request.headers.get('referer')
+    referer: request.headers.get('referer'),
+    allParams: Object.fromEntries(requestUrl.searchParams.entries())
   })
 
   // Handle OAuth errors from provider
@@ -133,5 +137,10 @@ export async function GET(request: Request) {
 
   // If no code or session, redirect to signin
   console.error('❌ No authorization code received')
+  console.error('This usually means:')
+  console.error('1. Google OAuth redirect URL is not configured properly')
+  console.error('2. User cancelled the OAuth flow')
+  console.error('3. OAuth provider (Supabase) configuration issue')
+  console.error('Expected redirect URL should be: https://www.magicalbirthdayplanner.com/auth/callback')
   return NextResponse.redirect(new URL('/signin?error=no_code', requestUrl.origin))
 }
