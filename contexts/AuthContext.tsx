@@ -200,22 +200,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Don't specify a next parameter - let the callback route handle new user detection
       const redirectTo = `${baseUrl}/auth/callback`
-      console.log('Google OAuth redirect URL:', redirectTo)
+      console.log('🔐 Google OAuth Configuration:')
+      console.log('- Current window location:', typeof window !== 'undefined' ? window.location.href : 'SSR')
+      console.log('- Base URL:', baseUrl)
+      console.log('- Redirect URL:', redirectTo)
+      console.log('- Environment NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL)
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       })
       
       if (error) {
-        console.error('Google OAuth error:', error)
+        console.error('❌ Google OAuth error:', error)
+      } else {
+        console.log('✅ Google OAuth initiated successfully', data)
       }
       
       return { error }
     } catch (err) {
-      console.error('Google OAuth exception:', err)
+      console.error('❌ Google OAuth exception:', err)
       return { error: err }
     }
   }
