@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 
+// Force dynamic rendering for this API route since it uses cookies
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const cookieStore = cookies()
