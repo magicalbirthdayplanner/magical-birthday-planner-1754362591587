@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Loader2, Mail, Lock } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import UsernameSetupModal from './UsernameSetupModal'
+import WelcomeSplashScreen from './WelcomeSplashScreen'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
@@ -16,7 +17,7 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState('')
   const [error, setError] = useState('')
-  const [showUsernameModal, setShowUsernameModal] = useState(false)
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false)
   const { user, signIn, signInWithGoogle } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -43,9 +44,9 @@ export default function SignIn() {
       window.history.replaceState({}, '', newUrl.toString())
     }
     
-    // Show username setup modal for new users
+    // Show welcome splash screen for new users
     if (isNewUser && user) {
-      setShowUsernameModal(true)
+      setShowWelcomeScreen(true)
       // Clear the new_user parameter from URL
       const newUrl = new URL(window.location.href)
       newUrl.searchParams.delete('new_user')
@@ -62,11 +63,11 @@ export default function SignIn() {
 
   // Redirect authenticated users away from signin page
   useEffect(() => {
-    if (user && !showUsernameModal) {
-      // User is authenticated and not setting up username, redirect to dashboard
+    if (user && !showWelcomeScreen) {
+      // User is authenticated and not showing welcome screen, redirect to dashboard
       router.push('/dashboard')
     }
-  }, [user, showUsernameModal, router])
+  }, [user, showWelcomeScreen, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -229,10 +230,10 @@ export default function SignIn() {
         </CardContent>
       </Card>
       
-      {/* Username Setup Modal */}
-      <UsernameSetupModal 
-        isOpen={showUsernameModal} 
-        onClose={() => setShowUsernameModal(false)} 
+      {/* Welcome Splash Screen */}
+      <WelcomeSplashScreen 
+        isOpen={showWelcomeScreen} 
+        onClose={() => setShowWelcomeScreen(false)} 
       />
     </div>
   )
