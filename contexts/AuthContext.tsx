@@ -221,18 +221,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('⚠️ Expected: https://www.magicalbirthdayplanner.com/auth/callback')
       console.log('⚠️ NOT: https://hgczncztmdqtfhqimfar.supabase.co/auth/v1/callback')
       
-      // Add a unique state parameter to track this specific OAuth attempt
-      const oauthState = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      console.log('- OAuth State:', oauthState)
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo,
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent',
-            state: oauthState
+            prompt: 'consent'
           },
           scopes: 'openid email profile'
         }
