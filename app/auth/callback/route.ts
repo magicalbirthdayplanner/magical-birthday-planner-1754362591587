@@ -57,9 +57,9 @@ export async function GET(request: Request) {
         // Ensure user profile exists and check if user is new
         if (data.user) {
           try {
-            // Check if profile already exists
+            // Check if profile already exists in users table
             const { data: existingProfile, error: profileCheckError } = await supabase
-              .from('profiles')
+              .from('users')
               .select('id, created_at')
               .eq('id', data.user.id)
               .single()
@@ -74,14 +74,14 @@ export async function GET(request: Request) {
               console.log('👤 Existing user found')
             }
             
-            // Create or update profile
+            // Create or update profile in users table
             const { error: profileError } = await supabase
-              .from('profiles')
+              .from('users')
               .upsert({
                 id: data.user.id,
                 email: data.user.email,
-                name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || '',
-                avatar: data.user.user_metadata?.avatar_url,
+                full_name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || '',
+                avatar_url: data.user.user_metadata?.avatar_url,
                 updated_at: new Date().toISOString()
               })
             

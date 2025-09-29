@@ -46,9 +46,9 @@ export default function WelcomeSplashScreen({ isOpen, onClose }: WelcomeSplashSc
     try {
       // Update the user's profile with the full name
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from('users')
         .update({ 
-          name: fullName.trim(),
+          full_name: fullName.trim(),
           updated_at: new Date().toISOString()
         })
         .eq('id', user?.id)

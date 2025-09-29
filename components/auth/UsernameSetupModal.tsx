@@ -46,9 +46,9 @@ export default function UsernameSetupModal({ isOpen, onClose }: UsernameSetupMod
     try {
       // Update the user's profile with the username
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from('users')
         .update({ 
-          name: username.trim(),
+          full_name: username.trim(),
           updated_at: new Date().toISOString()
         })
         .eq('id', user?.id)
