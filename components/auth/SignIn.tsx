@@ -60,6 +60,14 @@ export default function SignIn() {
     }
   }, [user, error])
 
+  // Redirect authenticated users away from signin page
+  useEffect(() => {
+    if (user && !showUsernameModal) {
+      // User is authenticated and not setting up username, redirect to dashboard
+      router.push('/dashboard')
+    }
+  }, [user, showUsernameModal, router])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)

@@ -100,7 +100,7 @@ export async function GET(request: Request) {
             return NextResponse.redirect(new URL('/signin?new_user=true', requestUrl.origin))
           }
           
-          // For existing users, check if they have parties
+          // For existing users, check if they have parties and redirect accordingly
           try {
             const { data: userParties, error: partiesError } = await supabase
               .from('parties')
@@ -115,9 +115,10 @@ export async function GET(request: Request) {
               return NextResponse.redirect(new URL('/create-party', requestUrl.origin))
             } else {
               console.log('📊 User has existing parties, redirecting to dashboard')
+              return NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
             }
           } catch (partiesErr) {
-            console.warn('⚠️ Failed to check user parties, proceeding with normal redirect:', partiesErr)
+            console.warn('⚠️ Failed to check user parties, proceeding with dashboard redirect:', partiesErr)
           }
         }
         

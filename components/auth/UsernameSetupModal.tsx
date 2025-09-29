@@ -57,9 +57,9 @@ export default function UsernameSetupModal({ isOpen, onClose }: UsernameSetupMod
         throw updateError
       }
 
-      // Close modal and redirect to party creation wizard
+      // Close modal and redirect to dashboard
       onClose()
-      router.push('/create-party')
+      router.push('/dashboard')
     } catch (err) {
       console.error('Error updating username:', err)
       setError('Failed to update username. Please try again.')
@@ -70,7 +70,7 @@ export default function UsernameSetupModal({ isOpen, onClose }: UsernameSetupMod
 
   const handleSkip = () => {
     onClose()
-    router.push('/create-party')
+    router.push('/dashboard')
   }
 
   return (
