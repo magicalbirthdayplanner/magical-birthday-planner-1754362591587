@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext'
 import { Loader2, Mail, Lock } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import UsernameSetupModal from './UsernameSetupModal'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
@@ -15,13 +16,16 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState('')
   const [error, setError] = useState('')
-  const { signIn, signInWithGoogle } = useAuth()
+  const [showUsernameModal, setShowUsernameModal] = useState(false)
+  const { user, signIn, signInWithGoogle } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Check for OAuth errors in URL parameters
+  // Check for OAuth errors in URL parameters and handle new user setup
   useEffect(() => {
     const urlError = searchParams.get('error')
+    const isNewUser = searchParams.get('new_user') === 'true'
+    
     if (urlError) {
       const errorMessages: { [key: string]: string } = {
         'no_code': 'Google OAuth failed - this usually means the redirect URL is not configured correctly in your Google Console or Supabase settings',
@@ -38,7 +42,23 @@ export default function SignIn() {
       newUrl.searchParams.delete('error')
       window.history.replaceState({}, '', newUrl.toString())
     }
-  }, [searchParams])
+    
+    // Show username setup modal for new users
+    if (isNewUser && user) {
+      setShowUsernameModal(true)
+      // Clear the new_user parameter from URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete('new_user')
+      window.history.replaceState({}, '', newUrl.toString())
+    }
+  }, [searchParams, user])
+  
+  // Clear error when user is authenticated
+  useEffect(() => {
+    if (user && error) {
+      setError('')
+    }
+  }, [user, error])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -200,6 +220,12 @@ export default function SignIn() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Username Setup Modal */}
+      <UsernameSetupModal 
+        isOpen={showUsernameModal} 
+        onClose={() => setShowUsernameModal(false)} 
+      />
     </div>
   )
 }

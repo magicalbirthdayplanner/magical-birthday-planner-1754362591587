@@ -94,11 +94,10 @@ export async function GET(request: Request) {
             console.warn('⚠️ Profile creation failed (non-blocking):', profileErr)
           }
           
-          // For new users, always redirect to party creation wizard
+          // For new users, redirect to signin with new_user parameter to trigger username setup
           if (isNewUser) {
-            console.log('🎉 Redirecting new user to party creation wizard')
-            const redirectResponse = NextResponse.redirect(new URL('/create-party', requestUrl.origin))
-            return redirectResponse
+            console.log('🎉 Redirecting new user to signin for username setup')
+            return NextResponse.redirect(new URL('/signin?new_user=true', requestUrl.origin))
           }
           
           // For existing users, check if they have parties
