@@ -73,11 +73,22 @@ export async function GET(request: Request) {
             if (profileCheckError && profileCheckError.code === 'PGRST116') {
               // Profile doesn't exist - new user
               isNewUser = true
-              console.log('👤 New user detected, will redirect to party creation wizard')
+              console.log('👤 New user detected, will show welcome screen')
             } else if (profileCheckError) {
               console.warn('⚠️ Error checking profile:', profileCheckError)
             } else {
-              console.log('👤 Existing user found')
+              console.log('👤 Existing user profile found')
+              // Check if user has parties - if not, still consider them new for welcome screen
+              const { data: userParties, error: partiesCheckError } = await supabase
+                .from('parties')
+                .select('id')
+                .eq('user_id', data.user.id)
+                .limit(1)
+              
+              if (!partiesCheckError && (!userParties || userParties.length === 0)) {
+                isNewUser = true
+                console.log('🎆 User has no parties, treating as new user for welcome screen')
+              }
             }
             
             // Create or update profile in users table - be more aggressive
@@ -135,10 +146,10 @@ export async function GET(request: Request) {
             console.warn('⚠️ Profile creation failed (non-blocking):', profileErr)
           }
           
-          // For new users, redirect to signin with new_user parameter to trigger username setup
+          // For new users, redirect to signin with show_welcome parameter to trigger welcome screen
           if (isNewUser) {
-            console.log('🎉 Redirecting new user to signin for username setup')
-            const response = NextResponse.redirect(new URL('/signin?new_user=true', requestUrl.origin))
+            console.log('🎉 Redirecting new user to signin for welcome screen')
+            const response = NextResponse.redirect(new URL('/signin?show_welcome=true', requestUrl.origin))
             
             // Ensure session cookies are properly set for new users too
             const session = sessionCheck.session || data.session

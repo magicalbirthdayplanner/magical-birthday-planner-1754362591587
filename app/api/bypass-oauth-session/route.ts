@@ -83,12 +83,64 @@ export async function POST(request: Request) {
       }, { status: 500 })
     }
 
+    // Check if this is a new user
+    const userCreatedAt = new Date(targetUser.created_at)
+    const now = new Date()
+    const minutesSinceCreation = (now.getTime() - userCreatedAt.getTime()) / (1000 * 60)
+    const isRecentlyCreated = minutesSinceCreation <= 30
+
+    console.log('🔍 New user analysis for', targetUser.email, {
+      created_at: targetUser.created_at,
+      minutes_since_creation: Math.round(minutesSinceCreation),
+      is_recently_created: isRecentlyCreated
+    })
+
+    // Check if user has parties
+    const { data: userParties } = await supabaseAdmin
+      .from('parties')
+      .select('id')
+      .eq('user_id', targetUser.id)
+      .limit(1)
+
+    const hasParties = userParties && userParties.length > 0
+    
+    // Check if user record exists in users table
+    const { data: userRecord } = await supabaseAdmin
+      .from('users')
+      .select('created_at, full_name')
+      .eq('id', targetUser.id)
+      .single()
+    
+    const hasUserRecord = userRecord && userRecord.full_name
+    
+    // TEMPORARY: Force welcome screen for testing magicalbirthdayplanner@gmail.com
+    let isNewUser = !hasParties // Default logic: no parties = new user
+    if (userEmail === 'magicalbirthdayplanner@gmail.com') {
+      isNewUser = true
+      console.log('🎯 FORCED welcome screen for test user')
+    }
+
+    console.log('🎯 User analysis result:', {
+      has_parties: hasParties,
+      has_user_record: hasUserRecord,
+      user_full_name: userRecord?.full_name,
+      is_new_user: isNewUser,
+      force_welcome: 'TESTING_DEPLOYMENT',
+      redirect_url: isNewUser ? '/signin?show_welcome=true' : '/dashboard'
+    })
+
     // Set session cookies manually
     const response = NextResponse.json({
       success: true,
       message: 'Session created successfully',
       user: sessionExchange.user,
-      redirect_to: '/dashboard'
+      is_new_user: isNewUser,
+      user_analysis: {
+        recently_created: isRecentlyCreated,
+        has_parties: hasParties,
+        minutes_since_creation: Math.round(minutesSinceCreation)
+      },
+      redirect_to: isNewUser ? '/signin?show_welcome=true' : '/dashboard'
     })
 
     // Set the session cookies

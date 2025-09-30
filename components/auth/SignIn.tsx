@@ -25,7 +25,7 @@ export default function SignIn() {
   // Check for OAuth errors in URL parameters and handle new user setup
   useEffect(() => {
     const urlError = searchParams.get('error')
-    const isNewUser = searchParams.get('new_user') === 'true'
+    const showWelcome = searchParams.get('show_welcome') === 'true'
     
     if (urlError) {
       const errorMessages: { [key: string]: string } = {
@@ -45,11 +45,12 @@ export default function SignIn() {
     }
     
     // Show welcome splash screen for new users
-    if (isNewUser && user) {
+    if (showWelcome && user) {
+      console.log('🎉 URL parameter show_welcome=true detected, showing welcome screen')
       setShowWelcomeScreen(true)
-      // Clear the new_user parameter from URL
+      // Clear the show_welcome parameter from URL
       const newUrl = new URL(window.location.href)
-      newUrl.searchParams.delete('new_user')
+      newUrl.searchParams.delete('show_welcome')
       window.history.replaceState({}, '', newUrl.toString())
     }
   }, [searchParams, user])
@@ -64,8 +65,32 @@ export default function SignIn() {
   // Redirect authenticated users away from signin page
   useEffect(() => {
     if (user && !showWelcomeScreen) {
-      // User is authenticated and not showing welcome screen, redirect to dashboard
-      router.push('/dashboard')
+      // Check if this is a new user who should see welcome screen
+      const checkNewUser = async () => {
+        try {
+          console.log('🔍 Checking if user is new...', { user: user.email })
+          const response = await fetch('/api/check-new-user')
+          if (response.ok) {
+            const data = await response.json()
+            console.log('🔍 New user check result:', data)
+            if (data.is_new_user && data.analysis.should_show_welcome) {
+              console.log('🎉 New user detected, showing welcome screen')
+              setShowWelcomeScreen(true)
+              return // Don't redirect to dashboard
+            }
+          } else {
+            console.warn('⚠️ Failed to check new user status:', response.status)
+          }
+        } catch (error) {
+          console.warn('Failed to check new user status:', error)
+        }
+        
+        // User is authenticated and not new user, redirect to dashboard
+        console.log('🚀 Redirecting existing user to dashboard')
+        router.push('/dashboard')
+      }
+      
+      checkNewUser()
     }
   }, [user, showWelcomeScreen, router])
 
