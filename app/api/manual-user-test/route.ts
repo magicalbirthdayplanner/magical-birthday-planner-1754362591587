@@ -8,7 +8,8 @@ export async function POST() {
     const supabase = createServerComponentClient({ cookies: () => cookieStore })
     
     // Try to manually insert a test user to verify database connectivity
-    const testUserId = 'test-user-' + Date.now()
+    // Use a valid UUID format for the test
+    const testUserId = crypto.randomUUID()
     const { data: insertData, error: insertError } = await supabase
       .from('users')
       .insert({
