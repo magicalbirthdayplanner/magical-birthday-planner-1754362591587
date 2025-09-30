@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "db:setup": "node database/simple-db-setup.js",
-    "db:verify": "node database/test-database.js"
+    "db:verify": "node database/test-database.js",
+    "push": "./scripts/auto-push.sh",
+    "push:msg": "./scripts/auto-push.sh",
+    "deploy": "npm run build && ./scripts/auto-push.sh 'Production build'"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.2",

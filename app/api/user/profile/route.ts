@@ -11,16 +11,48 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's profile data from Supabase
-    const { data: dbUser, error: dbError } = await supabase
+    // Get user's profile data from Supabase using ID instead of email for better RLS compatibility
+    let { data: dbUser, error: dbError } = await supabase
       .from('users')
       .select('id, email, name, displayName, currentPlan, emailNotifications, partyReminders, marketingEmails, createdAt')
-      .eq('email', user.email)
+      .eq('id', user.id)
       .single();
 
     if (dbError) {
       console.error('Database error:', dbError);
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      
+      // If user not found, try to create the record for Google OAuth users
+      if (dbError.code === 'PGRST116') {
+        console.log('User record not found, creating new record for Google OAuth user');
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email!,
+            name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+            displayName: user.user_metadata?.display_name || user.user_metadata?.name || '',
+            current_plan: 'FREE',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select('id, email, name, displayName, currentPlan, emailNotifications, partyReminders, marketingEmails, createdAt')
+          .single();
+        
+        if (createError) {
+          console.error('Failed to create user record:', createError);
+          return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+        }
+        
+        // Use the newly created user record
+        dbUser = newUser;
+      } else {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+    }
+
+    // Ensure dbUser is not null before proceeding
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User profile not available' }, { status: 404 });
     }
 
     // Calculate usage statistics
@@ -31,8 +63,8 @@ export async function GET() {
     const { count: partiesThisMonth, error: partiesError } = await supabase
       .from('parties')
       .select('*', { count: 'exact', head: true })
-      .eq('userId', dbUser.id)
-      .gte('createdAt', startOfMonth.toISOString());
+      .eq('user_id', dbUser.id)
+      .gte('created_at', startOfMonth.toISOString());
 
     if (partiesError) {
       console.error('Error counting parties this month:', partiesError);
@@ -42,7 +74,7 @@ export async function GET() {
     const { count: totalParties, error: totalPartiesError } = await supabase
       .from('parties')
       .select('*', { count: 'exact', head: true })
-      .eq('userId', dbUser.id);
+      .eq('user_id', dbUser.id);
 
     if (totalPartiesError) {
       console.error('Error counting total parties:', totalPartiesError);
@@ -129,20 +161,51 @@ export async function PATCH(request: NextRequest) {
 
     console.log('PATCH /api/user/profile - Update data:', updateData);
 
-    // Update user's profile in Supabase
-    const { data: updatedDbUser, error: updateError } = await supabase
+    // Update user's profile in Supabase using ID instead of email for better RLS compatibility
+    let { data: updatedDbUser, error: updateError } = await supabase
       .from('users')
       .update(updateData)
-      .eq('email', user.email)
+      .eq('id', user.id)
       .select('id, email, name, displayName, currentPlan, emailNotifications, partyReminders, marketingEmails, createdAt')
       .single();
 
     if (updateError) {
       console.error('Error updating user profile:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to update profile' },
-        { status: 500 }
-      );
+      
+      // If user record doesn't exist, try to create it first for Google OAuth users
+      if (updateError.code === 'PGRST116') {
+        console.log('User record not found during update, creating new record');
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email!,
+            name: updateData.name || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+            displayName: updateData.displayName || user.user_metadata?.display_name || '',
+            current_plan: 'FREE',
+            email_notifications: updateData.emailNotifications ?? true,
+            party_reminders: updateData.partyReminders ?? true,
+            marketing_emails: updateData.marketingEmails ?? false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select('id, email, name, displayName, currentPlan, emailNotifications, partyReminders, marketingEmails, createdAt')
+          .single();
+        
+        if (createError) {
+          console.error('Failed to create user record during update:', createError);
+          return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+        }
+        
+        updatedDbUser = newUser;
+      } else {
+        return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+      }
+    }
+
+    // Ensure updatedDbUser is not null before proceeding
+    if (!updatedDbUser) {
+      return NextResponse.json({ error: 'Updated user profile not available' }, { status: 500 });
     }
 
     console.log('PATCH /api/user/profile - Updated user:', updatedDbUser);
