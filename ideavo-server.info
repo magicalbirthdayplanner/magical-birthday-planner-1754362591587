@@ -7,11 +7,11 @@
   - Environments: .env.local, .env
 
  ✓ Starting...
- ✓ Ready in 2.1s
- ✓ Compiled /middleware in 183ms
+ ✓ Ready in 2.2s
+ ✓ Compiled /middleware in 167ms
  ✓ Compiled (117 modules)
  ○ Compiling / ...
- ✓ Compiled / in 5s (975 modules)
+ ✓ Compiled / in 4.8s (975 modules)
 🔄 SubscriptionContext: hasActiveSubscription checks: {
   hasPurchasedPlan: false,
   userPlanPurchased: null,
@@ -27,8 +27,8 @@
   canDowngrade: false,
   nextUpgradePlan: 'STARTER'
 }
- GET / 200 in 6061ms
- ✓ Compiled in 1143ms (466 modules)
+ GET / 200 in 5741ms
+ ✓ Compiled in 1027ms (466 modules)
 🔄 SubscriptionContext: hasActiveSubscription checks: {
   hasPurchasedPlan: false,
   userPlanPurchased: null,
@@ -44,10 +44,10 @@
   canDowngrade: false,
   nextUpgradePlan: 'STARTER'
 }
- GET / 200 in 63ms
+ GET / 200 in 152ms
  ⚠ Cross origin request detected from 4000-ir8hpb2ms7crf8iy2y8g5.e2b.app to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
 Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
  ○ Compiling /api/user/theme ...
- ✓ Compiled /api/user/theme in 664ms (623 modules)
- GET /api/user/theme 401 in 890ms
- GET /api/user/theme 401 in 22ms
+ ✓ Compiled /api/user/theme in 625ms (623 modules)
+ GET /api/user/theme 401 in 822ms
+ GET /api/user/theme 401 in 20ms
