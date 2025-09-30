@@ -50,7 +50,9 @@ else
 fi
 
 echo -e "${YELLOW}🌐 Pushing to GitHub...${NC}"
-git push origin main
+# Get current branch name
+CURRENT_BRANCH=$(git branch --show-current)
+git push origin $CURRENT_BRANCH
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ Push successful - Changes deployed to production${NC}"
