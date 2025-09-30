@@ -4,9 +4,9 @@ import { cookies } from 'next/headers'
 
 export async function GET() {
   return NextResponse.json({
-    message: 'Use POST method to fix OAuth user records',
-    endpoint: '/api/auto-fix-oauth',
-    method: 'POST'
+    message: 'This endpoint requires POST method',
+    usage: 'POST /api/auto-fix-oauth',
+    timestamp: new Date().toISOString()
   })
 }
 
@@ -15,19 +15,21 @@ export async function POST() {
     const cookieStore = cookies()
     const supabase = createServerComponentClient({ cookies: () => cookieStore })
     
-    // Check authentication
+    // Check if user is currently authenticated
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError || !user) {
       return NextResponse.json({
         success: false,
-        error: 'Authentication required',
-        message: 'Please sign in with Google first at https://www.magicalbirthdayplanner.com/signin'
+        error: 'Not authenticated',
+        message: 'Please sign in with Google first',
+        redirect: 'https://www.magicalbirthdayplanner.com/signin',
+        timestamp: new Date().toISOString()
       }, { status: 401 })
     }
 
-    // Check if user record exists
-    const { data: existingUser } = await supabase
+    // Check if user exists in users table
+    const { data: existingUser, error: queryError } = await supabase
       .from('users')
       .select('*')
       .eq('id', user.id)
@@ -37,11 +39,13 @@ export async function POST() {
       return NextResponse.json({
         success: true,
         message: 'User record already exists',
-        user: existingUser
+        user: existingUser,
+        action: 'no_action_needed',
+        timestamp: new Date().toISOString()
       })
     }
     
-    // Create user record
+    // Create the user record
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
@@ -59,20 +63,30 @@ export async function POST() {
     if (insertError) {
       return NextResponse.json({
         success: false,
-        error: insertError.message
+        error: insertError.message,
+        code: insertError.code,
+        details: insertError.details,
+        user_info: {
+          id: user.id,
+          email: user.email
+        },
+        timestamp: new Date().toISOString()
       }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
       message: 'User record created successfully',
-      user: newUser
+      user: newUser,
+      action: 'user_created',
+      timestamp: new Date().toISOString()
     })
 
   } catch (error) {
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     }, { status: 500 })
   }
 }
