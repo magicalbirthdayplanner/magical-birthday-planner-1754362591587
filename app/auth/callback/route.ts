@@ -89,9 +89,12 @@ export async function GET(request: Request) {
                 email: data.user.email,
                 full_name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || '',
                 avatar_url: data.user.user_metadata?.avatar_url,
+                current_plan: 'FREE',
+                created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               }, {
-                onConflict: 'id'
+                onConflict: 'id',
+                ignoreDuplicates: false
               })
               .select()
             
@@ -104,6 +107,27 @@ export async function GET(request: Request) {
                 details: profileError.details,
                 hint: profileError.hint
               })
+              
+              // Try a simple insert instead of upsert
+              console.log('🔄 Trying simple insert...')
+              const { data: insertData, error: insertError } = await supabase
+                .from('users')
+                .insert({
+                  id: data.user.id,
+                  email: data.user.email,
+                  full_name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || '',
+                  avatar_url: data.user.user_metadata?.avatar_url,
+                  current_plan: 'FREE',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+                .select()
+              
+              if (insertError) {
+                console.error('❌ Both upsert and insert failed:', insertError)
+              } else {
+                console.log('✅ User inserted successfully via fallback:', insertData)
+              }
             } else {
               console.log('✅ Profile created/updated successfully:', upsertData)
             }
