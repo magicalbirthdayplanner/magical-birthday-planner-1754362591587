@@ -47,11 +47,17 @@ export async function GET(request: Request) {
         console.log('✅ Auth callback successful for user:', data.user.email)
         console.log('Session expires at:', data.session.expires_at)
         
-        // Verify session is properly set
-        const { data: sessionCheck } = await supabase.auth.getSession()
+        // Verify session is properly set and refresh if needed
+        const { data: sessionCheck, error: sessionCheckError } = await supabase.auth.getSession()
         if (!sessionCheck.session) {
           console.error('❌ Session not properly established after OAuth')
-          return NextResponse.redirect(new URL('/signin?error=session_failed', requestUrl.origin))
+          // Try to refresh the session
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+          if (refreshError || !refreshData.session) {
+            console.error('❌ Session refresh failed:', refreshError)
+            return NextResponse.redirect(new URL('/signin?error=session_failed', requestUrl.origin))
+          }
+          console.log('✅ Session refreshed successfully')
         }
         
         // Ensure user profile exists and check if user is new
@@ -97,7 +103,20 @@ export async function GET(request: Request) {
           // For new users, redirect to signin with new_user parameter to trigger username setup
           if (isNewUser) {
             console.log('🎉 Redirecting new user to signin for username setup')
-            return NextResponse.redirect(new URL('/signin?new_user=true', requestUrl.origin))
+            const response = NextResponse.redirect(new URL('/signin?new_user=true', requestUrl.origin))
+            
+            // Ensure session cookies are properly set for new users too
+            const session = sessionCheck.session || data.session
+            if (session) {
+              response.cookies.set('supabase-auth-token', session.access_token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'lax',
+                maxAge: session.expires_in || 3600
+              })
+            }
+            
+            return response
           }
           
           // For existing users, check if they have parties and redirect accordingly
@@ -112,10 +131,36 @@ export async function GET(request: Request) {
               console.warn('⚠️ Error checking user parties:', partiesError)
             } else if (!userParties || userParties.length === 0) {
               console.log('🎉 Existing user with no parties, redirecting to wizard')
-              return NextResponse.redirect(new URL('/create-party', requestUrl.origin))
+              const response = NextResponse.redirect(new URL('/create-party', requestUrl.origin))
+              
+              // Set session cookies
+              const session = sessionCheck.session || data.session
+              if (session) {
+                response.cookies.set('supabase-auth-token', session.access_token, {
+                  httpOnly: true,
+                  secure: true,
+                  sameSite: 'lax',
+                  maxAge: session.expires_in || 3600
+                })
+              }
+              
+              return response
             } else {
               console.log('📊 User has existing parties, redirecting to dashboard')
-              return NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
+              const response = NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
+              
+              // Set session cookies
+              const session = sessionCheck.session || data.session
+              if (session) {
+                response.cookies.set('supabase-auth-token', session.access_token, {
+                  httpOnly: true,
+                  secure: true,
+                  sameSite: 'lax',
+                  maxAge: session.expires_in || 3600
+                })
+              }
+              
+              return response
             }
           } catch (partiesErr) {
             console.warn('⚠️ Failed to check user parties, proceeding with dashboard redirect:', partiesErr)
@@ -124,7 +169,20 @@ export async function GET(request: Request) {
         
         // Redirect to dashboard or specified next URL
         console.log('🏠 Redirecting to:', next)
-        return NextResponse.redirect(new URL(next, requestUrl.origin))
+        const response = NextResponse.redirect(new URL(next, requestUrl.origin))
+        
+        // Ensure session cookies are properly set
+        const session = sessionCheck.session || data.session
+        if (session) {
+          response.cookies.set('supabase-auth-token', session.access_token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'lax',
+            maxAge: session.expires_in || 3600
+          })
+        }
+        
+        return response
       } else {
         console.error('❌ No session or user received after code exchange')
         return NextResponse.redirect(new URL('/signin?error=no_session', requestUrl.origin))
