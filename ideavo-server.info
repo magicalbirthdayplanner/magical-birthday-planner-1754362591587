@@ -7,7 +7,47 @@
   - Environments: .env.local, .env
 
  ✓ Starting...
- ✓ Ready in 2s
- ✓ Compiled /middleware in 166ms
+ ✓ Ready in 1954ms
+ ✓ Compiled /middleware in 160ms
  ✓ Compiled (117 modules)
  ○ Compiling / ...
+ ✓ Compiled / in 5s (975 modules)
+🔄 SubscriptionContext: hasActiveSubscription checks: {
+  hasPurchasedPlan: false,
+  userPlanPurchased: null,
+  hasValidSubscription: false,
+  hasDatabasePlan: false,
+  currentPlan: 'FREE'
+}
+🔄 SubscriptionContext: Calculated subscriptionStatus: {
+  isActive: false,
+  planType: 'FREE',
+  purchaseDate: undefined,
+  canUpgrade: true,
+  canDowngrade: false,
+  nextUpgradePlan: 'STARTER'
+}
+ GET / 200 in 6064ms
+ ✓ Compiled in 1181ms (466 modules)
+🔄 SubscriptionContext: hasActiveSubscription checks: {
+  hasPurchasedPlan: false,
+  userPlanPurchased: null,
+  hasValidSubscription: false,
+  hasDatabasePlan: false,
+  currentPlan: 'FREE'
+}
+🔄 SubscriptionContext: Calculated subscriptionStatus: {
+  isActive: false,
+  planType: 'FREE',
+  purchaseDate: undefined,
+  canUpgrade: true,
+  canDowngrade: false,
+  nextUpgradePlan: 'STARTER'
+}
+ GET / 200 in 144ms
+ ⚠ Cross origin request detected from 4000-ir8hpb2ms7crf8iy2y8g5.e2b.app to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /api/user/theme ...
+ ✓ Compiled /api/user/theme in 1250ms (623 modules)
+ GET /api/user/theme 401 in 1481ms
+ GET /api/user/theme 401 in 21ms
