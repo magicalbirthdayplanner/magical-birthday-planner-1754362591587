@@ -17,8 +17,8 @@ if [ ! -d ".git" ]; then
     exit 1
 fi
 
-# Check if there are any changes
-if git diff-index --quiet HEAD --; then
+# Check if there are any changes (including untracked files)
+if git diff-index --quiet HEAD -- && [ -z "$(git ls-files --others --exclude-standard)" ]; then
     echo -e "${YELLOW}ℹ️  No changes to commit${NC}"
     exit 0
 fi
@@ -26,8 +26,8 @@ fi
 # Get current timestamp for commit message
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-# Get a brief description of changes
-CHANGED_FILES=$(git diff --name-only | head -5 | tr '\n' ', ' | sed 's/,$//')
+# Get a brief description of changes (including untracked files)
+CHANGED_FILES=$(git diff --name-only; git ls-files --others --exclude-standard | head -5 | tr '\n' ', ' | sed 's/,$//')
 
 # Create commit message
 if [ -z "$1" ]; then

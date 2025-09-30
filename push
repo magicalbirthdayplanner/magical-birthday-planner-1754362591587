@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Super quick push - just run "push" in terminal
+# This is the shortest command to push changes
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PROJECT_DIR="$SCRIPT_DIR"
+
+cd "$PROJECT_DIR"
+
+if [ -n "$1" ]; then
+    bash scripts/auto-push.sh "$1"
+else
+    bash scripts/auto-push.sh
+fi
