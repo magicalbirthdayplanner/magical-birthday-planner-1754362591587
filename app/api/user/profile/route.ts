@@ -152,13 +152,13 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Prepare update data
+    // Prepare update data - use snake_case column names to match database
     const updateData: any = {};
     if (name !== undefined) updateData.name = name.trim();
-    if (displayName !== undefined) updateData.displayName = displayName.trim();
-    if (emailNotifications !== undefined) updateData.emailNotifications = Boolean(emailNotifications);
-    if (partyReminders !== undefined) updateData.partyReminders = Boolean(partyReminders);
-    if (marketingEmails !== undefined) updateData.marketingEmails = Boolean(marketingEmails);
+    if (displayName !== undefined) updateData.display_name = displayName.trim(); // Use snake_case
+    if (emailNotifications !== undefined) updateData.email_notifications = Boolean(emailNotifications); // Use snake_case
+    if (partyReminders !== undefined) updateData.party_reminders = Boolean(partyReminders); // Use snake_case
+    if (marketingEmails !== undefined) updateData.marketing_emails = Boolean(marketingEmails); // Use snake_case
 
     console.log('PATCH /api/user/profile - Update data:', updateData);
 
@@ -182,11 +182,11 @@ export async function PATCH(request: NextRequest) {
             id: user.id,
             email: user.email!,
             name: updateData.name || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-            displayName: updateData.displayName || user.user_metadata?.display_name || '',
+            display_name: updateData.display_name || user.user_metadata?.display_name || '',
             current_plan: 'FREE',
-            email_notifications: updateData.emailNotifications ?? true,
-            party_reminders: updateData.partyReminders ?? true,
-            marketing_emails: updateData.marketingEmails ?? false,
+            email_notifications: updateData.email_notifications ?? true,
+            party_reminders: updateData.party_reminders ?? true,
+            marketing_emails: updateData.marketing_emails ?? false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
