@@ -1,0 +1,47 @@
+
+> ideavo-nextjs@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.32
+  - Local:        http://localhost:4000
+  - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 7.6s
+ ✓ Compiled /middleware in 172ms
+ ✓ Compiled (117 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 10.3s (984 modules)
+🔄 SubscriptionContext: hasActiveSubscription checks: {
+  hasPurchasedPlan: false,
+  userPlanPurchased: null,
+  hasValidSubscription: false,
+  hasDatabasePlan: false,
+  currentPlan: 'FREE'
+}
+🔄 SubscriptionContext: Calculated subscriptionStatus: {
+  isActive: false,
+  planType: 'FREE',
+  purchaseDate: undefined,
+  canUpgrade: true,
+  canDowngrade: false,
+  nextUpgradePlan: 'STARTER'
+}
+ GET / 200 in 11266ms
+ ✓ Compiled in 995ms (466 modules)
+🔄 SubscriptionContext: hasActiveSubscription checks: {
+  hasPurchasedPlan: false,
+  userPlanPurchased: null,
+  hasValidSubscription: false,
+  hasDatabasePlan: false,
+  currentPlan: 'FREE'
+}
+🔄 SubscriptionContext: Calculated subscriptionStatus: {
+  isActive: false,
+  planType: 'FREE',
+  purchaseDate: undefined,
+  canUpgrade: true,
+  canDowngrade: false,
+  nextUpgradePlan: 'STARTER'
+}
+ GET / 200 in 116ms
