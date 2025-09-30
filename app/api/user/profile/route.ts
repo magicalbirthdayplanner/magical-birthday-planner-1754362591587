@@ -12,9 +12,10 @@ export async function GET() {
     }
 
     // Get user's profile data from Supabase using ID instead of email for better RLS compatibility
+    // Handle both camelCase and snake_case column names
     let { data: dbUser, error: dbError } = await supabase
       .from('users')
-      .select('id, email, name, displayName, currentPlan, emailNotifications, partyReminders, marketingEmails, createdAt')
+      .select('id, email, name, full_name, displayName, display_name, currentPlan, current_plan, emailNotifications, email_notifications, partyReminders, party_reminders, marketingEmails, marketing_emails, createdAt, created_at')
       .eq('id', user.id)
       .single();
 
@@ -35,7 +36,7 @@ export async function GET() {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
-          .select('id, email, name, displayName, currentPlan, emailNotifications, partyReminders, marketingEmails, createdAt')
+          .select('id, email, name, full_name, displayName, display_name, currentPlan, current_plan, emailNotifications, email_notifications, partyReminders, party_reminders, marketingEmails, marketing_emails, createdAt, created_at')
           .single();
         
         if (createError) {
@@ -91,17 +92,17 @@ export async function GET() {
       console.error('Error counting guests this month:', guestsError);
     }
 
-    // Combine database data with Supabase user metadata
+    // Combine database data with Supabase user metadata, handling both naming conventions
     const profile = {
       id: dbUser.id,
       email: dbUser.email,
-      name: dbUser.name || user.user_metadata?.name || user.email?.split('@')[0] || '',
-      displayName: dbUser.displayName || user.user_metadata?.display_name || '',
-      currentPlan: dbUser.currentPlan,
-      emailNotifications: dbUser.emailNotifications,
-      partyReminders: dbUser.partyReminders,
-      marketingEmails: dbUser.marketingEmails,
-      createdAt: dbUser.createdAt,
+      name: dbUser.name || dbUser.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '',
+      displayName: dbUser.displayName || dbUser.display_name || user.user_metadata?.display_name || '',
+      currentPlan: dbUser.currentPlan || dbUser.current_plan || 'FREE',
+      emailNotifications: dbUser.emailNotifications ?? dbUser.email_notifications ?? true,
+      partyReminders: dbUser.partyReminders ?? dbUser.party_reminders ?? true,
+      marketingEmails: dbUser.marketingEmails ?? dbUser.marketing_emails ?? false,
+      createdAt: dbUser.createdAt || dbUser.created_at,
       usageStats: {
         partiesThisMonth: partiesThisMonth || 0,
         totalParties: totalParties || 0,
