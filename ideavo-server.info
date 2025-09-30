@@ -7,41 +7,7 @@
   - Environments: .env.local, .env
 
  ✓ Starting...
- ✓ Ready in 7.6s
- ✓ Compiled /middleware in 172ms
+ ✓ Ready in 2s
+ ✓ Compiled /middleware in 166ms
  ✓ Compiled (117 modules)
  ○ Compiling / ...
- ✓ Compiled / in 10.3s (984 modules)
-🔄 SubscriptionContext: hasActiveSubscription checks: {
-  hasPurchasedPlan: false,
-  userPlanPurchased: null,
-  hasValidSubscription: false,
-  hasDatabasePlan: false,
-  currentPlan: 'FREE'
-}
-🔄 SubscriptionContext: Calculated subscriptionStatus: {
-  isActive: false,
-  planType: 'FREE',
-  purchaseDate: undefined,
-  canUpgrade: true,
-  canDowngrade: false,
-  nextUpgradePlan: 'STARTER'
-}
- GET / 200 in 11266ms
- ✓ Compiled in 995ms (466 modules)
-🔄 SubscriptionContext: hasActiveSubscription checks: {
-  hasPurchasedPlan: false,
-  userPlanPurchased: null,
-  hasValidSubscription: false,
-  hasDatabasePlan: false,
-  currentPlan: 'FREE'
-}
-🔄 SubscriptionContext: Calculated subscriptionStatus: {
-  isActive: false,
-  planType: 'FREE',
-  purchaseDate: undefined,
-  canUpgrade: true,
-  canDowngrade: false,
-  nextUpgradePlan: 'STARTER'
-}
- GET / 200 in 116ms

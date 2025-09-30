@@ -1,0 +1,29 @@
+{
+  "id": "msg_9980b81c1001O5lnSU4TKWB3wm",
+  "role": "assistant",
+  "mode": "build",
+  "path": {
+    "cwd": "/home/user/project",
+    "root": "/home/user/project"
+  },
+  "tokens": {
+    "input": 0,
+    "output": 0,
+    "reasoning": 0,
+    "cache": {
+      "read": 0,
+      "write": 0
+    }
+  },
+  "time": {
+    "created": 1759192515009,
+    "completed": 1759192645168
+  },
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "error": {
+    "name": "UnknownError",
+    "data": {
+      "message": "Error: Unable to connect. Is the computer able to access the url?"
+    }
+  }
+}
