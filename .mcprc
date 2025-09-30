@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-supabase"],
+      "env": {
+        "SUPABASE_URL": "https://hgczncztmdqtfhqimfar.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "sbp_ffa78968089b1342048b018992375b6d24a5438c"
+      }
+    }
+  }
+}
