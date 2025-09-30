@@ -80,8 +80,9 @@ export async function GET(request: Request) {
               console.log('👤 Existing user found')
             }
             
-            // Create or update profile in users table
-            const { error: profileError } = await supabase
+            // Create or update profile in users table - be more aggressive
+            console.log('👤 Attempting to create/update user profile...')
+            const { data: upsertData, error: profileError } = await supabase
               .from('users')
               .upsert({
                 id: data.user.id,
@@ -89,12 +90,22 @@ export async function GET(request: Request) {
                 full_name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || '',
                 avatar_url: data.user.user_metadata?.avatar_url,
                 updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'id'
               })
+              .select()
             
             if (profileError) {
-              console.warn('⚠️ Profile upsert error (non-blocking):', profileError)
+              console.error('⚠️ Profile upsert error:', profileError)
+              // Log the exact error for debugging
+              console.error('Error details:', {
+                code: profileError.code,
+                message: profileError.message,
+                details: profileError.details,
+                hint: profileError.hint
+              })
             } else {
-              console.log('✅ Profile created/updated successfully')
+              console.log('✅ Profile created/updated successfully:', upsertData)
             }
           } catch (profileErr) {
             console.warn('⚠️ Profile creation failed (non-blocking):', profileErr)
