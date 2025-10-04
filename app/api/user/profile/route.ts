@@ -32,7 +32,12 @@ export async function GET() {
             email: user.email!,
             name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
             displayName: user.user_metadata?.display_name || user.user_metadata?.name || '',
-            current_plan: 'FREE',
+            current_plan: 'PRO', // Start with PRO plan for 24-hour trial
+            trial_started_at: new Date().toISOString(),
+            trial_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+            trial_plan: 'PRO',
+            is_trial_active: true,
+            has_used_trial: true,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -183,7 +188,12 @@ export async function PATCH(request: NextRequest) {
             email: user.email!,
             name: updateData.name || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
             display_name: updateData.display_name || user.user_metadata?.display_name || '',
-            current_plan: 'FREE',
+            current_plan: 'PRO', // Start with PRO plan for 24-hour trial
+            trial_started_at: new Date().toISOString(),
+            trial_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+            trial_plan: 'PRO',
+            is_trial_active: true,
+            has_used_trial: true,
             email_notifications: updateData.email_notifications ?? true,
             party_reminders: updateData.party_reminders ?? true,
             marketing_emails: updateData.marketing_emails ?? false,

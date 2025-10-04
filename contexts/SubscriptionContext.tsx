@@ -5,6 +5,16 @@ import { useAuth } from './AuthContext';
 
 export type SubscriptionPlan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO' | 'PROFESSIONAL';
 
+export interface TrialStatus {
+  isTrialActive: boolean;
+  trialStartedAt?: string;
+  trialExpiresAt?: string;
+  trialPlan?: SubscriptionPlan;
+  hasUsedTrial: boolean;
+  timeRemainingMinutes: number;
+  trialStatus: 'NOT_STARTED' | 'ACTIVE' | 'EXPIRED';
+}
+
 export interface SubscriptionStatus {
   isActive: boolean;
   planType: SubscriptionPlan;
@@ -12,6 +22,7 @@ export interface SubscriptionStatus {
   canUpgrade: boolean;
   canDowngrade: boolean;
   nextUpgradePlan: SubscriptionPlan | null;
+  trial: TrialStatus;
 }
 
 export interface SubscriptionPlanDetails {
@@ -117,6 +128,8 @@ interface SubscriptionContextType {
   canUpgradeTo: (targetPlan: SubscriptionPlan) => boolean;
   getNextUpgradePlan: () => SubscriptionPlan | null;
   loading: boolean;
+  trialStatus: TrialStatus;
+  fetchTrialStatus: () => Promise<void>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -129,6 +142,42 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const { user } = useAuth();
   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>('FREE');
   const [loading, setLoading] = useState(true);
+  const [trialStatus, setTrialStatus] = useState<TrialStatus>({
+    isTrialActive: false,
+    hasUsedTrial: false,
+    timeRemainingMinutes: 0,
+    trialStatus: 'NOT_STARTED'
+  });
+
+  // Fetch trial status from API
+  const fetchTrialStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch('/api/user/trial');
+      if (response.ok) {
+        const data = await response.json();
+        setTrialStatus({
+          isTrialActive: data.isTrialActive,
+          trialStartedAt: data.trialStartedAt,
+          trialExpiresAt: data.trialExpiresAt,
+          trialPlan: data.trialPlan,
+          hasUsedTrial: data.hasUsedTrial,
+          timeRemainingMinutes: data.timeRemainingMinutes,
+          trialStatus: data.trialStatus
+        });
+        
+        // Update current plan based on trial status
+        if (data.isTrialActive && data.trialStatus === 'ACTIVE') {
+          setCurrentPlan(data.trialPlan || 'PRO');
+        } else {
+          setCurrentPlan(data.currentPlan || 'FREE');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching trial status:', error);
+    }
+  };
 
   // Initialize plan from user data or localStorage
   useEffect(() => {
@@ -158,8 +207,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       setCurrentPlan(initialPlan);
       
       if (user) {
-        console.log('🔄 SubscriptionContext: User authenticated, fetching plan from database...');
+        console.log('🔄 SubscriptionContext: User authenticated, fetching plan and trial status from database...');
         console.log('🔄 SubscriptionContext: User ID:', user.id);
+        
+        // Fetch trial status first
+        await fetchTrialStatus();
+        
         try {
           // Try to fetch user's current plan from the database
           const response = await fetch('/api/user/subscription');
@@ -174,7 +227,11 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             const serverPlan = PLAN_MAPPING[data.currentPlan] || 'FREE';
             console.log('🔄 SubscriptionContext: Mapped server plan:', serverPlan);
             
-            if (SUBSCRIPTION_PLANS[serverPlan]) {
+            // Check if user has an active trial that should override the server plan
+            if (trialStatus.isTrialActive && trialStatus.trialStatus === 'ACTIVE') {
+              console.log('🔄 SubscriptionContext: User has active trial, using trial plan:', trialStatus.trialPlan);
+              setCurrentPlan(trialStatus.trialPlan || 'PRO');
+            } else if (SUBSCRIPTION_PLANS[serverPlan]) {
               console.log('🔄 SubscriptionContext: Setting plan to:', serverPlan);
               setCurrentPlan(serverPlan);
               // Sync localStorage with server (client-side only)
@@ -200,7 +257,10 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
                 localStorage.removeItem('hasValidSubscription');
                 localStorage.removeItem('userPlanPurchased');
               }
-              setCurrentPlan('FREE');
+              // Check if trial is active before setting to FREE
+              if (!(trialStatus.isTrialActive && trialStatus.trialStatus === 'ACTIVE')) {
+                setCurrentPlan('FREE');
+              }
             }
           }
         } catch (error) {
@@ -215,7 +275,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     };
 
     initializePlan();
-  }, [user]);
+  }, [user, trialStatus.isTrialActive]);
 
   const planDetails = SUBSCRIPTION_PLANS[currentPlan];
 
@@ -282,18 +342,24 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     // Check if user has a non-FREE plan in the database
     const hasDatabasePlan = currentPlan !== 'FREE';
     
+    // Check if user has an active trial
+    const hasActiveTrial = trialStatus.isTrialActive && trialStatus.trialStatus === 'ACTIVE';
+    
     console.log('🔄 SubscriptionContext: hasActiveSubscription checks:', {
       hasPurchasedPlan,
       userPlanPurchased,
       hasValidSubscription,
       hasDatabasePlan,
-      currentPlan
+      hasActiveTrial,
+      currentPlan,
+      trialStatus
     });
     
     // A user has an active subscription if:
-    // 1. They have a non-FREE plan from the database, OR
-    // 2. They have purchased a plan according to localStorage
-    return hasDatabasePlan || hasPurchasedPlan || hasValidSubscription || !!userPlanPurchased;
+    // 1. They have an active trial, OR
+    // 2. They have a non-FREE plan from the database, OR
+    // 3. They have purchased a plan according to localStorage
+    return hasActiveTrial || hasDatabasePlan || hasPurchasedPlan || hasValidSubscription || !!userPlanPurchased;
   };
 
   // Calculate subscription status dynamically - this will update when currentPlan changes
@@ -305,13 +371,14 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       purchaseDate: typeof window !== 'undefined' ? localStorage.getItem('subscriptionPurchaseDate') || undefined : undefined,
       canUpgrade: currentPlan !== 'PRO',
       canDowngrade: false, // No downgrades allowed
-      nextUpgradePlan: getNextUpgradePlan()
+      nextUpgradePlan: getNextUpgradePlan(),
+      trial: trialStatus
     };
     
     console.log('🔄 SubscriptionContext: Calculated subscriptionStatus:', status);
     
     return status;
-  }, [currentPlan]);
+  }, [currentPlan, trialStatus]);
 
   const updateUserPlan = async (newPlan: SubscriptionPlan): Promise<void> => {
     try {
@@ -373,6 +440,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         canUpgradeTo,
         getNextUpgradePlan,
         loading,
+        trialStatus,
+        fetchTrialStatus,
       }}
     >
       {children}

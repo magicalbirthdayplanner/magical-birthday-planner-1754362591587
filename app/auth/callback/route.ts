@@ -100,7 +100,12 @@ export async function GET(request: Request) {
                 email: data.user.email,
                 full_name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || '',
                 avatar_url: data.user.user_metadata?.avatar_url,
-                current_plan: 'FREE',
+                current_plan: 'PRO', // Start with PRO plan for 24-hour trial
+                trial_started_at: new Date().toISOString(),
+                trial_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+                trial_plan: 'PRO',
+                is_trial_active: true,
+                has_used_trial: true,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               }, {
@@ -128,7 +133,12 @@ export async function GET(request: Request) {
                   email: data.user.email,
                   full_name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || '',
                   avatar_url: data.user.user_metadata?.avatar_url,
-                  current_plan: 'FREE',
+                  current_plan: 'PRO', // Start with PRO plan for 24-hour trial
+                  trial_started_at: new Date().toISOString(),
+                  trial_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+                  trial_plan: 'PRO',
+                  is_trial_active: true,
+                  has_used_trial: true,
                   created_at: new Date().toISOString(),
                   updated_at: new Date().toISOString()
                 })

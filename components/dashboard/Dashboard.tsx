@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, PartyPopper, Calendar, Users, CheckCircle, Clock, Sparkles, Star, Zap, Crown } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import PartyCard from './PartyCard'
+import TrialStatusBanner from '@/components/trial/TrialStatusBanner'
 import Link from 'next/link'
 
 interface Party {
@@ -321,6 +322,9 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Trial Status Banner */}
+        <TrialStatusBanner />
 
         {/* Stats Cards - Reduced spacing and optimized layout */}
         <div className="space-y-5 mb-6">
