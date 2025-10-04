@@ -118,19 +118,25 @@ export default function ForceTrialBanner() {
     if (!user) return;
     
     try {
-      const response = await fetch('/api/user/trial', {
+      // Use the new force-trial API that bypasses auth issues
+      const response = await fetch('/api/force-trial', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start_trial' })
+        body: JSON.stringify({ userEmail: user.email })
       });
       
       const result = await response.json();
-      console.log('Trial activation result:', result);
+      console.log('Force trial result:', result);
       
-      // Refresh diagnostics
-      window.location.reload();
+      if (response.ok) {
+        alert(`✅ Trial activated! You now have 24 hours of Pro access.`);
+        window.location.reload();
+      } else {
+        alert(`❌ Trial activation failed: ${result.error}`);
+      }
     } catch (error) {
       console.error('Trial activation error:', error);
+      alert(`❌ Network error: ${error}`);
     }
   };
 
@@ -200,10 +206,26 @@ export default function ForceTrialBanner() {
                 >
                   Refresh
                 </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/auth-test');
+                      const result = await response.json();
+                      console.log('Auth test result:', result);
+                      alert('Check browser console for auth test results');
+                    } catch (error) {
+                      console.error('Auth test error:', error);
+                    }
+                  }}
+                >
+                  Test Auth
+                </Button>
                 {user && (
                   <Button 
                     size="sm" 
-                    variant="outline"
+                    className="bg-green-600 hover:bg-green-700"
                     onClick={activateTrial}
                   >
                     Force Start Trial
