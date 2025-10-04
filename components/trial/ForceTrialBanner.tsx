@@ -9,6 +9,7 @@ export default function ForceTrialBanner() {
   const { user } = useAuth();
   const [diagnostics, setDiagnostics] = useState<any>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const runDiagnostics = async () => {
@@ -114,28 +115,27 @@ export default function ForceTrialBanner() {
     runDiagnostics();
   }, [user]);
 
-  const activateTrial = async () => {
+  const setupDatabase = async () => {
     if (!user) return;
     
     try {
-      // Use the new force-trial API that bypasses auth issues
-      const response = await fetch('/api/force-trial', {
+      const response = await fetch('/api/setup-database', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userEmail: user.email })
       });
       
       const result = await response.json();
-      console.log('Force trial result:', result);
+      console.log('Database setup result:', result);
       
       if (response.ok) {
-        alert(`✅ Trial activated! You now have 24 hours of Pro access.`);
+        alert('✅ Database setup complete and trial activated!\n\nYou now have 24 hours of Pro access.');
         window.location.reload();
       } else {
-        alert(`❌ Trial activation failed: ${result.error}`);
+        alert(`❌ Setup failed: ${result.error}`);
       }
     } catch (error) {
-      console.error('Trial activation error:', error);
+      console.error('Database setup error:', error);
       alert(`❌ Network error: ${error}`);
     }
   };
@@ -198,7 +198,7 @@ export default function ForceTrialBanner() {
                 </pre>
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button 
                   size="sm" 
                   onClick={() => window.location.reload()}
@@ -225,10 +225,10 @@ export default function ForceTrialBanner() {
                 {user && (
                   <Button 
                     size="sm" 
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={activateTrial}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={setupDatabase}
                   >
-                    Force Start Trial
+                    🔧 Setup Database & Activate Trial
                   </Button>
                 )}
               </div>
