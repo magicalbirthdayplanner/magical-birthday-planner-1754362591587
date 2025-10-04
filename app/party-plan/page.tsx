@@ -23,7 +23,6 @@ import HostModeTab from "@/components/HostModeTab";
 import ThemesTab from "@/components/ThemesTab";
 import SharePlanModal from "@/components/SharePlanModal";
 import SubscriptionGate from "@/components/SubscriptionGate";
-import TrialStatusBanner from "@/components/trial/TrialStatusBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { generatePartyPlanPDF } from "@/lib/pdf-generator";
@@ -1903,9 +1902,6 @@ function PartyPlanPageComponent({ partyId, activeTab, router }: PartyPlanPagePro
             })}
           </p>
         </div>
-
-        {/* Trial Status Banner */}
-        <TrialStatusBanner />
 
         {/* Progress Card with Enhanced Countdown Timeline - Improved Visual Organization */}
         <div className="space-y-6 mb-8">

@@ -9,8 +9,6 @@ import { Plus, PartyPopper, Calendar, Users, CheckCircle, Clock, Sparkles, Star,
 import { useAuth } from '@/contexts/AuthContext'
 import PartyCard from './PartyCard'
 import TrialStatusBanner from '@/components/trial/TrialStatusBanner'
-import TrialDebugBanner from '@/components/trial/TrialDebugBanner'
-import ForceTrialBanner from '@/components/trial/ForceTrialBanner'
 import Link from 'next/link'
 
 interface Party {
@@ -326,8 +324,6 @@ export default function Dashboard() {
         </div>
 
         {/* Trial Status Banner */}
-        <ForceTrialBanner />
-        <TrialDebugBanner />
         <TrialStatusBanner />
 
         {/* Stats Cards - Reduced spacing and optimized layout */}
