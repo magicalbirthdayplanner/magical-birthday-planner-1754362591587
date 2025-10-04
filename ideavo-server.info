@@ -2,52 +2,22 @@
 > ideavo-nextjs@0.1.0 dev
 > next dev
 
-  ▲ Next.js 14.2.32
-  - Local:        http://localhost:4000
-  - Environments: .env.local, .env
-
- ✓ Starting...
- ✓ Ready in 2.3s
- ✓ Compiled /middleware in 161ms
- ✓ Compiled (117 modules)
- ○ Compiling / ...
- ✓ Compiled / in 4.5s (975 modules)
-🔄 SubscriptionContext: hasActiveSubscription checks: {
-  hasPurchasedPlan: false,
-  userPlanPurchased: null,
-  hasValidSubscription: false,
-  hasDatabasePlan: false,
-  currentPlan: 'FREE'
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+    at listenInCluster (node:net:1965:12)
+    at Server.listen (node:net:2067:7)
+    at /home/user/project/node_modules/next/dist/server/lib/start-server.js:280:16
+    at new Promise (<anonymous>)
+    at startServer (/home/user/project/node_modules/next/dist/server/lib/start-server.js:191:11)
+    at /home/user/project/node_modules/next/dist/server/lib/start-server.js:310:52
+    at Span.traceAsyncFn (/home/user/project/node_modules/next/dist/trace/trace.js:154:26)
+    at process.<anonymous> (/home/user/project/node_modules/next/dist/server/lib/start-server.js:310:35)
+    at process.emit (node:events:524:28) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 4000
 }
-🔄 SubscriptionContext: Calculated subscriptionStatus: {
-  isActive: false,
-  planType: 'FREE',
-  purchaseDate: undefined,
-  canUpgrade: true,
-  canDowngrade: false,
-  nextUpgradePlan: 'STARTER'
-}
- GET / 200 in 5379ms
- ✓ Compiled in 937ms (466 modules)
-🔄 SubscriptionContext: hasActiveSubscription checks: {
-  hasPurchasedPlan: false,
-  userPlanPurchased: null,
-  hasValidSubscription: false,
-  hasDatabasePlan: false,
-  currentPlan: 'FREE'
-}
-🔄 SubscriptionContext: Calculated subscriptionStatus: {
-  isActive: false,
-  planType: 'FREE',
-  purchaseDate: undefined,
-  canUpgrade: true,
-  canDowngrade: false,
-  nextUpgradePlan: 'STARTER'
-}
- GET / 200 in 64ms
- ⚠ Cross origin request detected from 4000-ir8hpb2ms7crf8iy2y8g5.e2b.app to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
-Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
- ○ Compiling /api/user/theme ...
- ✓ Compiled /api/user/theme in 526ms (623 modules)
- GET /api/user/theme 401 in 761ms
- GET /api/user/theme 401 in 25ms
+[?25h
