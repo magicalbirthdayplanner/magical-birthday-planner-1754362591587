@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext'
 import { Loader2, Mail, Lock, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import WelcomeSplashScreen from './WelcomeSplashScreen'
 
 export default function SignUp() {
   const [email, setEmail] = useState('')
@@ -16,8 +17,36 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState('')
   const [error, setError] = useState('')
-  const { signUp, signInWithGoogle } = useAuth()
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false)
+  const { user, signUp, signInWithGoogle } = useAuth()
   const router = useRouter()
+  
+  // Check if user is already authenticated and show welcome screen for new users
+  useEffect(() => {
+    if (user) {
+      // If user is already authenticated, check if they need to see welcome screen
+      const checkNewUser = async () => {
+        try {
+          const response = await fetch('/api/check-new-user')
+          if (response.ok) {
+            const data = await response.json()
+            if (data.is_new_user && data.analysis.should_show_welcome) {
+              setShowWelcomeScreen(true)
+            } else {
+              // Existing user, redirect to dashboard
+              router.push('/dashboard')
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to check new user status:', error)
+          // Fallback: redirect to dashboard
+          router.push('/dashboard')
+        }
+      }
+      
+      checkNewUser()
+    }
+  }, [user, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,8 +64,8 @@ export default function SignUp() {
     if (error) {
       setError(error.message)
     } else {
-      // Success - new users should go to party creation wizard
-      router.push('/create-party')
+      // Success - redirect to signup success page to show welcome screen
+      router.push('/signup-success')
     }
     
     setLoading(false)
@@ -174,6 +203,12 @@ export default function SignUp() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Welcome Splash Screen */}
+      <WelcomeSplashScreen 
+        isOpen={showWelcomeScreen} 
+        onClose={() => setShowWelcomeScreen(false)} 
+      />
     </div>
   )
 }

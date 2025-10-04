@@ -44,11 +44,12 @@ export default function WelcomeSplashScreen({ isOpen, onClose }: WelcomeSplashSc
     setError('')
 
     try {
-      // Update the user's profile with the full name
+      // Update the user's profile with the full name using correct column names
       const { error: updateError } = await supabase
         .from('users')
         .update({ 
-          full_name: fullName.trim(),
+          name: fullName.trim(),
+          full_name: fullName.trim(), // Also update full_name for compatibility
           updated_at: new Date().toISOString()
         })
         .eq('id', user?.id)
@@ -57,9 +58,9 @@ export default function WelcomeSplashScreen({ isOpen, onClose }: WelcomeSplashSc
         throw updateError
       }
 
-      // Close modal and redirect to dashboard
+      // Close modal and redirect to party creation wizard for new users
       onClose()
-      router.push('/dashboard')
+      router.push('/create-party')
     } catch (err) {
       console.error('Error updating full name:', err)
       setError('Failed to update name. Please try again.')
@@ -70,7 +71,7 @@ export default function WelcomeSplashScreen({ isOpen, onClose }: WelcomeSplashSc
 
   const handleSkip = () => {
     onClose()
-    router.push('/dashboard')
+    router.push('/create-party')
   }
 
   if (step === 'welcome') {
