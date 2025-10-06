@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b789836e001YaqwVhMOQYIqKE",
+  "messageID": "msg_9b7894c30001EWyhTQXaXceKmm",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_015VcxGNk4HYc99hngTQTydv",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "git status --porcelain | grep -v \"^?? .ideavo\"",
+      "description": "Check non-ideavo changes"
+    },
+    "output": " M .ideavo/project/project/6fb655bd8f0731a77031d0afc3d1882ca3019915.json\n M .ideavo/project/session/6fb655bd8f0731a77031d0afc3d1882ca3019915/ses_667f7dd65ffe01SU6jAvPZBmQW.json\n",
+    "metadata": {
+      "output": " M .ideavo/project/project/6fb655bd8f0731a77031d0afc3d1882ca3019915.json\n M .ideavo/project/session/6fb655bd8f0731a77031d0afc3d1882ca3019915/ses_667f7dd65ffe01SU6jAvPZBmQW.json\n",
+      "exit": 0,
+      "description": "Check non-ideavo changes"
+    },
+    "title": "git status --porcelain | grep -v \"^?? .ideavo\"",
+    "time": {
+      "start": 1759720867676,
+      "end": 1759720867692
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b789c11a001ho2o3GTff6YjHS",
+  "messageID": "msg_9b7894c30001EWyhTQXaXceKmm",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_018xEYbppiZ1LTGSbquopAgm",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "npx vercel --prod",
+      "description": "Deploy to Vercel production"
+    },
+    "output": "npm warn exec The following package was not found and will be installed: vercel@48.2.0\nnpm warn deprecated path-match@1.2.4: This package is archived and no longer maintained. For support, visit https://github.com/expressjs/express/discussions\nVercel CLI 48.2.0\n> NOTE: The Vercel CLI now collects telemetry regarding usage of the CLI.\n> This information is used to shape the CLI roadmap and prioritize features.\n> You can learn more, including how to opt-out if you'd not like to participate in this program, by visiting the following URL:\n> https://vercel.com/docs/cli/about-telemetry\nError: Command `vercel deploy` requires confirmation. Use option \"--yes\" to confirm.\n",
+    "metadata": {
+      "output": "npm warn exec The following package was not found and will be installed: vercel@48.2.0\nnpm warn deprecated path-match@1.2.4: This package is archived and no longer maintained. For support, visit https://github.com/expressjs/express/discussions\nVercel CLI 48.2.0\n> NOTE: The Vercel CLI now collects telemetry regarding usage of the CLI.\n> This information is used to shape the CLI roadmap and prioritize features.\n> You can learn more, including how to opt-out if you'd not like to participate in this program, by visiting the following URL:\n> https://vercel.com/docs/cli/about-telemetry\nError: Command `vercel deploy` requires confirmation. Use option \"--yes\" to confirm.\n",
+      "exit": 1,
+      "description": "Deploy to Vercel production"
+    },
+    "title": "npx vercel --prod",
+    "time": {
+      "start": 1759720882942,
+      "end": 1759720902228
+    }
+  }
+}

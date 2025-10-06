@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b78a6451001D7kzcxUUxPjQQT",
+  "messageID": "msg_9b7894c30001EWyhTQXaXceKmm",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_012SGLeWqWDPSnkraHTNSfPx",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "curl -s -I \"https://www.magicalbirthdayplanner.com\" | head -10",
+      "description": "Check deployment headers"
+    },
+    "output": "HTTP/2 200 \r\naccept-ranges: bytes\r\naccess-control-allow-origin: *\r\nage: 170669\r\ncache-control: public, max-age=0, must-revalidate\r\ncontent-disposition: inline\r\ncontent-type: text/html; charset=utf-8\r\ndate: Mon, 06 Oct 2025 03:22:05 GMT\r\netag: \"a0e4ae67c34ecc11cd57fd163d266e95\"\r\nserver: Vercel\r\n",
+    "metadata": {
+      "output": "HTTP/2 200 \r\naccept-ranges: bytes\r\naccess-control-allow-origin: *\r\nage: 170669\r\ncache-control: public, max-age=0, must-revalidate\r\ncontent-disposition: inline\r\ncontent-type: text/html; charset=utf-8\r\ndate: Mon, 06 Oct 2025 03:22:05 GMT\r\netag: \"a0e4ae67c34ecc11cd57fd163d266e95\"\r\nserver: Vercel\r\n",
+      "exit": 0,
+      "description": "Check deployment headers"
+    },
+    "title": "curl -s -I \"https://www.magicalbirthdayplanner.com\" | head -10",
+    "time": {
+      "start": 1759720925027,
+      "end": 1759720925186
+    }
+  }
+}

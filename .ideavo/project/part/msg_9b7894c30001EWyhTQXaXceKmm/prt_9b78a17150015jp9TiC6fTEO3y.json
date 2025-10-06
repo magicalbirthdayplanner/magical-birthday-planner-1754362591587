@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b78a17150015jp9TiC6fTEO3y",
+  "messageID": "msg_9b7894c30001EWyhTQXaXceKmm",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01WKGqpRjCciAd8Zofo75sje",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "npx vercel --prod --yes",
+      "description": "Deploy to Vercel production with confirmation"
+    },
+    "output": "Vercel CLI 48.2.0\nLoading scopes…\nError: The specified token is not valid. Use `vercel login` to generate a new token.\n",
+    "metadata": {
+      "output": "Vercel CLI 48.2.0\nLoading scopes…\nError: The specified token is not valid. Use `vercel login` to generate a new token.\n",
+      "exit": 1,
+      "description": "Deploy to Vercel production with confirmation"
+    },
+    "title": "npx vercel --prod --yes",
+    "time": {
+      "start": 1759720904928,
+      "end": 1759720908492
+    }
+  }
+}

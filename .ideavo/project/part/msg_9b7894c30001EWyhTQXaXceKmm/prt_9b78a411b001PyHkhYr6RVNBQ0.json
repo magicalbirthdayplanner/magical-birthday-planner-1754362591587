@@ -1,0 +1,23 @@
+{
+  "id": "prt_9b78a411b001PyHkhYr6RVNBQ0",
+  "messageID": "msg_9b7894c30001EWyhTQXaXceKmm",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "read",
+  "callID": "toolu_01DJk7j7KYRgrYXWhETTCHhg",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/vercel.json"
+    },
+    "output": "<file>\n00001| {\n00002|   \"buildCommand\": \"npm run build\",\n00003|   \"installCommand\": \"npm install\",\n00004|   \"framework\": \"nextjs\",\n00005|   \"functions\": {\n00006|     \"app/api/**/*.ts\": {\n00007|       \"maxDuration\": 30\n00008|     }\n00009|   },\n00010|   \"env\": {\n00011|     \"NODE_ENV\": \"production\"\n00012|   }\n00013| }\n00014| \n</file>",
+    "metadata": {
+      "preview": "{\n  \"buildCommand\": \"npm run build\",\n  \"installCommand\": \"npm install\",\n  \"framework\": \"nextjs\",\n  \"functions\": {\n    \"app/api/**/*.ts\": {\n      \"maxDuration\": 30\n    }\n  },\n  \"env\": {\n    \"NODE_ENV\": \"production\"\n  }\n}\n"
+    },
+    "title": "vercel.json",
+    "time": {
+      "start": 1759720915751,
+      "end": 1759720915780
+    }
+  }
+}
