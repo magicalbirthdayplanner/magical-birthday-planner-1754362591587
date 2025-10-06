@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b784933f002BlPiFV2NwFJPqt",
+  "messageID": "msg_9b77d48210016wotEJCUzog4tK",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01ARCLGRZUDfAp4ht7muDeyr",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "cd /home/user/project && node scripts/apply-google-auth-fix.js",
+      "description": "Apply Google Auth user creation fix"
+    },
+    "output": "🔄 Starting Google Auth user creation fix...\n📝 Step 1: Adding trial columns if they don't exist...\n⚠️ Note: Column addition might have failed (this is ok if columns already exist): Invalid API key\n📝 Step 2: Creating user creation trigger function...\n❌ Error creating trigger function: {\n  message: 'Invalid API key',\n  hint: 'Double check your Supabase `anon` or `service_role` API key.'\n}\n✅ Script completed successfully\n",
+    "metadata": {
+      "output": "🔄 Starting Google Auth user creation fix...\n📝 Step 1: Adding trial columns if they don't exist...\n⚠️ Note: Column addition might have failed (this is ok if columns already exist): Invalid API key\n📝 Step 2: Creating user creation trigger function...\n❌ Error creating trigger function: {\n  message: 'Invalid API key',\n  hint: 'Double check your Supabase `anon` or `service_role` API key.'\n}\n✅ Script completed successfully\n",
+      "exit": 0,
+      "description": "Apply Google Auth user creation fix"
+    },
+    "title": "cd /home/user/project && node scripts/apply-google-auth-fix.js",
+    "time": {
+      "start": 1759720543542,
+      "end": 1759720544084
+    }
+  }
+}

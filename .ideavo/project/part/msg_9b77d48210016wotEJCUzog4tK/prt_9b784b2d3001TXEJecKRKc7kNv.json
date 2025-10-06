@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b784b2d3001TXEJecKRKc7kNv",
+  "messageID": "msg_9b77d48210016wotEJCUzog4tK",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01UPRthFbAFdc6Wh7yk9RApH",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/scripts/apply-google-auth-fix.js",
+      "oldString": "// Read environment variables\nrequire('dotenv').config({ path: path.join(__dirname, '..', '.env.local') })",
+      "newString": "// Read environment variables\nrequire('dotenv').config({ path: path.join(__dirname, '..', '.env') })"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/scripts/apply-google-auth-fix.js\n===================================================================\n--- /home/user/project/scripts/apply-google-auth-fix.js\n+++ /home/user/project/scripts/apply-google-auth-fix.js\n@@ -10,9 +10,9 @@\n const fs = require('fs')\n const path = require('path')\n \n // Read environment variables\n-require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') })\n+require('dotenv').config({ path: path.join(__dirname, '..', '.env') })\n \n const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL\n const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY\n \n"
+    },
+    "title": "scripts/apply-google-auth-fix.js",
+    "time": {
+      "start": 1759720552486,
+      "end": 1759720552490
+    }
+  }
+}

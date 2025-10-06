@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b78212e2001qXm06CSO4op2r4",
+  "messageID": "msg_9b77d48210016wotEJCUzog4tK",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01KDBAaSYeszxXfVsKhgx28M",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "rg \"trigger|function.*auth|handle_new_user\" --glob \"*.sql\" -A 3 -B 3",
+      "description": "Check for auth-related functions in SQL"
+    },
+    "output": "",
+    "metadata": {
+      "output": "",
+      "exit": null,
+      "description": "Check for auth-related functions in SQL"
+    },
+    "title": "rg \"trigger|function.*auth|handle_new_user\" --glob \"*.sql\" -A 3 -B 3",
+    "time": {
+      "start": 1759720380361,
+      "end": 1759720440399
+    }
+  }
+}

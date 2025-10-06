@@ -91,41 +91,22 @@ export async function GET(request: Request) {
               }
             }
             
-            // Create or update profile in users table - be more aggressive
-            console.log('👤 Attempting to create/update user profile...')
-            const { data: upsertData, error: profileError } = await supabase
-              .from('users')
-              .upsert({
-                id: data.user.id,
-                email: data.user.email,
-                full_name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || '',
-                avatar_url: data.user.user_metadata?.avatar_url,
-                current_plan: 'PRO', // Start with PRO plan for 24-hour trial
-                trial_started_at: new Date().toISOString(),
-                trial_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-                trial_plan: 'PRO',
-                is_trial_active: true,
-                has_used_trial: true,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              }, {
-                onConflict: 'id',
-                ignoreDuplicates: false
-              })
-              .select()
+            // Ensure user profile exists (trigger should handle this, but we'll double-check)
+            console.log('👤 Checking/ensuring user profile exists...')
             
-            if (profileError) {
-              console.error('⚠️ Profile upsert error:', profileError)
-              // Log the exact error for debugging
-              console.error('Error details:', {
-                code: profileError.code,
-                message: profileError.message,
-                details: profileError.details,
-                hint: profileError.hint
-              })
-              
-              // Try a simple insert instead of upsert
-              console.log('🔄 Trying simple insert...')
+            // Wait a moment for the trigger to complete
+            await new Promise(resolve => setTimeout(resolve, 100))
+            
+            // Check if user profile was created by the trigger
+            const { data: userProfile, error: checkError } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', data.user.id)
+              .single()
+            
+            if (checkError && checkError.code === 'PGRST116') {
+              // Profile doesn't exist - trigger failed, create manually
+              console.log('🔧 Trigger didn\'t create profile, creating manually...')
               const { data: insertData, error: insertError } = await supabase
                 .from('users')
                 .insert({
@@ -133,24 +114,48 @@ export async function GET(request: Request) {
                   email: data.user.email,
                   full_name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || '',
                   avatar_url: data.user.user_metadata?.avatar_url,
-                  current_plan: 'PRO', // Start with PRO plan for 24-hour trial
+                  current_plan: 'PRO',
                   trial_started_at: new Date().toISOString(),
-                  trial_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+                  trial_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
                   trial_plan: 'PRO',
                   is_trial_active: true,
-                  has_used_trial: true,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
+                  has_used_trial: true
                 })
                 .select()
               
               if (insertError) {
-                console.error('❌ Both upsert and insert failed:', insertError)
+                console.error('❌ Manual user creation failed:', insertError)
+                console.error('Error details:', {
+                  code: insertError.code,
+                  message: insertError.message,
+                  details: insertError.details,
+                  hint: insertError.hint
+                })
               } else {
-                console.log('✅ User inserted successfully via fallback:', insertData)
+                console.log('✅ User profile created manually:', insertData)
               }
+            } else if (checkError) {
+              console.error('⚠️ Error checking user profile:', checkError)
             } else {
-              console.log('✅ Profile created/updated successfully:', upsertData)
+              console.log('✅ User profile exists (created by trigger):', userProfile.email)
+              
+              // Update profile with latest info if needed
+              if (data.user.user_metadata?.full_name && userProfile.full_name !== data.user.user_metadata.full_name) {
+                const { error: updateError } = await supabase
+                  .from('users')
+                  .update({
+                    full_name: data.user.user_metadata.full_name,
+                    avatar_url: data.user.user_metadata?.avatar_url,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', data.user.id)
+                
+                if (updateError) {
+                  console.warn('⚠️ Failed to update user profile:', updateError)
+                } else {
+                  console.log('✅ User profile updated with latest info')
+                }
+              }
             }
           } catch (profileErr) {
             console.warn('⚠️ Profile creation failed (non-blocking):', profileErr)

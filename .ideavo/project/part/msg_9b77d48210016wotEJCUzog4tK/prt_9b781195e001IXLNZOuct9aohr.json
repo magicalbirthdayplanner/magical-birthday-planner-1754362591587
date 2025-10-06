@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b781195e001IXLNZOuct9aohr",
+  "messageID": "msg_9b77d48210016wotEJCUzog4tK",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01JfC6PFv8MfVw1UTZiVZb4Y",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "rg \"auth\\.users|new\\.user_id|TG_OP\" --glob \"*.sql\" -A 5 -B 5",
+      "description": "Check for auth triggers in SQL files"
+    },
+    "output": "",
+    "metadata": {
+      "output": "",
+      "exit": null,
+      "description": "Check for auth triggers in SQL files"
+    },
+    "title": "rg \"auth\\.users|new\\.user_id|TG_OP\" --glob \"*.sql\" -A 5 -B 5",
+    "time": {
+      "start": 1759720317007,
+      "end": 1759720377017
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "prt_9b77db3410016JLWDZ8fghs2mI",
+  "messageID": "msg_9b77d48210016wotEJCUzog4tK",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "grep",
+  "callID": "toolu_01Ev3MXfsRx7RKEt1fXF1S4G",
+  "state": {
+    "status": "completed",
+    "input": {
+      "pattern": "google.*auth|oauth.*google",
+      "include": "*.ts,*.tsx"
+    },
+    "output": "No files found",
+    "metadata": {
+      "matches": 0,
+      "truncated": false
+    },
+    "title": "google.*auth|oauth.*google",
+    "time": {
+      "start": 1759720093370,
+      "end": 1759720093380
+    }
+  }
+}

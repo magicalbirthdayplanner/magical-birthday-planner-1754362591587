@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b77e0448001JAVuVp1s0xjHFm",
+  "messageID": "msg_9b77d48210016wotEJCUzog4tK",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01DLwyH77CjHnkEYu1CtJVvY",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "rg -l \"signInWithGoogle|SIGNED_IN\" --type ts --type tsx",
+      "description": "Find files handling Google sign-in"
+    },
+    "output": "unrecognized file type: tsx\n",
+    "metadata": {
+      "output": "unrecognized file type: tsx\n",
+      "exit": 2,
+      "description": "Find files handling Google sign-in"
+    },
+    "title": "rg -l \"signInWithGoogle|SIGNED_IN\" --type ts --type tsx",
+    "time": {
+      "start": 1759720114462,
+      "end": 1759720114469
+    }
+  }
+}

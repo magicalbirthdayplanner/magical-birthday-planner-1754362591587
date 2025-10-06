@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b7854e9d001HoateypaoiZjQx",
+  "messageID": "msg_9b77d48210016wotEJCUzog4tK",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "bash",
+  "callID": "toolu_01AT41NAN1jdFCq92eoDvQPi",
+  "state": {
+    "status": "completed",
+    "input": {
+      "command": "cd /home/user/project && npm run build",
+      "description": "Build project to check for errors"
+    },
+    "output": "\n> ideavo-nextjs@0.1.0 build\n> next build\n\n ⚠ You are using a non-standard \"NODE_ENV\" value in your environment. This creates inconsistencies in the project and is strongly advised against. Read more: https://nextjs.org/docs/messages/non-standard-node-env\n  ▲ Next.js 14.2.32\n  - Environments: .env.local, .env\n\n   Creating an optimized production build ...\n ✓ Compiled successfully\n   Linting and checking validity of types ...\n",
+    "metadata": {
+      "output": "\n> ideavo-nextjs@0.1.0 build\n> next build\n\n ⚠ You are using a non-standard \"NODE_ENV\" value in your environment. This creates inconsistencies in the project and is strongly advised against. Read more: https://nextjs.org/docs/messages/non-standard-node-env\n  ▲ Next.js 14.2.32\n  - Environments: .env.local, .env\n\n   Creating an optimized production build ...\n ✓ Compiled successfully\n   Linting and checking validity of types ...\n",
+      "exit": null,
+      "description": "Build project to check for errors"
+    },
+    "title": "cd /home/user/project && npm run build",
+    "time": {
+      "start": 1759720591586,
+      "end": 1759720651600
+    }
+  }
+}

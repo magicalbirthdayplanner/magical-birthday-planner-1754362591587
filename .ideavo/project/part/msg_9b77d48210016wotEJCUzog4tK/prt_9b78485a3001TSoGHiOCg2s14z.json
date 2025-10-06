@@ -1,0 +1,26 @@
+{
+  "id": "prt_9b78485a3001TSoGHiOCg2s14z",
+  "messageID": "msg_9b77d48210016wotEJCUzog4tK",
+  "sessionID": "ses_667f7dd65ffe01SU6jAvPZBmQW",
+  "type": "tool",
+  "tool": "edit",
+  "callID": "toolu_01UjEQFJBvwoe7pxtUqDbPGY",
+  "state": {
+    "status": "completed",
+    "input": {
+      "filePath": "/home/user/project/scripts/apply-google-auth-fix.js",
+      "oldString": "    console.log('📝 Step 1: Adding trial columns if they don\\\\'t exist...')",
+      "newString": "    console.log('📝 Step 1: Adding trial columns if they don\\'t exist...')"
+    },
+    "output": "",
+    "metadata": {
+      "diagnostics": {},
+      "diff": "Index: /home/user/project/scripts/apply-google-auth-fix.js\n===================================================================\n--- /home/user/project/scripts/apply-google-auth-fix.js\n+++ /home/user/project/scripts/apply-google-auth-fix.js\n@@ -30,9 +30,9 @@\n try {\n   console.log('🔄 Starting Google Auth user creation fix...')\n \n   // Step 1: Ensure trial columns exist\n-  console.log('📝 Step 1: Adding trial columns if they don\\\\'t exist...')\n+  console.log('📝 Step 1: Adding trial columns if they don\\'t exist...')\n   const { error: alterError } = await supabase.rpc('exec', {\n     sql: `\n       ALTER TABLE public.users \n       ADD COLUMN IF NOT EXISTS trial_started_at TIMESTAMP WITH TIME ZONE,\n"
+    },
+    "title": "scripts/apply-google-auth-fix.js",
+    "time": {
+      "start": 1759720540782,
+      "end": 1759720540786
+    }
+  }
+}
