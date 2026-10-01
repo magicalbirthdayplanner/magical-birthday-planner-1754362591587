@@ -12,7 +12,6 @@ import {
   type TestUser,
 } from './helpers/supabase'
 
-const up = await isSupabaseUp()
 
 interface World {
   user: TestUser
@@ -92,13 +91,14 @@ async function seedWorld(user: TestUser, venueId: string, placeId: string, label
   }
 }
 
-describe.skipIf(!up)('RLS isolation between users', () => {
+describe('RLS isolation between users', () => {
   let A: World
   let B: World
   let venueId: string
   const placeId = `test-place-${Date.now()}`
 
   beforeAll(async () => {
+    if (!(await isSupabaseUp())) throw new Error('Local Supabase is not running: npm run db:start && npm run db:reset')
     const admin = adminClient()
     const { data: venue, error } = await admin
       .from('venues')
