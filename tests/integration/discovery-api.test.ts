@@ -158,6 +158,8 @@ describe('GET /api/discovery/places/:placeId', () => {
   it('fetches details once and returns why-recommended for the party', async () => {
     const list = await (await post(A.accessToken, { partyId: partyA, radiusMiles: 20 })).json()
     const target = list.venues.find((v: { name: string }) => /picasso|splash|brush|easel/i.test(v.name))
+    // Mock place ids are deterministic: clear details cached by earlier runs.
+    await adminClient().from('venues').update({ details_synced_at: null }).eq('place_id', target.placeId)
     const before = await stats()
     const req = () =>
       details.GET(new Request(`http://app.test/api/discovery/places/${target.placeId}?partyId=${partyA}`, { headers: { Authorization: `Bearer ${A.accessToken}` } }), {
