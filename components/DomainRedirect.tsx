@@ -12,9 +12,15 @@ export default function DomainRedirect() {
       const canonicalDomain = 'www.magicalbirthdayplanner.com'
       const devDomain = 'cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai'
       
+      const isLocalOrPreview =
+        currentDomain.includes('localhost') ||
+        currentDomain === '127.0.0.1' ||
+        currentDomain.endsWith('.vercel.app') ||
+        currentDomain.includes(devDomain)
+
       // If we're in production and not on the canonical domain, redirect
-      if (process.env.NODE_ENV === 'production') {
-        if (currentDomain !== canonicalDomain && !currentDomain.includes('localhost') && !currentDomain.includes(devDomain)) {
+      if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_DISABLE_DOMAIN_REDIRECT !== 'true') {
+        if (currentDomain !== canonicalDomain && !isLocalOrPreview) {
           // Redirect to canonical domain while preserving path and query params
           const canonicalUrl = currentUrl.replace(currentDomain, canonicalDomain)
           window.location.replace(canonicalUrl)

@@ -45,6 +45,7 @@ test-*.html
 .env
 .env.*
 !.env.example
+!.env.e2e
 
 # playwright / test artifacts
 /test-results/

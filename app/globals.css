@@ -100,3 +100,87 @@
     animation-play-state: paused;
   }
 }
+
+/* ==========================================================================
+   Mobile app design system (scoped). Applies to the (app) and (flow) route
+   groups via `.mbp-app`; `html:has()` makes portals (sheets, dialogs) inherit
+   it too. The legacy marketing site keeps its own tokens.
+   Magical, premium, trustworthy: deep ink-violet, warm ivory, coral + gold.
+   ========================================================================== */
+html:has(.mbp-app) {
+  --background: 36 45% 97%;
+  --foreground: 252 32% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 252 32% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 252 32% 14%;
+  --primary: 258 56% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 258 40% 95%;
+  --secondary-foreground: 258 45% 30%;
+  --muted: 36 25% 93%;
+  --muted-foreground: 252 10% 40%;
+  --accent: 12 90% 95%;
+  --accent-foreground: 12 70% 38%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 36 20% 87%;
+  --input: 36 18% 82%;
+  --ring: 258 56% 45%;
+  --radius: 1rem;
+  --coral: 12 88% 64%;
+  --gold: 40 92% 56%;
+  --success: 152 55% 36%;
+  --app-header-h: 56px;
+  --app-nav-h: 64px;
+  background-color: hsl(var(--background));
+  color-scheme: light;
+}
+
+.mbp-app {
+  font-family: var(--font-sans), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+@layer utilities {
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pl-safe { padding-left: env(safe-area-inset-left); }
+  .pr-safe { padding-right: env(safe-area-inset-right); }
+  .mb-safe { margin-bottom: env(safe-area-inset-bottom); }
+  /* Content area: clears the sticky header and the bottom nav (+ safe area). */
+  .app-content-pb { padding-bottom: calc(var(--app-nav-h) + env(safe-area-inset-bottom) + 24px); }
+  .bottom-above-nav { bottom: calc(var(--app-nav-h) + env(safe-area-inset-bottom) + 12px); }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .tap { touch-action: manipulation; }
+  .text-balance { text-wrap: balance; }
+  .bg-magic {
+    background:
+      radial-gradient(120% 80% at 100% 0%, hsl(var(--coral) / 0.18), transparent 55%),
+      radial-gradient(90% 70% at 0% 10%, hsl(var(--primary) / 0.16), transparent 60%),
+      hsl(var(--background));
+  }
+  .bg-hero {
+    background: linear-gradient(135deg, hsl(258 56% 42%), hsl(278 52% 46%) 55%, hsl(12 80% 60%));
+  }
+}
+
+@keyframes mbp-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.mbp-skeleton {
+  background: linear-gradient(90deg, hsl(var(--muted)) 0px, hsl(var(--muted) / 0.45) 80px, hsl(var(--muted)) 160px);
+  background-size: 800px 100%;
+  animation: mbp-shimmer 1.3s linear infinite;
+}
+@keyframes mbp-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.mbp-rise { animation: mbp-rise 0.35s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .mbp-skeleton, .mbp-rise { animation: none; }
+}

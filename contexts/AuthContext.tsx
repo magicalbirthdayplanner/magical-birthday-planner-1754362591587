@@ -11,7 +11,7 @@ interface AuthContextType {
   isSigningOut: boolean
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
-  signInWithGoogle: () => Promise<{ error: any }>
+  signInWithGoogle: (next?: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
 }
 
@@ -191,7 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (next?: string) => {
     try {
       // Get the current domain for redirect - ensure proper URL formatting
       const baseUrl = typeof window !== 'undefined' 
@@ -200,7 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Ensure baseUrl doesn't end with slash and construct proper callback URL
       const cleanBaseUrl = baseUrl.replace(/\/$/, '').trim()
-      const redirectTo = `${cleanBaseUrl}/auth/callback`
+      const redirectTo = `${cleanBaseUrl}/auth/callback${next && next.startsWith('/') && !next.startsWith('//') ? `?next=${encodeURIComponent(next)}` : ''}`
       
       // Validate the redirect URL format
       try {

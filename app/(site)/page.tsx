@@ -199,13 +199,13 @@ export default function Home() {
             ) : user ? (
               // Authenticated user CTAs
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
-                <Link href="/dashboard" className="w-full sm:w-auto">
+                <Link href="/home" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 sm:px-8 py-3 text-base sm:text-lg">
                     <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Go to Dashboard
                   </Button>
                 </Link>
-                <Link href="/create-party" className="w-full sm:w-auto">
+                <Link href="/start" className="w-full sm:w-auto">
                   <Button variant="outline" size="lg" className="w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-6 sm:px-8 py-3 text-base sm:text-lg">
                     <PartyPopper className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Create New Party
@@ -216,7 +216,7 @@ export default function Home() {
               // Unauthenticated user CTAs
               <>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
-                  <Link href="/signup" className="w-full sm:w-auto">
+                  <Link href="/start" className="w-full sm:w-auto">
                     <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 sm:px-8 py-3 text-base sm:text-lg">
                       Get Started Free
                     </Button>
@@ -228,7 +228,7 @@ export default function Home() {
                   </Link>
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                  Already have an account? <Link href="/signin" className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">Sign in</Link>
+                  Already have an account? <Link href="/login" className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">Sign in</Link>
                 </p>
               </>
             )}
@@ -288,7 +288,7 @@ export default function Home() {
           </div>
           
           <div className="text-center mt-8">
-            <Link href="/create-party">
+            <Link href="/start">
               <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20">
                 {user ? "Create New Party" : "Explore All Themes"}
               </Button>
@@ -654,13 +654,13 @@ export default function Home() {
                 Your personalized dashboard is ready with all your party planning tools
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
-                <Link href="/dashboard" className="w-full sm:w-auto">
+                <Link href="/home" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full sm:w-auto bg-white text-purple-600 hover:bg-gray-100 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold">
                     <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     View My Dashboard
                   </Button>
                 </Link>
-                <Link href="/create-party" className="w-full sm:w-auto">
+                <Link href="/start" className="w-full sm:w-auto">
                   <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-purple-600 hover:bg-white hover:text-purple-600 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold bg-white">
                     <PartyPopper className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Start New Party
@@ -677,7 +677,7 @@ export default function Home() {
                 Join thousands of parents who trust us to make their children's birthdays unforgettable
               </p>
               <div className="flex flex-col gap-4 justify-center items-center">
-                <Link href="/signup" className="w-full sm:w-auto">
+                <Link href="/start" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full sm:w-auto bg-white text-purple-600 hover:bg-gray-100 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold">
                     Create Your Account
                   </Button>

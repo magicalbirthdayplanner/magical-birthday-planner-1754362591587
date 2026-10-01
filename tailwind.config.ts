@@ -6,9 +6,13 @@ const config: Config = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './data/**/*.ts',
   ],
   theme: {
     extend: {
+      fontFamily: {
+        display: ['var(--font-display)', 'Georgia', 'serif'],
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':
@@ -50,6 +54,9 @@ const config: Config = {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        coral: 'hsl(var(--coral, 12 88% 64%) / <alpha-value>)',
+        gold: 'hsl(var(--gold, 40 92% 56%) / <alpha-value>)',
+        success: 'hsl(var(--success, 152 55% 36%) / <alpha-value>)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

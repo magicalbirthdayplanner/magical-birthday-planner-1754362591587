@@ -8,7 +8,10 @@ export async function GET(request: Request) {
   const error_code = requestUrl.searchParams.get('error')
   const error_description = requestUrl.searchParams.get('error_description')
   const state = requestUrl.searchParams.get('state')
-  const next = requestUrl.searchParams.get('next') ?? '/dashboard'
+  // Only same-origin relative paths: blocks open redirects like ?next=//evil.example
+  const rawNext = requestUrl.searchParams.get('next')
+  const explicitNext = rawNext && /^\/(?![\/\\])[\w\-./?=&%]*$/.test(rawNext) ? rawNext : null
+  const next = explicitNext ?? '/dashboard'
   let isNewUser = false
 
   console.log('🔄 Auth callback received:', { 
@@ -161,6 +164,11 @@ export async function GET(request: Request) {
             console.warn('⚠️ Profile creation failed (non-blocking):', profileErr)
           }
           
+          // Mobile flows pass an explicit destination and run their own onboarding.
+          if (explicitNext) {
+            return NextResponse.redirect(new URL(explicitNext, requestUrl.origin))
+          }
+
           // For new users, redirect to signin with show_welcome parameter to trigger welcome screen
           if (isNewUser) {
             console.log('🎉 Redirecting new user to signin for welcome screen')
@@ -252,6 +260,12 @@ export async function GET(request: Request) {
       console.error('❌ Auth callback exception:', err)
       return NextResponse.redirect(new URL('/signin?error=callback_failed', requestUrl.origin))
     }
+  }
+
+  // Implicit-flow OAuth returns tokens in the URL hash, which the server never sees.
+  // Browsers carry the hash across this redirect, so the client picks the session up there.
+  if (explicitNext) {
+    return NextResponse.redirect(new URL(explicitNext, requestUrl.origin))
   }
 
   // If no code or session, redirect to signin
