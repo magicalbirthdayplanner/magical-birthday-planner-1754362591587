@@ -177,8 +177,8 @@ export function DiscoverScreen() {
   ) : null
 
   const header = (
-    <div ref={headerRef} className="px-4 pb-2 pt-4">
-      <div className="flex items-start justify-between gap-3">
+    <div ref={headerRef} className={cn('px-4 pb-2', view === 'map' ? 'pt-2' : 'pt-4')}>
+      <div className={cn('flex items-start justify-between gap-3', view === 'map' && 'sr-only')}>
         <div className="min-w-0">
           <h1 className="font-display text-[28px] font-semibold leading-tight tracking-tight">Party places near you</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
@@ -188,7 +188,7 @@ export function DiscoverScreen() {
         </Link>
       </div>
 
-      <div className="mt-3 flex items-center gap-2">
+      <div className={cn('flex items-center gap-2', view === 'map' ? 'mt-0' : 'mt-3')}>
         <label className="relative flex-1">
           <span className="sr-only">Search places</span>
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -226,7 +226,7 @@ export function DiscoverScreen() {
         </div>
       </div>
 
-      <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1" role="toolbar" aria-label="Categories">
+      <div className="no-scrollbar relative -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1" role="toolbar" aria-label="Categories">
         {CHIPS.map((c) => (
           <Chip key={c.id} active={chip === c.id} onClick={() => pickChip(c.id)}>
             {c.label}

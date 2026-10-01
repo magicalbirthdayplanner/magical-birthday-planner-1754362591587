@@ -120,3 +120,14 @@ describe('theme interest matching', () => {
     expect(recs.find((r) => r.theme.id === 'pool')?.matched ?? []).toEqual([])
   })
 })
+
+describe('state-aware checklist generation', () => {
+  it('pre-completes milestones the party already has', () => {
+    const tasks = generateChecklist({ partyDate: '2026-12-12', today: '2026-10-01', theme: 'dinosaur-adventure', hasGuests: true })
+    const byKey = Object.fromEntries(tasks.map((t) => [t.task_key, t]))
+    expect(byKey['pick-theme'].completed).toBe(true)
+    expect(byKey['guest-list'].completed).toBe(true)
+    expect(byKey['send-invites'].completed).toBe(false)
+    expect(byKey['order-cake'].completed).toBe(false)
+  })
+})

@@ -3,5 +3,5 @@
   "rules": {
     "react/no-unescaped-entities": "off"
   },
-  "ignorePatterns": ["node_modules/", ".next/", ".ideavo/", "database/", "scripts/", "public/sw.js"]
+  "ignorePatterns": ["node_modules/", ".next/", ".next-e2e/", ".ideavo/", "database/", "scripts/", "public/sw.js"]
 }

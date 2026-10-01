@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY || 're_not_configured');
 
 export async function GET() {
   try {
@@ -15,7 +15,7 @@ export async function GET() {
     }
 
     // Test Resend API connection by sending a test email
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'Birthday Planner <noreply@resend.dev>',
       to: ['magicalbirthdayplanner@gmail.com'], // Use verified email for testing
       subject: 'Birthday Planner - Resend Test',

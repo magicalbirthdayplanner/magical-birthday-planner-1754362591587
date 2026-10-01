@@ -70,7 +70,7 @@ function CompareSheet({ open, onOpenChange, venues, center }: { open: boolean; o
   ]
   return (
     <BottomSheet open={open} onOpenChange={onOpenChange} title="Compare" description="Swipe sideways to see every place.">
-      <div className="no-scrollbar -mx-5 overflow-x-auto px-5">
+      <div className="no-scrollbar relative -mx-5 overflow-x-auto px-5">
         <table className="w-max border-separate border-spacing-x-3 text-sm">
           <thead>
             <tr>
@@ -180,7 +180,7 @@ export function SavedScreen() {
               <li key={s.id}>
                 <Card className={cn('p-3', isChosen && 'ring-2 ring-primary')}>
                   <div className="flex gap-3">
-                    <Link href={`/venue/${encodeURIComponent(v.placeId)}`} className="shrink-0">
+                    <Link href={`/venue/${encodeURIComponent(v.placeId)}`} className="shrink-0" tabIndex={-1} aria-hidden>
                       <VenuePhoto photo={v.photo} categories={v.categories} alt={v.name} sizes="thumb" className="h-24 w-24 rounded-xl" />
                     </Link>
                     <div className="min-w-0 flex-1">

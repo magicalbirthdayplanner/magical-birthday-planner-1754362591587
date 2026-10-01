@@ -17,7 +17,8 @@ export async function listChecklist(partyId: string): Promise<ChecklistItem[]> {
  */
 export async function ensureChecklist(partyId: string, input: Omit<ChecklistInput, 'today'>): Promise<ChecklistItem[]> {
   const tasks = generateChecklist({ ...input, today: localToday() })
-  const rows = tasks.map((t) => ({ ...t, party_id: partyId }))
+  const now = new Date().toISOString()
+  const rows = tasks.map(({ completed, ...t }) => ({ ...t, party_id: partyId, completed_at: completed ? now : null }))
   const { error } = await db.from('checklist_items').upsert(rows, { onConflict: 'party_id,task_key', ignoreDuplicates: true })
   if (error) throw error
   return listChecklist(partyId)

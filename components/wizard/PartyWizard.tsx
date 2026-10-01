@@ -9,6 +9,7 @@ import { AppButton, Chip, IconButton } from '@/components/app/ui'
 import { TextField } from '@/components/app/fields'
 import { AuthForm } from '@/components/app/AuthForm'
 import { createParty, ensureProfile } from '@/lib/data/parties'
+import { ensureChecklist } from '@/lib/data/checklist'
 import { friendlyError } from '@/lib/data/api'
 import { db } from '@/lib/db/browser'
 import { INTERESTS, type InterestId } from '@/lib/discovery/taxonomy'
@@ -195,6 +196,16 @@ export function PartyWizard() {
         interests: draft.interests,
         theme: !!draft.theme,
       })
+      // Create the countdown checklist now, so milestones completed before the
+      // parent ever opens Plan (e.g. choosing a theme) are tracked.
+      await ensureChecklist(party.id, {
+        partyDate: party.party_date,
+        guestCount: party.guest_count,
+        hasVenue: false,
+        setting: draft.setting,
+        theme: draft.theme,
+        childName: party.child_name,
+      }).catch(() => undefined)
       setActivePartyId(party.id)
       await mutate(['parties', currentUser.id])
       try {

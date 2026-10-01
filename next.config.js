@@ -9,6 +9,8 @@ const securityHeaders = [
 ]
 
 const nextConfig = {
+  // Separate output dir lets E2E builds (local keys) coexist with production builds.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   poweredByHeader: false,
   images: { unoptimized: true },
   async headers() {

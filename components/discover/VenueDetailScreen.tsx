@@ -123,7 +123,7 @@ export function VenueDetailScreen({ placeId }: { placeId: string }) {
       {/* hero */}
       <div className="relative">
         {venue.photos.length > 1 ? (
-          <div className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto" aria-label="Photos">
+          <div className="no-scrollbar relative flex snap-x snap-mandatory overflow-x-auto" aria-label="Photos">
             {venue.photos.map((p, i) => (
               <VenuePhoto key={p.url} photo={p} categories={venue.categories} alt={`${venue.name} photo ${i + 1}`} sizes="hero" priority={i === 0} className="aspect-[4/3] w-full shrink-0 snap-center" />
             ))}

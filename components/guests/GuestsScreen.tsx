@@ -224,7 +224,7 @@ export function GuestsScreen() {
               <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search guests" className="h-12 w-full rounded-full border border-input bg-card pl-11 pr-4 text-base outline-none focus:border-primary focus:ring-4 focus:ring-primary/15" />
             </label>
           </div>
-          <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto px-4 pb-1" role="toolbar" aria-label="Filter guests">
+          <div className="no-scrollbar relative mt-3 flex gap-2 overflow-x-auto px-4 pb-1" role="toolbar" aria-label="Filter guests">
             {filters.map(([id, label, n]) => (
               <Chip key={id} active={filter === id} onClick={() => setFilter(id)}>
                 {label} <span className="opacity-70">{n}</span>

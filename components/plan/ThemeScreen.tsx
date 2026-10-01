@@ -154,7 +154,7 @@ export function ThemeScreen() {
       </Section>
 
       <Section title="Popular">
-        <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
+        <div className="no-scrollbar relative -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
           {popular.map((t) => (
             <div key={t.id} className="w-40 shrink-0 snap-start">
               <ThemeCard theme={t} selected={current?.id === t.id} onClick={() => open(t)} />
@@ -202,7 +202,7 @@ export function ThemeScreen() {
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search themes" className="h-12 w-full rounded-full border border-input bg-card pl-11 pr-4 text-base outline-none focus:border-primary focus:ring-4 focus:ring-primary/15" />
         </label>
-        <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
+        <div className="no-scrollbar relative -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
           <Chip active={!category} onClick={() => setCategory(null)}>
             All
           </Chip>

@@ -12,6 +12,9 @@ export interface ChecklistInput {
   setting?: 'indoor' | 'outdoor' | 'either'
   theme?: string | null
   childName?: string | null
+  /** Milestones already achieved when the checklist is generated. */
+  hasGuests?: boolean
+  invitationShared?: boolean
 }
 
 export interface ChecklistTemplate {
@@ -31,6 +34,8 @@ export interface GeneratedTask {
   category: string
   due_date: string
   sort_order: number
+  /** Already satisfied by the party's current state (e.g. a theme was chosen before the checklist existed). */
+  completed: boolean
 }
 
 const first = (name?: string | null) => name?.trim().split(/\s+/)[0] || 'the birthday child'
@@ -84,6 +89,10 @@ export function generateChecklist(input: ChecklistInput): GeneratedTask[] {
       category: t.category,
       due_date: formatDay(due),
       sort_order: idx,
+      completed:
+        (t.key === 'pick-theme' && !!input.theme) ||
+        (t.key === 'guest-list' && !!input.hasGuests) ||
+        (t.key === 'send-invites' && !!input.invitationShared),
     }
   })
 }

@@ -15,7 +15,8 @@ export function VenueCard({ venue, saved, onToggleSave, priority, compact }: { v
   return (
     <Card className="overflow-hidden" data-testid="venue-card">
       <div className="relative">
-        <Link href={href} aria-label={`View ${venue.name}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+        {/* Decorative duplicate of the title link: hidden from assistive tech and tab order. */}
+        <Link href={href} tabIndex={-1} aria-hidden className="block">
           <VenuePhoto photo={venue.photo} categories={venue.categories} alt={venue.name} className={compact ? 'aspect-[2/1]' : 'aspect-[16/10]'} priority={priority} />
         </Link>
         {categoryTag ? (

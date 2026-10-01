@@ -158,12 +158,12 @@ export function HomeScreen() {
       {!summary.chosenVenue ? (
         <Section title="Recommended for you" action={<Link href="/discover" className="text-sm font-semibold text-primary">See all</Link>} className="pt-6">
           {discovery.isLoading && !discovery.data ? (
-            <div className="flex gap-3">
+            <div className="-mx-4 flex gap-3 overflow-hidden px-4">
               <Skeleton className="h-52 w-60 shrink-0" />
               <Skeleton className="h-52 w-60 shrink-0" />
             </div>
           ) : recommended.length ? (
-            <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
+            <div className="no-scrollbar relative -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
               {recommended.map((v) => (
                 <Link key={v.placeId} href={`/venue/${encodeURIComponent(v.placeId)}`} className="w-60 shrink-0 snap-start">
                   <Card className="overflow-hidden">

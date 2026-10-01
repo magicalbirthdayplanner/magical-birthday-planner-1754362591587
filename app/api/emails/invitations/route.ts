@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerComponentClient } from '@/lib/supabase';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY || 're_not_configured');
 
 export async function POST(request: NextRequest) {
   try {
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
         `;
         
         // Send email via Resend
-        const { data, error } = await resend.emails.send({
+        const { data, error } = await getResend().emails.send({
           from: 'Birthday Party Invitations <invitations@resend.dev>',
           to: [guest.email],
           subject: `🎉 You're Invited to ${party.child_name || 'A Special'}'s Birthday Party!`,

@@ -1,7 +1,16 @@
 import { Resend } from 'resend';
 
 // Initialize Resend client with API key from environment
-export const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazily constructed: `new Resend(undefined)` throws, which used to break `next build`
+// whenever RESEND_API_KEY was not set. Sends fail gracefully instead.
+let resendClient: Resend | null = null
+export function getResend(): Resend {
+  if (!resendClient) {
+    if (!process.env.RESEND_API_KEY) throw new Error('Email is not configured (RESEND_API_KEY missing)')
+    resendClient = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resendClient
+}
 
 // Email configuration - Updated to use custom verified domain
 export const EMAIL_CONFIG = {
@@ -23,7 +32,7 @@ export interface EmailTemplate {
 // Email sending utility
 export async function sendEmail(template: EmailTemplate) {
   try {
-    const response = await resend.emails.send({
+    const response = await getResend().emails.send({
       from: template.from || EMAIL_CONFIG.fromDomain,
       to: Array.isArray(template.to) ? template.to : [template.to],
       subject: template.subject,

@@ -52,7 +52,9 @@ function placesFor(query, lat, lng) {
     const seed = parseInt(h(`${query}|${i}`).slice(0, 8), 16)
     const dLat = (((seed % 1000) / 1000) - 0.5) * 0.18 // within ~6 miles
     const dLng = ((((seed >> 10) % 1000) / 1000) - 0.5) * 0.22
-    const id = `ChIJmock${h(name).slice(0, 18)}`
+    // Real place ids identify one physical place: include the area so the same
+    // fictional name in two cities never collides.
+    const id = `ChIJmock${h(`${name}|${lat.toFixed(1)},${lng.toFixed(1)}`).slice(0, 18)}`
     const place = {
       id,
       displayName: { text: name, languageCode: 'en' },
