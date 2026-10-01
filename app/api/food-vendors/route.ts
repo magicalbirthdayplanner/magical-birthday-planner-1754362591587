@@ -1,4 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { haversineMiles } from '@/lib/geo/distance';
+import { resolveZip } from '@/lib/geo/zip';
+import { isValidPhotoName, normalizePlace } from '@/lib/google/places';
+import { photoProxyUrl } from '@/lib/discovery/client-venue';
+import { SupabaseDiscoveryStore } from '@/lib/discovery/supabase-store';
+import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin';
+import { rateLimit } from '@/lib/server/rate-limit';
+import { clientIp } from '@/lib/server/http';
 
 export const dynamic = 'force-dynamic';
 
@@ -100,7 +108,7 @@ async function searchGooglePlacesRestaurants(query: string, zipCode: string, rad
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.nationalPhoneNumber,places.websiteUri,places.photos,places.types,places.id'
+      'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.nationalPhoneNumber,places.websiteUri,places.photos,places.types,places.id,places.location'
     },
     body: JSON.stringify(requestBody)
   });
@@ -296,7 +304,18 @@ async function getAIRecommendedVendors(vendors: FoodVendor[], zipCode: string, g
   }
 }
 
+const PRICE_SYMBOLS: Record<string, string> = {
+  PRICE_LEVEL_INEXPENSIVE: '$',
+  PRICE_LEVEL_MODERATE: '$$',
+  PRICE_LEVEL_EXPENSIVE: '$$$',
+  PRICE_LEVEL_VERY_EXPENSIVE: '$$$$',
+};
+
 export async function GET(request: NextRequest) {
+  // Unauthenticated legacy endpoint that calls paid Google APIs: cap per IP.
+  if (!rateLimit(`food-vendors:${clientIp(request)}`, 10, 60_000).ok) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
   try {
     const { searchParams } = new URL(request.url);
     const zipCode = searchParams.get('zipCode') || '12345';
@@ -359,6 +378,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Register places so the photo proxy will serve them, and get the ZIP centroid for distances.
+    const center = await resolveZip(zipCode);
+    if (hasServiceRole()) {
+      const store = new SupabaseDiscoveryStore(getSupabaseAdmin());
+      const normalized = allRestaurants.map((p) => normalizePlace(p, ['caterer'])).filter((v): v is NonNullable<typeof v> => !!v);
+      await Promise.all(normalized.slice(0, 20).map((v) => store.saveVenueDetails(v).catch(() => undefined)));
+    }
+
     // Process restaurants from Google Places API
     const vendors: FoodVendor[] = allRestaurants.slice(0, 20).map((place, index) => {
       try {
@@ -372,7 +399,7 @@ export async function GET(request: NextRequest) {
           cuisineType: cuisineTypes,
           rating: place.rating || 0,
           reviews: place.userRatingCount || 0,
-          priceRange: place.priceLevel ? '$'.repeat(place.priceLevel) as '$' | '$$' | '$$$' | '$$$$' : '$$',
+          priceRange: (PRICE_SYMBOLS[place.priceLevel] ?? '$$') as '$' | '$$' | '$$$' | '$$$$',
           address: place.formattedAddress || 'Address not available',
           phone: place.nationalPhoneNumber || 'Phone not available',
           website: place.websiteUri || undefined,
@@ -380,13 +407,14 @@ export async function GET(request: NextRequest) {
           description: `Delicious ${cuisineTypes.join(', ')} cuisine perfect for your party. ${specialties.slice(0, 2).join(' and ')} are our specialties.`,
           specialties: specialties,
           dietaryOptions: dietaryOptions,
-          distance: Math.round((Math.random() * 12 + 0.5) * 10) / 10, // Mock distance calculation
-          images: place.photos && place.photos[0] 
-            ? [`https://places.googleapis.com/v1/${place.photos[0].name}/media?maxWidthPx=400&key=${apiKey}`]
-            : ['https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400'],
-          deliveryAvailable: Math.random() > 0.3, // 70% chance of delivery
-          cateringAvailable: Math.random() > 0.4, // 60% chance of catering
-          minOrder: Math.floor(Math.random() * 50) + 30 // $30-$80 minimum order
+          // Real distance from the ZIP centroid; never a random number.
+          distance: center && place.location ? Math.round(haversineMiles(center, { lat: place.location.latitude, lng: place.location.longitude }) * 10) / 10 : undefined,
+          // Same-origin photo proxy: the API key never reaches the browser.
+          images: place.photos && place.photos[0] && isValidPhotoName(place.photos[0].name) ? [photoProxyUrl(place.photos[0].name, 400)] : [],
+          // Google does not provide delivery/catering/minimum-order data; leave unknown.
+          deliveryAvailable: undefined,
+          cateringAvailable: undefined,
+          minOrder: undefined
         };
       } catch (error) {
         console.error('Error processing restaurant:', error);

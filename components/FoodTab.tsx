@@ -79,6 +79,8 @@ export default function FoodTab({ zipCode, partyId, guestCount = 0 }: FoodTabPro
   const [bookmarkedVendors, setBookmarkedVendors] = useState<Set<string>>(new Set());
 
   // Fetch vendors data
+  const [loadError, setLoadError] = useState(false);
+
   useEffect(() => {
     fetchVendors();
   }, [zipCode]);
@@ -90,13 +92,16 @@ export default function FoodTab({ zipCode, partyId, guestCount = 0 }: FoodTabPro
       if (response.ok) {
         const data = await response.json();
         setVendors(data.vendors || []);
+        setLoadError(false);
       } else {
-        // Fallback to mock data if API not available
-        setVendors(getMockVendors());
+        // Never show invented restaurants: surface the failure instead.
+        setVendors([]);
+        setLoadError(true);
       }
     } catch (error) {
       console.error('Error fetching food vendors:', error);
-      setVendors(getMockVendors());
+      setVendors([]);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -476,11 +481,15 @@ export default function FoodTab({ zipCode, partyId, guestCount = 0 }: FoodTabPro
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Image */}
                     <div className="relative">
-                      <img
-                        src={vendor.images[0]}
-                        alt={vendor.name}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
+                      {vendor.images[0] ? (
+                        <img
+                          src={vendor.images[0]}
+                          alt={vendor.name}
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-48 rounded-lg bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center text-5xl" role="img" aria-label={`${vendor.name} (no photo available)`}>🍽️</div>
+                      )}
                       {vendor.isAIRecommended && (
                         <Badge className="absolute top-2 left-2 bg-gradient-to-r from-orange-600 to-red-600">
                           ✨ AI Pick
@@ -619,9 +628,9 @@ export default function FoodTab({ zipCode, partyId, guestCount = 0 }: FoodTabPro
             <Card className="border-0 shadow-lg dark:bg-slate-800/90">
               <CardContent className="text-center py-12">
                 <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold mb-2">No food vendors found</h3>
+                <h3 className="text-lg font-semibold mb-2">{loadError ? "We couldn't load food vendors" : 'No food vendors found'}</h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Try adjusting your filters or search terms to find more food options.
+                  {loadError ? 'Please check your connection and try again in a moment.' : 'Try adjusting your filters or search terms to find more food options.'}
                 </p>
                 <Button onClick={() => {
                   setSearchTerm("");

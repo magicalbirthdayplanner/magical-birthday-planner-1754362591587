@@ -21,7 +21,8 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > lib/db/database.types.ts",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run check:secrets",
+    "check:secrets": "node scripts/check-client-secrets.mjs"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.2",
