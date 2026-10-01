@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { shouldBlockAISuggestions } from '@/lib/profanity-filter';
+import { rateLimit } from '@/lib/server/rate-limit';
+import { clientIp } from '@/lib/server/http';
 
 // Environment validation
 function validateEnvironment() {
@@ -72,6 +74,10 @@ interface ThemeRecommendation {
 }
 
 export async function POST(request: NextRequest) {
+  // Unauthenticated legacy endpoint that calls a paid model: cap per IP.
+  if (!rateLimit(`legacy-ai-themes:${clientIp(request)}`, 10, 3_600_000).ok) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  }
   try {
     const body: ThemeRequest = await request.json();
     const { 
