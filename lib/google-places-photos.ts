@@ -1,5 +1,5 @@
 // Google Places Photos API integration
-const GOOGLE_PLACES_API_KEY = 'AIzaSyDWCLa9aKpRHX5y7LTc9rvQXTzJefjaCZw';
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
 
 export function getGooglePlacePhotoUrl(
   photoReference: string, 

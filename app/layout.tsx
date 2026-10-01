@@ -48,7 +48,9 @@ export default function RootLayout({
           </ThemeProvider>
         </ErrorBoundary>
         {/* TODO: Remove iframe-navigation.js in production, should never be removed by AI */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script src="/scripts/iframe-navigation.js"></script>
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script src="https://cdn.jsdelivr.net/gh/IdeavoAI/ideavo-scripts@1.0.1/scripts/ideavo.min.js"></script>
       </body>
     </html>

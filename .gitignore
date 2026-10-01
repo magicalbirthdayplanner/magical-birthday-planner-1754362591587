@@ -40,3 +40,18 @@ prisma/*.db
 # test files
 test-*.js
 test-*.html
+
+# local env files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# playwright / test artifacts
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# supabase local
+supabase/.branches
+supabase/.temp

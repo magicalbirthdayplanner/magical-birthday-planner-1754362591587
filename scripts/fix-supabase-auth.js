@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js')
 
 const supabaseUrl = 'https://hgczncztmdqtfhqimfar.supabase.co'
-const supabaseServiceKey = 'sbp_ffa78968089b1342048b018992375b6d24a5438c'
+const supabaseServiceKey = 'sbp_REDACTED_ROTATE_ME'
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {

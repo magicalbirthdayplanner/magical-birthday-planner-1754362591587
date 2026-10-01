@@ -1,7 +1,7 @@
 // Google Places API integration with caching
 import { createClient } from '@supabase/supabase-js';
 
-const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyDWCLa9aKpRHX5y7LTc9rvQXTzJefjaCZw';
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
 const GOOGLE_PLACES_BASE_URL = 'https://maps.googleapis.com/maps/api/place';
 
 // Initialize Supabase client with service role for database operations

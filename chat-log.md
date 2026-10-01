@@ -85,8 +85,8 @@ Attachments: @.ideavo-attachments/image_30.png
 **Technical Diagnosis:**
 - **Root Cause**: Invalid Supabase ANON API key preventing database operations
 - **Error Details**: "Invalid API key" returned by Supabase REST API during party creation attempts
-- **API Key Issue**: The current JWT token `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...HDnJ06M2Wliken8NMIZEugCbevdXD0OcLMwEcDZCP8o` has been invalidated
-- **Previous Format Issue**: Found incorrect API key format `sb_publishable_iIt7SvwainnqP3GnsZxp2w_1StIzQ9R` that was corrected to JWT format
+- **API Key Issue**: The current JWT token `eyJ...REDACTED_JWT` has been invalidated
+- **Previous Format Issue**: Found incorrect API key format `sb_publishable_REDACTED` that was corrected to JWT format
 
 **Technical Implementation Analysis:**
 - Party creation code in `lib/party-actions.ts` is properly implemented and follows correct patterns
@@ -114,9 +114,9 @@ To resolve the party creation failure, the user needs to:
 ## [usr-1755838256576]
 **User Request:** API Key Authentication: Simple string-based API keys instead of JWT tokens
 
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_iIt7SvwainnqP3GnsZxp2w_1StIzQ9R
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_REDACTED
 
-**Response Summary:** Successfully updated the Supabase authentication system to use simple string-based API keys instead of JWT tokens. Updated the `.env` file with the provided API key format `sb_publishable_iIt7SvwainnqP3GnsZxp2w_1StIzQ9R` and verified the build completes successfully. Analyzed the existing authentication implementation which uses Supabase Auth with complex JWT token management and cookie handling for session persistence.
+**Response Summary:** Successfully updated the Supabase authentication system to use simple string-based API keys instead of JWT tokens. Updated the `.env` file with the provided API key format `sb_publishable_REDACTED` and verified the build completes successfully. Analyzed the existing authentication implementation which uses Supabase Auth with complex JWT token management and cookie handling for session persistence.
 
 **Technical Details:**
 - Updated NEXT_PUBLIC_SUPABASE_ANON_KEY from JWT format to simple string format
@@ -161,7 +161,7 @@ Attachments: @.ideavo-attachments/image_28.png
 **Technical Details:**
 - Diagnosed that the NEXT_PUBLIC_SUPABASE_ANON_KEY was completely empty (only 1 character/newline)
 - Completely rewrote the .env file to ensure proper formatting
-- Verified the API key is now correctly loaded with proper JWT format: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+- Verified the API key is now correctly loaded with proper JWT format: eyJ...REDACTED_JWT
 - API key format validated and environment variables properly configured
 
 **Root Cause:** The environment variable was corrupted/empty, causing Supabase authentication to fail with "Invalid API key" error during login attempts.
@@ -302,5 +302,5 @@ Save the file
 I cannot edit this file for you due to security restrictions. You must manually fix the line breaks.
 The problem: Your JWT token is being split across multiple lines, which makes it invalid. Environment variables must be on single lines.
 Until you fix this: The Supabase connection will continue to fail with "Invalid API key" errors, and the server will keep reloading the same broken .env file.
-**Response Summary:** Fixed the .env file by completely rewriting both app/.env and root .env files to ensure the NEXT_PUBLIC_SUPABASE_ANON_KEY is properly formatted on a single line. Verified the fix with hex dump analysis and successful build completion. The JWT token is now correctly formatted: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53Z3Ftc3Vhb2Zsa2xyZ3J4Znd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxMDMyMDQsImV4cCI6MjA2OTY3OTIwNH0.HDnJ06M2Wliken8NMIZEugCbevdXD0OcLMwEcDZCP8o
+**Response Summary:** Fixed the .env file by completely rewriting both app/.env and root .env files to ensure the NEXT_PUBLIC_SUPABASE_ANON_KEY is properly formatted on a single line. Verified the fix with hex dump analysis and successful build completion. The JWT token is now correctly formatted: eyJ...REDACTED_JWT
 **Files Modified:** app/.env, .env

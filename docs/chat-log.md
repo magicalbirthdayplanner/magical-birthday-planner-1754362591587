@@ -536,7 +536,7 @@ Address, rating, price
 - Favorites + Feedback stored in DB.  
 
 
-apify_api_RdwdNVmEgwhxFVR2IaU68qeobLhmHy35A047
+apify_api_REDACTED
 
 Apify user ID : x6eZYRoonkLj5ODY3
 
@@ -4071,12 +4071,12 @@ Client-side post-processing to sort by popularity if not natively supported by A
 
 ## [usr-1754967202012]
 **User Request:** the email is not being sent - nothing on the resend dashboard
-**Response Summary:** Fixed email delivery issue by correcting domain mismatch. The user's verified domain is magicalbirthdayplanner.com but the email configuration was using magicalbirthdays.com. Updated all email configuration files: 1) Changed fromDomain from magicalbirthdays.com to magicalbirthdayplanner.com in lib/email.ts, 2) Updated test email endpoint to use correct domain, 3) Verified API key re_Poqqd9md_86Pv91bTjXmrpLNthUwmbXdY is properly configured. Build compiles successfully. The email system should now send RSVP invitations successfully using the correct verified domain.
+**Response Summary:** Fixed email delivery issue by correcting domain mismatch. The user's verified domain is magicalbirthdayplanner.com but the email configuration was using magicalbirthdays.com. Updated all email configuration files: 1) Changed fromDomain from magicalbirthdays.com to magicalbirthdayplanner.com in lib/email.ts, 2) Updated test email endpoint to use correct domain, 3) Verified API key re_REDACTED_ROTATE_ME is properly configured. Build compiles successfully. The email system should now send RSVP invitations successfully using the correct verified domain.
 **Files Modified:** lib/email.ts, app/api/test-resend/route.ts
 
 ## [usr-1754966909587]
-**User Request:** domain is magicalbirthdayplanner.com and is verified , added a new api key re_Poqqd9md_86Pv91bTjXmrpLNthUwmbXdY
-**Response Summary:** Acknowledged the verified domain magicalbirthdayplanner.com and confirmed that the provided Resend API key is already correctly configured in the environment file. The API key re_Poqqd9md_86Pv91bTjXmrpLNthUwmbXdY was already present in the .env file. Verified the application builds successfully without any issues. The email system is ready to send RSVP invitations using the verified custom domain.
+**User Request:** domain is magicalbirthdayplanner.com and is verified , added a new api key re_REDACTED_ROTATE_ME
+**Response Summary:** Acknowledged the verified domain magicalbirthdayplanner.com and confirmed that the provided Resend API key is already correctly configured in the environment file. The API key re_REDACTED_ROTATE_ME was already present in the .env file. Verified the application builds successfully without any issues. The email system is ready to send RSVP invitations using the verified custom domain.
 **Files Modified:** None
 
 ## [usr-1754965939673]
@@ -4328,7 +4328,7 @@ Optional age-appropriate icebreaker jokes
 **Response Summary:** Diagnosed and resolved the Resend email integration issue. The problem was that the Resend API key is working correctly, but the account is in testing mode and can only send emails to the verified account owner's email address (magicalbirthdayplanner@gmail.com). To send emails to other recipients like arunpx2015@email.iimcal.ac.in, the user needs to verify a custom domain in Resend dashboard.
 
 **Key Findings:**
-1. **Resend API Integration is Working**: The API key (re_VFC3y1hY_4dn1z36uje93Zqy8GRdZoHRs) is valid and functional
+1. **Resend API Integration is Working**: The API key (re_REDACTED_ROTATE_ME) is valid and functional
 2. **Email Service Configuration is Correct**: All environment variables are properly configured in .env
 3. **Database Integration is Working**: Email logs and invitation records are being properly created in the database
 4. **Domain Verification Required**: Resend requires domain verification to send emails to external recipients

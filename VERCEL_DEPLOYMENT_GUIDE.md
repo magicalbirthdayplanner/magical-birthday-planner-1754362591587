@@ -19,7 +19,7 @@ This guide will help you resolve Vercel deployment issues for the Magical Birthd
 **Fix:**
 - Use the optimized database URLs with shorter timeouts:
   ```
-  DATABASE_URL=postgresql://postgres:MagicalBirthdayPlanner@db.nwgqmsuaoflklrgrxfwy.supabase.co:5432/postgres?sslmode=require&connect_timeout=10&pool_timeout=10&statement_timeout=30000
+  DATABASE_URL=postgresql://postgres:REDACTED@HOST:5432/postgres
   ```
 
 ### 3. **Base URL Configuration Issues**
@@ -43,12 +43,12 @@ Copy these to your Vercel dashboard:
 ```bash
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://nwgqmsuaoflklrgrxfwy.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_iIt7SvwainnqP3GnsZxp2w_1StIzQ9R
-SUPABASE_SERVICE_ROLE_KEY=sbp_a389e618b0b361314c5422c7959c4737ca19f9d9
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_REDACTED
+SUPABASE_SERVICE_ROLE_KEY=sbp_REDACTED_ROTATE_ME
 
 # Database URLs (Vercel optimized)
-DATABASE_URL=postgresql://postgres:MagicalBirthdayPlanner@db.nwgqmsuaoflklrgrxfwy.supabase.co:5432/postgres?sslmode=require&connect_timeout=10&pool_timeout=10&statement_timeout=30000
-DIRECT_URL=postgresql://postgres:MagicalBirthdayPlanner@db.nwgqmsuaoflklrgrxfwy.supabase.co:5432/postgres?sslmode=require&connect_timeout=10&pool_timeout=10&statement_timeout=30000
+DATABASE_URL=postgresql://postgres:REDACTED@HOST:5432/postgres
+DIRECT_URL=postgresql://postgres:REDACTED@HOST:5432/postgres
 
 # Application Configuration
 NODE_ENV=production
