@@ -18,10 +18,7 @@ const loading = () => <Skeleton className="h-full w-full rounded-none" />
 const GoogleMapView = dynamic(() => import('./GoogleMapView'), { ssr: false, loading })
 const SchematicMap = dynamic(() => import('./SchematicMap'), { ssr: false, loading })
 
-/**
- * Geoapify-tiled map by default (tiles via /api/map/tiles; schematic grid when
- * tiles aren't configured). Google Maps only if a Google browser key is set.
- */
+/** Google Maps when a browser key is configured; schematic fallback otherwise (dev/CI). */
 export function MapView(props: MapViewProps) {
   return process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? <GoogleMapView {...props} /> : <SchematicMap {...props} />
 }

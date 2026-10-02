@@ -1,8 +1,6 @@
 import 'server-only'
 import { createPlacesClient } from '@/lib/google/places'
 import { createZipGeocoder } from '@/lib/google/geocoding'
-import { createGeoapifyClient } from '@/lib/geoapify/places'
-import { geoapifySource } from '@/lib/geoapify/source'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
 import { logMetric } from '@/lib/analytics/server'
 import { googleBudgetFor } from '@/lib/server/google-budget'
@@ -20,22 +18,10 @@ function store(): DiscoveryStore {
   return memoryFallback
 }
 
-export type PlacesProvider = 'geoapify' | 'google'
-
-/**
- * PLACES_PROVIDER=geoapify|google picks the place source explicitly. Otherwise
- * Geoapify is used when GEOAPIFY_API_KEY is set, Google Places when not.
- */
-export function placesProvider(env: Record<string, string | undefined> = process.env): PlacesProvider {
-  const explicit = env.PLACES_PROVIDER?.trim().toLowerCase()
-  if (explicit === 'geoapify' || explicit === 'google') return explicit
-  return env.GEOAPIFY_API_KEY ? 'geoapify' : 'google'
-}
-
 /** `subject` (user id or ip) scopes the hourly outbound-call budget. */
 export function discoveryDeps(subject?: string): DiscoveryDeps {
   return {
-    source: placesProvider() === 'geoapify' ? geoapifySource(createGeoapifyClient()) : googleSource(createPlacesClient()),
+    source: googleSource(createPlacesClient()),
     store: store(),
     config: discoveryConfig(),
     onMetric: logMetric,
@@ -45,15 +31,13 @@ export function discoveryDeps(subject?: string): DiscoveryDeps {
 
 const geocodeMisses = new Map<string, number>()
 
-/** Geocoding fallback (Geoapify or Google) for ZIPs missing from the offline dataset: negative-cached and budgeted. */
+/**
+ * Google Geocoding fallback, used only for ZIPs missing from the offline dataset
+ * (lib/geo/zip.ts covers US ZIPs): negative-cached and budgeted. Optional — if the
+ * Geocoding API isn't enabled the lookup just reports an unknown ZIP.
+ */
 export const zipGeocoder = (subject = 'anonymous') => {
-  const geocode =
-    placesProvider() === 'geoapify'
-      ? (() => {
-          const client = createGeoapifyClient({ timeoutMs: 5000 })
-          return (zip: string) => client.geocodeZip(zip).catch(() => null)
-        })()
-      : createZipGeocoder()
+  const geocode = createZipGeocoder()
   const budget = googleBudgetFor(`geocode:${subject}`)
   return async (zip: string) => {
     const miss = geocodeMisses.get(zip)

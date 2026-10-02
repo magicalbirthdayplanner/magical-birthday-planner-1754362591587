@@ -90,6 +90,7 @@ export const CATEGORIES: DiscoveryCategory[] = [
   c({ id: 'climbing-gym', label: 'Climbing gym', emoji: '🧗', group: 'indoor', setting: 'indoor', query: 'rock climbing gym kids', interests: ['adventure', 'sports'], ages: [5, 13], googleTypes: [], chips: ['sports'], priority: 24 }),
   c({ id: 'aquarium', label: 'Aquarium', emoji: '🐠', group: 'indoor', setting: 'indoor', query: 'aquarium', interests: ['animals', 'science', 'nature'], ages: [0, 13], googleTypes: ['aquarium'], chips: ['museums'], priority: 26 }),
   c({ id: 'music-studio', label: 'Music studio', emoji: '🎵', group: 'indoor', setting: 'indoor', query: 'kids music class birthday party', interests: ['music'], ages: [2, 13], googleTypes: [], chips: ['art'], priority: 28 }),
+  c({ id: 'party-restaurant', label: 'Party restaurant', emoji: '🍕', group: 'indoor', setting: 'indoor', query: 'family restaurant with party room for kids birthday', interests: ['cooking'], ages: [1, 13], googleTypes: ['pizza_restaurant'], chips: [], priority: 38 }),
   c({ id: 'indoor-event-venue', label: 'Indoor party room', emoji: '🏠', group: 'indoor', setting: 'indoor', query: 'indoor party room rental', interests: [], ages: [0, 13], googleTypes: [], chips: [], priority: 45 }),
 
   // ---------------------------------------------------------------- outdoor

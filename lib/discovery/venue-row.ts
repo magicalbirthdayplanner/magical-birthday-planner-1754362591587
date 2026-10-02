@@ -1,6 +1,6 @@
 import type { Database, Json } from '@/lib/db/database.types'
 import { primaryCategory } from './taxonomy'
-import { isGeoapifyPlaceId } from '@/lib/geoapify/categories'
+import { isLegacyGeoapifyPlaceId } from '@/lib/discovery/legacy'
 import type { OpeningHours, PhotoRef, Venue } from './types'
 
 /** venues row ⇄ domain Venue. Shared by the server store and the browser data layer. */
@@ -77,7 +77,7 @@ export function venueToRow(v: Venue): VenueInsert {
     max_capacity: v.maxCapacity,
     last_synced_at: v.lastSyncedAt,
     details_synced_at: v.detailsSyncedAt,
-    source: isGeoapifyPlaceId(v.placeId) ? 'geoapify' : 'google_places',
+    source: isLegacyGeoapifyPlaceId(v.placeId) ? 'geoapify' : 'google_places',
     is_active: v.businessStatus !== 'CLOSED_PERMANENTLY',
   }
 }

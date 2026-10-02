@@ -270,15 +270,20 @@ export function createPlacesClient(opts: PlacesClientOptions = {}): PlacesApi {
 
   return {
     async searchText({ textQuery, center, radiusMeters, pageSize = 20 }) {
+      // Hard restriction to the circle's bounding box: Google never returns (and we never
+      // pay for) places outside it. Ranking then trims the corners to the true radius.
+      const r = Math.min(85_000, Math.max(100, radiusMeters)) // 50 mi max radius + margin
+      const dLat = r / 111_320
+      const dLng = r / (111_320 * Math.max(0.01, Math.cos((center.lat * Math.PI) / 180)))
       const body = {
         textQuery,
         pageSize: Math.min(20, Math.max(1, pageSize)),
         languageCode: 'en',
         regionCode: 'US',
-        locationBias: {
-          circle: {
-            center: { latitude: center.lat, longitude: center.lng },
-            radius: Math.min(50_000, Math.max(100, radiusMeters)),
+        locationRestriction: {
+          rectangle: {
+            low: { latitude: center.lat - dLat, longitude: center.lng - dLng },
+            high: { latitude: center.lat + dLat, longitude: center.lng + dLng },
           },
         },
       }

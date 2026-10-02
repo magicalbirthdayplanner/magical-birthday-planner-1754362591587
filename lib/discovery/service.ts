@@ -6,7 +6,7 @@
  *                                              Google failed → stale cache → stored venues (PostGIS)
  *   → merge & dedupe by place id → rank → return
  *
- * Pure orchestration: the place source (Google or Geoapify), storage and clock are injected.
+ * Pure orchestration: the place source (Google Places API (New)), storage and clock are injected.
  */
 import { createHash } from 'node:crypto'
 import { milesToMeters } from '@/lib/geo/distance'
@@ -23,7 +23,7 @@ import type { LatLng } from '@/lib/geo/distance'
 /** Where places come from. Implementations normalize to `Venue`; absent data stays null. */
 export interface VenueSource {
   /** Namespaces search cache keys so providers never share cached results. */
-  id: 'google' | 'geoapify'
+  id: 'google'
   /** Categories this source can search honestly; the query plan skips the rest. */
   supports(categoryId: string): boolean
   search(category: DiscoveryCategory, center: LatLng, radiusMeters: number, now: Date): Promise<Venue[]>
@@ -74,7 +74,7 @@ export class DiscoveryUnavailableError extends Error {
 
 /** Cache key: query + location rounded to ~1 km + radius. Version/provider-prefixed for safe invalidation. */
 export function searchCacheKey(categoryId: string, ctx: Pick<PartyContext, 'center' | 'radiusMiles'>, sourceId: VenueSource['id'] = 'google'): string {
-  const raw = [sourceId === 'google' ? 'v1' : `${sourceId}-v1`, categoryId, ctx.center.lat.toFixed(2), ctx.center.lng.toFixed(2), Math.round(ctx.radiusMiles)].join('|')
+  const raw = ['v1', categoryId, ctx.center.lat.toFixed(2), ctx.center.lng.toFixed(2), Math.round(ctx.radiusMiles)].join('|')
   return createHash('sha256').update(raw).digest('hex').slice(0, 40)
 }
 
@@ -89,6 +89,20 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
   })
   await Promise.all(workers)
   return out
+}
+
+/**
+ * Duplicate-request suppression: identical searches already in flight on this
+ * instance (double taps, two tabs, simultaneous users in one ZIP) share one
+ * upstream call instead of each paying for it.
+ */
+const inFlight = new Map<string, Promise<Venue[]>>()
+function sharedSearch(key: string, run: () => Promise<Venue[]>): { promise: Promise<Venue[]>; shared: boolean } {
+  const existing = inFlight.get(key)
+  if (existing) return { promise: existing, shared: true }
+  const promise = run().finally(() => inFlight.delete(key))
+  inFlight.set(key, promise)
+  return { promise, shared: false }
 }
 
 function sourceOf(deps: DiscoveryDeps): VenueSource {
@@ -131,32 +145,37 @@ export async function discoverVenues(ctx: PartyContext, deps: DiscoveryDeps, opt
     meta.cacheMisses++
     const t0 = Date.now()
     try {
-      if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local place-search call budget exhausted')
-      meta.apiCalls++
-      const fetchedAt = now()
-      const found = await source.search(category, ctx.center, radiusMeters, fetchedAt)
-      // Providers can return the same place twice in one response: dedupe before storing.
-      const unique = new Map<string, Venue>()
-      for (const v of found) if (!unique.has(v.placeId)) unique.set(v.placeId, v)
-      const venues = Array.from(unique.values())
-      const latencyMs = Date.now() - t0
-      deps.onMetric?.('places_search', { category: category.id, results: venues.length, latencyMs, cache: 'miss', provider: source.id })
-      await deps.store
-        .saveSearch({
-          cacheKey,
-          queryId: category.id,
-          zip: ctx.zip,
-          center: ctx.center,
-          radiusMeters,
-          radiusMiles: ctx.radiusMiles,
-          status: venues.length ? 'ok' : 'zero_results',
-          latencyMs,
-          fetchedAt,
-          expiresAt: new Date(fetchedAt.getTime() + deps.config.searchTtlHours * 3600_000),
-          venues,
-        })
-        .catch((err) => deps.onMetric?.('places_cache_write_error', { category: category.id, error: String(err?.message ?? err) }))
-      return venues
+      const { promise, shared } = sharedSearch(cacheKey, async () => {
+        if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local place-search call budget exhausted')
+        meta.apiCalls++
+        const fetchedAt = now()
+        const found = await source.search(category, ctx.center, radiusMeters, fetchedAt)
+        // Providers can return the same place twice in one response: dedupe before storing.
+        const unique = new Map<string, Venue>()
+        for (const v of found) if (!unique.has(v.placeId)) unique.set(v.placeId, v)
+        const venues = Array.from(unique.values())
+        const latencyMs = Date.now() - t0
+        deps.onMetric?.('places_search', { category: category.id, results: venues.length, latencyMs, cache: 'miss', provider: source.id })
+        await deps.store
+          .saveSearch({
+            cacheKey,
+            queryId: category.id,
+            zip: ctx.zip,
+            center: ctx.center,
+            radiusMeters,
+            radiusMiles: ctx.radiusMiles,
+            status: venues.length ? 'ok' : 'zero_results',
+            latencyMs,
+            fetchedAt,
+            expiresAt: new Date(fetchedAt.getTime() + deps.config.searchTtlHours * 3600_000),
+            venues,
+          })
+          .catch((err) => deps.onMetric?.('places_cache_write_error', { category: category.id, error: String(err?.message ?? err) }))
+        return venues
+      })
+      if (shared) deps.onMetric?.('places_search_shared', { category: category.id })
+      const venues = await promise
+      return venues.map((v) => ({ ...v, categories: Array.from(new Set([...v.categories, category.id])) }))
     } catch (err) {
       const kind = err instanceof PlacesError ? err.kind : 'unavailable'
       meta.apiErrors.push({ category: category.id, kind })

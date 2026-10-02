@@ -249,7 +249,10 @@ const server = http.createServer(async (req, res) => {
     if (await failIfMode(res)) return
     const body = await readBody(req)
     if (mode === 'empty') return send(res, 200, {})
-    const c = body?.locationBias?.circle?.center ?? { latitude: 42.5627, longitude: -83.1799 }
+    const rect = body?.locationRestriction?.rectangle
+    const c = rect
+      ? { latitude: (rect.low.latitude + rect.high.latitude) / 2, longitude: (rect.low.longitude + rect.high.longitude) / 2 }
+      : body?.locationBias?.circle?.center ?? { latitude: 42.5627, longitude: -83.1799 }
     return send(res, 200, { places: placesFor(String(body.textQuery || ''), c.latitude, c.longitude) })
   }
 

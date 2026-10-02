@@ -59,11 +59,11 @@ Do the items in `SECURITY.md §1` first (rotate leaked secrets; ship the debug-r
 
 ## 2. Environment variables (Vercel → Settings → Environment Variables)
 
-Server only: `SUPABASE_SERVICE_ROLE_KEY` (new, rotated), `GEOAPIFY_API_KEY` (places, geocoding
-and map tiles — all server-side), `AZURE_OPENAI_*` (optional), `RESEND_API_KEY` (optional),
-`DODO_*`, `DATABASE_URL` (scripts only). Browser: `NEXT_PUBLIC_SUPABASE_URL`,
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_BASE_URL`. Google keys (`GOOGLE_PLACES_API_KEY`,
-`NEXT_PUBLIC_GOOGLE_MAPS_*`) are **not needed**; leave them empty unless `PLACES_PROVIDER=google`. Never set `ENABLE_DEBUG_ROUTES` in production (it is ignored there anyway).
+Server only: `SUPABASE_SERVICE_ROLE_KEY` (new, rotated), `GOOGLE_PLACES_API_KEY` (Places API
+(New); never `NEXT_PUBLIC_`), `AZURE_OPENAI_*` (optional), `RESEND_API_KEY`, `DODO_*`,
+`DATABASE_URL` (scripts only). Browser: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (**separate key**, Maps JavaScript API
+only, HTTP-referrer-restricted), `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID`. Never set `ENABLE_DEBUG_ROUTES` in production (it is ignored there anyway).
 Optional tuning: `DISCOVERY_*` (see `GOOGLE_PLACES.md`).
 
 ## 3. Database (production)

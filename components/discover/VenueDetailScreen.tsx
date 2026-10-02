@@ -14,7 +14,7 @@ import { formatMiles } from '@/lib/geo/distance'
 import { primaryCategory } from '@/lib/discovery/taxonomy'
 import { track } from '@/lib/analytics/client'
 import { cn } from '@/lib/utils'
-import { isGeoapifyPlaceId } from '@/lib/geoapify/categories'
+import { isLegacyGeoapifyPlaceId } from '@/lib/discovery/legacy'
 import { VenuePhoto } from './VenuePhoto'
 import { useSaveVenue } from './useSaveVenue'
 import { useSWRConfig } from 'swr'
@@ -22,7 +22,7 @@ import { useSWRConfig } from 'swr'
 function directionsUrl(v: { name: string; address: string | null; placeId: string; lat: number; lng: number }) {
   const q = new URLSearchParams({ api: '1', destination: v.address ?? `${v.lat},${v.lng}` })
   // Only Google place ids mean anything to Google Maps.
-  if (!isGeoapifyPlaceId(v.placeId)) q.set('destination_place_id', v.placeId)
+  if (!isLegacyGeoapifyPlaceId(v.placeId)) q.set('destination_place_id', v.placeId)
   return `https://www.google.com/maps/dir/?${q.toString()}`
 }
 
@@ -266,7 +266,7 @@ export function VenueDetailScreen({ placeId }: { placeId: string }) {
         </section>
 
         <p className="mt-6 text-xs text-muted-foreground">
-          {isGeoapifyPlaceId(venue.placeId) ? (
+          {isLegacyGeoapifyPlaceId(venue.placeId) ? (
             <>
               Place data ©{' '}
               <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">

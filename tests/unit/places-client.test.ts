@@ -9,7 +9,7 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 describe('Places client', () => {
-  it('sends a field-masked text search with a location bias and never puts the key in the URL', async () => {
+  it('sends a field-masked text search restricted to the radius box and never puts the key in the URL', async () => {
     const fetchImpl = vi.fn(async () => jsonResponse({ places: [rawPlace({ name: 'Art Barn' })] }))
     const client = createPlacesClient({ apiKey: 'k-secret', baseUrl: 'https://places.test', fetchImpl })
     const places = await client.searchText({ textQuery: 'kids art studio', center, radiusMeters: 32187 })
@@ -22,7 +22,12 @@ describe('Places client', () => {
     expect(headers['X-Goog-FieldMask']).toContain('places.rating')
     expect(headers['X-Goog-FieldMask']).not.toContain('websiteUri') // contact fields only in details
     const body = JSON.parse(init.body as string)
-    expect(body.locationBias.circle.radius).toBe(32187)
+    // Hard restriction: bounding box of the 20-mile circle around the party.
+    const { low, high } = body.locationRestriction.rectangle
+    expect((low.latitude + high.latitude) / 2).toBeCloseTo(center.lat, 6)
+    expect((low.longitude + high.longitude) / 2).toBeCloseTo(center.lng, 6)
+    expect((high.latitude - low.latitude) / 2).toBeCloseTo(32187 / 111_320, 5)
+    expect(high.longitude - center.lng).toBeGreaterThan(high.latitude - center.lat) // wider in degrees at 42°N
     expect(body.pageSize).toBe(20)
   })
 

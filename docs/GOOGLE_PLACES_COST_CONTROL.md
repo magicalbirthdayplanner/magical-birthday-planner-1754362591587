@@ -16,6 +16,15 @@ unbounded number of paid Google calls.
 No loops call Google per result; no pagination tokens are followed; details are never fetched
 during discovery.
 
+## Expected Google calls per user action (Places API (New) + Maps JavaScript API)
+
+| Action | Google calls | Notes |
+|---|---|---|
+| **A. Initial discovery** (new party, cold cache) | ≤ 8 Text Search (New) — one per *planned* category (age/interests/setting decide which; ≤ `DISCOVERY_MAX_QUERIES`) + 1 Maps JS map load when the map is opened | `locationRestriction` = bounding box of the snapped radius, so no paid results fall outside it; field mask = list fields only (no phone/hours/website). Rating/price fields put Text Search in the Enterprise SKU — they're shown on every card. ZIP → coordinates comes from the offline ZIP dataset: **0 Geocoding calls** for normal US ZIPs. |
+| **B. Opening a venue** | 0 if details are cached (< 7 days); otherwise **1 Place Details (New)** with the details field mask. Photos: 1 Place Photo (New) per photo *first viewed*, then cached (6 h in-process + CDN `s-maxage`) | Details only for places discovery already surfaced (no arbitrary ids). |
+| **C. Map interaction** (pan, zoom, select, clusters) | **0 Places calls.** Maps JS map loads are billed per map initialisation; panning/zooming does not create new loads | Markers/clusters are rendered client-side from the already-returned list. |
+| **D. Refresh / reload** | **0** within the 24 h search TTL (served from Supabase cache); identical in-flight searches share one call; an explicit refresh re-runs ≤ 8 Text Search, still within the per-user hourly budget | Rate limits on the route + per-user/instance hourly budgets. |
+
 ## Bounds over time
 
 | Control | Default | Config |

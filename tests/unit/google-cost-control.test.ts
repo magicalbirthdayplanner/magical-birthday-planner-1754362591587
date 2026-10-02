@@ -47,12 +47,14 @@ describe('Google response robustness', () => {
     expect(await weird.searchText({ textQuery: 'x', center, radiusMeters: 1000 })).toEqual([])
   })
 
-  it('caps the location-bias radius (Google max 50 km) for huge radii', async () => {
+  it('caps the location restriction (50-mile max radius) for huge radii', async () => {
     const fetchImpl = vi.fn(json(JSON.stringify({ places: [] })))
     const c = createPlacesClient({ apiKey: 'k', fetchImpl })
     await c.searchText({ textQuery: 'x', center, radiusMeters: 10_000_000, pageSize: 500 })
     const body = JSON.parse((fetchImpl.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
-    expect(body.locationBias.circle.radius).toBe(50_000)
+    const { low, high } = body.locationRestriction.rectangle
+    expect((high.latitude - low.latitude) / 2).toBeCloseTo(85_000 / 111_320, 5)
+    expect(body.locationBias).toBeUndefined()
     expect(body.pageSize).toBe(20)
   })
 })
