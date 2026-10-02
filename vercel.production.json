@@ -10,9 +10,5 @@
   "env": {
     "NODE_ENV": "production",
     "ENVIRONMENT": "production"
-  },
-  "domains": [
-    "www.magicalbirthdayplanner.com",
-    "magicalbirthdayplanner.com"
-  ]
+  }
 }

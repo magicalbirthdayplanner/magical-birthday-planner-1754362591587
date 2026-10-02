@@ -124,7 +124,7 @@ A modern, responsive web application designed to help parents plan magical birth
   - Resend API integration for transactional emails
   - Beautiful HTML email templates with brand styling
   - Automatic acknowledgment emails sent upon early access registration
-  - Link to website (www.magicalbirthdayplanner.com) included in welcome emails
+  - Link to the app (NEXT_PUBLIC_BASE_URL) included in welcome emails
 - **📊 Party Dashboard**: Comprehensive party management interface
   - View all upcoming and completed parties
   - Party statistics and progress tracking

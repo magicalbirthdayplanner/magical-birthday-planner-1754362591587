@@ -192,9 +192,8 @@ async function testTrialAPI() {
   
   try {
     // Get the deployed app URL (assuming it follows Vercel pattern)
-    const appUrl = SUPABASE_URL.includes('hgczncztmdqtfhqimfar') 
-      ? 'https://magical-birthday-planner-1754362591587.vercel.app'
-      : 'https://www.magicalbirthdayplanner.com';
+    // magicalbirthdayplanner.com is no longer owned: never test against it.
+    const appUrl = process.env.APP_URL || 'https://magical-birthday-planner.vercel.app';
     
     console.log(`🌐 Testing API at: ${appUrl}`);
     

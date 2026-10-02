@@ -52,6 +52,33 @@ this Resend integration (configure Supabase → Auth → SMTP once a verified do
 * Then: read-only diff (`PRODUCTION_SCHEMA_DIFF.md`), and — with explicit approval — apply
   migrations 0100 → 0500.
 
-### Vercel
+### Vercel (state 2026-10-02)
+* `magicalbirthdayplanner.com` and `www.` were **removed from the project** (no longer owned). Only
+  `magical-birthday-planner.vercel.app` remains. `vercel.production.json` no longer lists them.
+  The apex still exists as a **team-level** domain record (Team → Domains) — remove it there too.
+* `mobile-first` Preview uses branch-scoped variables only (new Supabase, Geoapify, Resend, Dodo
+  test mode, Preview URL). **Old shared entries still target Preview + Development** and hold the
+  old/leaked values: `NEXT_PUBLIC_SUPABASE_URL` (old project `hgcz…`), `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `GOOGLE_PLACES_API_KEY`, `DATABASE_URL`. Branch
+  overrides win for `mobile-first`, but `GOOGLE_PLACES_API_KEY` and `DATABASE_URL` have no override
+  and still reach its Preview runtime (unused: `PLACES_PROVIDER=geoapify`; DB URL is scripts-only).
+  Untick **Preview** and **Development** on those six (keep Production until production is migrated).
+  Branches `development`, `staging`, `production` are stale (Aug 2025, nothing beyond `master`,
+  never deployed) — nothing active depends on the shared Preview values.
+* Previews are behind Vercel Authentication. **Dodo webhooks cannot reach a protected Preview**: for
+  sandbox testing create a Protection Bypass for Automation secret and use
+  `https://<preview>/api/webhooks/dodo?x-vercel-protection-bypass=<secret>` as the Dodo endpoint
+  (or exempt the Preview), then revoke it afterwards.
+
+### Supabase Auth URL configuration (dashboard → Authentication → URL Configuration)
+Verified 2026-10-02: Site URL is still the default `http://localhost:3000` and the Preview is not
+allow-listed, so confirmation/reset links would point to localhost. Set:
+* Site URL: `https://magical-birthday-planner-17-git-ef697a-magical-birthday-planner.vercel.app`
+* Redirect URLs:
+  `https://magical-birthday-planner-17-git-ef697a-magical-birthday-planner.vercel.app/auth/callback**`
+  and `https://magical-birthday-planner-17-git-ef697a-magical-birthday-planner.vercel.app/reset-password`
+Sign-up confirmation now returns to `/auth/callback?next=/home` (previously it ended on `/signin`
+without a session); both flows were verified end-to-end on local Supabase.
+
 Create the project from the GitHub repo (or `vercel link`), set env vars for **Preview** and
 **Production** separately from `.env.example` (PUBLIC vs SERVER), test-mode Dodo values on Preview.

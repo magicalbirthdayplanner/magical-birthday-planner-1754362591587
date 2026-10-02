@@ -122,7 +122,7 @@ async function fixDatabase() {
     console.log('\n🎉 Database fix completed!')
     console.log('\nNext steps:')
     console.log('1. Go to Supabase Dashboard → Settings → API')
-    console.log('2. Set Site URL to: https://www.magicalbirthdayplanner.com')
+    console.log('2. Set Site URL to your deployment URL (magicalbirthdayplanner.com is no longer owned)')
     console.log('3. Go to Authentication → Providers → Google')
     console.log('4. Ensure Google provider is enabled')
     console.log('5. Test OAuth flow again')
