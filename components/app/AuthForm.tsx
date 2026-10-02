@@ -35,6 +35,7 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [checkEmail, setCheckEmail] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   async function finish() {
     const { data } = await db.auth.getUser()
@@ -119,6 +120,28 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
             </IconButton>
           }
         />
+        {mode === 'signin' ? (
+          <div className="-mt-1 text-right">
+            <button
+              type="button"
+              className="text-sm font-semibold text-primary"
+              onClick={async () => {
+                setError(null)
+                if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError('Enter your email above, then tap “Forgot password?”.')
+                // Supabase Auth sends the reset email; we never reveal whether the account exists.
+                await db.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` }).catch(() => undefined)
+                setResetSent(true)
+              }}
+            >
+              Forgot password?
+            </button>
+          </div>
+        ) : null}
+        {resetSent ? (
+          <p role="status" className="rounded-xl bg-secondary px-4 py-3 text-sm text-secondary-foreground">
+            If an account exists for that email, we’ve sent a link to reset your password.
+          </p>
+        ) : null}
         {error ? (
           <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}

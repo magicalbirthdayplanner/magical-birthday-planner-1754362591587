@@ -6,8 +6,8 @@ import { Copy, Mail, MessageCircle, Share2 } from 'lucide-react'
 import { useParty } from '@/components/app/PartyProvider'
 import { AppButton, Card, EmptyState, LinkButton, PageHeader, Section, Skeleton } from '@/components/app/ui'
 import { TextArea, TextField } from '@/components/app/fields'
-import { useChosenVenue, useInvitation } from '@/lib/data/hooks'
-import { inviteUrl, markInvitationShared, rotateInvitationToken, saveInvitation, type InvitationInput, type PartyInvitation } from '@/lib/data/invitations'
+import { useChosenVenue, useGuests, useInvitation } from '@/lib/data/hooks'
+import { emailInvitations, inviteUrl, markInvitationShared, rotateInvitationToken, saveInvitation, type InvitationInput, type PartyInvitation } from '@/lib/data/invitations'
 import { completeTaskByKey } from '@/lib/data/checklist'
 import { friendlyError } from '@/lib/data/api'
 import { track } from '@/lib/analytics/client'
@@ -19,6 +19,8 @@ export function InviteScreen() {
   const { mutate } = useSWRConfig()
   const invitation = useInvitation(party?.id)
   const chosen = useChosenVenue(party?.id)
+  const guests = useGuests(party?.id)
+  const [emailing, setEmailing] = useState(false)
   const [form, setForm] = useState<InvitationInput>({})
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -142,6 +144,37 @@ export function InviteScreen() {
                 </button>
               ))}
             </div>
+            {(() => {
+              const pending = (guests.data ?? []).filter((g) => g.email && g.invite_status === 'NOT_SENT').length
+              return pending ? (
+                <AppButton
+                  variant="outline"
+                  block
+                  className="mt-3"
+                  loading={emailing}
+                  onClick={async () => {
+                    setEmailing(true)
+                    try {
+                      if (dirty || !invitation.data) await persist()
+                      const r = await emailInvitations(party!.id)
+                      await Promise.all([guests.mutate(), invitation.mutate(), mutate(['checklist', party!.id])])
+                      if (r.sent) {
+                        await completeTaskByKey(party!.id, 'send-invites').catch(() => undefined)
+                        track('invitation_shared', { channel: 'email', count: r.sent })
+                        toast.success(`Invitation emailed to ${r.sent} famil${r.sent === 1 ? 'y' : 'ies'}`)
+                      }
+                      if (r.failed) toast.error(`${r.failed} email${r.failed === 1 ? '' : 's'} couldn’t be sent`)
+                    } catch (e) {
+                      toast.error(friendlyError(e, 'Couldn’t send emails.'))
+                    } finally {
+                      setEmailing(false)
+                    }
+                  }}
+                >
+                  <Mail className="h-4 w-4" /> Email {pending} guest{pending === 1 ? '' : 's'} with an email address
+                </AppButton>
+              ) : null
+            })()}
             <p className="mt-2 text-center text-xs text-muted-foreground">Anyone with the link can see the invitation and RSVP. Your other party details stay private.</p>
             {invitation.data ? (
               <button

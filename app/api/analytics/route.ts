@@ -5,6 +5,9 @@ import { apiError, clientIp } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export const dynamic = 'force-dynamic'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

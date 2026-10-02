@@ -93,6 +93,58 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"billing_checkouts": {
+                  Row: {
+                    "completed_at": string | null,"created_at": string,"customer_email": string | null,"id": string,"payment_ref": string | null,"plan": string,"product_id": string,"session_id": string | null,"status": string,"user_id": string
+                  }
+                  Insert: {
+                    "completed_at"?: string | null,"created_at"?: string,"customer_email"?: string | null,"id"?: string,"payment_ref"?: string | null,"plan": string,"product_id": string,"session_id"?: string | null,"status"?: string,"user_id": string
+                  }
+                  Update: {
+                    "completed_at"?: string | null,"created_at"?: string,"customer_email"?: string | null,"id"?: string,"payment_ref"?: string | null,"plan"?: string,"product_id"?: string,"session_id"?: string | null,"status"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"billing_customers": {
+                  Row: {
+                    "created_at": string,"email": string | null,"provider": string,"provider_customer_id": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"email"?: string | null,"provider"?: string,"provider_customer_id": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"email"?: string | null,"provider"?: string,"provider_customer_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"billing_purchases": {
+                  Row: {
+                    "amount_minor": number | null,"created_at": string,"currency": string | null,"current_period_end": string | null,"customer_ref": string | null,"id": string,"kind": string,"last_event_at": string | null,"plan": string,"product_id": string | null,"provider": string,"provider_ref": string,"status": string,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind": string,"last_event_at"?: string | null,"plan": string,"product_id"?: string | null,"provider"?: string,"provider_ref": string,"status": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind"?: string,"last_event_at"?: string | null,"plan"?: string,"product_id"?: string | null,"provider"?: string,"provider_ref"?: string,"status"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"billing_webhook_events": {
+                  Row: {
+                    "attempts": number,"detail": string | null,"event_id": string,"event_type": string,"processed_at": string | null,"received_at": string,"status": string,"user_id": string | null
+                  }
+                  Insert: {
+                    "attempts"?: number,"detail"?: string | null,"event_id": string,"event_type": string,"processed_at"?: string | null,"received_at"?: string,"status"?: string,"user_id"?: string | null
+                  }
+                  Update: {
+                    "attempts"?: number,"detail"?: string | null,"event_id"?: string,"event_type"?: string,"processed_at"?: string | null,"received_at"?: string,"status"?: string,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"checklist_items": {
                   Row: {
                     "category": string,"completed_at": string | null,"created_at": string,"detail": string | null,"due_date": string | null,"id": string,"is_custom": boolean,"party_id": string,"sort_order": number,"task_key": string,"title": string,"updated_at": string,"user_id": string
@@ -479,6 +531,9 @@ isOneToOne: false
                            },
 "purge_stale_places_content":
 { Args: { "p_max_age_days"?: number }; Returns: number
+                           },
+"recompute_entitlement":
+{ Args: { "p_user": string }; Returns: string
                            },
 "start_24_hour_trial":
 { Args: { "user_id": string }; Returns: undefined

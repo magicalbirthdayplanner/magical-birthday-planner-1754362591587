@@ -62,3 +62,23 @@ export async function clearSearches(lat: number, lng: number, deg = 0.6) {
   const admin = createClient(URL, SERVICE, opts)
   await admin.from('venue_searches').delete().gte('latitude', lat - deg).lte('latitude', lat + deg).gte('longitude', lng - deg).lte('longitude', lng + deg)
 }
+
+/** End any sign-up trial so the account is on FREE (as an expired-trial user would be). */
+export async function makeFree(email: string) {
+  const admin = createClient(URL, SERVICE, opts)
+  const { data } = await admin.auth.admin.listUsers({ perPage: 1000 })
+  const user = data.users.find((u) => u.email === email)
+  if (!user) throw new Error('user not found')
+  await admin.from('users').update({ is_trial_active: false, trial_expires_at: '2020-01-01T00:00:00Z' }).eq('id', user.id)
+  await admin.rpc('recompute_entitlement', { p_user: user.id })
+}
+
+export interface MockEmail {
+  to: string[]
+  subject: string
+  from: string
+  html: string
+}
+export async function mockEmails(): Promise<MockEmail[]> {
+  return (await fetch('http://127.0.0.1:4010/__mock/emails')).json()
+}

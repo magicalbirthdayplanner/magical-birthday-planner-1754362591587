@@ -91,3 +91,11 @@ export async function rotateInvitationToken(inv: PartyInvitation): Promise<Party
   if (error) throw error
   return data
 }
+
+export async function emailInvitations(partyId: string, opts: { resend?: boolean } = {}) {
+  const { apiFetch } = await import('./api')
+  return apiFetch<{ sent: number; failed: number; skipped: number }>('/api/invitations/send', {
+    method: 'POST',
+    body: JSON.stringify({ partyId, resend: opts.resend || undefined }),
+  })
+}

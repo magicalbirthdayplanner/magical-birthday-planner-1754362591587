@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
+import { noStoreFetch } from '@/lib/db/no-store-fetch'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, { global: { fetch: noStoreFetch } })
 
 // Client-side Supabase client (for components)
 export const createClientComponentClient = () => {
@@ -20,6 +21,7 @@ export const createClientComponentClient = () => {
 // Server-side Supabase client (for server actions and API routes)
 export const createServerComponentClient = ({ cookies }: { cookies: any }) => {
   return createServerClient(supabaseUrl, supabaseAnonKey, {
+    global: { fetch: noStoreFetch },
     cookies: {
       get(name: string) {
         try {

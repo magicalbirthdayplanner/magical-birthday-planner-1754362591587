@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { safeJson } from '@/lib/server/safe-json';
 import { createServerClient } from '@supabase/ssr';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 // Multi-layered authentication helper (copied from parties route)
 async function getAuthenticatedSupabaseClient(request: NextRequest) {
   const accessToken = request.headers.get('Authorization')?.replace('Bearer ', '');

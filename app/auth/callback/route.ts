@@ -3,6 +3,9 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { safeNext } from '@/lib/security/redirect'
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')

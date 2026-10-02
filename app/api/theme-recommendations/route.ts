@@ -5,6 +5,9 @@ import { shouldBlockAISuggestions } from '@/lib/profanity-filter';
 import { rateLimit } from '@/lib/server/rate-limit';
 import { clientIp } from '@/lib/server/http';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 // Environment validation
 function validateEnvironment() {
   if (!process.env.DATABASE_URL) {

@@ -13,6 +13,9 @@ import { toClientVenue } from '@/lib/discovery/client-venue'
 import { getCategory } from '@/lib/discovery/taxonomy'
 import { trackServer } from '@/lib/analytics/server'
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckoutButton } from "@/components/billing/CheckoutButton";
 import { Check, Crown, Star, Zap, Sparkles, Users, PenTool, HeadphonesIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -212,27 +213,18 @@ function PricingContent() {
                       Current Plan
                     </Button>
                   ) : (
-                    <Button 
-                      className={`w-full text-sm ${
+                    <CheckoutButton
+                      plan={tier.name === "🎈 Starter" ? 'STARTER' : tier.name === "🧁 Plus" ? 'PLUS' : 'PRO'}
+                      className={`h-11 ${`w-full text-sm ${
                         tier.popular 
                           ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' 
                           : tier.ctaVariant === 'outline' 
                             ? '' 
                             : `bg-gradient-to-r ${tier.gradient} hover:opacity-90`
-                      }`}
-                      variant={tier.ctaVariant}
-                      asChild
+                      }`}`}
                     >
-                      <Link href={
-                        tier.name === "🎈 Starter" 
-                          ? "https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1"
-                          : tier.name === "🧁 Plus"
-                            ? "https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1"
-                            : "https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1"
-                      }>
-                        {currentPlan === 'FREE' ? tier.cta : `Upgrade to ${tier.name.split(' ')[1]}`}
-                      </Link>
-                    </Button>
+                      {currentPlan === 'FREE' ? tier.cta : `Upgrade to ${tier.name.split(' ')[1]}`}
+                    </CheckoutButton>
                   )}
                 </CardContent>
               </Card>

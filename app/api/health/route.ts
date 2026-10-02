@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { safeJson } from '@/lib/server/safe-json';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
 

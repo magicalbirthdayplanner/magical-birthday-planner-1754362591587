@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { safeJson } from '@/lib/server/safe-json';
 import { createClient } from '@supabase/supabase-js';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {

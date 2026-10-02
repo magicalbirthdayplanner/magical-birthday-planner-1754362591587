@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckoutButton } from '@/components/billing/CheckoutButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,6 @@ const planDetails = [
       "Basic party overview",
       "Venue selection assistance"
     ],
-    checkoutUrl: "https://checkout.dodopayments.com/buy/pdt_Jw4ObhU8ojSaq87wELhsm?quantity=1",
     popular: false
   },
   {
@@ -41,7 +41,6 @@ const planDetails = [
       "Advanced guest coordination",
       "Enhanced timeline features"
     ],
-    checkoutUrl: "https://checkout.dodopayments.com/buy/pdt_rSGRT2hBbKsoln84yQgHC?quantity=1",
     popular: true
   },
   {
@@ -59,7 +58,6 @@ const planDetails = [
       "Complete party planning ecosystem",
       "Priority support"
     ],
-    checkoutUrl: "https://checkout.dodopayments.com/buy/pdt_v3NFp5Zq587xbPoPLd29x?quantity=1",
     popular: false
   }
 ];
@@ -80,15 +78,6 @@ export default function SubscriptionGate({
   const { user } = useAuth();
 
   // Get current URL for return after purchase
-  const getCheckoutUrl = (baseUrl: string, planKey: string) => {
-    if (typeof window === 'undefined') return baseUrl;
-    
-    const returnUrl = encodeURIComponent(window.location.href);
-    const successUrl = encodeURIComponent(`${window.location.origin}/checkout-success?plan=${planKey}&return_url=${returnUrl}`);
-    
-    // Add success_url parameter to DoDo Payments
-    return `${baseUrl}&success_url=${successUrl}`;
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
@@ -174,18 +163,16 @@ export default function SubscriptionGate({
                     ))}
                   </ul>
 
-                  <Button 
-                    className={`w-full text-sm ${
-                      plan.popular 
-                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' 
+                  <CheckoutButton
+                    plan={plan.key as 'STARTER' | 'PLUS' | 'PRO'}
+                    className={`text-sm ${
+                      plan.popular
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600'
                         : `bg-gradient-to-r ${plan.gradient} hover:opacity-90`
                     }`}
-                    asChild
                   >
-                    <Link href={getCheckoutUrl(plan.checkoutUrl, plan.key)} target="_blank">
-                      Choose {plan.key === 'STARTER' ? 'Starter' : plan.key === 'PLUS' ? 'Plus' : 'Pro'}
-                    </Link>
-                  </Button>
+                    Choose {plan.key === 'STARTER' ? 'Starter' : plan.key === 'PLUS' ? 'Plus' : 'Pro'}
+                  </CheckoutButton>
                 </CardContent>
               </Card>
             );

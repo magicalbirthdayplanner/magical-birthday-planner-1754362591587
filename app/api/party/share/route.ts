@@ -4,6 +4,9 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export async function POST(request: NextRequest) {
   try {
     const { partyId } = await request.json();

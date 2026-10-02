@@ -9,6 +9,9 @@ import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin';
 import { rateLimit } from '@/lib/server/rate-limit';
 import { clientIp } from '@/lib/server/http';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export const dynamic = 'force-dynamic';
 
 interface FoodVendor {

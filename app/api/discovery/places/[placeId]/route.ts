@@ -10,6 +10,9 @@ import { discoveryDeps } from '@/lib/discovery/server-deps'
 import { toClientVenue } from '@/lib/discovery/client-venue'
 import { PlacesError } from '@/lib/google/places'
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export const dynamic = 'force-dynamic'
 
 /** GET /api/discovery/places/:placeId?partyId=… → full venue details (+ "why recommended" for that party). */

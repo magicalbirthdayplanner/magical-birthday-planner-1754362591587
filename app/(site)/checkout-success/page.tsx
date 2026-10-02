@@ -9,6 +9,7 @@ import { CheckCircle2, PartyPopper, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { safeNext } from "@/lib/security/redirect";
+import { CheckoutStatus } from "@/components/billing/CheckoutStatus";
 
 function CheckoutSuccessContent() {
   const router = useRouter();
@@ -49,13 +50,13 @@ function CheckoutSuccessContent() {
 
         setIsProcessing(false);
 
-        // Auto-redirect after 4 seconds (slightly longer to show success)
+        // Auto-redirect after 20 seconds (time to confirm payment server-side)
         setTimeout(() => {
           const rawReturn = searchParams.get('return_url');
           // Same-origin relative paths only (no open redirect).
           const returnUrl = safeNext(rawReturn, '/party-plan');
           router.push(returnUrl);
-        }, 4000);
+        }, 20000);
         
       } catch (error) {
         console.error('Error processing checkout return:', error);
@@ -119,6 +120,7 @@ function CheckoutSuccessContent() {
               🎉 Thanks for your order!
             </h1>
             
+            <CheckoutStatus providerStatus={searchParams.get('status')} />
             <div className="bg-white/80 dark:bg-slate-800/80 rounded-lg p-4 mb-6">
               <p className="text-green-700 dark:text-green-300 mb-2">
                 You chose the <strong>{planDetails.name}</strong> plan.

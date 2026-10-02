@@ -3,6 +3,9 @@ import { safeJson } from '@/lib/server/safe-json';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 // Helper function to create authenticated Supabase client
 async function getAuthenticatedSupabaseClient(request: NextRequest) {
   console.log('=== AUTHENTICATION HELPER STARTED ===');

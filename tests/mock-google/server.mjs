@@ -12,7 +12,7 @@
  *   POST /__mock/reset
  */
 import http from 'node:http'
-import { createHash } from 'node:crypto'
+import { createHash, createHmac, randomUUID } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -141,9 +141,92 @@ async function failIfMode(res) {
   return false
 }
 
+// ---------------------------------------------------------------------------
+// Mock Resend (POST /emails) and mock Dodo test mode (POST /checkouts + a hosted
+// pay page that delivers a Standard-Webhooks-signed event to the app).
+// ---------------------------------------------------------------------------
+const emails = []
+const sessions = new Map()
+const WEBHOOK_SECRET = process.env.DODO_PAYMENTS_WEBHOOK_SECRET || ''
+const APP_WEBHOOK_URL = process.env.MOCK_APP_WEBHOOK_URL || ''
+
+function signStandardWebhook(id, ts, body) {
+  const key = WEBHOOK_SECRET.startsWith('whsec_') ? Buffer.from(WEBHOOK_SECRET.slice(6), 'base64') : Buffer.from(WEBHOOK_SECRET)
+  return `v1,${createHmac('sha256', key).update(`${id}.${ts}.${body}`).digest('base64')}`
+}
+
+async function deliverWebhook(event) {
+  const id = `msg_${randomUUID()}`
+  const ts = Math.floor(Date.now() / 1000)
+  const body = JSON.stringify(event)
+  const r = await fetch(APP_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'webhook-id': id, 'webhook-timestamp': String(ts), 'webhook-signature': signStandardWebhook(id, ts, body) }, body })
+  return r.status
+}
+
+const PRICES = { STARTER: 999, PLUS: 1999, PRO: 2999 }
+
+async function handleServices(req, res, url) {
+  const path = url.pathname
+  if (path === '/emails' && req.method === 'POST') {
+    const body = await readBody(req)
+    emails.push({ ...body, idempotencyKey: req.headers['idempotency-key'] || null, at: Date.now() })
+    send(res, 200, { id: `email_${emails.length}` })
+    return true
+  }
+  if (path === '/__mock/emails') {
+    send(res, 200, emails.map((e) => ({ to: e.to, subject: e.subject, from: e.from, html: e.html })))
+    return true
+  }
+  if (path === '/checkouts' && req.method === 'POST') {
+    if (!/^Bearer \S+/.test(req.headers.authorization || '')) return send(res, 401, { message: 'unauthorized' }), true
+    const body = await readBody(req)
+    const id = `cks_${randomUUID().slice(0, 12)}`
+    sessions.set(id, body)
+    send(res, 200, { session_id: id, checkout_url: `http://${HOST}:${PORT}/__dodo/pay/${id}` })
+    return true
+  }
+  const pay = path.match(/^\/__dodo\/pay\/(cks_[\w-]+)(\/(complete|decline))?$/)
+  if (pay) {
+    const session = sessions.get(pay[1])
+    if (!session) return send(res, 404, { message: 'unknown session' }), true
+    if (!pay[3]) {
+      res.writeHead(200, { 'Content-Type': 'text/html' })
+      res.end(`<!doctype html><meta name=viewport content="width=device-width"><title>Dodo test checkout</title><body style="font-family:sans-serif;padding:24px"><h1>Dodo Payments (test mode)</h1><p>Product ${session.product_cart?.[0]?.product_id}</p><form method=post action="/__dodo/pay/${pay[1]}/complete"><button style="font-size:20px;padding:12px 24px">Pay now</button></form><form method=post action="/__dodo/pay/${pay[1]}/decline"><button>Decline card</button></form></body>`)
+      return true
+    }
+    const ok = pay[3] === 'complete'
+    const plan = session.metadata?.mbp_plan
+    const paymentId = `pay_${randomUUID().slice(0, 12)}`
+    const event = {
+      business_id: 'bus_mock',
+      type: ok ? 'payment.succeeded' : 'payment.failed',
+      timestamp: new Date().toISOString(),
+      data: {
+        payload_type: 'Payment',
+        payment_id: paymentId,
+        status: ok ? 'succeeded' : 'failed',
+        total_amount: PRICES[plan] ?? 0,
+        currency: 'USD',
+        product_cart: session.product_cart,
+        customer: { customer_id: `cus_${createHash('sha1').update(String(session.customer?.email || session.customer?.customer_id)).digest('hex').slice(0, 10)}`, email: session.customer?.email, name: session.customer?.name },
+        metadata: session.metadata || {},
+      },
+    }
+    const status = await deliverWebhook(event)
+    const ret = new URL(session.return_url)
+    ret.searchParams.set('payment_id', paymentId)
+    ret.searchParams.set('status', ok ? 'succeeded' : 'failed')
+    res.writeHead(303, { Location: ret.toString(), 'x-webhook-status': String(status) })
+    res.end()
+    return true
+  }
+  return false
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${HOST}:${PORT}`)
   const path = url.pathname
+  if (await handleServices(req, res, url)) return
 
   if (path === '/__mock/mode' && req.method === 'POST') {
     mode = (await readBody(req)).mode || 'ok'

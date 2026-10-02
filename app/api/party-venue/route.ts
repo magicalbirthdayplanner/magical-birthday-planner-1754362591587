@@ -3,6 +3,9 @@ import { safeJson } from '@/lib/server/safe-json';
 import { getAuthedRequest } from '@/lib/server/auth';
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export const dynamic = 'force-dynamic';
 
 /*

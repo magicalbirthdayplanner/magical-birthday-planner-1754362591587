@@ -4,6 +4,9 @@ import { createServerComponentClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 // Trial and plan columns are server-managed (users_guard_entitlements trigger):
 // they are written only with the service role, after server-side eligibility checks.
 

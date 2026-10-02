@@ -12,6 +12,8 @@ import { deleteParty } from '@/lib/data/parties'
 import { friendlyError } from '@/lib/data/api'
 import { track } from '@/lib/analytics/client'
 import { useInstallPrompt } from '@/components/app/useInstallPrompt'
+import useSWR from 'swr'
+import { apiFetch } from '@/lib/data/api'
 import { cn } from '@/lib/utils'
 
 function LinkRow({ href, icon: Icon, label, external }: { href: string; icon: typeof Settings; label: string; external?: boolean }) {
@@ -32,6 +34,7 @@ export function MoreScreen() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [iosHelp, setIosHelp] = useState(false)
+  const billing = useSWR(user ? ['billing', user.id] : null, () => apiFetch<{ plan: string; trialActive: boolean }>('/api/billing/status'), { revalidateOnFocus: true })
 
   useEffect(() => {
     if (window.location.hash === '#parties') document.getElementById('parties')?.scrollIntoView()
@@ -73,6 +76,16 @@ export function MoreScreen() {
           </div>
         </Card>
       </div>
+
+      <Section>
+        <Link href="/pricing" className="tap flex items-center justify-between rounded-2xl border border-border bg-card p-4" data-testid="plan-row">
+          <span>
+            <span className="block text-sm text-muted-foreground">Your plan</span>
+            <span className="block font-semibold">{billing.data ? `${billing.data.plan.charAt(0)}${billing.data.plan.slice(1).toLowerCase()}${billing.data.trialActive ? ' (trial)' : ''}` : '…'}</span>
+          </span>
+          <span className="text-sm font-semibold text-primary">{billing.data?.plan === 'PRO' ? 'Manage' : 'Upgrade'}</span>
+        </Link>
+      </Section>
 
       <Section title="Your parties" action={<Link href="/start" className="inline-flex items-center gap-1 text-sm font-semibold text-primary"><Plus className="h-4 w-4" /> New party</Link>}>
         <div id="parties" />

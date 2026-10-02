@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 /**
  * Retired. This endpoint used to record a purchase and set the user's plan from
  * values sent by the browser (plan, transaction id) with no payment verification,

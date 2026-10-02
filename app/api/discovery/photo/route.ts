@@ -4,6 +4,9 @@ import { discoveryDeps } from '@/lib/discovery/server-deps'
 import { apiError, clientIp } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export const dynamic = 'force-dynamic'
 
 const uriCache = new Map<string, { uri: string; expires: number }>()

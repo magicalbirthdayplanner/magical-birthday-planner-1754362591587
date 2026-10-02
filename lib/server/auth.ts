@@ -8,6 +8,7 @@
 import 'server-only'
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/database.types'
+import { noStoreFetch } from '@/lib/db/no-store-fetch'
 
 export interface AuthedRequest {
   user: User
@@ -29,7 +30,7 @@ export async function getAuthedRequest(req: Request): Promise<AuthedRequest | nu
   if (!url || !anon) return null
   const supabase = createClient<Database>(url, anon, {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { Authorization: `Bearer ${token}` } },
+    global: { headers: { Authorization: `Bearer ${token}` }, fetch: noStoreFetch },
   })
   const { data, error } = await supabase.auth.getUser(token)
   if (error || !data.user) return null

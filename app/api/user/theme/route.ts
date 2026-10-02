@@ -3,6 +3,9 @@ import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
+
 export async function GET() {
   try {
     const supabase = createServerComponentClient({ cookies })

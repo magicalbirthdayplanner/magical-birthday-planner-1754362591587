@@ -3,6 +3,11 @@ import { z } from 'zod'
 import { apiError, clientIp } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
+import { emailConfigured, hostContact, partyFactsByToken, sendHostRsvpNotification, sendRsvpConfirmation } from '@/lib/server/notifications'
+import { randomUUID } from 'node:crypto'
+
+// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
+export const fetchCache = "force-no-store";
 
 export const dynamic = 'force-dynamic'
 
@@ -58,5 +63,27 @@ export async function POST(req: Request, { params }: { params: { token: string }
     console.error('rsvp failed', error.code)
     return apiError(500, 'server_error', 'We couldn’t save your RSVP. Please try again.')
   }
-  return NextResponse.json({ ok: true })
+  // Notifications are best-effort: an email problem never fails the RSVP.
+  let emailed = { guest: false, host: false }
+  if (emailConfigured()) {
+    try {
+      const party = await partyFactsByToken(params.token)
+      if (party) {
+        const nonce = randomUUID()
+        const adults = body.status === 'DECLINED' ? 0 : body.adults
+        const children = body.status === 'DECLINED' ? 0 : body.children
+        const host = await hostContact(party.hostUserId)
+        const [g, h] = await Promise.allSettled([
+          body.email ? sendRsvpConfirmation(party, { name: body.name, email: body.email, status: body.status, nonce }) : Promise.resolve({ ok: false }),
+          host?.wantsEmail
+            ? sendHostRsvpNotification(party, { userId: party.hostUserId, email: host.email }, { name: body.name, status: body.status, adults, children, note: body.note, nonce })
+            : Promise.resolve({ ok: false }),
+        ])
+        emailed = { guest: g.status === 'fulfilled' && g.value.ok, host: h.status === 'fulfilled' && h.value.ok }
+      }
+    } catch (e) {
+      console.warn('rsvp notifications failed', (e as Error)?.name)
+    }
+  }
+  return NextResponse.json({ ok: true, emailed })
 }

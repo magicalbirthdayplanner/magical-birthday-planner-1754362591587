@@ -18,6 +18,10 @@ const SERVER_ONLY = [
   'DODO_PAYMENTS_API_KEY',
   'DODO_API_KEY',
   'DODO_WEBHOOK_SECRET',
+  'DODO_PAYMENTS_WEBHOOK_SECRET',
+  'SUPABASE_SECRET_KEY',
+  'GITHUB_TOKEN',
+  'VERCEL_TOKEN',
 ]
 
 // Load .env files the same way the build did (process env wins).
