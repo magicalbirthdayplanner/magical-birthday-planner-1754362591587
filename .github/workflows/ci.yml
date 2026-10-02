@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, mobile-first]
+    branches: [master, main, mobile-first]
 
 concurrency:
   group: ci-${{ github.ref }}
