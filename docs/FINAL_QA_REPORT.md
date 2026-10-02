@@ -11,7 +11,7 @@ compare and choose a venue → pick a theme → add guests → follow a countdow
 invitation whose RSVPs land on the guest list → close the browser and continue later. Every step
 persists in Supabase under owner-only RLS.
 
-Verification: **117 unit + 48 integration (RLS/API) + 14 Playwright E2E tests, all passing**, plus
+Verification: **117 unit + 48 integration (RLS/API) + 15 Playwright E2E tests, all passing**, plus
 lint (0 errors), typecheck, production build and a client-bundle secret scan.
 
 ## Features implemented (spec phase → status)
@@ -123,10 +123,10 @@ with explicit aspect ratios; debounced search; server cache + SWR dedupe; no req
 
 ```
 ✓ [iphone-390] required-flow — parent plans a party end-to-end on a phone        (≈15 s)
-✓ [iphone-390] error-states ×9 — auth redirect, wrong password, invalid ZIP, Google quota + retry,
+✓ [iphone-390] error-states ×10 — auth redirect, wrong password, invalid ZIP, Google quota + retry, stored-venue fallback,
                  empty radius, empty saved/guests, offline banner, unknown invite, debug routes 404
 ✓ [viewports] 375 · 390 · 393 · 430 — 10 screens + map: no overflow, ≥44 px nav targets, markers
-14 passed (1.3 m)
+15 passed (1.4 m)
 ```
 
 Bugs found by the suites and fixed: build failure without `RESEND_API_KEY`; duplicate places

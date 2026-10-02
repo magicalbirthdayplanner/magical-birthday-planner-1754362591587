@@ -1,6 +1,6 @@
 /** Polished error and empty states (spec §40). No stack traces, always a way forward. */
 import { expect, test } from '@playwright/test'
-import { appAlert, login, mockMode, seedUser } from './helpers'
+import { appAlert, clearArea, clearSearches, login, mockMode, seedUser } from './helpers'
 
 test.afterEach(async () => {
   await mockMode('ok')
@@ -41,8 +41,9 @@ test('invalid ZIP codes are caught in the wizard', async ({ page }) => {
 })
 
 test('Google outage: friendly error, retry recovers', async ({ page }) => {
-  // A location nobody has searched yet, so nothing is cached.
-  const s = await seedUser({ zip: '10001', lat: 40.7506 + Math.random() / 100, lng: -73.9971 })
+  // Nothing cached or stored near this party, so the outage cannot be masked by fallbacks.
+  await clearArea(40.7506, -73.9971)
+  const s = await seedUser({ zip: '10001', lat: 40.7506, lng: -73.9971 })
   await mockMode('quota')
   await login(page, s, '/discover')
   await expect(appAlert(page)).toContainText('Place search is taking a break')
@@ -52,8 +53,25 @@ test('Google outage: friendly error, retry recovers', async ({ page }) => {
   await expect(page.getByTestId('venue-card').first()).toBeVisible()
 })
 
+test('Google outage with known venues nearby: degrade gracefully to stored places', async ({ page }) => {
+  // Populate venues near Chicago, then drop the search cache so only stored venues remain.
+  await clearArea(41.8781, -87.6298)
+  const warm = await seedUser({ zip: '60602', lat: 41.8781, lng: -87.6298 })
+  await login(page, warm, '/discover')
+  await expect(page.getByTestId('venue-card').first()).toBeVisible()
+  await clearSearches(41.8781, -87.6298)
+  await mockMode('quota')
+  const cold = await seedUser({ zip: '60602', lat: 41.8781, lng: -87.6298 })
+  await page.context().clearCookies()
+  await page.evaluate(() => localStorage.clear())
+  await login(page, cold, '/discover')
+  await expect(page.getByText('Showing recently found places — live search is temporarily unavailable.')).toBeVisible()
+  await expect(page.getByTestId('venue-card').first()).toBeVisible()
+})
+
 test('no venues within radius suggests widening the search', async ({ page }) => {
-  const s = await seedUser({ zip: '59001', lat: 45.5 + Math.random() / 100, lng: -109.3 })
+  await clearArea(45.5, -109.3)
+  const s = await seedUser({ zip: '59001', lat: 45.5, lng: -109.3 })
   await mockMode('empty')
   await login(page, s, '/discover')
   await expect(page.getByText('No places within 20 miles')).toBeVisible()

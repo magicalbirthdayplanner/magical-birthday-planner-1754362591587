@@ -4,7 +4,7 @@
 |---|---|---|---|---|
 | Unit | Vitest | `tests/unit` | nothing | 117 |
 | Integration (RLS, API routes) | Vitest + supabase-js | `tests/integration` | local Supabase | 48 |
-| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google + a production build | 14 |
+| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google + a production build | 15 |
 
 Google is **always mocked** in tests (`tests/mock-google/server.mjs` or injected fakes). No test
 calls real Google, OpenAI or Resend. Integration tests refuse to run against a non-local Supabase URL.
@@ -54,7 +54,7 @@ hardened `/api/party-venue`.
    added → checklist (auto-completed theme task) → invitation link copied → public RSVP appears on
    the guest list → reload → new browser session continues planning.
 2. `error-states.spec.ts` — auth redirect & return, wrong password, invalid ZIP (format + unknown),
-   Google quota with retry recovery, zero results within radius, empty saved/guests, offline banner,
+   Google quota with retry recovery, Google down with stored venues (graceful degradation), zero results within radius, empty saved/guests, offline banner,
    unknown invitation, debug/account-takeover routes return 404.
 3. `viewports.spec.ts` (375, 390, 393, 430 px) — 10 screens + map: no horizontal overflow, bottom
    nav targets ≥ 44 px, map markers render; screenshots in `test-results/viewports/`.

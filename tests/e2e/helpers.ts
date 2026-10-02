@@ -49,3 +49,16 @@ export async function mockMode(mode: 'ok' | 'empty' | 'quota' | 'timeout' | 'err
 
 /** App alerts, excluding Next.js's own route announcer (also role="alert"). */
 export const appAlert = (page: Page) => page.locator('[role="alert"]:not(#__next-route-announcer__)')
+
+/** Remove cached searches and stored venues around a point so a test starts from "nothing known". */
+export async function clearArea(lat: number, lng: number, deg = 0.6) {
+  const admin = createClient(URL, SERVICE, opts)
+  await admin.from('venue_searches').delete().gte('latitude', lat - deg).lte('latitude', lat + deg).gte('longitude', lng - deg).lte('longitude', lng + deg)
+  await admin.from('venues').delete().gte('latitude', lat - deg).lte('latitude', lat + deg).gte('longitude', lng - deg).lte('longitude', lng + deg)
+}
+
+/** Remove only cached searches (keep stored venues) around a point. */
+export async function clearSearches(lat: number, lng: number, deg = 0.6) {
+  const admin = createClient(URL, SERVICE, opts)
+  await admin.from('venue_searches').delete().gte('latitude', lat - deg).lte('latitude', lat + deg).gte('longitude', lng - deg).lte('longitude', lng + deg)
+}
