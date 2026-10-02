@@ -34,9 +34,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next-e2e/types/**/*.ts",
-    ".next-realmail/types/**/*.ts",
-    ".next-geo/types/**/*.ts"
+    ".next-e2e/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
