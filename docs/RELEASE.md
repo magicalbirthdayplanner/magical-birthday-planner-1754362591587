@@ -26,7 +26,7 @@
 **Configuration**
 - [ ] Configure Google Places: new server key restricted to Places API (New) + Geocoding; Cloud quotas + billing alerts (`GOOGLE_PLACES_COST_CONTROL.md`)
 - [ ] Configure Google Maps browser key (referrer-restricted) + Map ID
-- [ ] Configure production domain (`NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_SITE_URL`, Supabase Site URL)
+- [ ] Configure production domain (`NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_SITE_URL`, Supabase Site URL) — `magicalbirthdayplanner.com` is no longer owned: choose a new domain (or the Vercel domain); `vercel.production.json` still lists the old domain as an alias and must be updated before any production deploy
 - [ ] Configure PWA (icons/manifest served from the production domain; `sw.js` not cached by CDN)
 - [ ] Configure analytics (confirm `analytics_events` inserts; decide retention)
 - [ ] Set all env vars from `.env.example` (PUBLIC vs SERVER) in Vercel; none of the SERVER ones prefixed `NEXT_PUBLIC_`
@@ -97,7 +97,7 @@ cron calling a protected route).
 
 ## 4. Supabase Auth settings
 
-* Redirect URLs allow-list: add `https://www.magicalbirthdayplanner.com/auth/callback**` (the mobile
+* Redirect URLs allow-list: add `https://<your-deployment-domain>/auth/callback**` (the mobile
   flows append `?next=/home` / `?next=/start?resume=1`) and preview domains if used.
 * Email confirmation: if enabled, the wizard shows “Check your inbox”; consider magic-link or OTP
   for a smoother phone flow.

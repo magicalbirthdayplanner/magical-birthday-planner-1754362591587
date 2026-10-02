@@ -278,6 +278,6 @@ export async function GET(request: Request) {
   console.error('1. Google OAuth redirect URL is not configured properly')
   console.error('2. User cancelled the OAuth flow')
   console.error('3. OAuth provider (Supabase) configuration issue')
-  console.error('Expected redirect URL should be: https://www.magicalbirthdayplanner.com/auth/callback')
+  console.error('Expected redirect URL should be: <site origin>/auth/callback')
   return NextResponse.redirect(new URL('/signin?error=no_code', requestUrl.origin))
 }

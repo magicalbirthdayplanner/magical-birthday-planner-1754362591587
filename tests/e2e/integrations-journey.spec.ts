@@ -30,7 +30,7 @@ test('invitation email → RSVP emails → Dodo checkout → webhook → plan ac
   await expect(page.getByText('Invitation emailed to 1 family')).toBeVisible()
   const invite = (await mockEmails()).find((e) => e.to.includes(guestEmail))
   expect(invite?.subject).toBe('You’re invited to Mia’s birthday party!')
-  expect(invite?.from).toBe('Magical Birthday Planner <noreply@magicalbirthdayplanner.com>')
+  expect(invite?.from).toBe('Magical Birthday Planner <onboarding@resend.dev>')
   const link = invite!.html.match(/https?:\/\/[^"'\s]+\/invite\/[0-9a-f]{48}/)![0]
   await page.goto('/guests')
   await expect(page.getByRole('list', { name: 'Guest list' }).getByText('Patel family')).toBeVisible()

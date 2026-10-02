@@ -8,24 +8,24 @@ _Updated 2026-10-02 · branch `mobile-first`. Credentials live only in the secur
 | **Supabase** | Complete (auth, RLS, migrations 0000–0500) | 112 integration tests on local Supabase | Supplied `sb_secret_…` key returns **401** against the configured project `hgczncztmdqtfhqimfar` | Need the intended project’s URL (and publishable key); then read-only schema diff |
 | **Google Places** | Complete (Places API New, server-side key, cost guards) | unit + integration with mock Google | Not tested — **no Google key supplied** (the old key is leaked and must be rotated) | New server key |
 | **Google Maps** | Complete (`@vis.gl/react-google-maps` + MarkerClusterer; schematic fallback) | E2E uses schematic fallback | Not tested — **no browser key supplied** | New referrer-restricted browser key + Map ID |
-| **Resend** | Complete: invitation email, RSVP confirmation, host notification; escaped templates; idempotency keys; `email_logs`; failures never break the action | 9 integration tests (fake Resend) + E2E journey | **Key verified**: real send to Resend’s test inbox via `onboarding@resend.dev` succeeded. Sending from `noreply@magicalbirthdayplanner.com` is **rejected: domain not verified** | Add DNS records (below) |
+| **Resend** | Complete: invitation email, RSVP confirmation, host notification; escaped templates; idempotency keys; `email_logs`; failures never break the action | 9 integration tests (fake Resend) + E2E journey | **Verified 2026-10-02 with the real API through the app**: invitation, RSVP confirmation and host notification all **delivered** from `Magical Birthday Planner <onboarding@resend.dev>`; invitation link and RSVP link worked | Shared sender delivers only to the Resend account owner’s address and Resend test inboxes (Resend policy) — real guests need a verified domain |
 | **Dodo Payments** | Complete: server-created checkout, Standard-Webhooks verification, idempotency, out-of-order protection, customer mapping, refunds, subscription lifecycle, server-side entitlement | 12 unit + 18 integration + 2 E2E (mock Dodo test mode with signed webhooks) | Not tested — **no Dodo credentials supplied** | Test-mode API key, webhook secret, test product ids |
 | **GitHub** | — | — | Token valid; push permission on the repo | — |
 | **Vercel** | Ready (`vercel.json`, env split) | — | Token valid; **no project exists** under this token and it cannot list teams | Supabase + Google values needed for a functional preview |
 
 ## Manual configuration required
 
-### Resend — verify `magicalbirthdayplanner.com` (status: failed)
-Add these records at the DNS provider (full values are on resend.com → Domains), then click Verify:
+### Resend — sender
+`magicalbirthdayplanner.com` is **no longer owned** and must not be used. The account has no
+verified domain, so the app uses Resend’s shared sender **`Magical Birthday Planner
+<onboarding@resend.dev>`** (default when `EMAIL_FROM` is empty; no reply-to unless
+`EMAIL_REPLY_TO` is set). Resend restricts this sender to the account owner’s own address (and
+`*@resend.dev` test inboxes), so **invitations to real guests will be rejected by Resend** until a
+domain you own is verified in Resend and `EMAIL_FROM` is set to it. The app degrades gracefully:
+failed sends are logged, the invite link can still be shared by text/copy, RSVPs always succeed.
 
-| Purpose | Type | Name | Value |
-|---|---|---|---|
-| DKIM | TXT | `resend._domainkey` | `p=MIGfMA0GCSqGSIb3DQEB…` (copy from Resend) |
-| SPF (bounce) | MX | `send` | `feedback-smtp.us-east-1.amazonses.com` (priority 10) |
-| SPF | TXT | `send` | `v=spf1 include:amazonses.com ~all` |
-
-Recommended: DMARC `TXT _dmarc "v=DMARC1; p=none; rua=mailto:…"`. Also configure Supabase Auth →
-SMTP to use Resend so password-reset/confirmation emails come from the same domain.
+Password-reset and sign-up confirmation emails are sent by **Supabase Auth’s own mailer**, not by
+this Resend integration (configure Supabase → Auth → SMTP once a verified domain exists).
 
 ### Dodo Payments (test mode first)
 1. Dashboard → Test mode → Products: create **Starter $9.99, Plus $19.99, Pro $29.99** (one-time,

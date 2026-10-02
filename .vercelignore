@@ -1,0 +1,15 @@
+# Never upload local env files (secrets/old values) or local artifacts to Vercel.
+.env
+.env.*
+!.env.example
+.next
+.next-e2e
+node_modules
+test-results
+playwright-report
+.ideavo
+.ideavo-attachments
+logs
+supabase/.temp
+supabase/.branches
+*.log

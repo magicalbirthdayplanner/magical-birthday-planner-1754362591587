@@ -14,9 +14,10 @@ export function getResend(): Resend {
 
 // Email configuration - Updated to use custom verified domain
 export const EMAIL_CONFIG = {
-  fromDomain: 'noreply@magicalbirthdayplanner.com', // Use your verified custom domain
-  fallbackFrom: 'noreply@magicalbirthdayplanner.com',
-  replyTo: 'hello@magicalbirthdayplanner.com', // Use verified custom domain for reply-to
+  // Resend's shared sender (no verified custom domain on this account). Override with EMAIL_FROM.
+  fromDomain: process.env.EMAIL_FROM?.trim() || 'Magical Birthday Planner <onboarding@resend.dev>',
+  fallbackFrom: 'Magical Birthday Planner <onboarding@resend.dev>',
+  replyTo: process.env.EMAIL_REPLY_TO?.trim() || undefined,
 };
 
 // Email template types
@@ -302,7 +303,7 @@ function getEarlyAccessEmailTemplate({ email, firstName }: EarlyAccessEmailData)
             </p>
             
             <div style="text-align: center;">
-                <a href="https://www.magicalbirthdayplanner.com" class="cta-button">
+                <a href="${(process.env.NEXT_PUBLIC_BASE_URL || '').replace(/\/$/, '')}/home" class="cta-button">
                     🎯 Visit Our Website
                 </a>
             </div>

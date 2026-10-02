@@ -37,7 +37,6 @@ Object.assign(process.env, {
   SUPABASE_SERVICE_ROLE_KEY: SERVICE_ROLE_KEY,
   RESEND_API_KEY: 're_fake_key',
   RESEND_BASE_URL: `http://127.0.0.1:${(fake.address() as AddressInfo).port}`,
-  EMAIL_FROM: 'Magical Birthday Planner <noreply@magicalbirthdayplanner.com>',
   NEXT_PUBLIC_BASE_URL: 'https://preview.example.test',
 })
 
@@ -85,7 +84,8 @@ describe('invitation emails', () => {
     expect(await res.json()).toMatchObject({ sent: 2, failed: 0 })
     expect(sent.map((s) => s.body.to[0]).sort()).toEqual(['patel@example.test', 'xss@example.test'])
     for (const s of sent) {
-      expect(s.body.from).toBe('Magical Birthday Planner <noreply@magicalbirthdayplanner.com>')
+      expect(s.body.from).toBe('Magical Birthday Planner <onboarding@resend.dev>') // default shared sender
+      expect(s.body.reply_to ?? null).toBeNull()
       expect(s.body.subject).toBe('You’re invited to Ava’s birthday party!')
       expect(s.body.html).toContain(`https://preview.example.test/invite/${token}`)
       expect(s.idempotencyKey).toMatch(/^[0-9a-f]{64}$/)

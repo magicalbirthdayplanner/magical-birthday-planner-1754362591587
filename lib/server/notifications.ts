@@ -18,11 +18,18 @@ import { getSupabaseAdmin, hasServiceRole } from './supabase-admin'
 
 export const emailConfigured = () => !!process.env.RESEND_API_KEY
 
+/**
+ * Sender. Defaults to Resend's shared sender, the only one an account without a
+ * verified domain may use. Set EMAIL_FROM only to an address on a domain that is
+ * VERIFIED in this Resend account.
+ */
+export const RESEND_SHARED_SENDER = 'Magical Birthday Planner <onboarding@resend.dev>'
 export function emailFrom(): string {
-  return process.env.EMAIL_FROM || 'Magical Birthday Planner <noreply@magicalbirthdayplanner.com>'
+  return process.env.EMAIL_FROM?.trim() || RESEND_SHARED_SENDER
 }
+/** Optional reply-to; omitted unless explicitly configured (no default mailbox). */
 export function emailReplyTo(): string | undefined {
-  return process.env.EMAIL_REPLY_TO || 'hello@magicalbirthdayplanner.com'
+  return process.env.EMAIL_REPLY_TO?.trim() || undefined
 }
 export function appBaseUrl(): string {
   const raw = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3100')

@@ -174,10 +174,7 @@ function CheckoutSuccessContent() {
         {/* Additional Info */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Need help? Contact our support team at{' '}
-            <a href="mailto:support@magicalbirthdayplanner.com" className="text-purple-600 hover:text-purple-700 dark:text-purple-400">
-              support@magicalbirthdayplanner.com
-            </a>
+            Need help with a payment? Reply to the receipt email from our payment provider.
           </p>
         </div>
       </div>

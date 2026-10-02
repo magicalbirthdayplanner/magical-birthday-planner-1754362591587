@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
-          emailRedirectTo: `${(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com').trim().replace(/\/$/, '')}/auth/callback`,
+          emailRedirectTo: `${(typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL || '').trim().replace(/\/$/, '')}/auth/callback`,
           data: {
             display_name: displayName,
           },
@@ -196,7 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Get the current domain for redirect - ensure proper URL formatting
       const baseUrl = typeof window !== 'undefined' 
         ? `${window.location.protocol}//${window.location.host}`
-        : (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.magicalbirthdayplanner.com').trim()
+        : (process.env.NEXT_PUBLIC_BASE_URL || '').trim()
       
       // Ensure baseUrl doesn't end with slash and construct proper callback URL
       const cleanBaseUrl = baseUrl.replace(/\/$/, '').trim()
@@ -218,7 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('- Environment NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL)
       console.log('- Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
       console.log('⚠️ IMPORTANT: Google should redirect to YOUR app, not directly to Supabase!')
-      console.log('⚠️ Expected: https://www.magicalbirthdayplanner.com/auth/callback')
+      console.log('⚠️ Expected: <your site origin>/auth/callback')
       console.log('⚠️ NOT: https://hgczncztmdqtfhqimfar.supabase.co/auth/v1/callback')
       
       const { data, error } = await supabase.auth.signInWithOAuth({

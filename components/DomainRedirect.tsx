@@ -9,7 +9,10 @@ export default function DomainRedirect() {
       const currentDomain = window.location.hostname
       
       // Define the canonical production domain
-      const canonicalDomain = 'www.magicalbirthdayplanner.com'
+      // Only redirect to a canonical host when one is explicitly configured. The former
+      // hard-coded domain is no longer owned, so there is NO default.
+      const canonicalDomain = (process.env.NEXT_PUBLIC_CANONICAL_HOST || '').trim()
+      if (!canonicalDomain) return
       const devDomain = 'cmdqv4mun01sdmp0fv1p76s5z-app.server.ideavo.ai'
       
       const isLocalOrPreview =
@@ -29,7 +32,7 @@ export default function DomainRedirect() {
       
       // If we're on development preview domain in production, show a notice
       if (currentDomain === devDomain && process.env.NODE_ENV === 'production') {
-        console.warn('You are on the development preview domain. For the best experience, please visit https://www.magicalbirthdayplanner.com')
+        console.warn(`You are on the development preview domain. For the best experience, please visit https://${canonicalDomain}`)
       }
     }
   }, [])

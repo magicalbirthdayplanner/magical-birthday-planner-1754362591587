@@ -17,7 +17,7 @@ function icsFor(inv: PublicInvitation): string {
     'VERSION:2.0',
     'PRODID:-//Magical Birthday Planner//EN',
     'BEGIN:VEVENT',
-    `UID:${d}-${Math.random().toString(36).slice(2)}@magicalbirthdayplanner.com`,
+    `UID:${d}-${Math.random().toString(36).slice(2)}@magical-birthday-planner.invalid`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
     `DTSTART:${d}T${t(inv.start_time, '14:00')}`,
     `DTEND:${d}T${t(inv.end_time, '16:00')}`,
