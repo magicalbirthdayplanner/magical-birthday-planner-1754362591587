@@ -13,9 +13,9 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: Request) {
   const auth = await getAuthedRequest(req)
   if (!auth) return apiError(401, 'unauthorized', 'Please sign in.')
-  const [{ plan, trialActive }, { data: purchases }] = await Promise.all([
-    hasServiceRole() ? getUserPlan(getSupabaseAdmin(), auth.user.id) : Promise.resolve({ plan: 'FREE' as const, trialActive: false }),
+  const [{ plan, source, trialActive, override }, { data: purchases }] = await Promise.all([
+    hasServiceRole() ? getUserPlan(getSupabaseAdmin(), auth.user.id) : Promise.resolve({ plan: 'FREE' as const, source: 'free' as const, trialActive: false, override: null }),
     auth.supabase.from('billing_purchases').select('plan, status, kind, created_at, current_period_end').order('created_at', { ascending: false }).limit(20),
   ])
-  return NextResponse.json({ plan, trialActive, purchases: purchases ?? [] })
+  return NextResponse.json({ plan, source, trialActive, override, purchases: purchases ?? [] })
 }

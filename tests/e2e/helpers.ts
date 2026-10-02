@@ -82,3 +82,14 @@ export interface MockEmail {
 export async function mockEmails(): Promise<MockEmail[]> {
   return (await fetch('http://127.0.0.1:4010/__mock/emails')).json()
 }
+
+/** Grant the server-managed super_admin role (as the production seed does) — test stack only. */
+export async function grantSuperAdmin(email: string) {
+  const admin = createClient(URL, SERVICE, opts)
+  const { data } = await admin.auth.admin.listUsers({ perPage: 1000 })
+  const user = data.users.find((u) => u.email === email)
+  if (!user) throw new Error('user not found')
+  const { error } = await admin.from('user_roles').insert({ user_id: user.id, role: 'super_admin' })
+  if (error) throw error
+  return user.id
+}

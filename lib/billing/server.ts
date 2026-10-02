@@ -239,21 +239,48 @@ export async function processWebhookEvent(admin: Admin, eventId: string, raw: un
 
 // ------------------------------------------------------------------ entitlement (read)
 export type AppPlan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO' | 'PROFESSIONAL'
+export type PlanSource = 'admin_override' | 'purchase' | 'trial' | 'free'
+export interface UserPlan {
+  plan: AppPlan
+  source: PlanSource
+  trialActive: boolean
+  override: { plan: string; expiresAt: string | null } | null
+}
+
+const APP_PLANS = ['FREE', 'STARTER', 'PLUS', 'PRO', 'PROFESSIONAL'] as const
 
 /**
- * THE answer to "what plan does this user have?". Reads the server-maintained
- * users.current_plan (written only by recompute_entitlement from verified Dodo events
- * and the one-time trial). A lapsed trial is expired here first, server-side.
+ * THE answer to "what plan does this user have, and why?". users.current_plan is
+ * written only by recompute_entitlement (service role): admin override → verified
+ * Dodo purchase → one-time trial → FREE. Lapsed overrides and trials are expired here.
  */
-export async function getUserPlan(admin: Admin, userId: string): Promise<{ plan: AppPlan; trialActive: boolean }> {
-  const read = () => admin.from('users').select('current_plan, is_trial_active, trial_expires_at').eq('id', userId).maybeSingle()
-  let { data: profile } = await read()
-  const lapsed = !!profile?.is_trial_active && (!profile.trial_expires_at || new Date(profile.trial_expires_at) <= new Date())
-  if (lapsed) {
-    const { error } = await admin.rpc('recompute_entitlement', { p_user: userId })
-    if (!error) ({ data: profile } = await read())
+export async function getUserPlan(admin: Admin, userId: string): Promise<UserPlan> {
+  const now = new Date()
+  const read = () =>
+    Promise.all([
+      admin.from('users').select('current_plan, is_trial_active, trial_expires_at').eq('id', userId).maybeSingle(),
+      admin.from('plan_overrides').select('plan, expires_at').eq('user_id', userId).maybeSingle(),
+    ])
+  let [{ data: profile }, { data: override }] = await read()
+  let recompute = false
+  if (override?.expires_at && new Date(override.expires_at) <= now) {
+    await admin.from('plan_overrides').delete().eq('user_id', userId)
+    await admin.from('admin_audit_log').insert({ target_user_id: userId, action: 'override_expired', old_plan: override.plan, override_expires_at: override.expires_at })
+    recompute = true
   }
-  const plan = (['FREE', 'STARTER', 'PLUS', 'PRO', 'PROFESSIONAL'] as const).find((p) => p === profile?.current_plan) ?? 'FREE'
-  const trialActive = !!profile?.is_trial_active && !!profile.trial_expires_at && new Date(profile.trial_expires_at) > new Date()
-  return { plan, trialActive }
+  if (profile?.is_trial_active && (!profile.trial_expires_at || new Date(profile.trial_expires_at) <= now)) recompute = true
+  if (recompute) {
+    const { error } = await admin.rpc('recompute_entitlement', { p_user: userId })
+    if (!error) [{ data: profile }, { data: override }] = await read()
+  }
+  const plan = APP_PLANS.find((p) => p === profile?.current_plan) ?? 'FREE'
+  const trialActive = !!profile?.is_trial_active && !!profile.trial_expires_at && new Date(profile.trial_expires_at) > now
+  let source: PlanSource
+  if (override) source = 'admin_override'
+  else if (plan !== 'FREE' && !trialActive) source = 'purchase'
+  else if (plan !== 'FREE' && trialActive) {
+    const { count } = await admin.from('billing_purchases').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'active')
+    source = count ? 'purchase' : 'trial'
+  } else source = 'free'
+  return { plan, source, trialActive, override: override ? { plan: override.plan, expiresAt: override.expires_at } : null }
 }

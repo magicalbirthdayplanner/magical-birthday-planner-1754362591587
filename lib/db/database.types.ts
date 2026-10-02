@@ -67,6 +67,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"admin_audit_log": {
+                  Row: {
+                    "action": string,"admin_user_id": string | null,"created_at": string,"id": number,"new_plan": string | null,"old_plan": string | null,"override_expires_at": string | null,"target_email": string | null,"target_user_id": string | null
+                  }
+                  Insert: {
+                    "action": string,"admin_user_id"?: string | null,"created_at"?: string,"id"?: never,"new_plan"?: string | null,"old_plan"?: string | null,"override_expires_at"?: string | null,"target_email"?: string | null,"target_user_id"?: string | null
+                  }
+                  Update: {
+                    "action"?: string,"admin_user_id"?: string | null,"created_at"?: string,"id"?: never,"new_plan"?: string | null,"old_plan"?: string | null,"override_expires_at"?: string | null,"target_email"?: string | null,"target_user_id"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"ai_cache": {
                   Row: {
                     "cache_key": string,"created_at": string,"expires_at": string,"kind": string,"payload": NonNullable<Json>
@@ -381,6 +394,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"plan_overrides": {
+                  Row: {
+                    "created_at": string,"expires_at": string | null,"plan": string,"set_by": string | null,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"expires_at"?: string | null,"plan": string,"set_by"?: string | null,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"expires_at"?: string | null,"plan"?: string,"set_by"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"saved_venues": {
                   Row: {
                     "created_at": string,"id": string,"notes": string | null,"party_id": string,"place_id": string,"updated_at": string,"user_id": string,"venue_id": string
@@ -430,6 +456,19 @@ isOneToOne: false
       referencedRelation: "users"
       referencedColumns: ["id"]
     }
+                  ]
+                },"user_roles": {
+                  Row: {
+                    "granted_at": string,"granted_by": string | null,"role": string,"user_id": string
+                  }
+                  Insert: {
+                    "granted_at"?: string,"granted_by"?: string | null,"role": string,"user_id": string
+                  }
+                  Update: {
+                    "granted_at"?: string,"granted_by"?: string | null,"role"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"users": {
                   Row: {

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Check, ChevronRight, Download, FileText, LogOut, Plus, Settings, Shield, Trash2 } from 'lucide-react'
+import { Check, ChevronRight, Download, FileText, LogOut, Plus, Settings, Shield, ShieldCheck, Trash2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useParty } from '@/components/app/PartyProvider'
 import { AppButton, Card, PageHeader, Section } from '@/components/app/ui'
@@ -35,7 +35,9 @@ export function MoreScreen() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [iosHelp, setIosHelp] = useState(false)
-  const billing = useSWR(user ? ['billing', user.id] : null, () => apiFetch<{ plan: string; trialActive: boolean }>('/api/billing/status'), { revalidateOnFocus: true })
+  const billing = useSWR(user ? ['billing', user.id] : null, () => apiFetch<{ plan: string; source?: 'admin_override' | 'purchase' | 'trial' | 'free'; trialActive: boolean }>('/api/billing/status'), { revalidateOnFocus: true })
+  // 200 only for a server-verified Super Admin (404 otherwise): never decided by the client.
+  const adminSession = useSWR(user ? ['admin-session', user.id] : null, () => apiFetch<{ admin: boolean }>('/api/admin/session').catch(() => null), { revalidateOnFocus: false, shouldRetryOnError: false })
 
   useEffect(() => {
     if (window.location.hash === '#parties') document.getElementById('parties')?.scrollIntoView()
@@ -82,7 +84,10 @@ export function MoreScreen() {
         <Link href="/pricing" className="tap flex items-center justify-between rounded-2xl border border-border bg-card p-4" data-testid="plan-row">
           <span>
             <span className="block text-sm text-muted-foreground">Your plan</span>
-            <span className="block font-semibold">{billing.data ? `${billing.data.plan.charAt(0)}${billing.data.plan.slice(1).toLowerCase()}${billing.data.trialActive ? ' (trial)' : ''}` : '…'}</span>
+            <span className="block font-semibold">{billing.data ? `${billing.data.plan.charAt(0)}${billing.data.plan.slice(1).toLowerCase()}${billing.data.source === 'admin_override' ? '' : billing.data.trialActive ? ' (trial)' : ''}` : '…'}</span>
+            {billing.data?.source === 'admin_override' || billing.data?.source === 'purchase' ? (
+              <span className="block text-xs font-semibold text-muted-foreground" data-testid="plan-source">{billing.data.source === 'admin_override' ? 'Admin override' : 'Purchased'}</span>
+            ) : null}
           </span>
           <span className="text-sm font-semibold text-primary">{billing.data?.plan === 'PRO' ? 'Manage' : 'Upgrade'}</span>
         </Link>
@@ -121,6 +126,14 @@ export function MoreScreen() {
               <span className="block text-sm text-muted-foreground">Opens full-screen, like an app.</span>
             </span>
           </button>
+        </Section>
+      ) : null}
+
+      {adminSession.data?.admin ? (
+        <Section title="Admin">
+          <Card>
+            <LinkRow href="/admin" icon={ShieldCheck} label="Admin" />
+          </Card>
         </Section>
       ) : null}
 

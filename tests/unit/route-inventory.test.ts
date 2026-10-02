@@ -2,7 +2,7 @@
  * Every route the app serves, on purpose. Adding or removing a page/API route must
  * update this list, so debug, fix or legacy routes can't slip back in unnoticed.
  */
-import { readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -27,6 +27,8 @@ const EXPECTED = [
   '/login [page]', '/join [page]', '/reset-password [page]', '/offline [page]', '/invite/[token] [page]', '/start [page]', '/venue/[placeId] [page]',
   // signed-in app (bottom navigation)
   '/home [page]', '/plan [page]', '/plan/theme [page]', '/plan/checklist [page]', '/plan/invite [page]', '/discover [page]', '/discover/saved [page]', '/guests [page]', '/more [page]',
+  // Super Admin (server-verified role; 404 for everyone else)
+  '/admin [page]',
   // auth return point
   '/auth/callback [api]',
   // APIs
@@ -34,7 +36,10 @@ const EXPECTED = [
   '/api/discovery/search [api]', '/api/discovery/places/[placeId] [api]', '/api/discovery/photo [api]', '/api/discovery/zip [api]',
   '/api/themes/ai [api]', '/api/invitations/send [api]', '/api/invite/[token]/rsvp [api]',
   '/api/billing/checkout [api]', '/api/billing/status [api]', '/api/webhooks/dodo [api]',
+  '/api/admin/session [api]', '/api/admin/users [api]', '/api/admin/stats [api]', '/api/admin/override [api]', '/api/admin/audit [api]',
 ].sort()
+// The only routes allowed to carry "admin": each verifies the super_admin role server-side.
+const SUPER_ADMIN_ROUTES = new Set(['/admin', '/api/admin/session', '/api/admin/users', '/api/admin/stats', '/api/admin/override', '/api/admin/audit'])
 
 describe('route inventory', () => {
   const actual = routes().sort()
@@ -45,7 +50,17 @@ describe('route inventory', () => {
 
   it('has no debug / fix / test / bypass tooling routes', () => {
     const banned = /(^|\/)[^/]*(debug|fix|test|bypass|diagnos|env-check|seed|admin)[^/]*(\/|$)/i
-    expect(actual.filter((r) => banned.test(r.split(' ')[0]))).toEqual([])
+    expect(actual.filter((r) => banned.test(r.split(' ')[0]) && !SUPER_ADMIN_ROUTES.has(r.split(' ')[0]))).toEqual([])
+  })
+
+  it('every admin route enforces requireSuperAdmin', () => {
+    for (const r of SUPER_ADMIN_ROUTES) {
+      if (!r.startsWith('/api/')) continue
+      const src = readFileSync(path.join(APP, r, 'route.ts'), 'utf8')
+      const handlers = src.match(/export async function (GET|POST|PUT|PATCH|DELETE)/g) ?? []
+      expect(handlers.length, r).toBeGreaterThan(0)
+      expect((src.match(/await requireSuperAdmin\(req\)/g) ?? []).length, r).toBe(handlers.length)
+    }
   })
 
   it('the retired desktop planner and its APIs are gone', () => {
