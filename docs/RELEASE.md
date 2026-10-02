@@ -1,6 +1,8 @@
 # Release guide — mobile-first
 
-> **Release gate status (2026-10-01): NOT READY TO RELEASE.** The branch is hardened and tested
+> Integration status per provider: [`INTEGRATIONS.md`](./INTEGRATIONS.md).
+>
+> **Release gate status (2026-10-02): NOT READY TO RELEASE.** The branch is hardened and tested
 > locally; the owner actions below are outstanding. Do not push/deploy until every box is ticked.
 > Evidence: [`SECURITY_RELEASE_AUDIT.md`](./SECURITY_RELEASE_AUDIT.md).
 
@@ -10,7 +12,7 @@
 - [ ] Rotate exposed credentials — Supabase **personal access tokens** (`sbp_`, revoke), Supabase service-role/JWT secret, database password, Google API key, Azure OpenAI key, Resend key, Apify token, Dodo key/webhook secret (`SECURITY_RELEASE_AUDIT.md §3`)
 - [ ] Review Supabase auth logs, Google/Azure/Resend usage for misuse since 2025-07-31
 - [ ] Confirm git history remediation decision (rewrite per `SECURITY_RELEASE_AUDIT.md §4`, or accept with rotation only) and complete it
-- [ ] Remove debug routes — run the deletion command in `SECURITY_RELEASE_AUDIT.md §6` (they already 404)
+- [x] Remove debug routes — deleted 2026-10-02 (60 files)
 - [ ] Verify billing cannot be self-modified in production (`BILLING_SECURITY.md §3` checks against prod after migrations)
 - [ ] Remove or pin (SRI) the third-party `ideavo.min.js`; decide on `frame-ancestors`
 

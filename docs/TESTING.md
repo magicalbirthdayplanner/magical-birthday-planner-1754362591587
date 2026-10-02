@@ -2,9 +2,9 @@
 
 | Layer | Tool | Location | Needs | Count |
 |---|---|---|---|---|
-| Unit | Vitest | `tests/unit` | nothing | 144 |
-| Integration (RLS, security, API routes) | Vitest + supabase-js | `tests/integration` | local Supabase | 85 |
-| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google + a production build | 19 |
+| Unit | Vitest | `tests/unit` | nothing | 156 |
+| Integration (RLS, security, billing, email, API routes) | Vitest + supabase-js | `tests/integration` | local Supabase | 112 |
+| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google/Resend/Dodo + a production build | 21 |
 
 Google is **always mocked** in tests (`tests/mock-google/server.mjs` or injected fakes). No test
 calls real Google, OpenAI or Resend. Integration tests refuse to run against a non-local Supabase URL.

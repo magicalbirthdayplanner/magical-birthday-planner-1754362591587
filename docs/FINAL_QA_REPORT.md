@@ -173,3 +173,14 @@ on phones; wrong “Loves art” theme badges; accent-mangling slugs; duplicate 
 7. Venue enrichment: let parents record quoted prices/capacity on saved venues (owner data, not
    fabricated), then feed it back into ranking.
 8. Push reminders (Web Push) for checklist due dates once the PWA install base grows.
+
+## Update — 2026-10-02 (integrations pass)
+
+* Deleted 60 obsolete debug/fix/insecure route files and debug pages.
+* Dodo billing implemented (checkout, verified webhook, idempotency, entitlement) — `BILLING_SECURITY.md`.
+* Resend workflows: invitation, RSVP confirmation, host notification (escaped, idempotent, logged).
+* Forgot/reset password via Supabase Auth.
+* **Bug fixed:** Next.js 14’s fetch data cache was caching Supabase responses inside route
+  handlers (stale plan/party data; shared stale service-role reads). All Supabase clients now use
+  `cache: 'no-store'` and every route sets `fetchCache = 'force-no-store'`.
+* Tests: 156 unit, 112 integration, 21 E2E — all passing. Real-service status: `INTEGRATIONS.md`.

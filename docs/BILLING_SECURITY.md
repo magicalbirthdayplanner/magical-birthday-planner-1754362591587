@@ -1,7 +1,23 @@
 # Billing security
 
-**Status: users can no longer grant themselves a plan. Billing itself is not implemented end-to-end
-— no real payment currently activates a plan.** Do not charge customers until §4 is done.
+**Status (2026-10-02): billing implemented end-to-end in code and tested against a mock Dodo test
+mode with signed webhooks. Not yet verified against the real Dodo sandbox (no credentials supplied).**
+Live charging is impossible unless `DODO_PAYMENTS_ENVIRONMENT=live_mode` **and**
+`DODO_LIVE_PAYMENTS_ENABLED=true`.
+
+### Implemented flow
+`POST /api/billing/checkout {plan}` (auth; server picks product/price/customer; metadata carries
+user + checkout id) → Dodo hosted checkout → `POST /api/webhooks/dodo` (Standard Webhooks
+signature, ±5 min, constant-time) → `billing_webhook_events` (idempotent on `webhook-id`;
+errored events retried) → user mapping (known customer id → metadata user → recent pending
+checkout email; conflicts rejected) → `billing_purchases` upsert by provider ref (no duplicates;
+older events never overwrite newer) → `recompute_entitlement()` (service role only) →
+`users.current_plan`. Plan comes from the **product id**, never metadata; USD payments below the
+plan price are held as `review`. Refunds and subscription cancel/expire/on-hold revoke.
+`/checkout-success` only polls `GET /api/billing/status`.
+
+Tests: `tests/unit/billing.test.ts` (12), `tests/integration/billing.test.ts` (18),
+`tests/e2e/integrations-journey.spec.ts` (2).
 
 ## 1. Where entitlement state lives
 

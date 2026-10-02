@@ -120,7 +120,11 @@ usage and Resend sending logs for misuse since 2025-07-31.
 Before: 188 (28 critical, 58 high). After: **8 (1 critical, 4 high, 3 moderate)**. Supabase packages
 (`@supabase/supabase-js` 2.x, `@supabase/ssr`) have no advisories.
 
-## 6. Routes still to delete (deletion was blocked in this session)
+## 6. Routes deleted (2026-10-02)
+
+**Done:** all 37 debug/fix routes, the 16+ insecure legacy routes and the `/env-check` and `/test-oauth` pages were deleted (60 files) after re-verifying no live caller. The middleware block list remains as defence in depth. The original command is kept below for reference.
+
+### Original command
 
 File deletion was refused by the session’s safety policy, so these files remain but return **404**
 in every environment (and cannot be enabled in production). Delete them with:
