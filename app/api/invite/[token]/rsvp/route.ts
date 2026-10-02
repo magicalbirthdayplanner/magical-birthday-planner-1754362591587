@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { apiError, clientIp } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
-import { emailConfigured, hostContact, partyFactsByToken, sendHostRsvpNotification, sendRsvpConfirmation } from '@/lib/server/notifications'
+import { emailConfigured, hostContact, partyFactsByToken, sendHostRsvpNotification, sendRsvpConfirmation, dailyRsvpEmailCap, emailsSentSince } from '@/lib/server/notifications'
 import { randomUUID } from 'node:crypto'
 
 // Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
@@ -68,7 +68,9 @@ export async function POST(req: Request, { params }: { params: { token: string }
   if (emailConfigured()) {
     try {
       const party = await partyFactsByToken(params.token)
-      if (party) {
+      // Per-party daily cap (all instances): an invite link can't be used to mass-mail arbitrary addresses.
+      const underCap = party ? (await emailsSentSince({ partyId: party.partyId, types: ['RSVP_CONFIRMATION', 'RSVP_HOST_NOTIFICATION'], hours: 24 })) < dailyRsvpEmailCap() : false
+      if (party && underCap) {
         const nonce = randomUUID()
         const adults = body.status === 'DECLINED' ? 0 : body.adults
         const children = body.status === 'DECLINED' ? 0 : body.children

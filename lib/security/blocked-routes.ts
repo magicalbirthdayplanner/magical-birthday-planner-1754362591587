@@ -70,6 +70,8 @@ export const DEPRECATED_API_ROUTES = [
   'theme-favorites', // unused; writes as anon
   'birthday-activities', // unused
   'host-mode-expand', // unused
+  'rsvp', // legacy RSVP (superseded by /api/invite/[token]/rsvp); anon guest update, broken under RLS
+  'party/share', // legacy share links; reads party+guests by token, broken under RLS
 ] as const
 
 /** Debug pages that dump configuration. */

@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { getAuthedRequest } from '@/lib/server/auth'
 import { apiError } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
-import { emailConfigured, sendInvitationEmail, type PartyFacts } from '@/lib/server/notifications'
+import { dailyInviteCap, emailConfigured, emailsSentSince, sendInvitationEmail, type PartyFacts } from '@/lib/server/notifications'
 
 // Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
 export const fetchCache = "force-no-store";
@@ -50,7 +50,10 @@ export async function POST(req: Request) {
   const { data: guests, error } = await q
   if (error) return apiError(500, 'server_error', 'Couldn’t load your guests.')
 
-  const targets = (guests ?? []).filter((g) => g.email && (body.resend || g.invite_status === 'NOT_SENT')).slice(0, MAX_PER_REQUEST)
+  // Daily cap across all instances (email_logs): the app must not become a spam relay.
+  const remaining = dailyInviteCap() - (await emailsSentSince({ userId: auth.user.id, types: ['INVITATION'], hours: 24 }))
+  if (remaining <= 0) return apiError(429, 'rate_limited', 'You’ve reached today’s invitation email limit. Share the link instead, or try again tomorrow.')
+  const targets = (guests ?? []).filter((g) => g.email && (body.resend || g.invite_status === 'NOT_SENT')).slice(0, Math.min(MAX_PER_REQUEST, remaining))
   const facts: PartyFacts = {
     partyId: party.id,
     childName: party.child_name,

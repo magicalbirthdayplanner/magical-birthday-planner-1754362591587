@@ -124,7 +124,7 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
           <div className="-mt-1 text-right">
             <button
               type="button"
-              className="text-sm font-semibold text-primary"
+              className="-my-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-primary"
               onClick={async () => {
                 setError(null)
                 if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError('Enter your email above, then tap “Forgot password?”.')

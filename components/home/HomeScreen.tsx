@@ -156,7 +156,7 @@ export function HomeScreen() {
 
       {/* recommended venues */}
       {!summary.chosenVenue ? (
-        <Section title="Recommended for you" action={<Link href="/discover" className="text-sm font-semibold text-primary">See all</Link>} className="pt-6">
+        <Section title="Recommended for you" action={<Link href="/discover" className="-my-3 inline-flex min-h-[44px] items-center text-sm font-semibold text-primary">See all</Link>} className="pt-6">
           {discovery.isLoading && !discovery.data ? (
             <div className="-mx-4 flex gap-3 overflow-hidden px-4">
               <Skeleton className="h-52 w-60 shrink-0" />
@@ -226,7 +226,7 @@ export function HomeScreen() {
       </div>
 
       {/* theme */}
-      <Section title="Theme" action={<Link href="/plan/theme" className="text-sm font-semibold text-primary">{summary.theme ? 'Change' : 'Browse'}</Link>} className="pt-5">
+      <Section title="Theme" action={<Link href="/plan/theme" className="-my-3 inline-flex min-h-[44px] items-center text-sm font-semibold text-primary">{summary.theme ? 'Change' : 'Browse'}</Link>} className="pt-5">
         {summary.theme ? (
           <Link href="/plan/theme">
             <div className={cn('flex items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br p-4 text-white', summary.theme.color)}>
@@ -253,7 +253,7 @@ export function HomeScreen() {
       </Section>
 
       {/* checklist */}
-      <Section title="Up next" action={<Link href="/plan/checklist" className="text-sm font-semibold text-primary">Checklist</Link>} className="pt-3">
+      <Section title="Up next" action={<Link href="/plan/checklist" className="-my-3 inline-flex min-h-[44px] items-center text-sm font-semibold text-primary">Checklist</Link>} className="pt-3">
         {summary.loading && !summary.tasks.length ? (
           <Skeleton className="h-36 w-full" />
         ) : summary.openTasks.length === 0 ? (

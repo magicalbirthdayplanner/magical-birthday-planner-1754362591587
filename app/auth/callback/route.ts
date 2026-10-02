@@ -18,18 +18,8 @@ export async function GET(request: Request) {
   const next = explicitNext ?? '/dashboard'
   let isNewUser = false
 
-  console.log('🔄 Auth callback received:', { 
-    code: code ? 'present' : 'missing', 
-    error_code, 
-    error_description,
-    state,
-    next,
-    origin: requestUrl.origin,
-    fullUrl: requestUrl.toString(),
-    userAgent: request.headers.get('user-agent'),
-    referer: request.headers.get('referer'),
-    allParams: Object.fromEntries(requestUrl.searchParams.entries())
-  })
+  // Never log the URL/params: they carry the one-time auth code.
+  console.log('Auth callback received:', { hasCode: !!code, error_code, next })
 
   // Handle OAuth errors from provider
   if (error_code) {
@@ -51,7 +41,7 @@ export async function GET(request: Request) {
       }
 
       if (data?.session && data?.user) {
-        console.log('✅ Auth callback successful for user:', data.user.email)
+        console.log('Auth callback successful for user id:', data.user.id)
         console.log('Session expires at:', data.session.expires_at)
         
         // Verify session is properly set and refresh if needed
@@ -139,12 +129,12 @@ export async function GET(request: Request) {
                   hint: insertError.hint
                 })
               } else {
-                console.log('✅ User profile created manually:', insertData)
+                console.log('User profile created manually')
               }
             } else if (checkError) {
               console.error('⚠️ Error checking user profile:', checkError)
             } else {
-              console.log('✅ User profile exists (created by trigger):', userProfile.email)
+              console.log('User profile exists (created by trigger)')
               
               // Update profile with latest info if needed
               if (data.user.user_metadata?.full_name && userProfile.full_name !== data.user.user_metadata.full_name) {
@@ -181,12 +171,6 @@ export async function GET(request: Request) {
             // Ensure session cookies are properly set for new users too
             const session = sessionCheck.session || data.session
             if (session) {
-              response.cookies.set('supabase-auth-token', session.access_token, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
-                maxAge: session.expires_in || 3600
-              })
             }
             
             return response
@@ -209,12 +193,6 @@ export async function GET(request: Request) {
               // Set session cookies
               const session = sessionCheck.session || data.session
               if (session) {
-                response.cookies.set('supabase-auth-token', session.access_token, {
-                  httpOnly: true,
-                  secure: true,
-                  sameSite: 'lax',
-                  maxAge: session.expires_in || 3600
-                })
               }
               
               return response
@@ -225,12 +203,6 @@ export async function GET(request: Request) {
               // Set session cookies
               const session = sessionCheck.session || data.session
               if (session) {
-                response.cookies.set('supabase-auth-token', session.access_token, {
-                  httpOnly: true,
-                  secure: true,
-                  sameSite: 'lax',
-                  maxAge: session.expires_in || 3600
-                })
               }
               
               return response
@@ -247,12 +219,6 @@ export async function GET(request: Request) {
         // Ensure session cookies are properly set
         const session = sessionCheck.session || data.session
         if (session) {
-          response.cookies.set('supabase-auth-token', session.access_token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            maxAge: session.expires_in || 3600
-          })
         }
         
         return response

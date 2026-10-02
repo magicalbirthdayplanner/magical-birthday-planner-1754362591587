@@ -141,7 +141,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Adding guest to party:', partyId, 'Guest data:', guestData);
 
     // Verify party ownership
     const { data: party, error: partyError } = await supabase
@@ -235,7 +234,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    console.log('Updating guest:', guestId, 'Updates:', updates);
 
     // Verify party ownership through guest
     const { data: guest, error: guestError } = await supabase

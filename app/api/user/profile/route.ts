@@ -143,8 +143,6 @@ export async function PATCH(request: NextRequest) {
     const requestBody = await request.json();
     const { name, displayName, emailNotifications, partyReminders, marketingEmails } = requestBody;
     
-    console.log('PATCH /api/user/profile - Request body:', requestBody);
-    console.log('PATCH /api/user/profile - User email:', user.email);
 
     // Validate input
     if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
@@ -169,7 +167,6 @@ export async function PATCH(request: NextRequest) {
     if (partyReminders !== undefined) updateData.party_reminders = Boolean(partyReminders); // Use snake_case
     if (marketingEmails !== undefined) updateData.marketing_emails = Boolean(marketingEmails); // Use snake_case
 
-    console.log('PATCH /api/user/profile - Update data:', updateData);
 
     // Update user's profile in Supabase using ID instead of email for better RLS compatibility
     let { data: updatedDbUser, error: updateError } = await supabase
@@ -223,7 +220,6 @@ export async function PATCH(request: NextRequest) {
       return safeJson({ error: 'Updated user profile not available' }, { status: 500 });
     }
 
-    console.log('PATCH /api/user/profile - Updated user:', updatedDbUser);
 
     // Update user metadata in Supabase Auth only for name and displayName
     const supabaseUpdateData: any = {};

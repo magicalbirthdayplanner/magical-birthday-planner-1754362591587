@@ -10,17 +10,19 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = Math.max(1, Math.min(1000, parseInt(searchParams.get('page') || '1') || 1));
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '50') || 50));
     const category = searchParams.get('category') || undefined;
     const time = searchParams.get('time') || undefined;
     const materials = searchParams.get('materials') || undefined;
-    const search = searchParams.get('search') || undefined;
+    // PostgREST filter syntax characters would let `search` add arbitrary filters to .or().
+    const search = (searchParams.get('search') || '').replace(/[,()%*\\:."'`]/g, ' ').trim().slice(0, 60) || undefined;
 
-    // Use service role key to bypass RLS for activities API
+    // The activities catalogue is public-read under RLS: no service role needed.
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { persistSession: false } }
     );
     
     // Build query

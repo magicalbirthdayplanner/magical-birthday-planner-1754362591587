@@ -22,6 +22,8 @@ beforeAll(async () => {
   ;[A, B] = await Promise.all([createTestUser('legacy-a'), createTestUser('legacy-b')])
   const { data } = await A.client.from('parties').insert({ user_id: A.id, child_name: 'Leo', child_age: 6, party_date: '2026-12-01' }).select('id').single()
   partyA = data!.id
+  // Catalogue rows come only from discovery (server-side); the legacy route just links them.
+  await adminClient().from('venues').insert({ place_id: placeId, name: 'Legacy Fun Center', address: '1 Main St', latitude: 42.5, longitude: -83.1 })
 })
 afterAll(async () => {
   await Promise.all([deleteTestUser(A), deleteTestUser(B)])

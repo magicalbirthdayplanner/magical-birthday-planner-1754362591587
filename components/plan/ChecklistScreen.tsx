@@ -27,9 +27,12 @@ function TaskRow({ task, today, onToggle, onDelete }: { task: ChecklistItem; tod
         aria-checked={done}
         aria-label={`${done ? 'Mark not done' : 'Mark done'}: ${task.title}`}
         onClick={() => onToggle(task, !done)}
-        className={cn('tap flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition active:scale-90', done ? 'border-success bg-success text-white' : 'border-input')}
+        // 44 px touch target around the 32 px visual circle.
+        className="tap -m-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
       >
-        {done ? <Check className="h-4 w-4" strokeWidth={3} /> : null}
+        <span className={cn('flex h-8 w-8 items-center justify-center rounded-full border-2 transition active:scale-90', done ? 'border-success bg-success text-white' : 'border-input')}>
+          {done ? <Check className="h-4 w-4" strokeWidth={3} /> : null}
+        </span>
       </button>
       <div className="min-w-0 flex-1">
         <p className={cn('font-medium', done && 'text-muted-foreground line-through')}>{task.title}</p>

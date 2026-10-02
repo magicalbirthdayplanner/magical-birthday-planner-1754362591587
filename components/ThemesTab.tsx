@@ -1,5 +1,6 @@
 "use client";
 
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -441,7 +442,7 @@ export default function ThemesTab({ partyData, onThemeSelect }: ThemesTabProps) 
 
       console.log('Sending comprehensive wizard data to GPT-4.1:', comprehensivePartyData);
 
-      const response = await fetch('/api/theme-recommendations', {
+      const response = await authFetch('/api/theme-recommendations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

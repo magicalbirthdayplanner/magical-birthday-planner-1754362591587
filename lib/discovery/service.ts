@@ -145,6 +145,8 @@ export async function discoverVenues(ctx: PartyContext, deps: DiscoveryDeps, opt
     meta.cacheMisses++
     const t0 = Date.now()
     try {
+      // A slow provider must not make the parent wait for wave after wave of timeouts.
+      if (deps.config.deadlineMs && t0 - started > deps.config.deadlineMs) throw new PlacesError('timeout', 'Discovery deadline reached')
       const { promise, shared } = sharedSearch(cacheKey, async () => {
         if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local place-search call budget exhausted')
         meta.apiCalls++

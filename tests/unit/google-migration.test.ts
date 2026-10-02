@@ -129,3 +129,15 @@ describe('browser key isolation', () => {
     expect(readFileSync(path.resolve(__dirname, '../../lib/google/places.ts'), 'utf8')).toMatch(/^import 'server-only'/m)
   })
 })
+
+describe('discovery deadline', () => {
+  it('skips categories not started before the deadline instead of waiting for more timeouts', async () => {
+    const places = slowPlaces(() => {
+      throw new PlacesError('timeout', 'Places request timed out')
+    }, 60)
+    const t0 = Date.now()
+    await expect(discoverVenues(ctx, { places, store: new MemoryDiscoveryStore(), config: { ...config, concurrency: 2, deadlineMs: 30 } })).rejects.toMatchObject({ kind: 'timeout' })
+    expect(places.calls.length).toBe(2) // first wave only; the other 2 categories were skipped
+    expect(Date.now() - t0).toBeLessThan(200)
+  })
+})

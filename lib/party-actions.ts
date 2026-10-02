@@ -1,4 +1,6 @@
-"use server"
+import 'server-only'
+// Plain server module (NOT "use server"): only app/api/user/parties imports it, so it must
+// not publish its mutators as publicly callable Server Actions.
 
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'

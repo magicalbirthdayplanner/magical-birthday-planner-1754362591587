@@ -406,7 +406,6 @@ export async function DELETE(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('=== PARTY CREATION API ROUTE STARTED ===');
-    console.log('Headers:', Object.fromEntries(request.headers.entries()));
     
     // Get authenticated user and Supabase client
     const { user: authenticatedUser, supabase: workingSupabase } = await getAuthenticatedSupabaseClient(request);
@@ -429,7 +428,6 @@ export async function POST(request: NextRequest) {
     
     console.log('=== AUTHENTICATION SUCCESSFUL ===');
     console.log('User ID:', authenticatedUser.id);
-    console.log('User email:', authenticatedUser.email);
     
     // Parse and validate request body
     let partyData;

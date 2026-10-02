@@ -6,9 +6,9 @@ import { useAuth } from '@/contexts/AuthContext'
 import { track } from '@/lib/analytics/client'
 import { AppHeader } from './AppHeader'
 import { BottomNav } from './BottomNav'
-import { PartyProvider } from './PartyProvider'
+import { PartyProvider, useParty } from './PartyProvider'
 import { OfflineBanner } from './OfflineBanner'
-import { Skeleton } from './ui'
+import { ErrorState, Skeleton } from './ui'
 
 /** Screens that render their own signed-out state. */
 const PUBLIC_APP_PATHS = new Set(['/home'])
@@ -54,6 +54,27 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/**
+ * A failed party load must never look like "no party yet": an existing parent would
+ * be invited to start over (and create a duplicate). Show a retryable error instead.
+ */
+function PartyLoadGate({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const { parties, error, refreshParties } = useParty()
+  if (user && error && parties.length === 0) {
+    return (
+      <ErrorState
+        title="We couldn’t load your party"
+        message="Your plans are safe. Check your connection and try again."
+        offline={typeof navigator !== 'undefined' && navigator.onLine === false}
+        onRetry={() => void refreshParties()}
+        className="pt-16"
+      />
+    )
+  }
+  return <>{children}</>
+}
+
 function AppOpenTracker() {
   useEffect(() => {
     const standalone = window.matchMedia?.('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true
@@ -69,7 +90,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AppHeader />
         <OfflineBanner />
         <main id="main" className="app-content-pb mx-auto w-full max-w-xl">
-          <RequireAuth>{children}</RequireAuth>
+          <RequireAuth>
+            <PartyLoadGate>{children}</PartyLoadGate>
+          </RequireAuth>
         </main>
         <BottomNav />
         <Toaster position="top-center" richColors closeButton toastOptions={{ className: 'mt-[env(safe-area-inset-top)]' }} />

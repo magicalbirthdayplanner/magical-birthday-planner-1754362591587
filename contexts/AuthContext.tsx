@@ -1,5 +1,6 @@
 "use client"
 
+import { mutate as mutateAll } from 'swr'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase-client'
@@ -16,6 +17,31 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+
+/**
+ * Shared-device hygiene: remove one user's local app state so the next person on
+ * this device never sees it (the party draft holds a child's name and ZIP).
+ * Keeps `mbp.aid` (anonymous analytics id) and, unless `includeAuth`, the session.
+ */
+function clearLocalUserData(includeAuth: boolean) {
+  if (typeof window === 'undefined') return
+  try {
+    const legacy = ['partyData', 'partyChecklist', 'partyGuests', 'partyGuests_timestamp', 'partyInvitations', 'partyInvitations_timestamp', 'partyBudget', 'partyShoppingList', 'demoPartyData', 'hasPurchasedPlan', 'userSubscriptionPlan', 'userPlanPurchased', 'hasValidSubscription', 'subscriptionPurchaseDate']
+    Object.keys(localStorage)
+      .filter((k) => (k.startsWith('mbp.') && k !== 'mbp.aid') || legacy.includes(k) || (includeAuth && k.startsWith('supabase.auth.')))
+      .forEach((k) => localStorage.removeItem(k))
+  } catch {
+    /* storage unavailable */
+  }
+  if ('caches' in window) {
+    caches.keys().then((keys) => keys.filter((k) => k.startsWith('mbp-pages-')).forEach((k) => caches.delete(k))).catch(() => undefined)
+  }
+  // In-memory SWR data (parties, guests…) of the previous user.
+  void mutateAll(() => true, undefined, { revalidate: false })
+}
+
+const LAST_USER_KEY = 'mbp.uid'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -59,21 +85,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session)
           setUser(session?.user ?? null)
           
-          // Clear localStorage when user signs in to prevent fallback data conflicts
-          if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
+          // A different person signed in on this device (or a previous session expired
+          // without sign-out): drop the previous user's local data, keep the new session.
+          if (event === 'SIGNED_IN' && typeof window !== 'undefined' && session?.user) {
             try {
-              localStorage.removeItem('partyData')
-              localStorage.removeItem('partyChecklist')
-              localStorage.removeItem('partyGuests')
-              localStorage.removeItem('partyGuests_timestamp')
-              localStorage.removeItem('partyInvitations')
-              localStorage.removeItem('partyInvitations_timestamp')
-              localStorage.removeItem('partyBudget')
-              localStorage.removeItem('partyShoppingList')
-              localStorage.removeItem('demoPartyData')
-              console.log('Cleared localStorage on sign-in to prevent data conflicts')
-            } catch (error) {
-              console.warn('Failed to clear localStorage on sign-in:', error)
+              const last = localStorage.getItem(LAST_USER_KEY)
+              if (last && last !== session.user.id) clearLocalUserData(false)
+              localStorage.setItem(LAST_USER_KEY, session.user.id)
+            } catch {
+              /* storage unavailable */
             }
           }
         } else if (event === 'SIGNED_OUT') {
@@ -268,67 +288,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         /* storage unavailable */
       }
 
-      // Sign out from Supabase first and wait for completion
+      // Revoke the session server-side; if that fails (offline, flaky network) still end
+      // the session on THIS device — a parent must never think they're signed out when not.
       const { error } = await supabase.auth.signOut()
       if (error) {
-        console.error('Supabase signout error:', error)
-        setIsSigningOut(false)
-        return { error }
+        console.warn('Global sign-out failed; signing out locally', error.name)
+        await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined)
       }
+      clearLocalUserData(true)
 
-      // Shared-device hygiene: drop mobile-app state (party draft holds the child's
-      // name and ZIP) and the service worker's cached app shell.
-      if (typeof window !== 'undefined') {
-        try {
-          Object.keys(localStorage)
-            .filter((k) => k.startsWith('mbp.') && k !== 'mbp.aid')
-            .forEach((k) => localStorage.removeItem(k))
-        } catch {
-          /* storage unavailable */
-        }
-        if ('caches' in window) {
-          caches.keys().then((keys) => keys.filter((k) => k.startsWith('mbp-pages-')).forEach((k) => caches.delete(k))).catch(() => undefined)
-        }
-      }
-      
-      // Clear localStorage after successful signout (only on client side)
-      // Note: In a future update, we should sync unsaved data to database before clearing
-      if (typeof window !== 'undefined') {
-        try {
-          // Check for unsaved guest data and warn user
-          const hasUnsavedGuests = localStorage.getItem('partyGuests');
-          const hasUnsavedInvitations = localStorage.getItem('partyInvitations');
-          
-          if (hasUnsavedGuests || hasUnsavedInvitations) {
-            console.warn('SignOut: Clearing localStorage with potential unsaved guest data');
-            // TODO: Implement pre-signout sync to database
-          }
-          
-          localStorage.removeItem('partyData')
-          localStorage.removeItem('partyChecklist')
-          localStorage.removeItem('partyGuests')
-          localStorage.removeItem('partyGuests_timestamp')
-          localStorage.removeItem('partyInvitations')
-          localStorage.removeItem('partyInvitations_timestamp')
-          localStorage.removeItem('partyBudget')
-          localStorage.removeItem('partyShoppingList')
-          // Clear subscription-related localStorage items
-          localStorage.removeItem('hasPurchasedPlan')
-          localStorage.removeItem('userSubscriptionPlan')
-          localStorage.removeItem('userPlanPurchased')
-          localStorage.removeItem('hasValidSubscription')
-          localStorage.removeItem('subscriptionPurchaseDate')
-          // Clear any auth-related localStorage
-          Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('supabase.auth.')) {
-              localStorage.removeItem(key)
-            }
-          })
-        } catch (localStorageError) {
-          console.warn('Failed to clear localStorage:', localStorageError)
-        }
-      }
-      
       // Clear local state after successful signout
       setUser(null)
       setSession(null)

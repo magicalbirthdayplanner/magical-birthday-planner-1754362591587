@@ -100,6 +100,34 @@ export async function sendTransactional(input: SendInput): Promise<SendResult> {
   return result
 }
 
+// ------------------------------------------------------------------ abuse caps (DB-backed)
+const intEnv = (name: string, fallback: number) => {
+  const n = Number(process.env[name])
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback
+}
+/** Invitation emails one host may send per rolling 24 h (all instances). */
+export const dailyInviteCap = () => intEnv('EMAIL_DAILY_INVITES_PER_USER', 300)
+/** RSVP confirmation + host notification emails per party per rolling 24 h. */
+export const dailyRsvpEmailCap = () => intEnv('EMAIL_DAILY_RSVP_EMAILS_PER_PARTY', 200)
+
+/**
+ * Emails logged in the last `hours` (email_logs), so caps hold across serverless
+ * instances, unlike in-memory rate limits. Fails closed (returns Infinity) when
+ * the count can't be read, so an outage can't turn into unlimited sending.
+ */
+export async function emailsSentSince(filter: { userId?: string; partyId?: string; types: string[]; hours: number }): Promise<number> {
+  if (!hasServiceRole()) return 0
+  let q = getSupabaseAdmin()
+    .from('email_logs')
+    .select('id', { count: 'exact', head: true })
+    .in('email_type', filter.types)
+    .gte('created_at', new Date(Date.now() - filter.hours * 3_600_000).toISOString())
+  if (filter.userId) q = q.eq('user_id', filter.userId)
+  if (filter.partyId) q = q.eq('party_id', filter.partyId)
+  const { count, error } = await q
+  return error ? Number.POSITIVE_INFINITY : (count ?? 0)
+}
+
 // ------------------------------------------------------------------ shared formatting
 export interface PartyFacts {
   partyId: string

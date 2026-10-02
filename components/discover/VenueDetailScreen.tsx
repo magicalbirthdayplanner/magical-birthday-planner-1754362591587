@@ -259,7 +259,7 @@ export function VenueDetailScreen({ placeId }: { placeId: string }) {
             <p className="text-muted-foreground">No website listed.</p>
           )}
           {venue.googleMapsUrl ? (
-            <a className="inline-flex items-center gap-1 font-medium text-primary" href={venue.googleMapsUrl} target="_blank" rel="noopener noreferrer">
+            <a className="inline-flex min-h-[44px] items-center gap-1 font-medium text-primary" href={venue.googleMapsUrl} target="_blank" rel="noopener noreferrer">
               Open in Google Maps <ExternalLink className="h-3.5 w-3.5" />
             </a>
           ) : null}

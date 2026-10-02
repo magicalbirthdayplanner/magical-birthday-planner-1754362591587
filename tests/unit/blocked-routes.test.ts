@@ -29,7 +29,7 @@ describe('isBlockedPath', () => {
   })
 
   it('leaves product routes alone', () => {
-    for (const p of ['/api/parties', '/api/guests', '/api/rsvp/abc', '/api/discovery/search', '/', '/home', '/party-plan']) {
+    for (const p of ['/api/parties', '/api/guests', '/api/invite/abc/rsvp', '/api/discovery/search', '/', '/home', '/party-plan']) {
       expect(isBlockedPath(p, dev)).toBe(false)
     }
   })
@@ -39,12 +39,13 @@ describe('deprecated insecure legacy routes', () => {
   const dev = { NODE_ENV: 'production' }
   it('blocks billing manipulation, unauthenticated AI and leaky legacy routes', () => {
     for (const p of ['/api/subscriptions/create', '/api/subscriptions/cancel', '/api/budget-allocation', '/api/activity-expansion',
-      '/api/emails/password-reset', '/api/party/create', '/api/party/get', '/api/party/guests/add', '/api/n8n/webhook']) {
+      '/api/emails/password-reset', '/api/party/create', '/api/party/get', '/api/party/guests/add', '/api/n8n/webhook',
+      '/api/rsvp/abc', '/api/party/share', '/api/RSVP/abc/']) {
       expect(isBlockedPath(p, dev), p).toBe(true)
     }
   })
   it('keeps live sibling routes reachable', () => {
-    for (const p of ['/api/party/share', '/api/party-venue', '/api/party-activities', '/api/parties']) {
+    for (const p of ['/api/party-venue', '/api/party-activities', '/api/parties']) {
       expect(isBlockedPath(p, dev), p).toBe(false)
     }
   })

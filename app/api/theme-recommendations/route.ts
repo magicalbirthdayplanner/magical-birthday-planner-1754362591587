@@ -1,3 +1,4 @@
+import { guardPaidLegacyRoute } from '@/lib/server/legacy-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { safeJson } from '@/lib/server/safe-json';
 import OpenAI from 'openai';
@@ -35,6 +36,8 @@ const openai = (() => {
       defaultHeaders: {
         'api-key': process.env.AZURE_OPENAI_API_KEY!,
       },
+      timeout: 20_000,
+      maxRetries: 1,
     });
   } catch (error) {
     console.error('Error initializing Azure OpenAI client:', error);
@@ -77,13 +80,25 @@ interface ThemeRecommendation {
   matchScore: number;
 }
 
+/** Bound every string/array a client sends before it reaches the model prompt. */
+function clampInput(value: unknown, depth = 0): unknown {
+  if (typeof value === 'string') return value.slice(0, 200)
+  if (typeof value === 'number' || typeof value === 'boolean' || value == null) return value
+  if (depth > 3) return undefined
+  if (Array.isArray(value)) return value.slice(0, 12).map((v) => clampInput(v, depth + 1))
+  if (typeof value === 'object') return Object.fromEntries(Object.entries(value as Record<string, unknown>).slice(0, 30).map(([k, v]) => [k.slice(0, 40), clampInput(v, depth + 1)]))
+  return undefined
+}
+
 export async function POST(request: NextRequest) {
-  // Unauthenticated legacy endpoint that calls a paid model: cap per IP.
-  if (!rateLimit(`legacy-ai-themes:${clientIp(request)}`, 10, 3_600_000).ok) {
+  // Legacy endpoint calling a paid model: signed-in users only, per-user limits.
+  const guard = await guardPaidLegacyRoute(request, { key: 'legacy-ai-themes', perMinute: 3 });
+  if (guard.error) return guard.error;
+  if (!rateLimit(`legacy-ai-themes-hour:${guard.auth.user.id}`, 10, 3_600_000).ok) {
     return safeJson({ error: 'Too many requests. Please try again later.' }, { status: 429 });
   }
   try {
-    const body: ThemeRequest = await request.json();
+    const body = clampInput(await request.json()) as ThemeRequest;
     const { 
       childName, 
       age, 

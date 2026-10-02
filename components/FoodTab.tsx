@@ -1,5 +1,6 @@
 "use client";
 
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -88,7 +89,7 @@ export default function FoodTab({ zipCode, partyId, guestCount = 0 }: FoodTabPro
   const fetchVendors = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/food-vendors?zipCode=${zipCode || ''}&guestCount=${guestCount}`);
+      const response = await authFetch(`/api/food-vendors?zipCode=${zipCode || ''}&guestCount=${guestCount}`);
       if (response.ok) {
         const data = await response.json();
         setVendors(data.vendors || []);

@@ -1,3 +1,5 @@
+import { guardPaidLegacyRoute } from '@/lib/server/legacy-guard';
+import { normalizeZip } from '@/lib/geo/zip';
 import { NextRequest, NextResponse } from 'next/server';
 import { safeJson } from '@/lib/server/safe-json';
 import { haversineMiles } from '@/lib/geo/distance';
@@ -316,14 +318,15 @@ const PRICE_SYMBOLS: Record<string, string> = {
 };
 
 export async function GET(request: NextRequest) {
-  // Unauthenticated legacy endpoint that calls paid Google APIs: cap per IP.
-  if (!rateLimit(`food-vendors:${clientIp(request)}`, 10, 60_000).ok) {
-    return safeJson({ error: 'Too many requests' }, { status: 429 });
-  }
+  // Legacy endpoint calling paid Google APIs (3 geocodes + 3 Text Searches): signed-in
+  // users only, per-user rate limit, charged to the shared hourly Google budget.
+  const guard = await guardPaidLegacyRoute(request, { key: 'food-vendors', perMinute: 5, googleCalls: 6 });
+  if (guard.error) return guard.error;
   try {
     const { searchParams } = new URL(request.url);
-    const zipCode = searchParams.get('zipCode') || '12345';
-    const guestCount = parseInt(searchParams.get('guestCount') || '20');
+    const zipCode = normalizeZip(searchParams.get('zipCode'));
+    if (!zipCode) return safeJson({ error: 'Please enter a 5-digit US ZIP code.' }, { status: 400 });
+    const guestCount = Math.min(300, Math.max(1, parseInt(searchParams.get('guestCount') || '20') || 20));
     const cuisineFilter = searchParams.get('cuisine');
     const dietaryFilter = searchParams.get('dietary');
 

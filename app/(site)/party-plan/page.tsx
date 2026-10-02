@@ -3,6 +3,7 @@
 // Force dynamic rendering to prevent prerendering issues
 export const dynamic = 'force-dynamic';
 
+import { authFetch } from '@/lib/auth-fetch'
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -248,7 +249,7 @@ function PartyPlanPageComponent({ partyId, activeTab, router }: PartyPlanPagePro
         sortBy: 'distance'
       });
       
-      const response = await fetch(`/api/venues-search?${params}`);
+      const response = await authFetch(`/api/venues-search?${params}`);
       if (!response.ok) throw new Error('Failed to fetch venues');
       
       const data = await response.json();
@@ -279,7 +280,7 @@ function PartyPlanPageComponent({ partyId, activeTab, router }: PartyPlanPagePro
         params.append('search', venueSearchQuery.trim());
       }
       
-      const response = await fetch(`/api/venues-search?${params}`);
+      const response = await authFetch(`/api/venues-search?${params}`);
       if (response.ok) {
         const data = await response.json();
         setVenues(data.venues || []);

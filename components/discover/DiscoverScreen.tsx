@@ -161,7 +161,7 @@ export function DiscoverScreen() {
   const loc = discovery.data?.location
   const place = loc ? [loc.city, loc.state].filter(Boolean).join(', ') || loc.zip : party?.zip_code
   const subtitle = (
-    <button type="button" onClick={() => setFiltersOpen(true)} className="tap -m-1 rounded-md p-1 text-left underline-offset-4 hover:underline">
+    <button type="button" onClick={() => setFiltersOpen(true)} className="tap -my-2 -ml-1 inline-flex min-h-[44px] items-center rounded-md px-1 text-left underline-offset-4 hover:underline">
       {party?.zip_code ?? '—'} • Within {radius} miles
     </button>
   )

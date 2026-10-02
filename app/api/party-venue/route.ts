@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { safeJson } from '@/lib/server/safe-json';
 import { getAuthedRequest } from '@/lib/server/auth';
-import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin';
 
 // Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
 export const fetchCache = "force-no-store";
@@ -14,8 +13,8 @@ export const dynamic = 'force-dynamic';
  * Security: previously used the service role and trusted `userId`/`partyId` from the
  * request (any caller could read, overwrite or delete any party's venue). Now the
  * caller must send their access token; every party_venues read/write runs AS THE USER
- * so RLS enforces ownership. The shared venues catalogue is insert-if-missing only,
- * so clients cannot overwrite existing place data. Response shapes are unchanged.
+ * so RLS enforces ownership. The shared venues catalogue is never written
+ * from here: unknown places are stored as a custom selection on the caller's party. Response shapes are unchanged.
  */
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -40,40 +39,11 @@ export async function POST(request: NextRequest) {
     if (!isCustom && typeof venue?.placeId === 'string' && /^[A-Za-z0-9_-]{10,300}$/.test(venue.placeId)) {
       const { data: existing } = await auth.supabase.from('venues').select('id').eq('place_id', venue.placeId).maybeSingle();
       venueId = existing?.id ?? null;
-      if (!venueId && hasServiceRole()) {
-        const { data: created, error: venueError } = await getSupabaseAdmin()
-          .from('venues')
-          .upsert(
-            {
-              place_id: venue.placeId,
-              name: str(venue.name) ?? 'Venue',
-              address: str(venue.address),
-              formatted_address: str(venue.formattedAddress),
-              rating: num(venue.rating),
-              reviews_count: num(venue.reviewsCount),
-              category: str(venue.category, 40) ?? 'general',
-              latitude: num(venue.latitude),
-              longitude: num(venue.longitude),
-              zip_code: str(venue.zipCode, 10),
-              city: str(venue.city, 80),
-              state: str(venue.state, 40),
-              source: 'legacy_client',
-            },
-            { onConflict: 'place_id', ignoreDuplicates: true },
-          )
-          .select('id')
-          .maybeSingle();
-        if (venueError) {
-          console.error('Error saving venue:', venueError.message);
-          return safeJson({ error: 'Failed to save venue data' }, { status: 500 });
-        }
-        venueId = created?.id ?? null;
-        if (!venueId) {
-          const { data: again } = await auth.supabase.from('venues').select('id').eq('place_id', venue.placeId).maybeSingle();
-          venueId = again?.id ?? null;
-        }
-      }
     }
+    // Never create shared catalogue rows from client-supplied data (catalogue poisoning,
+    // and it would bypass the "only places discovery surfaced" guard on paid Google calls).
+    // Unknown places are kept as a custom selection on the caller's own party instead.
+    const asCustom = !!isCustom || !venueId;
 
     const { data: partyVenue, error: partyVenueError } = await auth.supabase
       .from('party_venues')
@@ -82,10 +52,10 @@ export async function POST(request: NextRequest) {
           party_id: partyId,
           venue_id: venueId,
           user_id: auth.user.id,
-          custom_name: isCustom ? str(venue?.name) : null,
-          custom_address: isCustom ? str(venue?.address) : null,
-          custom_notes: isCustom ? JSON.stringify(venue ?? {}).slice(0, 4000) : null,
-          is_custom: !!isCustom,
+          custom_name: asCustom ? str(venue?.name) : null,
+          custom_address: asCustom ? str(venue?.address) : null,
+          custom_notes: asCustom ? JSON.stringify(venue ?? {}).slice(0, 4000) : null,
+          is_custom: asCustom,
           selected_at: new Date().toISOString(),
         },
         { onConflict: 'party_id' },

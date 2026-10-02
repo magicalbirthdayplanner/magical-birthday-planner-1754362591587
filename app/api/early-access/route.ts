@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
 
     // For now, just return success
     // In the future, this could store early access requests in a database
-    console.log('Early access request:', { email, name, interests });
 
     return safeJson({
       success: true,

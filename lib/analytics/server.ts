@@ -12,7 +12,8 @@ export interface ServerEventContext {
 export function logMetric(name: string, props: Record<string, unknown>) {
   if (process.env.NODE_ENV === 'test') return
   // Structured log line: picked up by Vercel/hosting log drains.
-  console.info(JSON.stringify({ level: 'info', type: 'metric', name, ...props }))
+  // Props first: callers can't overwrite level/type/name. Never pass emails or tokens in props.
+  console.info(JSON.stringify({ ...props, ts: new Date().toISOString(), level: 'info', type: 'metric', name }))
 }
 
 export function trackServer(event: string, properties: Record<string, unknown>, ctx: ServerEventContext = {}): void {

@@ -1,5 +1,6 @@
 "use client";
 
+import { authFetch } from '@/lib/auth-fetch'
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -264,7 +265,7 @@ const getAIRecommendations = async (
   selectedClassicTheme?: string
 ): Promise<ThemeRecommendation[]> => {
   try {
-    const response = await fetch('/api/theme-recommendations', {
+    const response = await authFetch('/api/theme-recommendations', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

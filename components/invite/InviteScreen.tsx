@@ -179,7 +179,7 @@ export function InviteScreen() {
             {invitation.data ? (
               <button
                 type="button"
-                className="mt-2 block w-full text-center text-xs font-semibold text-muted-foreground underline underline-offset-4"
+                className="mt-1 block min-h-[44px] w-full text-center text-xs font-semibold text-muted-foreground underline underline-offset-4"
                 onClick={async () => {
                   if (!window.confirm('Turn off the current link and create a new one? People with the old link won’t be able to RSVP.')) return
                   try {

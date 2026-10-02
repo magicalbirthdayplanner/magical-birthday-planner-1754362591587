@@ -10,6 +10,8 @@ export interface DiscoveryConfig {
   maxQueries: number
   /** Parallel Google calls per run. */
   concurrency: number
+  /** Overall time budget per discovery: categories not started by then are skipped (timeout). */
+  deadlineMs?: number
   weights: RankingWeights
 }
 
@@ -24,6 +26,7 @@ export function discoveryConfig(env: Record<string, string | undefined> = proces
     detailsTtlDays: posNum(env.DISCOVERY_DETAILS_TTL_DAYS, 7),
     maxQueries: Math.min(16, Math.round(posNum(env.DISCOVERY_MAX_QUERIES, DEFAULT_MAX_QUERIES))),
     concurrency: Math.min(8, Math.round(posNum(env.DISCOVERY_CONCURRENCY, 4))),
+    deadlineMs: Math.min(25_000, Math.round(posNum(env.DISCOVERY_DEADLINE_MS, 7_000))),
     weights: resolveWeights(env.DISCOVERY_RANKING_WEIGHTS),
   }
 }

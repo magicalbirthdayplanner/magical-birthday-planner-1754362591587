@@ -94,7 +94,7 @@ const VENUE_TYPE_MAPPING = {
 export async function geocodeZipCode(zipCode: string): Promise<{ lat: number; lng: number } | null> {
   try {
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${zipCode}&key=${GOOGLE_PLACES_API_KEY}`
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(zipCode)}&key=${encodeURIComponent(GOOGLE_PLACES_API_KEY ?? "")}`
     );
     
     if (!response.ok) {
