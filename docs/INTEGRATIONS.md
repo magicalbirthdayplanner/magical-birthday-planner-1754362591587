@@ -10,24 +10,28 @@ in the repository, and tooling never prints values. Variable list: [`.env.exampl
 | **Supabase** | Auth (email/password), Postgres + RLS | Complete (`supabase/migrations`) | Integration suite on local Supabase | Production project: all migrations through `0500` applied, schema matches the migrations, RLS verified cross-user | Auth URL settings and SMTP (below). Migration `0600` awaits approval. |
 | **Google Places API (New)** | Venue search, details, photos | Complete: field masks, hard `locationRestriction`, cache-first (24 h / 7 d), in-flight dedupe, deadline, budgets | Unit + integration + E2E against `tests/mock-google` | Supplied key returns **403** (billing / Places API (New) not enabled) | Enable billing and the API; set quotas |
 | **Google Maps JavaScript API** | Map (`GoogleMapView`: Advanced Markers, clustering) | Complete. Simplified map when no key | E2E (simplified map) | No browser key yet | Referrer-restricted browser key + Map ID |
-| **Resend** | Invitation, RSVP confirmation, host notification | Complete: escaped templates, idempotency keys, `email_logs`, daily caps; failures never break the action | Integration + E2E (mock) | Delivered through the real API on Preview | `EMAIL_FROM` on a domain verified in Resend (the shared test sender only reaches the account owner) |
+| **Resend** | Invitation, RSVP confirmation, host notification | Complete: escaped templates, idempotency keys, `email_logs`, daily caps; failures never break the action | Integration + E2E (mock) | Domain `magicalbirthdayplanner.app` **verified**; production sends from `noreply@magicalbirthdayplanner.app` (delivered in the production smoke test) | — |
 | **Dodo Payments** | Checkout, webhook, entitlements | Complete (`BILLING_SECURITY.md`) | Unit + integration + E2E (mock test mode, signed webhooks) | Not yet run against the real sandbox | Test-mode API key, webhook secret, product ids |
 | **Azure OpenAI** (optional) | AI theme ideas on the Theme screen (`/api/themes/ai`) | Complete: auth, per-user limit, 30-day cache, timeout | Unit | Uses the configured deployment | None (feature hides when unset) |
-| **Vercel** | Hosting (Preview = UAT) | `vercel.json` | — | Preview on branch `mobile-first` verified end-to-end | Production environment and domain (below) |
+| **Vercel** | Hosting | `vercel.json` | — | **Production on `https://magicalbirthdayplanner.app`** (SSL, `www` and `*.vercel.app` → 308 apex); Preview on `mobile-first` | Production branch is still `master` (below) |
+| **Cloudflare** | DNS for `magicalbirthdayplanner.app` | — | — | Web + Resend records configured (below) | — |
 
 ## Setup notes
 
 ### Resend
-* `EMAIL_FROM` empty → Resend's shared test sender, which only delivers to the Resend account owner.
-* Before launch: verify a domain you own in Resend, then set `EMAIL_FROM` (and optionally
-  `EMAIL_REPLY_TO`).
+* Domain `magicalbirthdayplanner.app` is verified (DKIM `resend._domainkey`; SPF MX + TXT on `send`;
+  CNAME `rsend`). `EMAIL_FROM=Magical Birthday Planner <noreply@magicalbirthdayplanner.app>` is set
+  for Production and the `mobile-first` Preview.
+* `EMAIL_FROM` empty (local/tests) → Resend's shared test sender, which only reaches the account owner.
+* Recommended before volume sending: a DMARC record (`_dmarc` TXT, e.g. `v=DMARC1; p=none; rua=mailto:…`).
 * Sign-up confirmation and password-reset emails are sent by **Supabase Auth**, not by this
   integration. Point Supabase → Auth → SMTP at the same verified domain (Resend offers SMTP).
 
 ### Supabase Auth (dashboard → Authentication → URL Configuration)
-* **Site URL:** the deployment origin. For the Preview:
-  `https://magical-birthday-planner-17-git-ef697a-magical-birthday-planner.vercel.app`
-* **Redirect URLs:** `<origin>/auth/callback**` and `<origin>/reset-password` for each origin in use.
+* **Site URL:** `https://magicalbirthdayplanner.app`
+* **Redirect URLs:** `https://magicalbirthdayplanner.app/auth/callback**`,
+  `https://magicalbirthdayplanner.app/reset-password`, and for UAT
+  `https://magical-birthday-planner-17-git-ef697a-magical-birthday-planner.vercel.app/auth/callback**` and `…/reset-password`.
 * Until this is set, confirmation and reset links fall back to the default Site URL, `http://localhost:3000`.
 
 ### Dodo Payments (test mode first)
@@ -54,11 +58,32 @@ in the repository, and tooling never prints values. Variable list: [`.env.exampl
 * Quotas and a budget alert: see `GOOGLE_PLACES_COST_CONTROL.md`.
 
 ### Vercel
-* **Preview** (`mobile-first`) uses branch-scoped variables only.
-* **Old shared entries.** These still target Preview + Development and hold old credentials:
-  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
-  `RESEND_API_KEY`, `GOOGLE_PLACES_API_KEY`, `DATABASE_URL`.
-  * Untick Preview and Development on each.
-  * Replace their Production values when production is set up.
-* **Domains:** the project serves only `magical-birthday-planner.vercel.app`. Remove the previous
-  domain's leftover team-level record (Team → Domains). Add the new production domain when chosen.
+* **Domains:**
+  * `magicalbirthdayplanner.app` is the production domain.
+  * `www.magicalbirthdayplanner.app` and `magical-birthday-planner.vercel.app` 308-redirect to it.
+  * Previews stay on their own protected URLs.
+* **Production deployment:** built from `mobile-first` and served on the domain.
+  * The project's production branch setting is still `master` (the retired app).
+  * Vercel refuses to switch it while `mobile-first` has branch-scoped Preview variables.
+  * Merge `mobile-first` into `master` (or move the Preview variables and switch the setting) before
+    the next production deploy, so a push to `master` can't redeploy the retired app.
+* **Environment variables:**
+  * The old shared Development/Preview/Production entries with old credentials were **removed**.
+  * Production has its own entries: Supabase, Resend + `EMAIL_FROM`, Google Places,
+    `NEXT_PUBLIC_BASE_URL=https://magicalbirthdayplanner.app`, `DODO_LIVE_PAYMENTS_ENABLED=false`.
+  * Preview (`mobile-first`) keeps its branch-scoped entries.
+  * Development has none (use `.env.local`).
+
+### Cloudflare DNS (`magicalbirthdayplanner.app`, all DNS-only / not proxied)
+| Type | Name | Value | Purpose |
+|---|---|---|---|
+| A | `@` | `216.198.79.1` | Vercel |
+| A | `@` | `64.29.17.1` | Vercel |
+| CNAME | `www` | `01d134b1b48722af.vercel-dns-017.com` | Vercel (redirects to apex) |
+| TXT | `resend._domainkey` | DKIM public key | Resend |
+| MX | `send` | `feedback-smtp.us-east-1.amazonses.com` (10) | Resend (bounce/SPF) |
+| TXT | `send` | `v=spf1 include:amazonses.com ~all` | Resend SPF |
+| CNAME | `rsend` | `send.forge.rmta.net` | Resend |
+
+No apex MX exists: the domain doesn't receive mail. Add inbound mail (e.g. Cloudflare Email
+Routing) separately if you want `reply-to` / support addresses on this domain.

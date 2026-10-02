@@ -46,9 +46,11 @@ entry is read by the code.
 
 ## 4. Domain
 
-* Add the production domain in Vercel → Domains. Configure the apex↔www redirect there: it's a
-  server-side 308, so the app has no canonical-host code.
-* Set `NEXT_PUBLIC_BASE_URL` to that origin.
+* **Canonical origin:** `https://magicalbirthdayplanner.app` (`lib/site-url.ts`, `PRODUCTION_ORIGIN`;
+  `NEXT_PUBLIC_BASE_URL` overrides it).
+* **Redirects:** `www` and the `*.vercel.app` production alias 308-redirect to it, configured in
+  Vercel → Domains.
+* **DNS:** in Cloudflare, DNS-only (see `INTEGRATIONS.md`).
 
 ## 5. Ship
 
