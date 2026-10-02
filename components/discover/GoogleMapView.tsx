@@ -31,14 +31,27 @@ function ClusteredMarkers({ venues, selectedId, onSelect }: Pick<MapViewProps, '
   return (
     <>
       {venues.map((v) => (
-        <AdvancedMarker key={v.placeId} position={{ lat: v.lat, lng: v.lng }} ref={(m) => setMarkerRef(m, v.placeId)} onClick={() => onSelect(v.placeId)} title={v.name}>
-          <span className={cn('flex items-center gap-1 rounded-full border-2 border-white px-2.5 py-1.5 text-sm font-semibold shadow-lg', v.placeId === selectedId ? 'scale-110 bg-[hsl(12_88%_64%)] text-white' : 'bg-white text-[hsl(252_32%_14%)]')}>
-            <span aria-hidden>{primaryCategory(v.categories)?.emoji ?? '📍'}</span>
-            {v.rating != null ? <span className="text-xs">{v.rating.toFixed(1)}</span> : null}
-          </span>
-        </AdvancedMarker>
+        <VenueMarker key={v.placeId} venue={v} selected={v.placeId === selectedId} onSelect={onSelect} setMarkerRef={setMarkerRef} />
       ))}
     </>
+  )
+}
+
+/**
+ * One marker with a STABLE ref callback. An inline `ref={(m) => …}` is a new function on
+ * every render, so React detaches (null) and re-attaches it each time; with the marker
+ * registry in state that loops forever (React error #185, "Maximum update depth").
+ */
+function VenueMarker({ venue: v, selected, onSelect, setMarkerRef }: { venue: ClientVenue; selected: boolean; onSelect: (id: string) => void; setMarkerRef: (m: Marker | null, key: string) => void }) {
+  const ref = useCallback((m: Marker | null) => setMarkerRef(m, v.placeId), [setMarkerRef, v.placeId])
+  const handleClick = useCallback(() => onSelect(v.placeId), [onSelect, v.placeId])
+  return (
+    <AdvancedMarker position={{ lat: v.lat, lng: v.lng }} ref={ref} onClick={handleClick} title={v.name}>
+      <span className={cn('flex items-center gap-1 rounded-full border-2 border-white px-2.5 py-1.5 text-sm font-semibold shadow-lg', selected ? 'scale-110 bg-[hsl(12_88%_64%)] text-white' : 'bg-white text-[hsl(252_32%_14%)]')}>
+        <span aria-hidden>{primaryCategory(v.categories)?.emoji ?? '📍'}</span>
+        {v.rating != null ? <span className="text-xs">{v.rating.toFixed(1)}</span> : null}
+      </span>
+    </AdvancedMarker>
   )
 }
 
