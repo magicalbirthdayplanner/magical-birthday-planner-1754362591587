@@ -3,17 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { PartyPopper, Sparkles, Users, Calendar, CheckCircle2, Star, Calendar as CalendarIcon, User, Crown, Zap, ArrowRight, Mail, Gift } from "lucide-react";
+import { PartyPopper, Sparkles, Users, Calendar, CheckCircle2, Star, Calendar as CalendarIcon, User, Crown, Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState, useRef, useEffect } from "react";
+import { useRef } from "react";
 
 export default function Home() {
   const { user, loading } = useAuth();
-  const [email, setEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Refs for pricing card hover effects
   const starterCardRef = useRef<HTMLDivElement>(null);
@@ -42,41 +38,6 @@ export default function Home() {
     cardRef.current.style.setProperty('--opacity', '0');
   };
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || isSubmitting) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      const response = await fetch('/api/early-access', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          source: 'landing_page'
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit email');
-      }
-
-      const result = await response.json();
-      console.log('Email submitted successfully:', result);
-      
-      setIsSubmitted(true);
-    } catch (error) {
-      console.error('Error submitting email:', error);
-      // Still show success to user for better UX
-      setIsSubmitted(true);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const themes = [
     { name: "Superhero", color: "bg-gradient-to-r from-red-500 to-blue-600", emoji: "🦸‍♂️" },
@@ -221,7 +182,7 @@ export default function Home() {
                       Get Started Free
                     </Button>
                   </Link>
-                  <Link href="/create-party" className="w-full sm:w-auto">
+                  <Link href="/start" className="w-full sm:w-auto">
                     <Button variant="outline" size="lg" className="w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-6 sm:px-8 py-3 text-base sm:text-lg">
                       Try Demo
                     </Button>
@@ -325,106 +286,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Email Lead Generation Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 rounded-full inline-block mb-6">
-              <Gift className="h-8 w-8 text-white" />
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Want to Try Our AI Party Planner?
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-              Be the first to experience our revolutionary AI-powered party planning tool. Get early access to personalized themes, smart checklists, and magical birthday ideas tailored just for your child.
-            </p>
-          </div>
-
-          <Card className="border-0 shadow-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-            <CardContent className="p-8">
-              {isSubmitted ? (
-                <div className="text-center">
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-4 rounded-full inline-block mb-4">
-                    <CheckCircle2 className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    Thank You! 🎉
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
-                    You're all set! We'll notify you as soon as our AI party planner is ready for early access.
-                  </p>
-                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 px-4 py-2">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Early Access Reserved
-                  </Badge>
-                </div>
-              ) : (
-                <form onSubmit={handleEmailSubmit} className="space-y-6">
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                      Join 10,000+ Parents Getting Early Access
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Enter your email to be notified when our AI party planner launches
-                    </p>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                    <div className="flex-1">
-                      <Input
-                        type="email"
-                        placeholder="Enter your email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="h-12 text-base border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      size="lg"
-                      disabled={isSubmitting || !email}
-                      className="h-12 px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold"
-                    >
-                      {isSubmitting ? (
-                        <div className="flex items-center">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Joining...
-                        </div>
-                      ) : (
-                        <>
-                          <Mail className="h-4 w-4 mr-2" />
-                          Get Early Access
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No spam, ever. Unsubscribe with one click. 🎈
-                    </p>
-                  </div>
-                </form>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Social Proof */}
-          <div className="mt-8 text-center">
-            <div className="flex justify-center items-center gap-2 mb-2">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-              ))}
-            </div>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">
-              "This AI party planner saved me hours of planning time!" - Sarah M.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* How It Works */}
       <section className="py-16 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -516,7 +377,7 @@ export default function Home() {
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90" asChild>
-                  <Link href="/create-party?package=starter">Choose Starter</Link>
+                  <Link href="/pricing">Choose Starter</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -572,7 +433,7 @@ export default function Home() {
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600" asChild>
-                  <Link href="/signup?plan=plus">Choose Plus</Link>
+                  <Link href="/pricing">Choose Plus</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -621,7 +482,7 @@ export default function Home() {
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" asChild>
-                  <Link href="/signup?plan=pro">Choose Pro</Link>
+                  <Link href="/pricing">Choose Pro</Link>
                 </Button>
               </CardContent>
             </Card>

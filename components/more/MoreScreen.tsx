@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { BookOpen, Check, ChevronRight, Download, FileText, LogOut, Plus, Settings, Shield, Sparkles, Trash2 } from 'lucide-react'
+import { Check, ChevronRight, Download, FileText, LogOut, Plus, Settings, Shield, Trash2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useParty } from '@/components/app/PartyProvider'
 import { AppButton, Card, PageHeader, Section } from '@/components/app/ui'
@@ -15,6 +15,7 @@ import { useInstallPrompt } from '@/components/app/useInstallPrompt'
 import useSWR from 'swr'
 import { apiFetch } from '@/lib/data/api'
 import { cn } from '@/lib/utils'
+import { AccountSettings } from './AccountSettings'
 
 function LinkRow({ href, icon: Icon, label, external }: { href: string; icon: typeof Settings; label: string; external?: boolean }) {
   return (
@@ -123,12 +124,8 @@ export function MoreScreen() {
         </Section>
       ) : null}
 
-      <Section title="Tools">
-        <Card className="divide-y divide-border">
-          <LinkRow href={party ? `/party-plan?id=${party.id}` : '/dashboard'} icon={Sparkles} label="Full planner (desktop tools)" />
-          <LinkRow href="/activities" icon={BookOpen} label="Activity ideas" />
-          <LinkRow href="/account" icon={Settings} label="Account settings" />
-        </Card>
+      <Section title="Account">
+        <AccountSettings />
       </Section>
 
       <Section title="About">

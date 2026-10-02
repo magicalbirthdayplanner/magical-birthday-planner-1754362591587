@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Cake, CalendarDays, ChevronRight, ClipboardCheck, DollarSign, ExternalLink, MapPin, Palette, Pencil, Send, Users } from 'lucide-react'
+import { Cake, CalendarDays, ChevronRight, ClipboardCheck, DollarSign, MapPin, Palette, Pencil, Send, Users } from 'lucide-react'
 import { useParty } from '@/components/app/PartyProvider'
 import { Card, EmptyState, LinkButton, ProgressRing, Section, Skeleton } from '@/components/app/ui'
 import { VenuePhoto } from '@/components/discover/VenuePhoto'
@@ -145,16 +145,6 @@ export function PlanScreen() {
             </div>
           ) : null}
         </Card>
-      </Section>
-
-      <Section>
-        <a href={`/party-plan?id=${party.id}`} className="tap flex items-center justify-between rounded-2xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-          <span>
-            <span className="block font-semibold text-foreground">Full planner (desktop tools)</span>
-            Timeline, activities, host mode and PDF export
-          </span>
-          <ExternalLink className="h-4 w-4" />
-        </a>
       </Section>
 
       <PartyEditSheet party={party} open={editOpen} onOpenChange={setEditOpen} focus={focus} />

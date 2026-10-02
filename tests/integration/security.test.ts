@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import path from 'node:path'
 /**
  * Release-gate security tests (local Supabase):
  *  - explicit User A / User B matrix: read, update, delete, insert-as-other
@@ -17,8 +19,6 @@ Object.assign(process.env, {
 })
 
 const rsvpRoute = await import('@/app/api/invite/[token]/rsvp/route')
-const subscriptionRoute = await import('@/app/api/user/subscription/route')
-const purchaseRoute = await import('@/app/api/user/purchase/route')
 const searchRoute = await import('@/app/api/discovery/search/route')
 const detailsRoute = await import('@/app/api/discovery/places/[placeId]/route')
 const { resetRateLimits } = await import('@/lib/server/rate-limit')
@@ -174,9 +174,10 @@ describe('entitlements cannot be self-granted', () => {
     await adminClient().from('users').update({ current_plan: 'FREE' }).eq('id', B.user.id)
   })
 
-  it('the legacy self-upgrade endpoints refuse', async () => {
-    expect((await subscriptionRoute.PATCH()).status).toBe(403)
-    expect((await purchaseRoute.POST()).status).toBe(410)
+  it('the legacy self-upgrade endpoints no longer exist (plans change only via the Dodo webhook)', () => {
+    for (const r of ['app/api/user/subscription/route.ts', 'app/api/user/purchase/route.ts', 'app/api/user/trial/route.ts']) {
+      expect(existsSync(path.resolve(__dirname, '../..', r)), r).toBe(false)
+    }
   })
 })
 

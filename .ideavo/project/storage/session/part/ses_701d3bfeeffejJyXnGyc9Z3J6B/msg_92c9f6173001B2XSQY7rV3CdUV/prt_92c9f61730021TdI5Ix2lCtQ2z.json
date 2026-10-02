@@ -1,7 +1,0 @@
-{
-  "id": "prt_92c9f61730021TdI5Ix2lCtQ2z",
-  "type": "text",
-  "text": "Server Error\nError: The Middleware \"/middleware\" must export a `middleware` or a `default` function\n\nThis error happened while generating the page. Any console logs will be displayed in the terminal window.\nCall Stack\nNext.js\n<unknown>\nfile:///home/user/project/.next/server/middleware.js (1068:37)\nNext.js\n<unknown>\nfile:///home/user/project/.next/server/middleware.js (9:61)\nScript.runInContext\nnode:vm (149:12)\nrunInContext\nnode:vm (301:6)\nNext.js",
-  "messageID": "msg_92c9f6173001B2XSQY7rV3CdUV",
-  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B"
-}

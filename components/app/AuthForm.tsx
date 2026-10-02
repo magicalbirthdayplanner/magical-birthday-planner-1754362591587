@@ -177,6 +177,7 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
 export function AuthScreen({ mode }: { mode: 'signin' | 'signup' }) {
   const params = useSearchParams()
   const expired = params?.get('expired') === '1'
+  const callbackFailed = params?.get('error') === 'callback'
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-magic pb-safe pt-safe">
       <PageHeader
@@ -187,6 +188,11 @@ export function AuthScreen({ mode }: { mode: 'signin' | 'signup' }) {
       {expired ? (
         <p role="status" className="mx-4 mb-4 rounded-xl bg-accent px-4 py-3 text-sm text-accent-foreground">
           Your session expired. Please sign in again.
+        </p>
+      ) : null}
+      {callbackFailed ? (
+        <p role="alert" className="mx-4 mb-4 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          Sign-in didn’t complete. Please try again.
         </p>
       ) : null}
       <AuthForm mode={mode} />

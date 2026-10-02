@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     timestamp: req.headers.get('webhook-timestamp'),
     signature: req.headers.get('webhook-signature'),
   }
-  const secret = process.env.DODO_PAYMENTS_WEBHOOK_SECRET || process.env.DODO_PAYMENTS_WEBHOOK_KEY
+  const secret = process.env.DODO_PAYMENTS_WEBHOOK_SECRET
   const verified = verifyWebhook(secret, headers, raw)
   if (!verified.ok) {
     if (verified.reason === 'no_secret') return NextResponse.json({ error: 'Not configured' }, { status: 503 })

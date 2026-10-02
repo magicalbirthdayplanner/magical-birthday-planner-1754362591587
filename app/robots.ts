@@ -15,9 +15,8 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: ['/', '/pricing', '/privacy', '/terms'],
       disallow: [
-        '/api/', '/auth/', '/invite/', '/rsvp/', '/share/', '/venue/', '/home', '/plan', '/discover', '/guests', '/more', '/start',
-        '/login', '/join', '/reset-password', '/offline', '/account', '/dashboard', '/create-party', '/party-plan', '/checkout-success',
-        '/signin', '/signup', '/signup-success', '/activities',
+        '/api/', '/auth/', '/invite/', '/venue/', '/home', '/plan', '/discover', '/guests', '/more', '/start',
+        '/login', '/join', '/reset-password', '/offline', '/checkout-success',
       ],
     },
     sitemap: `${siteUrl()}/sitemap.xml`,

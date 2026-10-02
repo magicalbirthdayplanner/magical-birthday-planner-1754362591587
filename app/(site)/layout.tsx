@@ -1,22 +1,16 @@
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import SessionSync from '@/components/SessionSync';
+import ErrorBoundary from '@/components/ErrorBoundary'
+import { SiteHeader } from '@/components/site/SiteHeader'
+import { SiteFooter } from '@/components/site/SiteFooter'
 
-/** Marketing site + legacy desktop planner. URLs unchanged from before the route-group split. */
+/** Public marketing pages (landing, pricing, checkout result, privacy, terms). The product lives in (app)/(flow). */
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider>
-      <SubscriptionProvider>
-        <SessionSync />
-        <Header />
-        <main className="pt-14 sm:pt-16 min-h-screen">
-          <ErrorBoundary>{children}</ErrorBoundary>
-        </main>
-        <Footer />
-      </SubscriptionProvider>
-    </ThemeProvider>
-  );
+    <>
+      <SiteHeader />
+      <main className="min-h-screen pt-14 sm:pt-16">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </main>
+      <SiteFooter />
+    </>
+  )
 }

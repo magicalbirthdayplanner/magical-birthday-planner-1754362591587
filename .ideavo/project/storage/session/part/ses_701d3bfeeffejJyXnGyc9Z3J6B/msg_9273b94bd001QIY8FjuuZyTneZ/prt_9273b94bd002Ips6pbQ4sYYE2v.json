@@ -1,7 +1,0 @@
-{
-  "id": "prt_9273b94bd002Ips6pbQ4sYYE2v",
-  "type": "text",
-  "text": "This is the google places API key - AIza_REDACTED_ROTATE_ME\n\nUse this to implement a proper logic to fetch local listings about venue information based on the zip code entered in the wizard and the type of venue choosen in the venue tab. \n\nFor example, when indoor venue is choosen, i want to be able to list all the venues within 20 mile radius, and ability to sort places by filter or search etc. \n\nSame applies to outdoor, speciality venues etc. \n\nEnsure that all data is stored in DB as the API fetches information. I dont want to invoke API everytime the page is visited. ",
-  "messageID": "msg_9273b94bd001QIY8FjuuZyTneZ",
-  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B"
-}

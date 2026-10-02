@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import Link from "next/link"
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { useSubscription } from "@/contexts/SubscriptionContext"
+import { usePlanStatus } from "@/components/billing/usePlanStatus"
 
 const pricingTiers = [
   {
@@ -101,7 +101,7 @@ const faqs = [
 ]
 
 function PricingContent() {
-  const { currentPlan, canUpgradeTo } = useSubscription();
+  const { currentPlan, canUpgradeTo } = usePlanStatus();
   const searchParams = useSearchParams();
   const upgradeTarget = searchParams.get('upgrade')?.toUpperCase();
   
@@ -380,7 +380,7 @@ function PricingContent() {
                 className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
                 asChild
               >
-                <Link href="/signup">Get Started Today</Link>
+                <Link href="/start">Get Started Today</Link>
               </Button>
               <Button 
                 size="lg" 

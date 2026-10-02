@@ -41,7 +41,7 @@ RLS enabled with **no** client policies (previously anyone could insert ⇒ cach
 unique `(party_id, venue_id)`.
 
 ### `party_venues` (existing) — the chosen venue (“Add to party”)
-Shared with the legacy planner. Policies now also check party ownership.
+Policies check party ownership.
 
 ### `guests` (existing, extended)
 Added `adult_count`, `child_count`, `invite_status (NOT_SENT|SENT|VIEWED)`, `invited_at`,
@@ -49,13 +49,12 @@ Added `adult_count`, `child_count`, `invite_status (NOT_SENT|SENT|VIEWED)`, `inv
 
 ### `checklist_items` (new)
 `task_key` unique per party (generated tasks are idempotent), `title`, `detail`, `category`,
-`due_date`, `completed_at`, `sort_order`, `is_custom`. The legacy planner’s
-`parties.checklist_data` is untouched.
+`due_date`, `completed_at`, `sort_order`, `is_custom`. `parties.checklist_data` (old planner) is no longer read by the app.
 
 ### `party_invitations` (new)
 One per party: `token` (24 random bytes, hex), `headline`, `message`, `host_name`, `location_text`,
 `start_time`, `end_time`, `rsvp_by`, `design`, `is_active`, `share_count`, `last_shared_at`.
-The legacy per-guest `invitations` table is unchanged.
+The old per-guest `invitations` table is no longer used by the app (kept; see `LEGACY_CLEANUP_REPORT.md` §9).
 
 ### `analytics_events`, `ai_cache` (new)
 Server-written only (RLS on, no policies).

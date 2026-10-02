@@ -9,18 +9,13 @@ import { join } from 'node:path'
 
 const SERVER_ONLY = [
   'SUPABASE_SERVICE_ROLE_KEY',
-  'DATABASE_URL',
-  'DIRECT_URL',
+  'SUPABASE_SECRET_KEY',
   'GOOGLE_PLACES_API_KEY',
-  'GEOAPIFY_API_KEY',
   'AZURE_OPENAI_API_KEY',
   'RESEND_API_KEY',
-  'APIFY_API_TOKEN',
   'DODO_PAYMENTS_API_KEY',
-  'DODO_API_KEY',
-  'DODO_WEBHOOK_SECRET',
   'DODO_PAYMENTS_WEBHOOK_SECRET',
-  'SUPABASE_SECRET_KEY',
+  // deployment tooling tokens, if present in the environment
   'GITHUB_TOKEN',
   'VERCEL_TOKEN',
 ]

@@ -281,3 +281,28 @@ describe('clients cannot touch billing data', () => {
     expect((await U.client.from('billing_purchases').update({ status: 'active' }).eq('user_id', U.id).select('id')).data ?? []).toEqual([])
   })
 })
+
+describe('trial expiry (server-side)', () => {
+  it('a lapsed 24 h trial is expired by /api/billing/status, without any client write', async () => {
+    const T = await createTestUser('bill-trial')
+    try {
+      await adminClient().from('users').update({ current_plan: 'PRO', is_trial_active: true, trial_expires_at: new Date(Date.now() - 60_000).toISOString() }).eq('id', T.id)
+      const res = await status.GET(new Request('http://app.test/api/billing/status', { headers: { Authorization: `Bearer ${T.accessToken}` } }))
+      expect(await res.json()).toMatchObject({ plan: 'FREE', trialActive: false })
+      const { data } = await adminClient().from('users').select('current_plan, is_trial_active').eq('id', T.id).single()
+      expect(data).toEqual({ current_plan: 'FREE', is_trial_active: false })
+    } finally {
+      await deleteTestUser(T)
+    }
+  })
+
+  it('an active trial is left alone', async () => {
+    const T = await createTestUser('bill-trial-ok')
+    try {
+      const res = await status.GET(new Request('http://app.test/api/billing/status', { headers: { Authorization: `Bearer ${T.accessToken}` } }))
+      expect(await res.json()).toMatchObject({ plan: 'PRO', trialActive: true })
+    } finally {
+      await deleteTestUser(T)
+    }
+  })
+})

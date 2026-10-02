@@ -2,7 +2,6 @@ import { createRequire } from 'node:module'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import robots from '@/app/robots'
 import sitemap from '@/app/sitemap'
-import { builderScriptsEnabled } from '@/lib/builder-scripts'
 import { siteUrl } from '@/lib/site-url'
 
 const require = createRequire(import.meta.url)
@@ -20,7 +19,7 @@ describe('robots / sitemap', () => {
     const r = robots()
     const rules = Array.isArray(r.rules) ? r.rules[0] : r.rules
     expect(rules.allow).toEqual(['/', '/pricing', '/privacy', '/terms'])
-    for (const p of ['/api/', '/invite/', '/rsvp/', '/home', '/plan', '/guests', '/venue/', '/account']) expect(rules.disallow).toContain(p)
+    for (const p of ['/api/', '/invite/', '/home', '/plan', '/guests', '/venue/', '/checkout-success']) expect(rules.disallow).toContain(p)
     expect(r.sitemap).toBe('https://example.app/sitemap.xml')
     expect(sitemap().map((e) => e.url)).toEqual(['https://example.app', 'https://example.app/pricing', 'https://example.app/privacy', 'https://example.app/terms'])
   })
@@ -29,28 +28,14 @@ describe('robots / sitemap', () => {
   })
 })
 
-describe('builder (Ideavo) scripts', () => {
-  it('never load on Vercel deployments', () => {
-    expect(builderScriptsEnabled({ VERCEL_ENV: 'production' })).toBe(false)
-    expect(builderScriptsEnabled({ VERCEL_ENV: 'preview' })).toBe(false)
-    expect(builderScriptsEnabled({})).toBe(true)
-  })
-})
-
 describe('security headers', () => {
   const load = () => {
     delete require.cache[require.resolve('../../next.config.js')]
     return require('../../next.config.js') as { headers: () => Promise<{ source: string; headers: { key: string; value: string }[] }[]> }
   }
-  it('Vercel deployments refuse framing (clickjacking)', async () => {
-    vi.stubEnv('VERCEL_ENV', 'production')
+  it('the app can never be framed (clickjacking)', async () => {
     const all = (await load().headers()).find((h) => h.source === '/:path*')!.headers
     expect(all).toContainEqual({ key: 'X-Frame-Options', value: 'DENY' })
     expect(all.find((h) => h.key === 'Content-Security-Policy')?.value).toContain("frame-ancestors 'none'")
-  })
-  it('builder environment keeps framing allowed', async () => {
-    vi.stubEnv('VERCEL_ENV', '')
-    const all = (await load().headers()).find((h) => h.source === '/:path*')!.headers
-    expect(all.find((h) => h.key === 'X-Frame-Options')).toBeUndefined()
   })
 })

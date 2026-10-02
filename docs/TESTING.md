@@ -2,9 +2,9 @@
 
 | Layer | Tool | Location | Needs | Count |
 |---|---|---|---|---|
-| Unit | Vitest | `tests/unit` | nothing | 156 |
+| Unit | Vitest | `tests/unit` | nothing | 162 |
 | Integration (RLS, security, billing, email, API routes) | Vitest + supabase-js | `tests/integration` | local Supabase | 112 |
-| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google/Resend/Dodo + a production build | 21 |
+| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google/Resend/Dodo + a production build | 23 |
 
 Google is **always mocked** in tests (`tests/mock-google/server.mjs` or injected fakes). No test
 calls real Google, OpenAI or Resend. Integration tests refuse to run against a non-local Supabase URL.
@@ -70,8 +70,6 @@ cache writes; checklist missed milestones done before it existed; ~1.8k px page 
   WebKit isn’t installed in this environment). See the device checklist in `RELEASE.md`.
 * Google Maps JS map (needs a browser key) — the schematic fallback is what E2E exercises.
 * Real Google OAuth round-trip; email confirmation flows; AI theme generation against Azure.
-* Legacy `(site)` pages beyond smoke-level (they have no tests; behaviour unchanged except the
-  security fixes noted in `SECURITY.md`).
 
 ## Release-gate security tests (added)
 
@@ -82,7 +80,7 @@ cache writes; checklist missed milestones done before it existed; ~1.8k px page 
 * `tests/unit/google-cost-control.test.ts` — malformed Google responses, radius capping/snapping,
   per-request and per-user Google call budgets.
 * `tests/unit/redirect.test.ts` — open-redirect protection.
-* `tests/unit/blocked-routes.test.ts` — debug + insecure legacy routes blocked, path variants.
+* `tests/unit/route-inventory.test.ts` — the exact list of routes the app serves; rejects debug/fix/test/bypass-style routes.
 * `tests/e2e/mobile-regression.spec.ts` — full journey incl. filters, compare, logout/login at
   375/390/393/430 px with an overflow check at every step.
 * `scripts/scan-git-history-secrets.mjs` — masked history secret scan; `npm run check:secrets` —

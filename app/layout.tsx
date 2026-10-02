@@ -1,10 +1,8 @@
-import { builderScriptsEnabled } from '@/lib/builder-scripts'
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Fraunces, Inter } from 'next/font/google';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import DomainRedirect from '@/components/DomainRedirect';
 import { ServiceWorkerRegistrar } from '@/components/app/ServiceWorkerRegistrar';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
@@ -47,28 +45,15 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const loadBuilderScripts = builderScriptsEnabled()
   return (
     <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
       <body className={inter.className}>
         <ErrorBoundary>
           <AuthProvider>
-            <DomainRedirect />
             {children}
           </AuthProvider>
         </ErrorBoundary>
         <ServiceWorkerRegistrar />
-        {/* TODO: Remove iframe-navigation.js in production, should never be removed by AI */}
-        {/* Builder (Ideavo) helpers only outside Vercel deployments: an unpinned third-party
-            script must not run next to user sessions in Preview/Production. */}
-        {loadBuilderScripts ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-            <script src="/scripts/iframe-navigation.js"></script>
-            {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-            <script src="https://cdn.jsdelivr.net/gh/IdeavoAI/ideavo-scripts@1.0.1/scripts/ideavo.min.js"></script>
-          </>
-        ) : null}
       </body>
     </html>
   );

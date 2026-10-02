@@ -213,67 +213,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async (next?: string) => {
     try {
-      // Get the current domain for redirect - ensure proper URL formatting
-      const baseUrl = typeof window !== 'undefined' 
-        ? `${window.location.protocol}//${window.location.host}`
-        : (process.env.NEXT_PUBLIC_BASE_URL || '').trim()
-      
-      // Ensure baseUrl doesn't end with slash and construct proper callback URL
-      const cleanBaseUrl = baseUrl.replace(/\/$/, '').trim()
-      const redirectTo = `${cleanBaseUrl}/auth/callback${next && next.startsWith('/') && !next.startsWith('//') ? `?next=${encodeURIComponent(next)}` : ''}`
-      
-      // Validate the redirect URL format
-      try {
-        new URL(redirectTo)
-      } catch (urlError) {
-        console.error('❌ Invalid redirect URL format:', redirectTo)
-        throw new Error('Invalid redirect URL format')
-      }
-      
-      console.log('🔐 Google OAuth Configuration:')
-      console.log('- Current window location:', typeof window !== 'undefined' ? window.location.href : 'SSR')
-      console.log('- Base URL:', baseUrl)
-      console.log('- Clean Base URL:', cleanBaseUrl)
-      console.log('- Redirect URL:', redirectTo)
-      console.log('- Environment NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL)
-      console.log('- Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-      console.log('⚠️ IMPORTANT: Google should redirect to YOUR app, not directly to Supabase!')
-      console.log('⚠️ Expected: <your site origin>/auth/callback')
-      console.log('⚠️ NOT: the Supabase project auth/v1/callback URL')
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      // Same-origin return path only; tokens come back to /auth/callback and on to `next`.
+      const safe = next && next.startsWith('/') && !next.startsWith('//') ? next : '/home'
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(safe)}`
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          },
-          scopes: 'openid email profile'
-        }
+        options: { redirectTo, queryParams: { access_type: 'offline', prompt: 'consent' }, scopes: 'openid email profile' },
       })
-      
-      if (error) {
-        console.error('❌ Google OAuth error:', error)
-        if (error.message && error.message.includes('site url is improperly formatted')) {
-          console.error('Site URL formatting error - this usually means:')
-          console.error('1. Redirect URL contains invalid characters')
-          console.error('2. Base URL environment variable is malformed')
-          console.error('3. Supabase site URL configuration issue')
-          console.error('Current redirect URL:', redirectTo)
-        }
-      } else {
-        console.log('✅ Google OAuth initiated successfully', data)
-      }
-      
+      if (error) console.warn('Google sign-in failed to start', error.name)
       return { error }
     } catch (err) {
-      console.error('❌ Google OAuth exception:', err)
       return { error: err }
     }
   }
-
-
 
   const signOut = async () => {
     if (isSigningOut) return { error: new Error('Signout already in progress') }

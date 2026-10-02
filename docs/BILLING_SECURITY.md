@@ -1,78 +1,51 @@
 # Billing security
 
-**Status (2026-10-02): billing implemented end-to-end in code and tested against a mock Dodo test
-mode with signed webhooks. Not yet verified against the real Dodo sandbox (no credentials supplied).**
-Live charging is impossible unless `DODO_PAYMENTS_ENVIRONMENT=live_mode` **and**
-`DODO_LIVE_PAYMENTS_ENABLED=true`.
+Dodo Payments is the only payment provider. **Live charging is impossible** unless
+`DODO_PAYMENTS_ENVIRONMENT=live_mode` **and** `DODO_LIVE_PAYMENTS_ENABLED=true`.
 
-### Implemented flow
-`POST /api/billing/checkout {plan}` (auth; server picks product/price/customer; metadata carries
-user + checkout id) → Dodo hosted checkout → `POST /api/webhooks/dodo` (Standard Webhooks
-signature, ±5 min, constant-time) → `billing_webhook_events` (idempotent on `webhook-id`;
-errored events retried) → user mapping (known customer id → metadata user → recent pending
-checkout email; conflicts rejected) → `billing_purchases` upsert by provider ref (no duplicates;
-older events never overwrite newer) → `recompute_entitlement()` (service role only) →
-`users.current_plan`. Plan comes from the **product id**, never metadata; USD payments below the
-plan price are held as `review`. Refunds and subscription cancel/expire/on-hold revoke.
-`/checkout-success` only polls `GET /api/billing/status`.
+## Flow
 
-Tests: `tests/unit/billing.test.ts` (12), `tests/integration/billing.test.ts` (18),
-`tests/e2e/integrations-journey.spec.ts` (2).
+1. **`POST /api/billing/checkout {plan}`** (signed-in only, rate limited).
+   * The server picks the Dodo product and price from config (`lib/billing/plans.ts`) and identifies
+     the user from the session. Clients cannot choose product, price or user.
+   * The checkout is recorded in `billing_checkouts`.
+   * The user goes to Dodo's hosted checkout and returns to `/checkout-success?ref=…`.
+2. **`POST /api/webhooks/dodo`** (Standard Webhooks).
+   * HMAC-SHA256 over `id.timestamp.body`, constant-time compare, ±5 min window, 512 KB cap.
+   * Idempotent on `webhook-id` (`billing_webhook_events`).
+   * User mapping: known customer → metadata user → recent pending checkout email. Conflicts are rejected.
+   * `billing_purchases` is upserted by provider reference. Older events never overwrite newer ones.
+3. **`recompute_entitlement(user)`** (service role only) sets `users.current_plan`.
+   * The plan comes from the **product id**, never from metadata.
+   * USD payments below the plan price are held as `review`.
+   * Refunds and subscription cancel/expire/on-hold revoke the plan.
+4. **`GET /api/billing/status`** returns the server-derived plan and purchases. It also expires a lapsed
+   24 h trial server-side, via `recompute_entitlement`.
+   * `/checkout-success`, `/pricing` and More (`components/billing/usePlanStatus.ts`,
+     `CheckoutStatus`) only read this. URL parameters are never proof of payment.
 
-## 1. Where entitlement state lives
+## What a client cannot do (tested)
 
-| Data | Location | Meaning |
-|---|---|---|
-| `users.current_plan` | Supabase | `FREE · STARTER · PLUS · PRO · PROFESSIONAL` — read by `GET /api/user/subscription` |
-| `users.trial_*`, `is_trial_active`, `has_used_trial` | Supabase | 24 h PRO trial granted once per account |
-| `profiles.subscription_*`, `user_purchases`, `subscriptions`, `invoices` | Production only (not in any migration) | Written by legacy routes / webhook; **not read** by entitlement checks |
-| Plan gating | Client only (`contexts/SubscriptionContext.tsx`) | Hides legacy planner tabs. No paid feature is enforced server-side today |
+| Attempt | Result |
+|---|---|
+| Update own `current_plan`, `is_trial_active`, `trial_expires_at`, `has_used_trial` | `42501`. The `users_guard_entitlements` trigger blocks clients from writing plan/trial columns. |
+| Insert own `users` row with a plan | Server values forced by the insert trigger |
+| Insert/update `billing_purchases`, `billing_checkouts`, `billing_customers`, `billing_webhook_events` | Denied (no client write policies). Owners can only read their own rows. |
+| Execute `recompute_entitlement` | `42501`. Service role only. |
+| `/checkout-success?plan=PRO&status=succeeded`, localStorage flags | Nothing granted. The page only polls `/api/billing/status`. |
+| Forged, tampered, stale or replayed webhook | Rejected, nothing changed |
+| Tampered metadata plan or price | Plan from product. Low price held for review. |
 
-The mobile-first app (discovery, saves, themes, guests, checklist, invitations) is available to every
-signed-in user and does not read plan state.
+## Tests
 
-## 2. Every place plan state could be written — before → after
+* `tests/unit/billing.test.ts`: signatures, plan mapping, live switch, event decisions.
+* `tests/integration/billing.test.ts`: checkout, webhook → entitlement, duplicates, out-of-order,
+  refunds, subscriptions, hijack attempts, client write denial, server-side trial expiry.
+* `tests/e2e/integrations-journey.spec.ts`: checkout → signed webhook → plan active; a declined
+  card and URL tampering grant nothing.
 
-| Path | Before | After (this branch) |
-|---|---|---|
-| Direct Supabase update from the browser (`users` own-row RLS) | Any user could set `current_plan='PRO'` or extend a trial | `users_guard_entitlements` trigger rejects changes to `current_plan`, `trial_*`, `is_trial_active`, `has_used_trial` (+ `subscription_*`, `role`, `is_admin` if present) by `anon`/`authenticated` with **42501** |
-| Direct insert of one’s own `users` row | Client chose plan and trial expiry | `users_entitlements_on_insert` overwrites with the standard one-time 24 h trial; client values ignored |
-| `PATCH /api/user/subscription` | Set any plan, no payment check | **403** always |
-| `POST /api/user/purchase` (from `/checkout-success`) | Wrote purchase + `profiles.subscription_plan` from browser-supplied plan | **410**, writes nothing |
-| `/checkout-success?plan=PRO` | `localStorage` flags + purchase call ⇒ PRO | Shows “confirming your payment”; re-reads server state only |
-| `localStorage` (`hasPurchasedPlan`, `userSubscriptionPlan`, …, `superadmin_plan`) | Trusted by `hasActiveSubscription()` | Ignored and deleted on load; plan comes only from `/api/user/subscription` + `/api/user/trial` |
-| `POST /api/user/trial` `start_trial` | User-role update (raced, restartable via direct update) | Service role, only when `has_used_trial` is false/null (conditional update ⇒ no double start) |
-| `GET /api/user/trial` expiry downgrade | User-role update | Service role |
-| `GET /api/user/subscription` on DB error | Returned **STARTER** | Returns **FREE** (fail closed) |
-| `/api/subscriptions/create`, `/cancel` | No auth, trusted body `userId` | 404 (delete pending) |
-| Production `profiles`, `subscriptions`, `invoices`, `user_purchases` | Unknown client grants | Migration 0400 revokes INSERT/UPDATE/DELETE from `anon`/`authenticated` and enables RLS if the tables exist; `profiles` gets the same column guard |
-| `POST /api/webhooks/dodo` | `===` signature compare; anon-key writes; never updates plan | `timingSafeEqual`; still incomplete (see §4) |
-| `/account` superadmin plan switcher (hard-coded email) | UI-only preview + PATCH | PATCH refused; UI preview only affects that browser |
+## Not yet done
 
-Service role (server) and the database owner can still change plans — that is the intended path.
-
-## 3. Tests
-
-`tests/integration/security.test.ts → "entitlements cannot be self-granted"`:
-
-* user cannot set `current_plan` (PRO, PROFESSIONAL), `is_trial_active`, `trial_expires_at`,
-  `has_used_trial` — each returns 42501 and the stored row is unchanged;
-* user cannot change another user’s plan;
-* ordinary profile edits still work;
-* a self-inserted profile row receives server-chosen values (PRO trial ≤ 24 h) regardless of input;
-* the service role can still update plans;
-* `PATCH /api/user/subscription` → 403, `POST /api/user/purchase` → 410.
-
-## 4. Remaining work before taking payments (not invented here)
-
-1. **Checkout**: create the Dodo checkout session server-side for the signed-in user (user id in
-   checkout metadata; never trust a client `userId`).
-2. **Webhook**: verify signature (`timingSafeEqual`, done) **and** timestamp/replay window; make it
-   idempotent on event id; write `subscriptions`/`invoices` with the **service role**; on
-   `subscription.active/renewed/cancelled` update `users.current_plan` (service role). Add those
-   tables to a migration with RLS: owner `SELECT` only.
-3. **Server-side enforcement**: any feature that costs money or is sold must check the plan on the
-   server (route handler or RLS), not only in `SubscriptionContext`.
-4. **Admin**: replace the hard-coded email with a server-managed role (`app_metadata.role`, set only
-   by the service role) if an admin plan switcher is still wanted.
-5. Decide the product question in `RELEASE.md §1` (which mobile features, if any, become paid).
+* **Real Dodo sandbox run.** Needs test-mode credentials (`INTEGRATIONS.md`).
+* **Product decision on paid features.** Features are not plan-gated server-side today, so every
+  signed-in user can use the full app.

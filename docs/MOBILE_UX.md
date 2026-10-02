@@ -7,7 +7,7 @@ site, in two new route groups:
 |---|---|---|
 | `(app)` | sticky header (logo + profile) · content · 5-tab bottom nav | `/home`, `/plan`, `/plan/checklist`, `/plan/theme`, `/plan/invite`, `/discover`, `/discover/saved`, `/guests`, `/more` |
 | `(flow)` | full screen, no tab bar | `/start` (wizard), `/login`, `/join`, `/venue/[placeId]`, `/invite/[token]` (public RSVP), `/offline` |
-| `(site)` | original marketing header/footer | every pre-existing page, URLs unchanged (`/`, `/party-plan`, `/create-party`, `/dashboard`, …) |
+| `(site)` | site header (sign in / get started / open app) + footer | public pages: `/`, `/pricing`, `/checkout-success`, `/privacy`, `/terms` |
 
 Bottom nav: **Home · Plan · Discover · Guests · More**.
 
@@ -35,7 +35,7 @@ Bottom nav: **Home · Plan · Discover · Guests · More**.
 
 “Magical, premium, trustworthy — the parent is the user.” Deep ink-violet primary, warm ivory
 background, coral and gold accents used sparingly; Fraunces display type for headlines with Inter
-for UI. Tokens are scoped with `html:has(.mbp-app)` so portals inherit them and the legacy site is
+for UI. Tokens are scoped with `html:has(.mbp-app)` so portals inherit them and the marketing pages are
 unaffected (`app/globals.css`).
 
 ## Screens
@@ -53,10 +53,5 @@ unaffected (`app/globals.css`).
 | Guests | headcounts, search, filters, add/edit/delete, RSVP & invite status |
 | Checklist | Today (incl. overdue) / This week / Later / Completed; custom tasks |
 | Invitation | 3 designs, live preview, native share / SMS / email / copy; public RSVP page with add-to-calendar |
-| More | profile, party switcher, install app, legacy tools, legal, sign out |
+| More | plan, party switcher, install app, account (name, RSVP-email preference), legal, sign out |
 
-## Legacy planner
-
-`/party-plan` (desktop tabs, timeline, activities, host mode, PDF) is linked from **Plan** and
-**More** as “Full planner (desktop tools)”. It reads the same `parties`, `guests` and
-`party_venues` rows. It is still subscription-gated (see `RELEASE.md`).

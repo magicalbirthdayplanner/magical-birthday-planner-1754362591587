@@ -57,3 +57,13 @@ test-*.html
 supabase/.branches
 supabase/.temp
 /.next-e2e/
+
+# Builder / tool artifacts (never commit)
+.ideavo/
+.ideavo-attachments/
+ideavo-server.info
+logs/
+.next-*/
+
+# Local tool settings
+.claude/settings.local.json

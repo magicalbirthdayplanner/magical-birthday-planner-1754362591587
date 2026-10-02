@@ -1,7 +1,0 @@
-{
-  "id": "prt_92bab9f9d001jzILu1FBXE8EVo",
-  "type": "text",
-  "text": "implement a logic that if the user pays for a plan, then he is redirected to access full features and manage plan in the right side user drop down is activated accordingly. For example, when a user signs up for the first time, there is no active plan. At that stage, the user cannot created detailed party view or access party management tabs. It should prompt him to subscribe for a plan. But once a plan is bought ( through dodo payements, upon successful payment that user should be redirected to the magical birthday planner application and all features for the respective plan should be unlocked and the manage plan should have the active plan tht was procured visible. The user always have a option to upgrade plan, but not downgrade plan. The profile management section has a subscription management option and should reflect the plans correctly. ",
-  "messageID": "msg_92bab9f9c001QTB5Y1iqlpJz5g",
-  "sessionID": "ses_701d3bfeeffejJyXnGyc9Z3J6B"
-}
