@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 
@@ -11,7 +12,7 @@ export async function GET() {
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError || !user) {
-      return NextResponse.json({
+      return safeJson({
         is_new_user: false,
         authenticated: false,
         message: 'User not authenticated'
@@ -65,7 +66,7 @@ export async function GET() {
     // 2. No user record exists at all
     const finalIsNewUser = !userRecord || (!hasParties && (!hasCompleteProfile || isNewUser))
 
-    return NextResponse.json({
+    return safeJson({
       is_new_user: finalIsNewUser,
       authenticated: true,
       user_info: {
@@ -83,7 +84,7 @@ export async function GET() {
     })
 
   } catch (error) {
-    return NextResponse.json({
+    return safeJson({
       error: error instanceof Error ? error.message : 'Unknown error',
       is_new_user: false,
       authenticated: false

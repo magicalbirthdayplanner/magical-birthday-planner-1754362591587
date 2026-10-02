@@ -33,8 +33,13 @@ export async function GET(req: Request, { params }: { params: { placeId: string 
     if (party && isValidLatLng(center)) ctx = partyContextFromRow(party, center, party.zip_code ?? '')
   }
 
+  // Details are only fetched for places discovery already surfaced: a client cannot
+  // make us pay for Place Details on arbitrary place ids.
+  const deps = discoveryDeps(auth.user.id)
+  if (!(await deps.store.hasPlace(placeId).catch(() => false))) return apiError(404, 'not_found', "We couldn't find that place.")
+
   try {
-    const { venue, stale } = await getVenueDetails(placeId, discoveryDeps(), ctx)
+    const { venue, stale } = await getVenueDetails(placeId, deps, ctx)
     return NextResponse.json({ venue: toClientVenue(venue, { allPhotos: true, photoWidth: 960 }), stale })
   } catch (err) {
     if (err instanceof PlacesError && (err.kind === 'not_found' || err.kind === 'invalid_request')) {

@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   const zip = normalizeZip(raw)
   if (!zip) return apiError(422, 'invalid_zip', 'Please enter a 5-digit US ZIP code.')
 
-  const loc = await resolveZip(zip, zipGeocoder())
+  const loc = await resolveZip(zip, zipGeocoder(clientIp(req)))
   if (!loc) return apiError(404, 'invalid_zip', `We couldn't find ZIP ${zip}. Double-check it?`)
 
   return NextResponse.json(

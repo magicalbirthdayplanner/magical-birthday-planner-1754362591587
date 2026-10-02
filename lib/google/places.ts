@@ -131,6 +131,7 @@ const bool = (x: unknown) => (typeof x === 'boolean' ? x : null)
 
 /** Normalize a raw place. Returns null when the place lacks an id, name, or location. */
 export function normalizePlace(place: RawPlace, extraCategories: string[] = [], now = new Date()): Venue | null {
+  if (!place || typeof place !== 'object') return null
   const placeId = str(place.id)
   const name = str(place.displayName?.text)
   const lat = num(place.location?.latitude)
@@ -260,7 +261,11 @@ export function createPlacesClient(opts: PlacesClientOptions = {}): PlacesApi {
                 : 'unavailable'
       throw new PlacesError(kind, `Places API ${res.status} ${detail}`.trim(), res.status)
     }
-    return res.json()
+    try {
+      return await res.json()
+    } catch {
+      throw new PlacesError('unavailable', 'Places API returned a malformed response', res.status)
+    }
   }
 
   return {
@@ -282,7 +287,8 @@ export function createPlacesClient(opts: PlacesClientOptions = {}): PlacesApi {
         body: JSON.stringify(body),
         fieldMask: SEARCH_FIELD_MASK,
       })) as { places?: RawPlace[] }
-      return Array.isArray(data?.places) ? data.places : []
+      if (data !== null && typeof data !== 'object') throw new PlacesError('unavailable', 'Places API returned a malformed response')
+      return Array.isArray(data?.places) ? data.places.filter((p): p is RawPlace => !!p && typeof p === 'object') : []
     },
 
     async getPlace(placeId) {

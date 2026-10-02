@@ -471,6 +471,9 @@ isOneToOne: false
 "get_trial_status":
 { Args: { "user_id": string }; Returns: Json
                            },
+"is_end_user_request":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "owns_party":
 { Args: { "p_party_id": string }; Returns: boolean
                            },

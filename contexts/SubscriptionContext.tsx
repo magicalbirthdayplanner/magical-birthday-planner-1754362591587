@@ -138,6 +138,8 @@ interface SubscriptionProviderProps {
   children: ReactNode;
 }
 
+const LEGACY_PLAN_KEYS = ['hasPurchasedPlan', 'userSubscriptionPlan', 'userPlanPurchased', 'hasValidSubscription', 'subscriptionPurchaseDate', 'superadmin_plan', 'lastPurchase'];
+
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const { user } = useAuth();
   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan>('FREE');
@@ -184,26 +186,13 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const initializePlan = async () => {
       console.log('🔄 SubscriptionContext: Initializing plan...');
       
-      // Check if user has purchased a plan (client-side only)
-      const hasPurchased = typeof window !== 'undefined' ? localStorage.getItem('hasPurchasedPlan') === 'true' : false;
-      const storedPlan = typeof window !== 'undefined' ? localStorage.getItem('userSubscriptionPlan') as SubscriptionPlan : null;
-      
+      // Plan state is server-authoritative. Legacy localStorage flags used to grant
+      // paid plans client-side; they are ignored and cleared.
       if (typeof window !== 'undefined') {
-        console.log('🔄 SubscriptionContext: localStorage values:', {
-          hasPurchasedPlan: localStorage.getItem('hasPurchasedPlan'),
-          userSubscriptionPlan: localStorage.getItem('userSubscriptionPlan'),
-          userPlanPurchased: localStorage.getItem('userPlanPurchased'),
-          hasValidSubscription: localStorage.getItem('hasValidSubscription')
-        });
+        for (const k of LEGACY_PLAN_KEYS) localStorage.removeItem(k);
       }
-      
-      let initialPlan: SubscriptionPlan = 'FREE';
-      
-      if (hasPurchased && storedPlan && SUBSCRIPTION_PLANS[storedPlan]) {
-        initialPlan = storedPlan;
-      }
-      
-      console.log('🔄 SubscriptionContext: Initial plan from localStorage:', initialPlan);
+      const initialPlan: SubscriptionPlan = 'FREE';
+
       setCurrentPlan(initialPlan);
       
       if (user) {
@@ -234,12 +223,6 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             } else if (SUBSCRIPTION_PLANS[serverPlan]) {
               console.log('🔄 SubscriptionContext: Setting plan to:', serverPlan);
               setCurrentPlan(serverPlan);
-              // Sync localStorage with server (client-side only)
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('userSubscriptionPlan', serverPlan);
-                localStorage.setItem('hasPurchasedPlan', 'true');
-                localStorage.setItem('hasValidSubscription', 'true');
-              }
             } else {
               console.log('🔄 SubscriptionContext: Invalid plan, not setting');
             }
@@ -265,7 +248,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
           }
         } catch (error) {
           console.error('🔄 SubscriptionContext: Error fetching user plan from server:', error);
-          // Continue using localStorage value (client-side only)
+          // Fail closed: stay on FREE (or the server-confirmed trial).
         }
       } else {
         console.log('🔄 SubscriptionContext: No user authenticated');
@@ -296,21 +279,31 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     return 'PRO';
   };
 
+  // A checkout redirect is NOT proof of payment. The plan only changes once the
+  // payment provider's signed webhook updates it server-side; here we just re-read it.
   const markPlanAsPurchased = (plan: SubscriptionPlan): void => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('hasPurchasedPlan', 'true');
-      localStorage.setItem('userPlanPurchased', plan);
-      localStorage.setItem('hasValidSubscription', 'true');
-      localStorage.setItem('userSubscriptionPlan', plan);
-      localStorage.setItem('subscriptionPurchaseDate', new Date().toISOString());
-    }
-    setCurrentPlan(plan);
-    
-    // Dispatch event for any components listening
+    void refreshPlanFromServer();
     if (typeof window !== 'undefined' && window.dispatchEvent) {
-      window.dispatchEvent(new CustomEvent('subscription-purchased', {
+      window.dispatchEvent(new CustomEvent('subscription-purchase-pending', {
         detail: { plan, planDetails: SUBSCRIPTION_PLANS[plan] }
       }));
+    }
+  };
+
+  const refreshPlanFromServer = async (): Promise<void> => {
+    if (!user) return;
+    await fetchTrialStatus();
+    try {
+      const response = await fetch('/api/user/subscription');
+      if (response.ok) {
+        const data = await response.json();
+        const serverPlan = PLAN_MAPPING[data.currentPlan] || 'FREE';
+        if (!(trialStatus.isTrialActive && trialStatus.trialStatus === 'ACTIVE') && SUBSCRIPTION_PLANS[serverPlan]) {
+          setCurrentPlan(serverPlan);
+        }
+      }
+    } catch {
+      /* keep current server-derived state */
     }
   };
 
@@ -332,34 +325,9 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   };
 
   const hasActiveSubscription = (): boolean => {
-    // Check if user has purchased any plan (client-side only)
-    const hasPurchasedPlan = typeof window !== 'undefined' ? localStorage.getItem('hasPurchasedPlan') === 'true' : false;
-    
-    // Also check for any subscription indicator in user data or localStorage
-    const userPlanPurchased = typeof window !== 'undefined' ? localStorage.getItem('userPlanPurchased') : null;
-    const hasValidSubscription = typeof window !== 'undefined' ? localStorage.getItem('hasValidSubscription') === 'true' : false;
-    
-    // Check if user has a non-FREE plan in the database
-    const hasDatabasePlan = currentPlan !== 'FREE';
-    
-    // Check if user has an active trial
+    // Only server-derived state counts: an active trial or a non-FREE plan from the database.
     const hasActiveTrial = trialStatus.isTrialActive && trialStatus.trialStatus === 'ACTIVE';
-    
-    console.log('🔄 SubscriptionContext: hasActiveSubscription checks:', {
-      hasPurchasedPlan,
-      userPlanPurchased,
-      hasValidSubscription,
-      hasDatabasePlan,
-      hasActiveTrial,
-      currentPlan,
-      trialStatus
-    });
-    
-    // A user has an active subscription if:
-    // 1. They have an active trial, OR
-    // 2. They have a non-FREE plan from the database, OR
-    // 3. They have purchased a plan according to localStorage
-    return hasActiveTrial || hasDatabasePlan || hasPurchasedPlan || hasValidSubscription || !!userPlanPurchased;
+    return hasActiveTrial || currentPlan !== 'FREE';
   };
 
   // Calculate subscription status dynamically - this will update when currentPlan changes
@@ -368,7 +336,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const status = {
       isActive,
       planType: currentPlan,
-      purchaseDate: typeof window !== 'undefined' ? localStorage.getItem('subscriptionPurchaseDate') || undefined : undefined,
+      purchaseDate: undefined,
       canUpgrade: currentPlan !== 'PRO',
       canDowngrade: false, // No downgrades allowed
       nextUpgradePlan: getNextUpgradePlan(),
@@ -380,50 +348,11 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     return status;
   }, [currentPlan, trialStatus]);
 
-  const updateUserPlan = async (newPlan: SubscriptionPlan): Promise<void> => {
-    try {
-      setLoading(true);
-      
-      // Update local state and localStorage immediately for instant UI feedback
-      setCurrentPlan(newPlan);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('userSubscriptionPlan', newPlan);
-        localStorage.setItem('hasPurchasedPlan', 'true');
-        localStorage.setItem('hasValidSubscription', 'true');
-      }
-      
-      // Show success notification immediately
-      if (typeof window !== 'undefined' && window.dispatchEvent) {
-        window.dispatchEvent(new CustomEvent('subscription-updated', {
-          detail: { newPlan, planDetails: SUBSCRIPTION_PLANS[newPlan] }
-        }));
-      }
-      
-      // Try to update plan in database in background (optional)
-      if (user) {
-        try {
-          const response = await fetch('/api/user/subscription', {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ currentPlan: newPlan }),
-          });
-
-          if (!response.ok) {
-            console.warn('Failed to update subscription plan on server, but continuing with local change');
-          }
-        } catch (error) {
-          console.warn('Error updating subscription plan on server:', error);
-          // Don't throw error - local update was successful
-        }
-      }
-    } catch (error) {
-      console.error('Error updating subscription plan:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+  // Plans cannot be changed from the browser (the server rejects it). Kept for API
+  // compatibility with the legacy account page; it re-syncs and reports the refusal.
+  const updateUserPlan = async (_newPlan: SubscriptionPlan): Promise<void> => {
+    await refreshPlanFromServer();
+    throw new Error('Plan changes are managed by billing and cannot be made from the app.');
   };
 
   return (

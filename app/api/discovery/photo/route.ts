@@ -35,6 +35,8 @@ export async function GET(req: Request) {
     knownPlaces.set(placeId, now + TTL_MS)
   }
 
+  // Only uncached photos reach Google: cap them per IP per hour.
+  if (!rateLimit(`photo-miss:${clientIp(req)}`, 600, 3_600_000).ok) return apiError(429, 'rate_limited', 'Too many requests.')
   try {
     const uri = await createPlacesClient({ timeoutMs: 5000 }).getPhotoUri(name, w)
     if (uriCache.size > 5000) uriCache.clear()

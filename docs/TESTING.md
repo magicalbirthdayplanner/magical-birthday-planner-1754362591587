@@ -2,9 +2,9 @@
 
 | Layer | Tool | Location | Needs | Count |
 |---|---|---|---|---|
-| Unit | Vitest | `tests/unit` | nothing | 117 |
-| Integration (RLS, API routes) | Vitest + supabase-js | `tests/integration` | local Supabase | 48 |
-| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google + a production build | 15 |
+| Unit | Vitest | `tests/unit` | nothing | 144 |
+| Integration (RLS, security, API routes) | Vitest + supabase-js | `tests/integration` | local Supabase | 85 |
+| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google + a production build | 19 |
 
 Google is **always mocked** in tests (`tests/mock-google/server.mjs` or injected fakes). No test
 calls real Google, OpenAI or Resend. Integration tests refuse to run against a non-local Supabase URL.
@@ -72,3 +72,18 @@ cache writes; checklist missed milestones done before it existed; ~1.8k px page 
 * Real Google OAuth round-trip; email confirmation flows; AI theme generation against Azure.
 * Legacy `(site)` pages beyond smoke-level (they have no tests; behaviour unchanged except the
   security fixes noted in `SECURITY.md`).
+
+## Release-gate security tests (added)
+
+* `tests/integration/security.test.ts` — explicit User A/B matrix (read/update/delete/insert-as-other
+  for parties, guests, saved venues, private notes, invitations), entitlement self-grant attempts,
+  invitation token strength/projection/rotation, RSVP route isolation + rate limit, discovery input
+  validation, error-leak checks.
+* `tests/unit/google-cost-control.test.ts` — malformed Google responses, radius capping/snapping,
+  per-request and per-user Google call budgets.
+* `tests/unit/redirect.test.ts` — open-redirect protection.
+* `tests/unit/blocked-routes.test.ts` — debug + insecure legacy routes blocked, path variants.
+* `tests/e2e/mobile-regression.spec.ts` — full journey incl. filters, compare, logout/login at
+  375/390/393/430 px with an overflow check at every step.
+* `scripts/scan-git-history-secrets.mjs` — masked history secret scan; `npm run check:secrets` —
+  client bundle scan.

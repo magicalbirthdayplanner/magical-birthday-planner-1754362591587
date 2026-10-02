@@ -1,6 +1,7 @@
 import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { safeNext } from '@/lib/security/redirect'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
   const state = requestUrl.searchParams.get('state')
   // Only same-origin relative paths: blocks open redirects like ?next=//evil.example
   const rawNext = requestUrl.searchParams.get('next')
-  const explicitNext = rawNext && /^\/(?![\/\\])[\w\-./?=&%]*$/.test(rawNext) ? rawNext : null
+  const explicitNext = rawNext ? (safeNext(rawNext, '') || null) : null
   const next = explicitNext ?? '/dashboard'
   let isNewUser = false
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { getAuthedRequest } from '@/lib/server/auth';
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin';
 
@@ -21,16 +22,16 @@ const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : n
 // Save venue selection for a party
 export async function POST(request: NextRequest) {
   const auth = await getAuthedRequest(request);
-  if (!auth) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  if (!auth) return safeJson({ error: 'Authentication required' }, { status: 401 });
   try {
     const { partyId, venue, isCustom } = await request.json();
     if (!partyId || !UUID.test(partyId)) {
-      return NextResponse.json({ error: 'Party ID is required' }, { status: 400 });
+      return safeJson({ error: 'Party ID is required' }, { status: 400 });
     }
 
     // RLS: only returns the party if the caller owns it.
     const { data: party } = await auth.supabase.from('parties').select('id').eq('id', partyId).maybeSingle();
-    if (!party) return NextResponse.json({ error: 'Party not found' }, { status: 404 });
+    if (!party) return safeJson({ error: 'Party not found' }, { status: 404 });
 
     let venueId: string | null = null;
     if (!isCustom && typeof venue?.placeId === 'string' && /^[A-Za-z0-9_-]{10,300}$/.test(venue.placeId)) {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
           .maybeSingle();
         if (venueError) {
           console.error('Error saving venue:', venueError.message);
-          return NextResponse.json({ error: 'Failed to save venue data' }, { status: 500 });
+          return safeJson({ error: 'Failed to save venue data' }, { status: 500 });
         }
         venueId = created?.id ?? null;
         if (!venueId) {
@@ -91,32 +92,32 @@ export async function POST(request: NextRequest) {
 
     if (partyVenueError) {
       console.error('Error saving party venue:', partyVenueError.message);
-      return NextResponse.json({ error: 'Failed to save venue selection' }, { status: 500 });
+      return safeJson({ error: 'Failed to save venue selection' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, partyVenue, message: `Venue "${str(venue?.name, 120) ?? ''}" selected successfully` });
+    return safeJson({ success: true, partyVenue, message: `Venue "${str(venue?.name, 120) ?? ''}" selected successfully` });
   } catch (error) {
     console.error('Error in party venue API:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return safeJson({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 // Get venue selection for a party
 export async function GET(request: NextRequest) {
   const auth = await getAuthedRequest(request);
-  if (!auth) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  if (!auth) return safeJson({ error: 'Authentication required' }, { status: 401 });
   try {
     const partyId = new URL(request.url).searchParams.get('partyId');
     if (!partyId || !UUID.test(partyId)) {
-      return NextResponse.json({ error: 'Party ID is required' }, { status: 400 });
+      return safeJson({ error: 'Party ID is required' }, { status: 400 });
     }
 
     const { data: partyVenue, error } = await auth.supabase.from('party_venues').select('*, venues (*)').eq('party_id', partyId).maybeSingle();
     if (error) {
       console.error('Error fetching party venue:', error.message);
-      return NextResponse.json({ error: 'Failed to fetch venue selection' }, { status: 500 });
+      return safeJson({ error: 'Failed to fetch venue selection' }, { status: 500 });
     }
-    if (!partyVenue) return NextResponse.json({ venue: null });
+    if (!partyVenue) return safeJson({ venue: null });
 
     let venue: Record<string, unknown> | null = null;
     if (partyVenue.is_custom) {
@@ -153,30 +154,30 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    return NextResponse.json({ venue, selectedAt: partyVenue.selected_at, isCustom: partyVenue.is_custom });
+    return safeJson({ venue, selectedAt: partyVenue.selected_at, isCustom: partyVenue.is_custom });
   } catch (error) {
     console.error('Error in party venue GET:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return safeJson({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 // Remove venue selection
 export async function DELETE(request: NextRequest) {
   const auth = await getAuthedRequest(request);
-  if (!auth) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  if (!auth) return safeJson({ error: 'Authentication required' }, { status: 401 });
   try {
     const partyId = new URL(request.url).searchParams.get('partyId');
     if (!partyId || !UUID.test(partyId)) {
-      return NextResponse.json({ error: 'Party ID is required' }, { status: 400 });
+      return safeJson({ error: 'Party ID is required' }, { status: 400 });
     }
     const { error } = await auth.supabase.from('party_venues').delete().eq('party_id', partyId);
     if (error) {
       console.error('Error deleting party venue:', error.message);
-      return NextResponse.json({ error: 'Failed to delete venue selection' }, { status: 500 });
+      return safeJson({ error: 'Failed to delete venue selection' }, { status: 500 });
     }
-    return NextResponse.json({ success: true, message: 'Venue selection removed successfully' });
+    return safeJson({ success: true, message: 'Venue selection removed successfully' });
   } catch (error) {
     console.error('Error in party venue DELETE:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return safeJson({ error: 'Internal server error' }, { status: 500 });
   }
 }

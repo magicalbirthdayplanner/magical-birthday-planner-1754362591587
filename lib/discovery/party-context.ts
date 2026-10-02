@@ -1,5 +1,5 @@
 import { INTEREST_IDS, type InterestId, type Setting } from './taxonomy'
-import { clampRadius } from './config'
+import { snapRadius } from './config'
 import type { PartyContext } from './types'
 import type { LatLng } from '@/lib/geo/distance'
 
@@ -43,6 +43,6 @@ export function partyContextFromRow(row: PartyRowLike, center: LatLng, zip: stri
     setting: settingFromVenueType(row.venue_type),
     zip,
     center,
-    radiusMiles: clampRadius(radiusMiles ?? row.search_radius_miles ?? 20),
+    radiusMiles: snapRadius(radiusMiles ?? row.search_radius_miles ?? 20),
   }
 }

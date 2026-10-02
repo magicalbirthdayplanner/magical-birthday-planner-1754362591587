@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
+import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin';
+
+// Trial and plan columns are server-managed (users_guard_entitlements trigger):
+// they are written only with the service role, after server-side eligibility checks.
 
 export async function GET() {
   try {
@@ -8,7 +13,7 @@ export async function GET() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return safeJson({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get user's trial status from the database
@@ -29,11 +34,11 @@ export async function GET() {
 
     if (dbError) {
       console.error('Database error fetching trial status:', dbError);
-      return NextResponse.json({ error: 'Failed to fetch trial status' }, { status: 500 });
+      return safeJson({ error: 'Failed to fetch trial status' }, { status: 500 });
     }
 
     if (!userData) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return safeJson({ error: 'User not found' }, { status: 404 });
     }
 
     // Calculate trial status
@@ -59,14 +64,17 @@ export async function GET() {
     // Check if trial has expired and update database if needed
     if (userData.is_trial_active && trialExpires && trialExpires <= now) {
       try {
-        await supabase
-          .from('users')
-          .update({
-            is_trial_active: false,
-            current_plan: 'FREE',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', user.id);
+        if (hasServiceRole()) {
+          await getSupabaseAdmin()
+            .from('users')
+            .update({
+              is_trial_active: false,
+              current_plan: 'FREE',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', user.id)
+            .eq('is_trial_active', true);
+        }
         
         isTrialActive = false;
         trialStatus = 'EXPIRED';
@@ -75,7 +83,7 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({
+    return safeJson({
       userId: user.id,
       trialStatus,
       isTrialActive,
@@ -90,7 +98,7 @@ export async function GET() {
 
   } catch (error) {
     console.error('Error fetching trial status:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return safeJson({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -100,7 +108,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return safeJson({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { action } = await request.json();
@@ -115,11 +123,11 @@ export async function POST(request: NextRequest) {
 
       if (checkError) {
         console.error('Error checking trial eligibility:', checkError);
-        return NextResponse.json({ error: 'Failed to check trial eligibility' }, { status: 500 });
+        return safeJson({ error: 'Failed to check trial eligibility' }, { status: 500 });
       }
 
       if (userData?.has_used_trial) {
-        return NextResponse.json({ 
+        return safeJson({ 
           error: 'Trial already used',
           message: 'You have already used your 24-hour free trial'
         }, { status: 400 });
@@ -129,7 +137,11 @@ export async function POST(request: NextRequest) {
       const now = new Date();
       const trialExpires = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
 
-      const { error: updateError } = await supabase
+      if (!hasServiceRole()) {
+        return safeJson({ error: 'Trials are not available right now' }, { status: 503 });
+      }
+      // Conditional on has_used_trial = false so two concurrent requests cannot both start a trial.
+      const { error: updateError } = await getSupabaseAdmin()
         .from('users')
         .update({
           trial_started_at: now.toISOString(),
@@ -140,14 +152,15 @@ export async function POST(request: NextRequest) {
           current_plan: 'PRO',
           updated_at: now.toISOString()
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .or('has_used_trial.is.null,has_used_trial.eq.false');
 
       if (updateError) {
-        console.error('Error starting trial:', updateError);
-        return NextResponse.json({ error: 'Failed to start trial' }, { status: 500 });
+        console.error('Error starting trial:', updateError.message);
+        return safeJson({ error: 'Failed to start trial' }, { status: 500 });
       }
 
-      return NextResponse.json({
+      return safeJson({
         success: true,
         message: '24-hour free trial started!',
         trialStartedAt: now.toISOString(),
@@ -157,11 +170,11 @@ export async function POST(request: NextRequest) {
       });
 
     } else {
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+      return safeJson({ error: 'Invalid action' }, { status: 400 });
     }
 
   } catch (error) {
     console.error('Error managing trial:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return safeJson({ error: 'Internal server error' }, { status: 500 });
   }
 }

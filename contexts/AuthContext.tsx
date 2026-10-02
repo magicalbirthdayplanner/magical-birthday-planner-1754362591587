@@ -261,12 +261,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsSigningOut(true)
       
+      // Tell the app shell this sign-out is intentional (not an expired session).
+      try {
+        sessionStorage.setItem('mbp.signedOut', '1')
+      } catch {
+        /* storage unavailable */
+      }
+
       // Sign out from Supabase first and wait for completion
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Supabase signout error:', error)
         setIsSigningOut(false)
         return { error }
+      }
+
+      // Shared-device hygiene: drop mobile-app state (party draft holds the child's
+      // name and ZIP) and the service worker's cached app shell.
+      if (typeof window !== 'undefined') {
+        try {
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith('mbp.') && k !== 'mbp.aid')
+            .forEach((k) => localStorage.removeItem(k))
+        } catch {
+          /* storage unavailable */
+        }
+        if ('caches' in window) {
+          caches.keys().then((keys) => keys.filter((k) => k.startsWith('mbp-pages-')).forEach((k) => caches.delete(k))).catch(() => undefined)
+        }
       }
       
       // Clear localStorage after successful signout (only on client side)

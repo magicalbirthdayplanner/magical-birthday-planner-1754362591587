@@ -63,19 +63,31 @@ export async function getPublicInvitation(token: string): Promise<PublicInvitati
 }
 
 export async function submitRsvp(token: string, input: { name: string; email?: string; status: 'CONFIRMED' | 'DECLINED' | 'MAYBE'; adults: number; children: number; note?: string }) {
-  const { error } = await db.rpc('submit_rsvp', {
-    p_token: token,
-    p_name: input.name,
-    p_email: input.email ?? '',
-    p_status: input.status,
-    p_adults: input.adults,
-    p_children: input.children,
-    p_note: input.note ?? undefined,
-  })
-  if (error) {
-    if (/invitation_not_found/.test(error.message)) throw new Error('This invitation link is no longer active.')
-    if (/invalid_email/.test(error.message)) throw new Error('That email doesn’t look right.')
-    if (/invalid_name/.test(error.message)) throw new Error('Please add your name.')
-    throw new Error('We couldn’t save your RSVP. Please try again.')
+  let res: Response
+  try {
+    res = await fetch(`/api/invite/${encodeURIComponent(token)}/rsvp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+  } catch {
+    throw new Error('We couldn’t reach our servers. Check your connection and try again.')
   }
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
+    throw new Error(body.error?.message ?? 'We couldn’t save your RSVP. Please try again.')
+  }
+}
+
+/** New 192-bit link token; the old link stops working immediately. */
+export function newInviteToken(): string {
+  const bytes = new Uint8Array(24)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+export async function rotateInvitationToken(inv: PartyInvitation): Promise<PartyInvitation> {
+  const { data, error } = await db.from('party_invitations').update({ token: newInviteToken(), share_count: 0 }).eq('id', inv.id).select('*').single()
+  if (error) throw error
+  return data
 }

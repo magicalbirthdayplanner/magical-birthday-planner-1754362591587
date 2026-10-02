@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 
@@ -8,7 +9,7 @@ export async function GET() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return safeJson({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get user's profile data from Supabase using ID instead of email for better RLS compatibility
@@ -46,19 +47,19 @@ export async function GET() {
         
         if (createError) {
           console.error('Failed to create user record:', createError);
-          return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+          return safeJson({ error: 'Failed to create user profile' }, { status: 500 });
         }
         
         // Use the newly created user record
         dbUser = newUser;
       } else {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        return safeJson({ error: 'User not found' }, { status: 404 });
       }
     }
 
     // Ensure dbUser is not null before proceeding
     if (!dbUser) {
-      return NextResponse.json({ error: 'User profile not available' }, { status: 404 });
+      return safeJson({ error: 'User profile not available' }, { status: 404 });
     }
 
     // Calculate usage statistics
@@ -116,10 +117,10 @@ export async function GET() {
       }
     };
 
-    return NextResponse.json(profile);
+    return safeJson(profile);
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -133,7 +134,7 @@ export async function PATCH(request: NextRequest) {
 
     if (authError || !user) {
       console.error('PATCH /api/user/profile - Authentication failed:', authError);
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return safeJson({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const requestBody = await request.json();
@@ -144,14 +145,14 @@ export async function PATCH(request: NextRequest) {
 
     // Validate input
     if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Name must be a non-empty string' },
         { status: 400 }
       );
     }
 
     if (displayName !== undefined && typeof displayName !== 'string') {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Display name must be a string' },
         { status: 400 }
       );
@@ -205,18 +206,18 @@ export async function PATCH(request: NextRequest) {
         
         if (createError) {
           console.error('Failed to create user record during update:', createError);
-          return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+          return safeJson({ error: 'Failed to create user profile' }, { status: 500 });
         }
         
         updatedDbUser = newUser;
       } else {
-        return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+        return safeJson({ error: 'Failed to update profile' }, { status: 500 });
       }
     }
 
     // Ensure updatedDbUser is not null before proceeding
     if (!updatedDbUser) {
-      return NextResponse.json({ error: 'Updated user profile not available' }, { status: 500 });
+      return safeJson({ error: 'Updated user profile not available' }, { status: 500 });
     }
 
     console.log('PATCH /api/user/profile - Updated user:', updatedDbUser);
@@ -250,13 +251,13 @@ export async function PATCH(request: NextRequest) {
       createdAt: updatedDbUser.createdAt
     };
 
-    return NextResponse.json({
+    return safeJson({
       ...profile,
       success: true
     });
   } catch (error) {
     console.error('Error updating user profile:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Internal server error' },
       { status: 500 }
     );

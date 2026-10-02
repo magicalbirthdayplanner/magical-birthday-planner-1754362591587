@@ -48,15 +48,34 @@ export const DEBUG_API_ROUTES = [
 ] as const
 
 /**
- * Unused, unauthenticated routes that call paid Google APIs and return the
- * API key inside photo URLs. Superseded by /api/discovery/*.
+ * Unused legacy routes with security problems (no live caller in the UI):
+ * paid API calls without auth, client-supplied user ids, billing writes,
+ * error/stack leakage, account enumeration. Superseded or dead.
+ * Entries may contain a sub-path (e.g. 'party/create'); matching is per segment.
  */
-export const DEPRECATED_API_ROUTES = ['venues', 'venues-local'] as const
+export const DEPRECATED_API_ROUTES = [
+  'venues', // unauthenticated Google calls; API key in photo URLs
+  'venues-local', // unauthenticated Google calls; random distances
+  'subscriptions', // create/cancel trust client-supplied userId (billing manipulation)
+  'activity-expansion', // Azure OpenAI with optional auth
+  'budget-allocation', // Azure OpenAI without auth
+  'n8n', // unauthenticated webhook sink
+  'emails', // password-reset enumerates accounts; invitations sends email (dead UI)
+  'party/create', // leaks stack traces and DB errors
+  'party/get', // leaks stack traces and DB errors
+  'party/update', // leaks stack traces and DB errors
+  'party/guests', // leaks DB errors; creates invitations without tokens
+  'party-data', // unused autosave, leaks DB errors
+  'custom-themes', // unused (always 401)
+  'theme-favorites', // unused; writes as anon
+  'birthday-activities', // unused
+  'host-mode-expand', // unused
+] as const
 
 /** Debug pages that dump configuration. */
 export const DEBUG_PAGES = ['/env-check', '/test-oauth'] as const
 
-const blockedApi = new Set<string>([...DEBUG_API_ROUTES, ...DEPRECATED_API_ROUTES])
+const blockedApi: readonly string[] = [...DEBUG_API_ROUTES, ...DEPRECATED_API_ROUTES]
 
 export function debugRoutesEnabled(env: Record<string, string | undefined> = process.env): boolean {
   return env.ENABLE_DEBUG_ROUTES === 'true' && env.NODE_ENV !== 'production'
@@ -67,6 +86,7 @@ export function isBlockedPath(pathname: string, env: Record<string, string | und
   if (debugRoutesEnabled(env)) return false
   if (DEBUG_PAGES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return true
   if (!pathname.startsWith('/api/')) return false
-  const segment = pathname.slice('/api/'.length).split('/')[0]
-  return blockedApi.has(segment)
+  // Normalise //, trailing slashes and case so variants cannot slip past.
+  const rest = pathname.slice('/api/'.length).toLowerCase().split('/').filter(Boolean).join('/')
+  return blockedApi.some((entry) => rest === entry || rest.startsWith(`${entry}/`))
 }

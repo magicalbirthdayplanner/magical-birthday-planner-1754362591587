@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase';
 
 export async function GET(
@@ -9,7 +10,7 @@ export async function GET(
     const token = params.token;
     
     if (!token) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'RSVP token is required' },
         { status: 400 }
       );
@@ -29,7 +30,7 @@ export async function GET(
       .single();
 
     if (invitationError || !invitation) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Invalid RSVP token' },
         { status: 404 }
       );
@@ -41,13 +42,13 @@ export async function GET(
     const hoursDiff = (now.getTime() - invitationDate.getTime()) / (1000 * 60 * 60);
     
     if (hoursDiff > 24) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'RSVP token has expired' },
         { status: 410 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       invitation: {
         id: invitation.id,
@@ -60,7 +61,7 @@ export async function GET(
 
   } catch (error) {
     console.error('Error fetching RSVP invitation:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to fetch RSVP invitation' },
       { status: 500 }
     );
@@ -76,14 +77,14 @@ export async function POST(
     const { status, dietaryRestrictions, notes } = await request.json();
     
     if (!token || !status) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'RSVP token and status are required' },
         { status: 400 }
       );
     }
 
     if (!['CONFIRMED', 'DECLINED', 'MAYBE'].includes(status)) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Invalid RSVP status' },
         { status: 400 }
       );
@@ -103,7 +104,7 @@ export async function POST(
       .single();
 
     if (invitationError || !invitation) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Invalid RSVP token' },
         { status: 404 }
       );
@@ -124,7 +125,7 @@ export async function POST(
 
     if (guestUpdateError) {
       console.error('Error updating guest RSVP:', guestUpdateError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to update RSVP status' },
         { status: 500 }
       );
@@ -139,7 +140,7 @@ export async function POST(
       })
       .eq('id', invitation.id);
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       message: 'RSVP updated successfully',
       guest: updatedGuest
@@ -147,7 +148,7 @@ export async function POST(
 
   } catch (error) {
     console.error('Error updating RSVP:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to update RSVP' },
       { status: 500 }
     );

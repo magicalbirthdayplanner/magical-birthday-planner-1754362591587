@@ -5,7 +5,7 @@ import { apiError } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
 import { resolveZip } from '@/lib/geo/zip'
 import { isValidLatLng } from '@/lib/geo/distance'
-import { clampRadius } from '@/lib/discovery/config'
+import { snapRadius } from '@/lib/discovery/config'
 import { partyContextFromRow } from '@/lib/discovery/party-context'
 import { DiscoveryUnavailableError, discoverVenues } from '@/lib/discovery/service'
 import { discoveryDeps, zipGeocoder } from '@/lib/discovery/server-deps'
@@ -19,7 +19,7 @@ export const maxDuration = 30
 const Body = z.object({
   partyId: z.string().uuid(),
   radiusMiles: z.number().int().min(1).max(50).optional(),
-  categories: z.array(z.string().max(40)).max(12).optional(),
+  categories: z.array(z.string().max(40)).max(10).optional(),
   refresh: z.boolean().optional(),
 })
 
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   let city = party.city
   let state = party.state
   if (!isValidLatLng(center)) {
-    const loc = await resolveZip(party.zip_code, zipGeocoder())
+    const loc = await resolveZip(party.zip_code, zipGeocoder(auth.user.id))
     if (!loc) return apiError(422, 'invalid_zip', `We couldn't find ZIP ${party.zip_code ?? ''}. Update it in your party details.`)
     center = { lat: loc.lat, lng: loc.lng }
     city = loc.city
@@ -75,15 +75,15 @@ export async function POST(req: Request) {
       .eq('id', party.id)
   }
 
-  const radiusMiles = clampRadius(body.radiusMiles ?? party.search_radius_miles ?? 20)
-  if (body.radiusMiles && body.radiusMiles !== party.search_radius_miles) {
+  const radiusMiles = snapRadius(body.radiusMiles ?? party.search_radius_miles ?? 20)
+  if (body.radiusMiles && radiusMiles !== party.search_radius_miles) {
     await auth.supabase.from('parties').update({ search_radius_miles: radiusMiles }).eq('id', party.id)
   }
   const ctx = partyContextFromRow(party, center, party.zip_code ?? '', radiusMiles)
-  const categoryIds = body.categories?.filter((c) => getCategory(c))
+  const categoryIds = body.categories ? Array.from(new Set(body.categories.filter((c) => getCategory(c)))) : undefined
 
   try {
-    const result = await discoverVenues(ctx, discoveryDeps(), { categoryIds, forceRefresh: body.refresh })
+    const result = await discoverVenues(ctx, discoveryDeps(auth.user.id), { categoryIds: categoryIds?.length ? categoryIds : undefined, forceRefresh: body.refresh })
     trackServer(
       'venue_search_completed',
       {

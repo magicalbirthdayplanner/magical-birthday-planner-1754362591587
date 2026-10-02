@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerClient } from '@supabase/ssr';
 
 export const dynamic = 'force-dynamic';
@@ -124,7 +125,7 @@ export async function GET(request: NextRequest) {
     const authResult = await getAuthenticatedSupabaseClient(request);
     if (!authResult) {
       console.error('Authentication failed for user parties fetch');
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: 'Authentication required' },
         { status: 401 }
       );
@@ -146,21 +147,21 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching user parties:', error);
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: error.message },
         { status: 500 }
       );
     }
 
     console.log(`Successfully fetched ${parties?.length || 0} parties for user`);
-    return NextResponse.json({ 
+    return safeJson({ 
       success: true, 
       parties: parties || [] 
     });
 
   } catch (error) {
     console.error('Error in user parties GET API:', error);
-    return NextResponse.json(
+    return safeJson(
       { success: false, error: 'Internal server error' },
       { status: 500 }
     );

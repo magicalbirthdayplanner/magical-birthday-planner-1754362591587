@@ -1,5 +1,9 @@
 # Security
 
+> Release-gate status and the authoritative findings table: [`SECURITY_RELEASE_AUDIT.md`](./SECURITY_RELEASE_AUDIT.md).
+> Since that audit: billing self-upgrade is **fixed** (`BILLING_SECURITY.md`), RSVP moved behind a rate-limited route,
+> insecure legacy routes are blocked, dependencies patched, and secrets removed from all tracked files incl. `.ideavo/**`.
+
 ## 1. Immediate actions for the owner (not doable from code)
 
 1. **Rotate every secret that was committed.** `.env`, `.env.local`, `vercel-env-template.txt`,

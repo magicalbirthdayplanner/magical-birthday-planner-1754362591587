@@ -36,3 +36,10 @@ export function clampRadius(miles: unknown): number {
   if (!Number.isFinite(n)) return DEFAULT_RADIUS_MILES
   return Math.min(50, Math.max(1, Math.round(n)))
 }
+
+/** Snap any requested radius to the supported set, so arbitrary values can't mint new cache keys. */
+export function snapRadius(miles: unknown): (typeof RADIUS_OPTIONS)[number] {
+  const n = Number(miles)
+  if (!Number.isFinite(n)) return DEFAULT_RADIUS_MILES as 20
+  return RADIUS_OPTIONS.reduce((best, r) => (Math.abs(r - n) < Math.abs(best - n) ? r : best), RADIUS_OPTIONS[0])
+}

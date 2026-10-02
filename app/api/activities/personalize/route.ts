@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
     const { activityId, partyContext } = await request.json();
     
     if (!activityId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity ID is required' },
         { status: 400 }
       );
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (activityError || !activity) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity not found' },
         { status: 404 }
       );
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     // In the future, this could integrate with OpenAI for more sophisticated personalization
     const personalizedTip = generatePersonalizedTip(activity, partyContext);
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       personalizedTip,
       activity: {
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error personalizing activity:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to personalize activity' },
       { status: 500 }
     );

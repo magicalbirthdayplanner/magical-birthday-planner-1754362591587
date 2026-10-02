@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
     const { activityId, partyId } = await request.json();
     
     if (!activityId || !partyId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity ID and Party ID are required' },
         { status: 400 }
       );
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (activityError || !activity) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity not found' },
         { status: 404 }
       );
@@ -47,14 +48,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (partyError || !party) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
     }
 
     // Return expanded activity details
-    return NextResponse.json({
+    return safeJson({
       success: true,
       activity: {
         id: activity.id,
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error expanding activity:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to expand activity' },
       { status: 500 }
     );

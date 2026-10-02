@@ -22,7 +22,21 @@ function RequireAuth({ children }: { children: ReactNode }) {
   const isPublic = PUBLIC_APP_PATHS.has(pathname)
 
   useEffect(() => {
-    if (loading || user || isPublic) return
+    if (loading || user) return
+    // One-shot flag set by signOut(): consumed on the first signed-out render,
+    // public page or not, so it can never affect a later visit.
+    let voluntary = false
+    try {
+      voluntary = sessionStorage.getItem('mbp.signedOut') === '1'
+      if (voluntary) sessionStorage.removeItem('mbp.signedOut')
+    } catch {
+      /* storage unavailable */
+    }
+    if (isPublic) return
+    if (voluntary) {
+      router.replace('/home')
+      return
+    }
     const expired = hadUser.current ? '&expired=1' : ''
     router.replace(`/login?next=${encodeURIComponent(pathname)}${expired}`)
   }, [loading, user, isPublic, pathname, router])

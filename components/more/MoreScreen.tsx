@@ -131,8 +131,8 @@ export function MoreScreen() {
           variant="outline"
           block
           onClick={async () => {
-            await signOut()
             router.replace('/home')
+            await signOut()
           }}
         >
           <LogOut className="h-4 w-4" /> Sign out

@@ -9,10 +9,9 @@ import { track } from '@/lib/analytics/client'
 import { db } from '@/lib/db/browser'
 import { AppButton, IconButton, PageHeader } from './ui'
 import { GoogleIcon, TextField } from './fields'
+import { safeNext } from '@/lib/security/redirect'
 
-export function safeNext(raw: string | null, fallback = '/home'): string {
-  return raw && raw.startsWith('/') && !raw.startsWith('//') && !raw.startsWith('/\\') ? raw : fallback
-}
+export { safeNext }
 
 function friendlyAuthError(message: string): string {
   if (/invalid login credentials/i.test(message)) return 'That email and password don’t match. Try again?'

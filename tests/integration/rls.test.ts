@@ -229,20 +229,15 @@ describe('RLS isolation between users', () => {
       expect(wrong.data).toBeNull()
     })
 
-    it('lets an invitee RSVP, which lands on the host guest list only', async () => {
+    it('submit_rsvp cannot be called directly from a browser (server route only)', async () => {
       const { error } = await anonClient().rpc('submit_rsvp', {
-        p_token: A.invitationToken,
-        p_name: 'Rsvp Parent',
-        p_email: 'rsvp@example.test',
-        p_status: 'CONFIRMED',
-        p_adults: 1,
-        p_children: 2,
+        p_token: A.invitationToken, p_name: 'Direct', p_email: 'x@example.test', p_status: 'CONFIRMED', p_adults: 1, p_children: 0,
       })
-      expect(error).toBeNull()
-      const host = await A.user.client.from('guests').select('name, rsvp_status, child_count, source').eq('source', 'rsvp_link')
-      expect(host.data).toEqual([{ name: 'Rsvp Parent', rsvp_status: 'CONFIRMED', child_count: 2, source: 'rsvp_link' }])
-      const other = await B.user.client.from('guests').select('id').eq('source', 'rsvp_link')
-      expect(other.data).toEqual([])
+      expect(error?.code).toBe('42501')
+      const authed = await A.user.client.rpc('submit_rsvp', {
+        p_token: A.invitationToken, p_name: 'Direct', p_email: 'x@example.test', p_status: 'CONFIRMED', p_adults: 1, p_children: 0,
+      })
+      expect(authed.error?.code).toBe('42501')
     })
 
     it('rejects invalid RSVP input', async () => {

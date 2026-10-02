@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching activities:', error);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to fetch activities' },
         { status: 500 }
       );
@@ -90,7 +91,7 @@ export async function GET(request: NextRequest) {
 
     const totalPages = count ? Math.ceil(count / limit) : 0;
 
-    return NextResponse.json({ 
+    return safeJson({ 
       activities: transformedActivities,
       pagination: {
         page,
@@ -103,7 +104,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching activities:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to fetch activities' },
       { status: 500 }
     );

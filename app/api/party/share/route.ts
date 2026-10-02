@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
@@ -8,7 +9,7 @@ export async function POST(request: NextRequest) {
     const { partyId } = await request.json();
 
     if (!partyId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party ID is required' },
         { status: 400 }
       );
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Authentication required' },
         { status: 401 }
       );
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (partyError || !party) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
@@ -75,20 +76,20 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('Error updating party with share token:', updateError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to generate share token' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       shareToken: shareToken,
     });
 
   } catch (error) {
     console.error('Error generating share token:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('token');
 
     if (!token) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Share token is required' },
         { status: 400 }
       );
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (partyError || !party) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Shared party not found or no longer available' },
         { status: 404 }
       );
@@ -171,14 +172,14 @@ export async function GET(request: NextRequest) {
       sharedAt: party.sharedAt,
     };
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       party: sharedParty,
     });
 
   } catch (error) {
     console.error('Error fetching shared party:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Internal server error' },
       { status: 500 }
     );

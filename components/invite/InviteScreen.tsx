@@ -7,7 +7,7 @@ import { useParty } from '@/components/app/PartyProvider'
 import { AppButton, Card, EmptyState, LinkButton, PageHeader, Section, Skeleton } from '@/components/app/ui'
 import { TextArea, TextField } from '@/components/app/fields'
 import { useChosenVenue, useInvitation } from '@/lib/data/hooks'
-import { inviteUrl, markInvitationShared, saveInvitation, type InvitationInput, type PartyInvitation } from '@/lib/data/invitations'
+import { inviteUrl, markInvitationShared, rotateInvitationToken, saveInvitation, type InvitationInput, type PartyInvitation } from '@/lib/data/invitations'
 import { completeTaskByKey } from '@/lib/data/checklist'
 import { friendlyError } from '@/lib/data/api'
 import { track } from '@/lib/analytics/client'
@@ -143,6 +143,24 @@ export function InviteScreen() {
               ))}
             </div>
             <p className="mt-2 text-center text-xs text-muted-foreground">Anyone with the link can see the invitation and RSVP. Your other party details stay private.</p>
+            {invitation.data ? (
+              <button
+                type="button"
+                className="mt-2 block w-full text-center text-xs font-semibold text-muted-foreground underline underline-offset-4"
+                onClick={async () => {
+                  if (!window.confirm('Turn off the current link and create a new one? People with the old link won’t be able to RSVP.')) return
+                  try {
+                    const next = await rotateInvitationToken(invitation.data!)
+                    await invitation.mutate(next, { revalidate: false })
+                    toast.success('New link created — the old one no longer works')
+                  } catch (e) {
+                    toast.error(friendlyError(e))
+                  }
+                }}
+              >
+                Reset link
+              </button>
+            ) : null}
           </Section>
 
           <Section title="Details">

@@ -178,7 +178,10 @@ class DodoPaymentsClient {
         .update(payload)
         .digest('hex');
       
-      return signature === `sha256=${expectedSignature}`;
+      // Constant-time comparison (a plain === leaks timing information).
+      const expected = Buffer.from(`sha256=${expectedSignature}`);
+      const received = Buffer.from(String(signature));
+      return received.length === expected.length && crypto.timingSafeEqual(received, expected);
     } catch (error) {
       console.error('Webhook verification error:', error);
       return false;

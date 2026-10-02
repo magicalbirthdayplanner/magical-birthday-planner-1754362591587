@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const partyId = searchParams.get('partyId');
 
     if (!partyId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party ID is required' },
         { status: 400 }
       );
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (partyError || !party) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
@@ -53,18 +54,18 @@ export async function GET(request: NextRequest) {
 
     if (activitiesError) {
       console.error('Error fetching selected activities:', activitiesError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to fetch selected activities' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       selectedActivities: selectedActivities || []
     });
   } catch (error) {
     console.error('Error fetching selected activities:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to fetch selected activities' },
       { status: 500 }
       );
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     const { activityId, partyId } = await request.json();
     if (!activityId || !partyId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity ID and Party ID are required' },
         { status: 400 }
       );
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (partyError || !party) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (activityError || !activity) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity not found' },
         { status: 400 }
       );
@@ -138,19 +139,19 @@ export async function POST(request: NextRequest) {
 
     if (upsertError) {
       console.error('Error upserting party activity:', upsertError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to add activity to party plan' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       message: 'Activity added to party plan',
       selectedActivity
     });
   } catch (error) {
     console.error('Error adding selected activity:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to add activity to party plan' },
       { status: 500 }
     );
@@ -165,7 +166,7 @@ export async function DELETE(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -173,7 +174,7 @@ export async function DELETE(request: NextRequest) {
 
     const { activityId, partyId } = await request.json();
     if (!activityId || !partyId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity ID and Party ID are required' },
         { status: 400 }
       );
@@ -188,7 +189,7 @@ export async function DELETE(request: NextRequest) {
       .single();
 
     if (partyError || !party) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
@@ -204,18 +205,18 @@ export async function DELETE(request: NextRequest) {
 
     if (deleteError) {
       console.error('Error deleting party activity:', deleteError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to remove activity from party plan' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       message: 'Activity removed from party plan'
     });
   } catch (error) {
     console.error('Error removing selected activity:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to remove activity from party plan' },
       { status: 500 }
     );

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import OpenAI from 'openai';
 import { shouldBlockAISuggestions } from '@/lib/profanity-filter';
 import { rateLimit } from '@/lib/server/rate-limit';
@@ -76,7 +77,7 @@ interface ThemeRecommendation {
 export async function POST(request: NextRequest) {
   // Unauthenticated legacy endpoint that calls a paid model: cap per IP.
   if (!rateLimit(`legacy-ai-themes:${clientIp(request)}`, 10, 3_600_000).ok) {
-    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+    return safeJson({ error: 'Too many requests. Please try again later.' }, { status: 429 });
   }
   try {
     const body: ThemeRequest = await request.json();
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     // Check for inappropriate content before processing
     if (childDetails && shouldBlockAISuggestions(childDetails)) {
-      return NextResponse.json(
+      return safeJson(
         { 
           error: 'Inappropriate content detected',
           blocked: true,
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (currentFavorites && shouldBlockAISuggestions(currentFavorites)) {
-      return NextResponse.json(
+      return safeJson(
         { 
           error: 'Inappropriate content detected',
           blocked: true,
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!openai || !process.env.AZURE_OPENAI_API_KEY) {
-      return NextResponse.json(
+      return safeJson(
         { 
           error: 'Azure OpenAI API key not configured',
           fallback: true,
@@ -411,7 +412,7 @@ OUTPUT REQUIREMENTS:
         // If no themes match specific text input, return fallback
         if (validatedRecommendations.length === 0) {
           console.log('No themes matched specific text input, using text-aware fallback');
-          return NextResponse.json({
+          return safeJson({
             error: 'AI generated themes not matching specific text input',
             fallback: true,
             recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme, childDetails)
@@ -439,7 +440,7 @@ OUTPUT REQUIREMENTS:
         
         if (validatedRecommendations.length === 0) {
           console.log(`No valid ${selectedClassicTheme} variations found, using fallback`);
-          return NextResponse.json({
+          return safeJson({
             error: `AI generated themes not matching ${selectedClassicTheme}`,
             fallback: true,
             recommendations: getFallbackRecommendations(childName, age, interests, selectedClassicTheme, childDetails)
@@ -461,7 +462,7 @@ OUTPUT REQUIREMENTS:
         validatedFinalRecommendations = [...validatedFinalRecommendations, ...additionalThemes.slice(0, neededCount)];
       }
 
-      return NextResponse.json({
+      return safeJson({
         recommendations: validatedFinalRecommendations,
         fallback: false,
         generatedAt: new Date().toISOString(),
@@ -474,7 +475,7 @@ OUTPUT REQUIREMENTS:
       console.error('Response text:', responseText);
       
       // Return fallback recommendations
-      return NextResponse.json({
+      return safeJson({
         error: 'Failed to parse AI response',
         fallback: true,
         recommendations: getFallbackRecommendations(childName, age, interests, undefined, childDetails)
@@ -494,7 +495,7 @@ OUTPUT REQUIREMENTS:
     // Always return fallback recommendations on error with minimum 3 themes
     const fallbackThemes = getFallbackRecommendations(body.childName || 'Child', body.age || 5, body.interests || ['games'], body.selectedClassicTheme, body.childDetails);
     
-    return NextResponse.json({
+    return safeJson({
       error: 'Failed to generate recommendations',
       fallback: true,
       recommendations: fallbackThemes.slice(0, Math.max(3, fallbackThemes.length)), // Ensure minimum 3 themes

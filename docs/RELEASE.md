@@ -1,5 +1,48 @@
 # Release guide — mobile-first
 
+> **Release gate status (2026-10-01): NOT READY TO RELEASE.** The branch is hardened and tested
+> locally; the owner actions below are outstanding. Do not push/deploy until every box is ticked.
+> Evidence: [`SECURITY_RELEASE_AUDIT.md`](./SECURITY_RELEASE_AUDIT.md).
+
+## Release checklist
+
+**Security & credentials**
+- [ ] Rotate exposed credentials — Supabase **personal access tokens** (`sbp_`, revoke), Supabase service-role/JWT secret, database password, Google API key, Azure OpenAI key, Resend key, Apify token, Dodo key/webhook secret (`SECURITY_RELEASE_AUDIT.md §3`)
+- [ ] Review Supabase auth logs, Google/Azure/Resend usage for misuse since 2025-07-31
+- [ ] Confirm git history remediation decision (rewrite per `SECURITY_RELEASE_AUDIT.md §4`, or accept with rotation only) and complete it
+- [ ] Remove debug routes — run the deletion command in `SECURITY_RELEASE_AUDIT.md §6` (they already 404)
+- [ ] Verify billing cannot be self-modified in production (`BILLING_SECURITY.md §3` checks against prod after migrations)
+- [ ] Remove or pin (SRI) the third-party `ideavo.min.js`; decide on `frame-ancestors`
+
+**Supabase**
+- [ ] Confirm the production Supabase project exists, is active, and is the launch project (`PRODUCTION_SCHEMA_DIFF.md`)
+- [ ] Dump prod schema, run `supabase db diff`, fill in `PRODUCTION_SCHEMA_DIFF.md`
+- [ ] Apply reviewed migrations 0100 → 0400 (baseline 0000 marked applied, not run)
+- [ ] Verify RLS in prod: run the A/B checks with two real test accounts (or point `tests/integration` at a staging project)
+- [ ] Verify authentication: email sign-up/sign-in, Google OAuth, redirect allow-list includes `/auth/callback**`, Auth rate limits set
+
+**Configuration**
+- [ ] Configure Google Places: new server key restricted to Places API (New) + Geocoding; Cloud quotas + billing alerts (`GOOGLE_PLACES_COST_CONTROL.md`)
+- [ ] Configure Google Maps browser key (referrer-restricted) + Map ID
+- [ ] Configure production domain (`NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_SITE_URL`, Supabase Site URL)
+- [ ] Configure PWA (icons/manifest served from the production domain; `sw.js` not cached by CDN)
+- [ ] Configure analytics (confirm `analytics_events` inserts; decide retention)
+- [ ] Set all env vars from `.env.example` (PUBLIC vs SERVER) in Vercel; none of the SERVER ones prefixed `NEXT_PUBLIC_`
+
+**Verification on a preview/staging deployment**
+- [ ] Test production build (`npm run check`; CI green)
+- [ ] Test real Google Places (discovery, details, photos, map) and watch the Google Cloud metrics
+- [ ] Test real authentication (email + Google)
+- [ ] Test real Supabase (create party, save, guests, checklist persist; reload; second device)
+- [ ] Test invitation links (share, RSVP from another phone, link reset)
+- [ ] Test mobile Safari (iOS) at 375 & 390/430 — wizard keyboard, sheets, map, share, Add to Home Screen
+- [ ] Test Android Chrome — install prompt, back button, map
+- [ ] Plan the Next.js 15/16 upgrade (remaining advisories, `SECURITY_RELEASE_AUDIT.md §5`)
+
+**After launch**
+- [ ] Monitor logs (Vercel functions, Supabase API/auth, `venue_search_completed` metrics, Google quota usage, 4xx/5xx rates)
+
+
 ## 0. Before anything: security
 
 Do the items in `SECURITY.md §1` first (rotate leaked secrets; ship the debug-route block).
@@ -36,13 +79,13 @@ supabase migration repair --status applied 20251001000000
 # 3. Review what will change
 supabase db diff --linked          # compare with schema_before.sql; check parties/guests/venues columns
 supabase db push --dry-run
-# 4. Apply 0100 (core), 0200 (RLS hardening), 0300 (theme details)
+# 4. Apply 0100 (core), 0200 (RLS hardening), 0300 (theme details), 0400 (entitlements + RSVP)
 supabase db push
 # 5. Regenerate types if the live schema differed
 supabase gen types typescript --linked > lib/db/database.types.ts
 ```
 
-All three migrations are additive/idempotent and were re-run twice locally without error. Points to
+All four migrations are additive/idempotent and were re-run twice locally without error. Points to
 eyeball in the diff: the `guests_type_check` constraint is replaced by a superset; every policy on
 `users`, `parties` and party-owned tables is replaced with owner-scoped ones (anything that relied
 on “authenticated can do everything” will now get empty results — the legacy debug routes did).

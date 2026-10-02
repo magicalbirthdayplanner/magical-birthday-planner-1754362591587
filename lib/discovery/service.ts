@@ -25,6 +25,8 @@ export interface DiscoveryDeps {
   config: DiscoveryConfig
   now?: () => Date
   onMetric?: (name: string, props: Record<string, unknown>) => void
+  /** Outbound-call budget; when it refuses, Google is not called. */
+  budget?: { allow(n?: number): boolean }
 }
 
 export interface DiscoverOptions {
@@ -90,6 +92,7 @@ export async function discoverVenues(ctx: PartyContext, deps: DiscoveryDeps, opt
     meta.cacheMisses++
     const t0 = Date.now()
     try {
+      if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local Google call budget exhausted')
       meta.apiCalls++
       const raw = await deps.places.searchText({ textQuery: category.query, center: ctx.center, radiusMeters, pageSize: 20 })
       const fetchedAt = now()
@@ -186,6 +189,7 @@ export async function getVenueDetails(
   let stale = false
   if (!fresh) {
     try {
+      if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local Google call budget exhausted')
       const t0 = Date.now()
       const raw = await deps.places.getPlace(placeId)
       const syncedAt = now()

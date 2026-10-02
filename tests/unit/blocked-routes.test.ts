@@ -34,3 +34,23 @@ describe('isBlockedPath', () => {
     }
   })
 })
+
+describe('deprecated insecure legacy routes', () => {
+  const dev = { NODE_ENV: 'production' }
+  it('blocks billing manipulation, unauthenticated AI and leaky legacy routes', () => {
+    for (const p of ['/api/subscriptions/create', '/api/subscriptions/cancel', '/api/budget-allocation', '/api/activity-expansion',
+      '/api/emails/password-reset', '/api/party/create', '/api/party/get', '/api/party/guests/add', '/api/n8n/webhook']) {
+      expect(isBlockedPath(p, dev), p).toBe(true)
+    }
+  })
+  it('keeps live sibling routes reachable', () => {
+    for (const p of ['/api/party/share', '/api/party-venue', '/api/party-activities', '/api/parties']) {
+      expect(isBlockedPath(p, dev), p).toBe(false)
+    }
+  })
+  it('is not fooled by path variants', () => {
+    for (const p of ['/api//bypass-oauth-session', '/api/Bypass-OAuth-Session', '/api/bypass-oauth-session/', '/api/party//create']) {
+      expect(isBlockedPath(p, dev), p).toBe(true)
+    }
+  })
+})

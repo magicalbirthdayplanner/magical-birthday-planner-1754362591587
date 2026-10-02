@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const partyId = searchParams.get('partyId');
 
     if (!partyId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party ID is required' },
         { status: 400 }
       );
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (partyError || !party) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
@@ -54,20 +55,20 @@ export async function GET(request: NextRequest) {
 
     if (activitiesError) {
       console.error('Error fetching party activities:', activitiesError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to fetch party activities' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       partyActivities: partyActivities || []
     });
 
   } catch (error) {
     console.error('Error fetching party activities:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to fetch party activities' },
       { status: 500 }
     );
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
     const { partyId, activityId, customNotes, estimatedTime, peopleRequired } = await request.json();
     
     if (!partyId || !activityId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party ID and Activity ID are required' },
         { status: 400 }
       );
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (partyError || !party) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
@@ -131,13 +132,13 @@ export async function POST(request: NextRequest) {
 
     if (upsertError) {
       console.error('Error upserting party activity:', upsertError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to add activity to party' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       message: 'Activity added to party successfully',
       partyActivity
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error adding party activity:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to add activity to party' },
       { status: 500 }
     );

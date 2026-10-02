@@ -58,14 +58,15 @@ beforeAll(async () => {
     await new Promise((r) => setTimeout(r, 100))
   }
   ;[A, B] = await Promise.all([createTestUser('disc-a'), createTestUser('disc-b')])
-  // Unique location per run so the shared venue cache starts cold.
-  const jitter = (Date.now() % 1000) / 10_000
+  // Random location per run (≈1,000 × 1,000 cache cells) so the shared venue cache starts cold.
+  const lat = 33 + Math.random() * 10
+  const lng = -110 + Math.random() * 30
   const { data, error } = await A.client
     .from('parties')
     .insert({
       user_id: A.id, child_name: 'Ava', child_age: 7, party_date: '2026-12-12', zip_code: '48084',
       guest_count: 20, budget: 500, interests: ['art'], venue_type: 'mixed',
-      latitude: 42.5627 + jitter, longitude: -83.1799,
+      latitude: lat, longitude: lng,
     })
     .select('id')
     .single()

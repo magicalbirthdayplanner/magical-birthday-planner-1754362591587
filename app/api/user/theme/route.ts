@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 
@@ -8,7 +9,7 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+      return safeJson({ error: 'Not authenticated' }, { status: 401 })
     }
 
     // Get user from Supabase
@@ -22,12 +23,12 @@ export async function GET() {
       console.error('Database error:', dbError)
     }
 
-    return NextResponse.json({ 
+    return safeJson({ 
       theme: dbUser?.theme || 'light' 
     })
   } catch (error) {
     console.error('Error fetching user theme:', error)
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to fetch theme preference' },
       { status: 500 }
     )
@@ -40,13 +41,13 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+      return safeJson({ error: 'Not authenticated' }, { status: 401 })
     }
 
     const { theme } = await request.json()
 
     if (!theme || !['light', 'dark'].includes(theme)) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Invalid theme. Must be "light" or "dark"' },
         { status: 400 }
       )
@@ -72,16 +73,16 @@ export async function POST(request: NextRequest) {
 
     if (upsertError) {
       console.error('Error upserting user theme:', upsertError)
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to save theme preference' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({ success: true })
+    return safeJson({ success: true })
   } catch (error) {
     console.error('Error saving user theme:', error)
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to save theme preference' },
       { status: 500 }
     )

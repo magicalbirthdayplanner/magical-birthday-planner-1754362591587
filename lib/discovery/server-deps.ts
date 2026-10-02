@@ -3,6 +3,7 @@ import { createPlacesClient } from '@/lib/google/places'
 import { createZipGeocoder } from '@/lib/google/geocoding'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
 import { logMetric } from '@/lib/analytics/server'
+import { googleBudgetFor } from '@/lib/server/google-budget'
 import { discoveryConfig } from './config'
 import type { DiscoveryDeps } from './service'
 import { MemoryDiscoveryStore, type DiscoveryStore } from './store'
@@ -17,8 +18,32 @@ function store(): DiscoveryStore {
   return memoryFallback
 }
 
-export function discoveryDeps(): DiscoveryDeps {
-  return { places: createPlacesClient(), store: store(), config: discoveryConfig(), onMetric: logMetric }
+/** `subject` (user id or ip) scopes the hourly Google-call budget. */
+export function discoveryDeps(subject?: string): DiscoveryDeps {
+  return {
+    places: createPlacesClient(),
+    store: store(),
+    config: discoveryConfig(),
+    onMetric: logMetric,
+    budget: subject ? googleBudgetFor(subject) : undefined,
+  }
 }
 
-export const zipGeocoder = () => createZipGeocoder()
+const geocodeMisses = new Map<string, number>()
+
+/** Google Geocoding fallback for ZIPs missing from the offline dataset: negative-cached and budgeted. */
+export const zipGeocoder = (subject = 'anonymous') => {
+  const geocode = createZipGeocoder()
+  const budget = googleBudgetFor(`geocode:${subject}`)
+  return async (zip: string) => {
+    const miss = geocodeMisses.get(zip)
+    if (miss && miss > Date.now()) return null
+    if (!budget.allow(1)) return null
+    const hit = await geocode(zip)
+    if (!hit) {
+      if (geocodeMisses.size > 50_000) geocodeMisses.clear()
+      geocodeMisses.set(zip, Date.now() + 24 * 3_600_000)
+    }
+    return hit
+  }
+}

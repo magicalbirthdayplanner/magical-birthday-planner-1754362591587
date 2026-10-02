@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { searchVenues, SearchParams } from '@/lib/google-places';
 
 export async function GET(request: NextRequest) {
@@ -15,14 +16,14 @@ export async function GET(request: NextRequest) {
 
     // Validate required parameters
     if (!zipCode) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'ZIP code is required' },
         { status: 400 }
       );
     }
 
     if (!category || !['indoor', 'outdoor', 'specialty', 'community'].includes(category)) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Valid category is required (indoor, outdoor, specialty, community)' },
         { status: 400 }
       );
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     // Search venues (will use cache if available, otherwise fetch from Google Places API)
     const venues = await searchVenues(params);
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       venues,
       total: venues.length,
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('API Error searching venues:', error);
     
-    return NextResponse.json(
+    return safeJson(
       { 
         error: 'Failed to search venues',
         details: error instanceof Error ? error.message : 'Unknown error'
@@ -70,14 +71,14 @@ export async function POST(request: NextRequest) {
 
     // Validate required parameters
     if (!zipCode) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'ZIP code is required' },
         { status: 400 }
       );
     }
 
     if (!category || !['indoor', 'outdoor', 'specialty', 'community'].includes(category)) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Valid category is required (indoor, outdoor, specialty, community)' },
         { status: 400 }
       );
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
     // Search venues (will use cache if available, otherwise fetch from Google Places API)
     const venues = await searchVenues(params);
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       venues,
       total: venues.length,
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('API Error searching venues:', error);
     
-    return NextResponse.json(
+    return safeJson(
       { 
         error: 'Failed to search venues',
         details: error instanceof Error ? error.message : 'Unknown error'

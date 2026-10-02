@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
@@ -141,7 +142,7 @@ export async function GET(request: NextRequest) {
     const partyId = searchParams.get('id');
     
     if (!partyId) {
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: 'Party ID is required' },
         { status: 400 }
       );
@@ -156,7 +157,7 @@ export async function GET(request: NextRequest) {
     if (!authenticatedUser || !workingSupabase) {
       console.error('=== AUTHENTICATION FAILED FOR PARTY FETCH ===');
       
-      return NextResponse.json(
+      return safeJson(
         { 
           success: false, 
           error: 'Authentication failed. Please sign out and sign in again.',
@@ -183,12 +184,12 @@ export async function GET(request: NextRequest) {
     if (existsError) {
       console.error('Party lookup error:', existsError);
       if (existsError.code === 'PGRST116') {
-        return NextResponse.json(
+        return safeJson(
           { success: false, error: `Party not found: No party exists with ID ${partyId}` },
           { status: 404 }
         );
       }
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: `Database error: ${existsError.message}` },
         { status: 500 }
       );
@@ -196,7 +197,7 @@ export async function GET(request: NextRequest) {
     
     if (!partyExists) {
       console.error(`No party found with ID: ${partyId}`);
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: `Party not found: No party exists with ID ${partyId}` },
         { status: 404 }
       );
@@ -207,7 +208,7 @@ export async function GET(request: NextRequest) {
     // Check if user owns this party
     if (partyExists.user_id !== authenticatedUser.id) {
       console.error(`Access denied. Party belongs to user ${partyExists.user_id}, current user is ${authenticatedUser.id}`);
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: `Access denied: This party belongs to another user. You can only view parties you created.` },
         { status: 403 }
       );
@@ -227,7 +228,7 @@ export async function GET(request: NextRequest) {
 
     if (fetchError) {
       console.error('Full party fetch error:', fetchError);
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: `Failed to load party details: ${fetchError.message}` },
         { status: 500 }
       );
@@ -238,14 +239,14 @@ export async function GET(request: NextRequest) {
     console.log('Guests count:', party.guests?.length || 0);
     console.log('Invitations count:', party.invitations?.length || 0);
     
-    return NextResponse.json({
+    return safeJson({
       success: true,
       party
     });
     
   } catch (error) {
     console.error('=== PARTY FETCH API ERROR ===', error);
-    return NextResponse.json(
+    return safeJson(
       { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error occurred' 
@@ -265,7 +266,7 @@ export async function PUT(request: NextRequest) {
     
     if (!authenticatedUser || !workingSupabase) {
       console.error('Authentication failed for party update');
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: 'Authentication failed. Please sign out and sign in again.' },
         { status: 401 }
       );
@@ -276,7 +277,7 @@ export async function PUT(request: NextRequest) {
     const { partyId, updates } = body;
     
     if (!partyId || !updates) {
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: 'Party ID and updates are required' },
         { status: 400 }
       );
@@ -294,7 +295,7 @@ export async function PUT(request: NextRequest) {
     
     if (partyError || !party) {
       console.error('Party verification failed:', partyError);
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: 'Party not found or access denied' },
         { status: 404 }
       );
@@ -325,18 +326,18 @@ export async function PUT(request: NextRequest) {
     
     if (updateError) {
       console.error('Error updating party:', updateError);
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: updateError.message },
         { status: 500 }
       );
     }
     
     console.log('Party updated successfully:', partyId);
-    return NextResponse.json({ success: true, party: updatedParty });
+    return safeJson({ success: true, party: updatedParty });
     
   } catch (error) {
     console.error('Error in party PUT API:', error);
-    return NextResponse.json(
+    return safeJson(
       { success: false, error: 'Internal server error' },
       { status: 500 }
     );
@@ -353,7 +354,7 @@ export async function DELETE(request: NextRequest) {
     
     if (!authenticatedUser || !workingSupabase) {
       console.error('Authentication failed for party deletion');
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: 'Authentication failed. Please sign out and sign in again.' },
         { status: 401 }
       );
@@ -364,7 +365,7 @@ export async function DELETE(request: NextRequest) {
     const partyId = url.searchParams.get('id');
     
     if (!partyId) {
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: 'Party ID is required' },
         { status: 400 }
       );
@@ -381,18 +382,18 @@ export async function DELETE(request: NextRequest) {
     
     if (deleteError) {
       console.error('Error deleting party:', deleteError);
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: deleteError.message },
         { status: 500 }
       );
     }
     
     console.log('Party deleted successfully:', partyId);
-    return NextResponse.json({ success: true });
+    return safeJson({ success: true });
     
   } catch (error) {
     console.error('Error in party DELETE API:', error);
-    return NextResponse.json(
+    return safeJson(
       { success: false, error: 'Internal server error' },
       { status: 500 }
     );
@@ -411,7 +412,7 @@ export async function POST(request: NextRequest) {
     if (!authenticatedUser || !workingSupabase) {
       console.error('=== AUTHENTICATION FAILED - ALL METHODS ===');
       
-      return NextResponse.json(
+      return safeJson(
         { 
           success: false, 
           error: 'Authentication failed. Please sign out and sign in again.',
@@ -439,7 +440,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       console.error('Failed to parse request body:', error);
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: 'Invalid request data' },
         { status: 400 }
       );
@@ -447,7 +448,7 @@ export async function POST(request: NextRequest) {
     
     // Validate required fields
     if (!partyData.childName || !partyData.childAge || !partyData.partyDate) {
-      return NextResponse.json(
+      return safeJson(
         { success: false, error: 'Missing required fields: childName, childAge, or partyDate' },
         { status: 400 }
       );
@@ -517,7 +518,7 @@ export async function POST(request: NextRequest) {
       console.error('=== DATABASE INSERT FAILED ===');
       console.error('Final error:', insertError);
       
-      return NextResponse.json(
+      return safeJson(
         { 
           success: false, 
           error: `Database error: ${insertError?.message || 'Insert failed'}`,
@@ -534,7 +535,7 @@ export async function POST(request: NextRequest) {
     console.log('=== PARTY CREATION SUCCESSFUL ===');
     console.log('Party ID:', insertResult.id);
     
-    return NextResponse.json({
+    return safeJson({
       success: true,
       party: insertResult,
       debug: {
@@ -548,7 +549,7 @@ export async function POST(request: NextRequest) {
     console.error('=== API ROUTE EXCEPTION ===');
     console.error('Error:', error);
     
-    return NextResponse.json(
+    return safeJson(
       { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown server error',

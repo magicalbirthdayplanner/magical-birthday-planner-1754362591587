@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { haversineMiles } from '@/lib/geo/distance';
 import { resolveZip } from '@/lib/geo/zip';
 import { isValidPhotoName, normalizePlace } from '@/lib/google/places';
@@ -314,7 +315,7 @@ const PRICE_SYMBOLS: Record<string, string> = {
 export async function GET(request: NextRequest) {
   // Unauthenticated legacy endpoint that calls paid Google APIs: cap per IP.
   if (!rateLimit(`food-vendors:${clientIp(request)}`, 10, 60_000).ok) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    return safeJson({ error: 'Too many requests' }, { status: 429 });
   }
   try {
     const { searchParams } = new URL(request.url);
@@ -329,7 +330,7 @@ export async function GET(request: NextRequest) {
     
     if (!apiKey) {
       console.error('Google Places API key is required but not found');
-      return NextResponse.json(
+      return safeJson(
         { error: 'Google Places API key is required but not configured' },
         { status: 500 }
       );
@@ -364,7 +365,7 @@ export async function GET(request: NextRequest) {
 
     if (allRestaurants.length === 0) {
       console.log('No restaurants found for the given search criteria');
-      return NextResponse.json({
+      return safeJson({
         success: true,
         vendors: [],
         zipCode,
@@ -441,7 +442,7 @@ export async function GET(request: NextRequest) {
     // Apply AI recommendations
     const aiRecommendedVendors = await getAIRecommendedVendors(filteredVendors, zipCode, guestCount);
 
-    return NextResponse.json({
+    return safeJson({
       success: true,
       vendors: aiRecommendedVendors,
       zipCode,
@@ -455,7 +456,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error in food vendors API:', error);
-    return NextResponse.json(
+    return safeJson(
       { 
         success: false, 
         error: 'Failed to fetch food vendor recommendations from Google Places API',

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, PartyPopper, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
+import { safeNext } from "@/lib/security/redirect";
 
 function CheckoutSuccessContent() {
   const router = useRouter();
@@ -40,63 +41,24 @@ function CheckoutSuccessContent() {
           purchasedPlan = planParam.toUpperCase();
         }
 
-        console.log('Processing purchase:', { 
-          planParam, 
-          purchasedPlan, 
-          success, 
-          sessionId, 
-          transactionId,
-          allParams: Object.fromEntries(searchParams.entries())
-        });
-
-        // Store purchase info in localStorage for persistence
-        const purchaseInfo = {
-          plan: purchasedPlan,
-          purchaseDate: new Date().toISOString(),
-          transactionId,
-          sessionId,
-          processed: true
-        };
-        
-        localStorage.setItem('lastPurchase', JSON.stringify(purchaseInfo));
-
-        // Mark the plan as purchased
-        markPlanAsPurchased(purchasedPlan as any);
+        // SECURITY: URL parameters are not proof of payment and must never grant a plan.
+        // The plan is updated server-side by the payment provider's signed webhook;
+        // here we only show what was chosen and re-read the server state.
         setPlan(purchasedPlan);
-        
-        // Try to save purchase to database if user is authenticated
-        // This is optional and won't block the process if it fails
-        try {
-          const response = await fetch('/api/user/purchase', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(purchaseInfo),
-          });
-          
-          if (response.ok) {
-            console.log('Purchase saved to database successfully');
-          } else {
-            console.warn('Failed to save purchase to database, but continuing...');
-          }
-        } catch (dbError) {
-          console.warn('Database save failed, but purchase is still valid:', dbError);
-        }
-        
+        markPlanAsPurchased(purchasedPlan as any);
+
         setIsProcessing(false);
 
         // Auto-redirect after 4 seconds (slightly longer to show success)
         setTimeout(() => {
-          const returnUrl = searchParams.get('return_url') || '/party-plan';
+          const rawReturn = searchParams.get('return_url');
+          // Same-origin relative paths only (no open redirect).
+          const returnUrl = safeNext(rawReturn, '/party-plan');
           router.push(returnUrl);
         }, 4000);
         
       } catch (error) {
-        console.error('Error processing purchase:', error);
-        // Still mark as successful but with fallback plan
-        markPlanAsPurchased('STARTER' as any);
-        setPlan('STARTER');
+        console.error('Error processing checkout return:', error);
         setIsProcessing(false);
       }
     };
@@ -154,15 +116,15 @@ function CheckoutSuccessContent() {
 
             {/* Success Message */}
             <h1 className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-200 mb-4">
-              🎉 Payment Successful!
+              🎉 Thanks for your order!
             </h1>
             
             <div className="bg-white/80 dark:bg-slate-800/80 rounded-lg p-4 mb-6">
               <p className="text-green-700 dark:text-green-300 mb-2">
-                Welcome to the <strong>{planDetails.name}</strong> plan!
+                You chose the <strong>{planDetails.name}</strong> plan.
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                You now have full access to all party planning features.
+                Your plan activates as soon as our payment provider confirms the payment — usually within a minute.
               </p>
             </div>
 
@@ -175,7 +137,7 @@ function CheckoutSuccessContent() {
                 </h3>
               </div>
               <p className="text-sm text-purple-700 dark:text-purple-300">
-                Your subscription is now active and ready to use!
+                We’ll unlock your plan automatically once payment is confirmed.
               </p>
             </div>
 

@@ -13,12 +13,24 @@
  */
 import http from 'node:http'
 import { createHash } from 'node:crypto'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 const PORT = Number(process.env.MOCK_GOOGLE_PORT || process.env.PORT || 4010)
 const HOST = '127.0.0.1'
 let mode = 'ok'
 let stats = { searchText: 0, details: 0, photo: 0, geocode: 0 }
-const known = new Map() // placeId → raw place (for details)
+// placeId → raw place (for details). Persisted so details still work after a restart
+// when the app serves search results from its Supabase cache.
+const KNOWN_FILE = join(tmpdir(), 'mock-google-known-places.json')
+const known = new Map(existsSync(KNOWN_FILE) ? Object.entries(JSON.parse(readFileSync(KNOWN_FILE, 'utf8') || '{}')) : [])
+let saveTimer = null
+const remember = (id, place) => {
+  known.set(id, place)
+  clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => writeFileSync(KNOWN_FILE, JSON.stringify(Object.fromEntries(known))), 50)
+}
 
 const NAMES = [
   [/art studio/i, ['Little Picasso Art Studio', 'Color Splash Kids Art', 'Brushstrokes Creative Lab', 'The Messy Easel']],
@@ -83,7 +95,7 @@ function placesFor(query, lat, lng) {
       businessStatus: 'OPERATIONAL',
       googleMapsUri: `https://maps.google.com/?q=${encodeURIComponent(name)}`,
     }
-    known.set(id, place)
+    remember(id, place)
     return place
   })
 
@@ -94,7 +106,7 @@ function placesFor(query, lat, lng) {
     const noPhoto = { ...out[1], id: `ChIJmocknophoto${h(query).slice(0, 10)}`, displayName: { text: 'Hidden Gem Party Loft' }, photos: undefined, rating: undefined, userRatingCount: undefined, priceLevel: undefined, formattedAddress: undefined, shortFormattedAddress: undefined }
     const closed = { ...out[2], id: `ChIJmockclosed${h(query).slice(0, 10)}`, displayName: { text: 'Closed Forever Fun House' }, businessStatus: 'CLOSED_PERMANENTLY' }
     const far = { ...out[2], id: `ChIJmockfaraway${h(query).slice(0, 10)}`, displayName: { text: 'Way Too Far Funland' }, location: { latitude: lat + 1.5, longitude: lng } }
-    for (const p of [noPhoto, closed, far]) known.set(p.id, p)
+    for (const p of [noPhoto, closed, far]) remember(p.id, p)
     out.push(noPhoto, closed, far)
   }
   return out

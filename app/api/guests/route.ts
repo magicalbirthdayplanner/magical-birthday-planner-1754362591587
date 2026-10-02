@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerClient } from '@supabase/ssr';
 
 // Multi-layered authentication helper (copied from parties route)
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
     const authResult = await getAuthenticatedSupabaseClient(request);
     if (!authResult) {
       console.error('Authentication failed for guest creation');
-      return NextResponse.json(
+      return safeJson(
         { error: 'Authentication required' },
         { status: 401 }
       );
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest) {
     const { partyId, guestData } = body;
 
     if (!partyId || !guestData) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party ID and guest data are required' },
         { status: 400 }
       );
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
 
     if (partyError || !party) {
       console.error('Party verification failed:', partyError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Party not found or access denied' },
         { status: 404 }
       );
@@ -190,18 +191,18 @@ export async function POST(request: NextRequest) {
 
     if (guestError) {
       console.error('Error adding guest:', guestError);
-      return NextResponse.json(
+      return safeJson(
         { error: guestError.message },
         { status: 500 }
       );
     }
 
     console.log('Guest added successfully:', newGuest.id);
-    return NextResponse.json({ success: true, guest: newGuest });
+    return safeJson({ success: true, guest: newGuest });
 
   } catch (error) {
     console.error('Error in guest POST API:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -214,7 +215,7 @@ export async function PUT(request: NextRequest) {
     const authResult = await getAuthenticatedSupabaseClient(request);
     if (!authResult) {
       console.error('Authentication failed for guest update');
-      return NextResponse.json(
+      return safeJson(
         { error: 'Authentication required' },
         { status: 401 }
       );
@@ -225,7 +226,7 @@ export async function PUT(request: NextRequest) {
     const { guestId, updates } = body;
 
     if (!guestId || !updates) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Guest ID and updates are required' },
         { status: 400 }
       );
@@ -243,32 +244,56 @@ export async function PUT(request: NextRequest) {
 
     if (guestError || !guest) {
       console.error('Guest verification failed:', guestError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Guest not found or access denied' },
         { status: 404 }
       );
     }
 
+    // Whitelist editable fields: the client must not be able to move a guest to
+    // another party/user or rewrite server-managed columns.
+    const ALLOWED: Record<string, (v: unknown) => boolean> = {
+      name: (v) => typeof v === 'string' && v.trim().length > 0 && v.length <= 80,
+      email: (v) => v === null || (typeof v === 'string' && v.length <= 200),
+      phone: (v) => v === null || (typeof v === 'string' && v.length <= 40),
+      age: (v) => v === null || (Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 120),
+      notes: (v) => v === null || (typeof v === 'string' && v.length <= 1000),
+      rsvp_status: (v) => ['PENDING', 'CONFIRMED', 'DECLINED', 'MAYBE'].includes(v as string),
+      type: (v) => typeof v === 'string' && v.length <= 20,
+      dietary_restrictions: (v) => v === null || (Array.isArray(v) && v.length <= 20 && v.every((x) => typeof x === 'string' && x.length <= 60)),
+    };
+    const safeUpdates: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(updates as Record<string, unknown>)) {
+      if (!(key in ALLOWED)) continue;
+      if (!ALLOWED[key](value)) {
+        return safeJson({ error: `Invalid value for ${key}` }, { status: 400 });
+      }
+      safeUpdates[key] = value;
+    }
+    if (Object.keys(safeUpdates).length === 0) {
+      return safeJson({ error: 'Nothing to update' }, { status: 400 });
+    }
+
     // Update the guest
     const { error: updateError } = await supabase
       .from('guests')
-      .update(updates)
+      .update(safeUpdates)
       .eq('id', guestId);
 
     if (updateError) {
       console.error('Error updating guest:', updateError);
-      return NextResponse.json(
+      return safeJson(
         { error: updateError.message },
         { status: 500 }
       );
     }
 
     console.log('Guest updated successfully:', guestId);
-    return NextResponse.json({ success: true });
+    return safeJson({ success: true });
 
   } catch (error) {
     console.error('Error in guest PUT API:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -281,7 +306,7 @@ export async function DELETE(request: NextRequest) {
     const authResult = await getAuthenticatedSupabaseClient(request);
     if (!authResult) {
       console.error('Authentication failed for guest deletion');
-      return NextResponse.json(
+      return safeJson(
         { error: 'Authentication required' },
         { status: 401 }
       );
@@ -292,7 +317,7 @@ export async function DELETE(request: NextRequest) {
     const guestId = url.searchParams.get('id');
 
     if (!guestId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Guest ID is required' },
         { status: 400 }
       );
@@ -310,7 +335,7 @@ export async function DELETE(request: NextRequest) {
 
     if (guestError || !guest) {
       console.error('Guest verification failed:', guestError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Guest not found or access denied' },
         { status: 404 }
       );
@@ -324,18 +349,18 @@ export async function DELETE(request: NextRequest) {
 
     if (deleteError) {
       console.error('Error deleting guest:', deleteError);
-      return NextResponse.json(
+      return safeJson(
         { error: deleteError.message },
         { status: 500 }
       );
     }
 
     console.log('Guest deleted successfully:', guestId);
-    return NextResponse.json({ success: true });
+    return safeJson({ success: true });
 
   } catch (error) {
     console.error('Error in guest DELETE API:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Internal server error' },
       { status: 500 }
     );

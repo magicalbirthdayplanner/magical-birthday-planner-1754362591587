@@ -25,9 +25,9 @@ export default defineConfig({
   },
   projects: [
     // Primary: the required end-to-end flow on a 390px iPhone viewport.
-    { name: 'iphone-390', use: { ...devices['iPhone 13'], browserName: 'chromium' }, testIgnore: /viewports/ },
+    { name: 'iphone-390', use: { ...devices['iPhone 13'], browserName: 'chromium' }, testIgnore: /viewports|mobile-regression/ },
     // Layout checks at every target width.
-    { name: 'viewports', use: { browserName: 'chromium' }, testMatch: /viewports/ },
+    { name: 'viewports', use: { browserName: 'chromium' }, testMatch: /viewports|mobile-regression/ },
   ],
   webServer: [
     {

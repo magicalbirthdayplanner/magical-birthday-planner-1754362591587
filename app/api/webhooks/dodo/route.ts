@@ -1,6 +1,7 @@
 "use server";
 
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { getDodoPaymentsClient } from '@/lib/dodo-payments';
 import { createClient } from '@supabase/supabase-js';
 import { retryWithExponentialBackoff } from '@/lib/db-utils';
@@ -37,13 +38,13 @@ export async function POST(request: NextRequest) {
     
     if (!dodoClient) {
       console.error('DoDo Payments client not configured');
-      return NextResponse.json({ error: 'Payment gateway not configured' }, { status: 500 });
+      return safeJson({ error: 'Payment gateway not configured' }, { status: 500 });
     }
 
     // Verify webhook signature
     if (!dodoClient.verifyWebhook(body, signature)) {
       console.error('Invalid webhook signature');
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      return safeJson({ error: 'Invalid signature' }, { status: 401 });
     }
 
     const event: DodoWebhookEvent = JSON.parse(body);
@@ -78,11 +79,11 @@ export async function POST(request: NextRequest) {
         console.log('Unhandled webhook type:', event.type);
     }
 
-    return NextResponse.json({ received: true });
+    return safeJson({ received: true });
 
   } catch (error) {
     console.error('Webhook processing error:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Webhook processing failed' },
       { status: 500 }
     );

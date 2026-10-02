@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeJson } from '@/lib/server/safe-json';
 import { createServerComponentClient } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -26,18 +27,18 @@ export async function GET(request: NextRequest) {
 
     if (favoritesError) {
       console.error('Error fetching favorites:', favoritesError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to fetch favorites' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       favorites: favorites || []
     });
   } catch (error) {
     console.error('Error fetching favorites:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to fetch favorites' },
       { status: 500 }
     );
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     const { activityId } = await request.json();
     if (!activityId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity ID is required' },
         { status: 400 }
       );
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (activityError || !activity) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity not found' },
         { status: 400 }
       );
@@ -92,19 +93,19 @@ export async function POST(request: NextRequest) {
 
     if (favoriteError) {
       console.error('Error creating favorite:', favoriteError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to create favorite' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       message: 'Activity added to favorites',
       favorite
     });
   } catch (error) {
     console.error('Error adding favorite:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to add favorite' },
       { status: 500 }
     );
@@ -119,7 +120,7 @@ export async function DELETE(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Unauthorized' },
         { status: 401 }
       );
@@ -127,7 +128,7 @@ export async function DELETE(request: NextRequest) {
 
     const { activityId } = await request.json();
     if (!activityId) {
-      return NextResponse.json(
+      return safeJson(
         { error: 'Activity ID is required' },
         { status: 400 }
       );
@@ -142,18 +143,18 @@ export async function DELETE(request: NextRequest) {
 
     if (deleteError) {
       console.error('Error deleting favorite:', deleteError);
-      return NextResponse.json(
+      return safeJson(
         { error: 'Failed to remove favorite' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    return safeJson({
       message: 'Activity removed from favorites'
     });
   } catch (error) {
     console.error('Error removing favorite:', error);
-    return NextResponse.json(
+    return safeJson(
       { error: 'Failed to remove favorite' },
       { status: 500 }
     );
