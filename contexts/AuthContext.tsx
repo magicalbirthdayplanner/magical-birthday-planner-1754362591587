@@ -219,7 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('- Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
       console.log('⚠️ IMPORTANT: Google should redirect to YOUR app, not directly to Supabase!')
       console.log('⚠️ Expected: <your site origin>/auth/callback')
-      console.log('⚠️ NOT: https://hgczncztmdqtfhqimfar.supabase.co/auth/v1/callback')
+      console.log('⚠️ NOT: the Supabase project auth/v1/callback URL')
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
