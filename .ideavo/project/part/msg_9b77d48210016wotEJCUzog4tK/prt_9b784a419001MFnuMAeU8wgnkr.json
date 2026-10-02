@@ -11,9 +11,9 @@
       "command": "grep -r \"SUPABASE.*KEY\" /home/user/project/.env* 2>/dev/null | head -5",
       "description": "Check available Supabase keys"
     },
-    "output": "/home/user/project/.env:NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY3puY3p0bWRxdGZocWltZmFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4Nzg3NTEsImV4cCI6MjA3MTQ1NDc1MX0.VnPoVOOifiZFW5mrKjIUyz3cGGSt72BkXw1RefSBuIE\n/home/user/project/.env:SUPABASE_SERVICE_ROLE_KEY=sbp_ffa78968089b1342048b018992375b6d24a5438c\n",
+    "output": "/home/user/project/.env:NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ_REDACTED_JWT\n/home/user/project/.env:SUPABASE_SERVICE_ROLE_KEY=sbp_REDACTED_ROTATE_ME\n",
     "metadata": {
-      "output": "/home/user/project/.env:NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY3puY3p0bWRxdGZocWltZmFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4Nzg3NTEsImV4cCI6MjA3MTQ1NDc1MX0.VnPoVOOifiZFW5mrKjIUyz3cGGSt72BkXw1RefSBuIE\n/home/user/project/.env:SUPABASE_SERVICE_ROLE_KEY=sbp_ffa78968089b1342048b018992375b6d24a5438c\n",
+      "output": "/home/user/project/.env:NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ_REDACTED_JWT\n/home/user/project/.env:SUPABASE_SERVICE_ROLE_KEY=sbp_REDACTED_ROTATE_ME\n",
       "exit": 0,
       "description": "Check available Supabase keys"
     },
