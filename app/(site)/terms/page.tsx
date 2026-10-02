@@ -52,7 +52,7 @@ export default function TermsConditionsPage() {
                 Our service offers multiple subscription tiers:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
-                <li>Starter Plan: $9.99 per party with basic features</li>
+                <li>Starter Plan: $4.99 per party with basic features</li>
                 <li>Plus Plan: Enhanced features with additional capabilities</li>
                 <li>Pro Plan: Full access to all platform features</li>
               </ul>

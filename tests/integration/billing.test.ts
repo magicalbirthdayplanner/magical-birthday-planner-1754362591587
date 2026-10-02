@@ -120,6 +120,26 @@ describe('checkout', () => {
     expect((await post(null, { plan: 'PLUS' })).status).toBe(401)
     expect((await post(U.accessToken, { plan: 'PROFESSIONAL' })).status).toBe(400)
     expect((await post(U.accessToken, { plan: 'PLUS', product_id: 'pdt_cheap', price: 1, userId: V.id })).status).toBe(400)
+    expect((await post(U.accessToken, { plan: 'enterprise' })).status).toBe(400)
+    expect((await post(U.accessToken, { plan: PRODUCTS.PRO })).status).toBe(400) // a product id is not a plan
+    expect((await post(U.accessToken, { productId: PRODUCTS.PRO })).status).toBe(400)
+  })
+
+  it('accepts lower-case plan names and tags the checkout (application, environment)', async () => {
+    const res = await post(U.accessToken, { plan: 'starter' })
+    expect(res.status).toBe(200)
+    const sent = created.at(-1) as { product_cart: { product_id: string }[]; metadata: Record<string, string> }
+    expect(sent.product_cart[0].product_id).toBe(PRODUCTS.STARTER)
+    expect(sent.metadata).toMatchObject({ application: 'magical-birthday-planner', environment: 'test', mbp_plan: 'STARTER' })
+  })
+
+  it('refuses checkout when DODO_PAYMENTS_ENVIRONMENT is missing (no silent default)', async () => {
+    delete process.env.DODO_PAYMENTS_ENVIRONMENT
+    try {
+      expect((await post(U.accessToken, { plan: 'PLUS' })).status).toBe(503)
+    } finally {
+      process.env.DODO_PAYMENTS_ENVIRONMENT = 'test_mode'
+    }
   })
 
   it('creates a server-controlled Dodo checkout and records it', async () => {
@@ -198,6 +218,14 @@ describe('webhook → entitlement', () => {
   it('failed payments never grant', async () => {
     await send(payment(U, {}, 'payment.failed'))
     expect(await planOf(U)).toBe('FREE')
+  })
+
+  it('cancelled payments are recorded as cancelled and never grant', async () => {
+    const ev = payment(U, {}, 'payment.cancelled')
+    await send(ev)
+    expect(await planOf(U)).toBe('FREE')
+    const { data } = await adminClient().from('billing_purchases').select('status').eq('provider_ref', ev.data.payment_id as string).maybeSingle()
+    expect(data?.status).toBe('cancelled')
   })
 
   it('tampered plan in metadata cannot upgrade beyond the paid product', async () => {

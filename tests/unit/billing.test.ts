@@ -67,7 +67,7 @@ describe('event decisions', () => {
   })
   it('failed/cancelled/processing payments never grant', () => {
     expect(decide(pay('payment.failed'), env)).toMatchObject({ status: 'failed' })
-    expect(decide(pay('payment.cancelled'), env)).toMatchObject({ status: 'failed' })
+    expect(decide(pay('payment.cancelled'), env)).toMatchObject({ status: 'cancelled' })
     expect(decide(pay('payment.processing'), env)).toMatchObject({ status: 'pending' })
   })
   it('unknown products and unrelated events are ignored', () => {
@@ -87,5 +87,22 @@ describe('event decisions', () => {
     expect(decide({ type: 'refund.succeeded', data: { payment_id: 'pay_9' } }, env)).toEqual({ kind: 'refund', providerRef: 'pay_9' })
     expect(parseEvent(null)).toBeNull()
     expect(parseEvent({ type: 1 })).toBeNull()
+  })
+})
+
+describe('sandbox plan catalogue and environment guard', () => {
+  it('prices are $4.99 / $9.99 / $14.99 and plan names are case-insensitive', async () => {
+    const { expectedPriceCents, parsePlan } = await import('@/lib/billing/plans')
+    expect([expectedPriceCents('STARTER', {}), expectedPriceCents('PLUS', {}), expectedPriceCents('PRO', {})]).toEqual([499, 999, 1499])
+    expect([parsePlan('starter'), parsePlan('Plus'), parsePlan(' PRO ')]).toEqual(['STARTER', 'PLUS', 'PRO'])
+    expect([parsePlan('enterprise'), parsePlan('pdt_x'), parsePlan(5), parsePlan(null)]).toEqual([null, null, null, null])
+  })
+  it('checkouts need an EXPLICIT environment: test_mode, or live_mode + the live switch', async () => {
+    const { checkoutEnvironmentAllowed } = await import('@/lib/billing/plans')
+    expect(checkoutEnvironmentAllowed({ DODO_PAYMENTS_ENVIRONMENT: 'test_mode' })).toBe(true)
+    expect(checkoutEnvironmentAllowed({})).toBe(false) // missing → refuse (no silent default)
+    expect(checkoutEnvironmentAllowed({ DODO_PAYMENTS_ENVIRONMENT: 'test' })).toBe(false)
+    expect(checkoutEnvironmentAllowed({ DODO_PAYMENTS_ENVIRONMENT: 'live_mode' })).toBe(false)
+    expect(checkoutEnvironmentAllowed({ DODO_PAYMENTS_ENVIRONMENT: 'live_mode', DODO_LIVE_PAYMENTS_ENABLED: 'true' })).toBe(true)
   })
 })

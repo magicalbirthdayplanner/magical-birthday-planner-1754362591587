@@ -5,7 +5,7 @@ import { apiError } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
 import { BillingError, createCheckout } from '@/lib/billing/server'
-import { PAID_PLANS } from '@/lib/billing/plans'
+import { parsePlan } from '@/lib/billing/plans'
 import { appBaseUrl } from '@/lib/server/notifications'
 
 // Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
@@ -13,8 +13,9 @@ export const fetchCache = "force-no-store";
 
 export const dynamic = 'force-dynamic'
 
-// Only the plan NAME comes from the client. Product, price and customer are server-side.
-const Body = z.object({ plan: z.enum(PAID_PLANS) }).strict()
+// Only the plan NAME comes from the client (starter | plus | pro, any case). Product, price
+// and customer are resolved server-side; any extra field (productId, price, userId…) is rejected.
+const Body = z.object({ plan: z.string().max(20).transform((v, ctx) => parsePlan(v) ?? (ctx.addIssue({ code: 'custom' }), z.NEVER)) }).strict()
 
 /** POST /api/billing/checkout { plan } → { checkoutUrl } (Dodo hosted checkout) */
 export async function POST(req: Request) {

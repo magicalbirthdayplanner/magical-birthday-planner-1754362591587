@@ -14,8 +14,8 @@ import { usePlanStatus } from "@/components/billing/usePlanStatus"
 const pricingTiers = [
   {
     name: "🎈 Starter",
-    price: 9.99,
-    annualPrice: 9.99,
+    price: 4.99,
+    annualPrice: 4.99,
     description: "A quick and easy starting point for parents seeking basic help.",
     icon: Star,
     gradient: "from-purple-500 to-pink-500",
@@ -34,8 +34,8 @@ const pricingTiers = [
   },
   {
     name: "🧁 Plus",
-    price: 19.99,
-    annualPrice: 19.99,
+    price: 9.99,
+    annualPrice: 9.99,
     description: "Smart and simple AI-powered birthday planning for busy parents.",
     icon: Zap,
     gradient: "from-blue-500 to-cyan-500",
@@ -56,8 +56,8 @@ const pricingTiers = [
   },
   {
     name: "✨ Pro",
-    price: 29.99,
-    annualPrice: 29.99,
+    price: 14.99,
+    annualPrice: 14.99,
     description: "All-in-one planning experience with advanced support and recommendations.",
     icon: Crown,
     gradient: "from-emerald-500 to-teal-500",
@@ -252,15 +252,15 @@ function PricingContent() {
                   <th className="text-left p-4 font-semibold text-gray-900">Features</th>
                    <th className="text-center p-4">
                      <div className="font-semibold text-gray-900 text-sm">🎈 Starter</div>
-                     <div className="text-xs text-gray-500">$9.99 per party</div>
+                     <div className="text-xs text-gray-500">$4.99 per party</div>
                    </th>
                    <th className="text-center p-4">
                      <div className="font-semibold text-gray-900 text-sm">🧁 Plus</div>
-                     <div className="text-xs text-gray-500">$19.99 per party</div>
+                     <div className="text-xs text-gray-500">$9.99 per party</div>
                    </th>
                    <th className="text-center p-4">
                      <div className="font-semibold text-gray-900 text-sm">✨ Pro</div>
-                     <div className="text-xs text-gray-500">$29.99 per party</div>
+                     <div className="text-xs text-gray-500">$14.99 per party</div>
                    </th>
                 </tr>
               </thead>

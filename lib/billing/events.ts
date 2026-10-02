@@ -116,7 +116,7 @@ export function decide(e: DodoEvent, env: Env = process.env): BillingAction {
     const plan = planForProduct(productId, env)
     if (!plan) return { kind: 'ignore', reason: 'unknown_product' }
     const status: PurchaseStatus | undefined =
-      e.type === 'payment.succeeded' ? 'active' : e.type === 'payment.processing' ? 'pending' : e.type === 'payment.failed' || e.type === 'payment.cancelled' ? 'failed' : undefined
+      e.type === 'payment.succeeded' ? 'active' : e.type === 'payment.processing' ? 'pending' : e.type === 'payment.failed' ? 'failed' : e.type === 'payment.cancelled' ? 'cancelled' : undefined
     if (!status) return { kind: 'ignore', reason: `unhandled_${e.type}` }
     const amount = typeof d.total_amount === 'number' ? d.total_amount : null
     let finalStatus: PurchaseStatus = status

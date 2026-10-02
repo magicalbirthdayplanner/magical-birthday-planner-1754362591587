@@ -7,8 +7,11 @@ export type PaidPlan = (typeof PAID_PLANS)[number]
 
 export const isPaidPlan = (x: unknown): x is PaidPlan => typeof x === 'string' && (PAID_PLANS as readonly string[]).includes(x)
 
+/** Client plan names are case-insensitive (`starter` | `plus` | `pro`); anything else → null. */
+export const parsePlan = (x: unknown): PaidPlan | null => (typeof x === 'string' && isPaidPlan(x.trim().toUpperCase()) ? (x.trim().toUpperCase() as PaidPlan) : null)
+
 /** Expected price in USD cents (matches /pricing). Override with DODO_PRICE_<PLAN>_CENTS. */
-const DEFAULT_PRICE_CENTS: Record<PaidPlan, number> = { STARTER: 999, PLUS: 1999, PRO: 2999 }
+const DEFAULT_PRICE_CENTS: Record<PaidPlan, number> = { STARTER: 499, PLUS: 999, PRO: 1499 }
 
 type Env = Record<string, string | undefined>
 
@@ -31,6 +34,15 @@ export type DodoMode = 'test_mode' | 'live_mode'
 
 export function dodoMode(env: Env = process.env): DodoMode {
   return env.DODO_PAYMENTS_ENVIRONMENT === 'live_mode' ? 'live_mode' : 'test_mode'
+}
+
+/**
+ * May this deployment create checkouts at all? Only with an EXPLICIT environment:
+ * `test_mode` (sandbox), or `live_mode` plus the separate DODO_LIVE_PAYMENTS_ENABLED=true switch.
+ * A missing or misspelled DODO_PAYMENTS_ENVIRONMENT refuses — never a silent default.
+ */
+export function checkoutEnvironmentAllowed(env: Env = process.env): boolean {
+  return env.DODO_PAYMENTS_ENVIRONMENT === 'test_mode' || liveChargingAllowed(env)
 }
 
 /** Live charging needs an explicit second switch, so a misconfigured preview can never charge. */

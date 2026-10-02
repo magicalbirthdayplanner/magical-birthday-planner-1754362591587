@@ -357,7 +357,7 @@ export default function Home() {
                   A quick and easy starting point for parents seeking basic help.
                 </CardDescription>
                  <div className="flex items-baseline mt-4">
-                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$9.99</span>
+                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$4.99</span>
                    <span className="text-gray-600 dark:text-gray-400 ml-2">per party</span>
                  </div>
               </CardHeader>
@@ -408,7 +408,7 @@ export default function Home() {
                   Smart and simple AI-powered birthday planning for busy parents.
                 </CardDescription>
                  <div className="flex items-baseline mt-4">
-                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$19.99</span>
+                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$9.99</span>
                    <span className="text-gray-600 dark:text-gray-400 ml-2">per party</span>
                  </div>
               </CardHeader>
@@ -461,7 +461,7 @@ export default function Home() {
                   All-in-one planning experience with advanced support and recommendations.
                 </CardDescription>
                  <div className="flex items-baseline mt-4">
-                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$29.99</span>
+                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$14.99</span>
                    <span className="text-gray-600 dark:text-gray-400 ml-2">per party</span>
                  </div>
               </CardHeader>

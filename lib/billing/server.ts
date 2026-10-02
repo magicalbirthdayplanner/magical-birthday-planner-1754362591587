@@ -6,7 +6,7 @@ import 'server-only'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/database.types'
 import { decide, parseEvent, type DodoEvent } from './events'
-import { dodoApiBase, dodoMode, liveChargingAllowed, productIdFor, type PaidPlan } from './plans'
+import { checkoutEnvironmentAllowed, dodoApiBase, dodoMode, liveChargingAllowed, productIdFor, type PaidPlan } from './plans'
 
 type Admin = SupabaseClient<Database>
 
@@ -26,7 +26,8 @@ export async function createCheckout(admin: Admin, user: User, plan: PaidPlan, r
   const apiKey = process.env.DODO_PAYMENTS_API_KEY
   const productId = productIdFor(plan)
   if (!apiKey || !productId) throw new BillingError('not_configured', 'Payments are not configured.')
-  if (dodoMode() === 'live_mode' && !liveChargingAllowed()) throw new BillingError('live_disabled', 'Live payments are disabled.')
+  // Explicit environment only (test_mode, or live_mode + the live switch). No silent defaults.
+  if (!checkoutEnvironmentAllowed()) throw new BillingError(dodoMode() === 'live_mode' && !liveChargingAllowed() ? 'live_disabled' : 'not_configured', 'Payments are not configured.')
 
   const { data: checkout, error } = await admin
     .from('billing_checkouts')
@@ -41,7 +42,9 @@ export async function createCheckout(admin: Admin, user: User, plan: PaidPlan, r
     product_cart: [{ product_id: productId, quantity: 1 }],
     customer: known?.provider_customer_id ? { customer_id: known.provider_customer_id } : { email: user.email, name },
     return_url: `${returnBase}/checkout-success?ref=${checkout.id}`,
-    metadata: { mbp_user_id: user.id, mbp_checkout_id: checkout.id, mbp_plan: plan },
+    // Informational only: the webhook derives the plan from the PRODUCT, and the user from
+    // the known customer / this checkout record, never from client input.
+    metadata: { mbp_user_id: user.id, mbp_checkout_id: checkout.id, mbp_plan: plan, application: 'magical-birthday-planner', environment: dodoMode() === 'live_mode' ? 'live' : 'test' },
   }
 
   const controller = new AbortController()
@@ -232,4 +235,25 @@ export async function processWebhookEvent(admin: Admin, eventId: string, raw: un
     await markEvent(admin, eventId, 'error', (err as Error)?.message ?? 'error')
     throw err
   }
+}
+
+// ------------------------------------------------------------------ entitlement (read)
+export type AppPlan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO' | 'PROFESSIONAL'
+
+/**
+ * THE answer to "what plan does this user have?". Reads the server-maintained
+ * users.current_plan (written only by recompute_entitlement from verified Dodo events
+ * and the one-time trial). A lapsed trial is expired here first, server-side.
+ */
+export async function getUserPlan(admin: Admin, userId: string): Promise<{ plan: AppPlan; trialActive: boolean }> {
+  const read = () => admin.from('users').select('current_plan, is_trial_active, trial_expires_at').eq('id', userId).maybeSingle()
+  let { data: profile } = await read()
+  const lapsed = !!profile?.is_trial_active && (!profile.trial_expires_at || new Date(profile.trial_expires_at) <= new Date())
+  if (lapsed) {
+    const { error } = await admin.rpc('recompute_entitlement', { p_user: userId })
+    if (!error) ({ data: profile } = await read())
+  }
+  const plan = (['FREE', 'STARTER', 'PLUS', 'PRO', 'PROFESSIONAL'] as const).find((p) => p === profile?.current_plan) ?? 'FREE'
+  const trialActive = !!profile?.is_trial_active && !!profile.trial_expires_at && new Date(profile.trial_expires_at) > new Date()
+  return { plan, trialActive }
 }
