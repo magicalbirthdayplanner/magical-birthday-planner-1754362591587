@@ -1,3 +1,20 @@
+# Magical Birthday Planner
+
+> **Mobile-first (branch `mobile-first`).** The app is now a mobile-first web app / PWA. Start here:
+> [`docs/FINAL_QA_REPORT.md`](docs/FINAL_QA_REPORT.md) · [`docs/RELEASE.md`](docs/RELEASE.md) ·
+> [`docs/SECURITY.md`](docs/SECURITY.md) (**rotate leaked secrets**) · [`docs/TESTING.md`](docs/TESTING.md) ·
+> [`docs/LOCAL_DISCOVERY.md`](docs/LOCAL_DISCOVERY.md) · [`docs/GOOGLE_PLACES.md`](docs/GOOGLE_PLACES.md) ·
+> [`docs/SUPABASE_SCHEMA.md`](docs/SUPABASE_SCHEMA.md) · [`docs/MOBILE_UX.md`](docs/MOBILE_UX.md) · [`docs/PWA.md`](docs/PWA.md) ·
+> [`docs/MOBILE_FIRST_AUDIT.md`](docs/MOBILE_FIRST_AUDIT.md)
+>
+> ```bash
+> npm ci && cp .env.example .env.local      # fill in values
+> npm run db:start && npm run db:reset      # local Supabase (Docker)
+> npx dotenv -e .env.e2e -- npm run dev     # app on :3100 against local Supabase + mock Google
+> node tests/mock-google/server.mjs         # (separate terminal) mock Google on :4010
+> npm run check && npm run test:integration && npm run test:e2e
+> ```
+
 # 🎉 Magical Birthday Planner - AI-Powered Kids Birthday Planner
 
 A modern, responsive web application designed to help parents plan magical birthday parties for children aged 0-12. Built with Next.js 14, React, TypeScript, and Tailwind CSS with beautiful gradient themes and minimalistic design.

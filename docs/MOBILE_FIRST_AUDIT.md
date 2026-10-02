@@ -2,6 +2,8 @@
 
 _Audit date: 2026-10-01 · Branch: `mobile-first` · Base commit: `a73a9e2`_
 
+> Status columns reflect what the `mobile-first` branch changed. Full outcome: [`FINAL_QA_REPORT.md`](./FINAL_QA_REPORT.md).
+
 This audit covers the repository as found, before the mobile-first work. It answers the ten
 questions from the brief, lists what is reused, and records the minimum refactoring plan. Security
 findings are summarised here and tracked in detail in [`SECURITY.md`](./SECURITY.md).
@@ -130,8 +132,8 @@ they **always return 401**: `/api/favorites`, `/api/selected-activities`, `/api/
    (`app/party-plan/page.tsx:1867`), including venue discovery. New users only get in via a 24 h
    trial and are then locked out of their own party. Plans can be self-granted
    (`/checkout-success?plan=PRO`, `PATCH /api/user/subscription`, localStorage flags). The mobile
-   core flow is available to every signed-in user; entitlement checks are centralised in
-   `lib/entitlements.ts` (see `RELEASE.md` for the open product decision).
+   core flow is available to every signed-in user; the legacy planner keeps its gating (see
+   `RELEASE.md §1` for the open product decision and `SECURITY.md §4` for the billing fix).
 2. **Venue search**: legacy Nearby Search with one call per Google type (≤10 calls/search), a cache
    that never hits (`venue_id` undefined, `.eq(null)`), photos never rendered, ZIP default `48226`.
    Replaced by `lib/discovery/*` + `lib/google/*` (Places API New, field masks, cache-first,
@@ -182,11 +184,11 @@ change reviewable):
 | **Critical** | Unauthenticated service-role routes run DDL / rewrite RLS (`fix-rls-policies`, `fix-database-admin`, `automated-supabase-fix`, `fix-schema-mismatch`, …) | Blocked |
 | **Critical** | `users` RLS "Allow authenticated users to do everything" — any user can read/modify every user row | Migration replaces with owner-only policies |
 | High | `party-venue` uses service role and trusts client `userId`/`partyId` (IDOR) | Fixed (verifies caller, queries as user) |
-| High | Self-service plan upgrade (PATCH subscription, `/checkout-success?plan=`, localStorage) | Documented as production blocker |
+| High | Self-service plan upgrade (PATCH subscription, `/checkout-success?plan=`, localStorage) | **Open** — documented as production blocker (`SECURITY.md §4`) |
 | High | "Anyone can view shared parties" (`is_shared = true`) — enumerable child names/ages/ZIPs | Policy dropped; share/RSVP via token-scoped RPCs |
 | High | Google key hard-coded in source & returned in photo URLs to browsers | Removed; photos proxied server-side |
 | High | Unauthenticated paid API calls (Azure OpenAI, Google) | Discovery & AI routes require auth + rate limit |
-| Medium | Predictable RSVP tokens; RSVP GET returns `parties(*)`, `guests(*)` | New invitation tokens are 32 random bytes; public RPC returns a minimal projection |
+| Medium | Predictable RSVP tokens; RSVP GET returns `parties(*)`, `guests(*)` | New invitation tokens are 24 random bytes (48 hex chars); public RPC returns a minimal projection |
 | Medium | `SECURITY DEFINER` trial functions accept any `user_id`; `user_trial_status` view bypasses RLS | Migration revokes from `authenticated` |
 | Medium | Open redirect in `auth/callback` fallback | Fixed (same-origin relative paths only) |
 

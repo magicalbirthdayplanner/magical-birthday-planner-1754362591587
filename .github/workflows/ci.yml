@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, mobile-first]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint · typecheck · unit · build · secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      # Build with local/demo values only (no production secrets in CI builds).
+      - run: npx dotenv -e .env.e2e -- npm run build
+      - run: npm run check:secrets
+
+  integration-e2e:
+    name: RLS + API integration · mobile E2E
+    runs-on: ubuntu-latest
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+      - run: npm ci --no-audit --no-fund
+      - name: Start local Supabase
+        run: |
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta,mailpit
+          supabase db reset
+      - name: Integration tests (RLS, discovery API, hardened routes)
+        run: npm run test:integration
+      - run: npx playwright install --with-deps chromium
+      - name: E2E (mocked Google)
+        run: npm run test:e2e
+        env:
+          CI: 'true'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
