@@ -190,7 +190,9 @@ describe('plan overrides', () => {
     expect(b).toMatchObject({ plan: 'FREE', source: 'free', override: null })
     expect(await planOf(U)).toBe('FREE')
     expect((await adminClient().from('plan_overrides').select('user_id').eq('user_id', U.id)).data).toEqual([])
-    expect((await auditFor(U)).at(-1)).toMatchObject({ action: 'override_expired', old_plan: 'PRO' })
+    expect((await auditFor(U)).at(-1)).toMatchObject({ action: 'override_expired', old_plan: 'PRO', target_email: U.email })
+    await billing(U) // a second read doesn't log the expiry twice
+    expect((await auditFor(U)).filter((l) => l.action === 'override_expired')).toHaveLength(1)
   })
 
   it('even before cleanup, recompute ignores an expired override', async () => {

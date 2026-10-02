@@ -258,14 +258,15 @@ export async function getUserPlan(admin: Admin, userId: string): Promise<UserPla
   const now = new Date()
   const read = () =>
     Promise.all([
-      admin.from('users').select('current_plan, is_trial_active, trial_expires_at').eq('id', userId).maybeSingle(),
+      admin.from('users').select('email, current_plan, is_trial_active, trial_expires_at').eq('id', userId).maybeSingle(),
       admin.from('plan_overrides').select('plan, expires_at').eq('user_id', userId).maybeSingle(),
     ])
   let [{ data: profile }, { data: override }] = await read()
   let recompute = false
   if (override?.expires_at && new Date(override.expires_at) <= now) {
-    await admin.from('plan_overrides').delete().eq('user_id', userId)
-    await admin.from('admin_audit_log').insert({ target_user_id: userId, action: 'override_expired', old_plan: override.plan, override_expires_at: override.expires_at })
+    // Conditional delete: only the request that actually removes it records the expiry.
+    const { data: removed } = await admin.from('plan_overrides').delete().eq('user_id', userId).lte('expires_at', now.toISOString()).select('user_id')
+    if (removed?.length) await admin.from('admin_audit_log').insert({ target_user_id: userId, target_email: profile?.email ?? null, action: 'override_expired', old_plan: override.plan, override_expires_at: override.expires_at })
     recompute = true
   }
   if (profile?.is_trial_active && (!profile.trial_expires_at || new Date(profile.trial_expires_at) <= now)) recompute = true

@@ -9,7 +9,7 @@ test('super admin switches plans FREE → STARTER → PLUS → PRO; it persists 
   await grantSuperAdmin(s.email)
   await login(page, s, '/more')
 
-  await page.getByRole('link', { name: 'Admin' }).click()
+  await page.getByRole('link', { name: 'Admin', exact: true }).click()
   await page.waitForURL('**/admin')
   await expect(page.getByTestId('admin-screen')).toBeVisible()
   await expect(page.getByText('Super Admin', { exact: true })).toBeVisible()
@@ -72,7 +72,7 @@ test('a normal user has no Admin link and /admin shows not-found with no admin d
   const s = await seedUser({ withParty: true })
   await login(page, s, '/more')
   await expect(page.getByTestId('plan-row')).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Admin' })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Admin', exact: true })).toHaveCount(0)
 
   const apiCalls: number[] = []
   page.on('response', (r) => {
