@@ -39,3 +39,21 @@ describe('security headers', () => {
     expect(all.find((h) => h.key === 'Content-Security-Policy')?.value).toContain("frame-ancestors 'none'")
   })
 })
+
+describe('canonical production origin', () => {
+  it('production deployments use https://magicalbirthdayplanner.app unless explicitly overridden', async () => {
+    const { siteUrl, PRODUCTION_ORIGIN } = await import('@/lib/site-url')
+    expect(PRODUCTION_ORIGIN).toBe('https://magicalbirthdayplanner.app')
+    expect(siteUrl({ VERCEL_ENV: 'production', VERCEL_URL: 'magical-birthday-planner-abc.vercel.app' })).toBe('https://magicalbirthdayplanner.app')
+    expect(siteUrl({ VERCEL_ENV: 'production', NEXT_PUBLIC_BASE_URL: 'https://magicalbirthdayplanner.app/' })).toBe('https://magicalbirthdayplanner.app')
+    expect(siteUrl({ VERCEL_ENV: 'preview', VERCEL_URL: 'x-git-y.vercel.app' })).toBe('https://x-git-y.vercel.app')
+    expect(siteUrl({})).toBe('http://localhost:3100')
+  })
+  it('invitation links and the Dodo return URL use the canonical origin in production', async () => {
+    vi.stubEnv('VERCEL_ENV', 'production')
+    vi.stubEnv('NEXT_PUBLIC_BASE_URL', '')
+    const { inviteLink, appBaseUrl } = await import('@/lib/server/notifications')
+    expect(appBaseUrl()).toBe('https://magicalbirthdayplanner.app')
+    expect(inviteLink('ab'.repeat(24))).toBe(`https://magicalbirthdayplanner.app/invite/${'ab'.repeat(24)}`)
+  })
+})

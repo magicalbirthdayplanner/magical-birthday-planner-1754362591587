@@ -12,6 +12,7 @@
 import 'server-only'
 import { createHash } from 'node:crypto'
 import { getResend } from '@/lib/email'
+import { siteUrl } from '@/lib/site-url'
 import { generateInvitationEmail } from '@/lib/email-templates/invitation'
 import { generateRSVPConfirmationEmail } from '@/lib/email-templates/rsvp-confirmation'
 import { getSupabaseAdmin, hasServiceRole } from './supabase-admin'
@@ -31,10 +32,8 @@ export function emailFrom(): string {
 export function emailReplyTo(): string | undefined {
   return process.env.EMAIL_REPLY_TO?.trim() || undefined
 }
-export function appBaseUrl(): string {
-  const raw = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3100')
-  return raw.trim().replace(/\/$/, '')
-}
+/** Origin for links in emails and the Dodo return URL (see lib/site-url.ts). */
+export const appBaseUrl = (): string => siteUrl()
 
 export function escapeHtml(value: unknown): string {
   return String(value ?? '')

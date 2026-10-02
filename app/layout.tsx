@@ -1,4 +1,5 @@
 import './globals.css';
+import { siteUrl } from '@/lib/site-url';
 import type { Metadata, Viewport } from 'next';
 import { Fraunces, Inter } from 'next/font/google';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -9,7 +10,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swa
 const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-display', display: 'swap', axes: ['SOFT', 'opsz'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3100')),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: 'Magical Birthday Planner — plan your child’s party in minutes',
     template: '%s · Magical Birthday Planner',
