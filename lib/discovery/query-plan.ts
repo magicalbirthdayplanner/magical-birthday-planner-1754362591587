@@ -32,13 +32,15 @@ function settingFit(cat: DiscoveryCategory, setting: Setting): number {
  * An art-loving 7-year-old gets art studios, pottery and children's museums before
  * generic venues; an outdoor toddler party never searches laser tag.
  *
- * Always includes the generic "kids birthday party venue" query first.
+ * Always includes the generic "kids birthday party venue" query first, and only
+ * plans categories the place source supports (`supports`).
  */
-export function planQueries(input: QueryPlanInput, maxQueries = DEFAULT_MAX_QUERIES): PlannedQuery[] {
+export function planQueries(input: QueryPlanInput, maxQueries = DEFAULT_MAX_QUERIES, supports: (categoryId: string) => boolean = () => true): PlannedQuery[] {
   const interests = new Set(input.interests)
   const scored: PlannedQuery[] = []
 
   for (const category of VENUE_CATEGORIES) {
+    if (!supports(category.id)) continue
     const why: string[] = []
     let score = 0
 
@@ -65,7 +67,7 @@ export function planQueries(input: QueryPlanInput, maxQueries = DEFAULT_MAX_QUER
   scored.sort((x, y) => y.score - x.score || x.category.priority - y.category.priority)
 
   const base = getCategory('birthday-party-venue')!
-  const plan: PlannedQuery[] = [{ category: base, score: Infinity, why: ['always'] }]
+  const plan: PlannedQuery[] = supports(base.id) ? [{ category: base, score: Infinity, why: ['always'] }] : []
   for (const q of scored) {
     if (plan.length >= Math.max(1, maxQueries)) break
     if (q.category.id === base.id) continue

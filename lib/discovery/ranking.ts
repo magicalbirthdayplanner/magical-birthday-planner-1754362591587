@@ -4,6 +4,7 @@
  * score = Σ wᵢ·fᵢ / Σ wᵢ   with every factor fᵢ ∈ [0, 1].
  * Unknown data scores a neutral 0.5 (never a fabricated good or bad value).
  */
+import { isGeoapifyPlaceId } from '@/lib/geoapify/categories'
 import { formatMiles, haversineMiles } from '@/lib/geo/distance'
 import {
   INTERESTS,
@@ -198,7 +199,8 @@ export function rankVenue(v: Venue, ctx: PartyContext, opts: RankOptions = {}): 
     reasons.push({ kind: 'budget', text: v.priceLevel === 0 ? 'Free to visit' : 'Price level fits your budget' })
   }
   if (v.goodForGroups === true && (ctx.guestCount ?? 0) >= 10) reasons.push({ kind: 'groups', text: 'Google lists it as good for groups' })
-  if (cats.some((c) => c.id === 'birthday-party-venue') && !rel.matchedInterest) {
+  // Google's "kids birthday party venue" search is evidence; Geoapify's party bucket is only a category list.
+  if (cats.some((c) => c.id === 'birthday-party-venue') && !rel.matchedInterest && !isGeoapifyPlaceId(v.placeId)) {
     reasons.push({ kind: 'party', text: 'Hosts kids’ birthday parties' })
   }
 

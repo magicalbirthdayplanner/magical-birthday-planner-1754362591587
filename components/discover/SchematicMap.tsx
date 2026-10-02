@@ -8,9 +8,29 @@ import { primaryCategory } from '@/lib/discovery/taxonomy'
 import { cn } from '@/lib/utils'
 import type { MapViewProps } from './MapView'
 
+const TILE_PX = 256
+
+/** Tiles covering the container, positioned with the same projection as the markers. */
+function visibleTiles(center: LatLng, zoom: number, vpWidth: number, vpHeight: number, width: number, height: number) {
+  const c = project(center, zoom)
+  const left = c.x - vpWidth / 2
+  const top = c.y - vpHeight / 2
+  const n = 2 ** zoom
+  const out: { key: string; src: string; x: number; y: number }[] = []
+  for (let ty = Math.floor(top / TILE_PX); ty <= Math.floor((top + height) / TILE_PX); ty++) {
+    if (ty < 0 || ty >= n) continue
+    for (let tx = Math.floor(left / TILE_PX); tx <= Math.floor((left + width) / TILE_PX); tx++) {
+      const wx = ((tx % n) + n) % n
+      out.push({ key: `${zoom}/${tx}/${ty}`, src: `/api/map/tiles/${zoom}/${wx}/${ty}`, x: tx * TILE_PX - left, y: ty * TILE_PX - top })
+    }
+  }
+  return out
+}
+
 /**
- * Dependency-free fallback map used when no Google Maps browser key is set
- * (local development, CI). Same interactions as the Google map: pan, zoom,
+ * Lightweight map: Geoapify raster tiles (proxied, key stays on the server) under
+ * our own markers and clustering. When tiles aren't configured (local dev, CI)
+ * it degrades to a schematic grid with the same interactions: pan, zoom,
  * clustered markers, tap to select.
  */
 export default function SchematicMap({ venues, center, radiusMiles, selectedId, onSelect, bottomInset = 0 }: MapViewProps) {
@@ -18,6 +38,8 @@ export default function SchematicMap({ venues, center, radiusMiles, selectedId, 
   const [size, setSize] = useState({ width: 0, height: 0 })
   const [view, setView] = useState<{ center: LatLng; zoom: number } | null>(null)
   const drag = useRef<{ x: number; y: number; c: { x: number; y: number }; moved: boolean } | null>(null)
+  const [tiles, setTiles] = useState<'unknown' | 'ok' | 'off'>('unknown')
+  const tileErrors = useRef(0)
 
   useEffect(() => {
     const el = ref.current
@@ -50,6 +72,7 @@ export default function SchematicMap({ venues, center, radiusMiles, selectedId, 
     setView({ center: around ?? view.center, zoom: Math.min(17, Math.max(3, view.zoom + d)) })
   }
 
+  const tileList = vp && tiles !== 'off' ? visibleTiles(vp.center, vp.zoom, vp.width, vp.height, size.width, size.height) : []
   const home = vp ? toScreen(center, vp) : null
   const radiusPx = vp ? toScreen({ lat: center.lat + radiusMiles / 69, lng: center.lng }, vp) : null
 
@@ -79,6 +102,29 @@ export default function SchematicMap({ venues, center, radiusMiles, selectedId, 
       }}
       onWheel={(e) => zoomBy(e.deltaY < 0 ? 1 : -1)}
     >
+      {tileList.length ? (
+        <div className="pointer-events-none absolute inset-0" aria-hidden data-testid="map-tiles">
+          {tileList.map((t) => (
+            // eslint-disable-next-line @next/next/no-img-element -- same-origin tile proxy; next/image adds nothing here
+            <img
+              key={t.key}
+              src={t.src}
+              alt=""
+              width={TILE_PX}
+              height={TILE_PX}
+              draggable={false}
+              decoding="async"
+              className="absolute max-w-none"
+              style={{ left: t.x, top: t.y, width: TILE_PX, height: TILE_PX }}
+              onLoad={() => tiles !== 'ok' && setTiles('ok')}
+              onError={() => {
+                // Not configured (404) or unreachable: fall back to the schematic grid.
+                if (tiles !== 'ok' && ++tileErrors.current >= 3) setTiles('off')
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
       {home && radiusPx ? (
         <>
           <div className="pointer-events-none absolute rounded-full border-2 border-dashed border-primary/30 bg-primary/5" style={{ left: home.x - Math.abs(home.y - radiusPx.y), top: home.y - Math.abs(home.y - radiusPx.y), width: 2 * Math.abs(home.y - radiusPx.y), height: 2 * Math.abs(home.y - radiusPx.y) }} />
@@ -132,7 +178,20 @@ export default function SchematicMap({ venues, center, radiusMiles, selectedId, 
           <Minus className="h-5 w-5" />
         </button>
       </div>
-      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-card/90 px-2.5 py-1 text-[11px] font-medium text-muted-foreground shadow-sm">Simplified map</span>
+      {tiles === 'ok' ? (
+        <span className="absolute left-2 z-10 rounded bg-card/85 px-1.5 py-0.5 text-[10px] text-muted-foreground" style={{ bottom: bottomInset + 4 }}>
+          <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer" onPointerUp={(e) => e.stopPropagation()}>
+            Powered by Geoapify
+          </a>{' '}
+          ·{' '}
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" onPointerUp={(e) => e.stopPropagation()}>
+            © OpenStreetMap
+          </a>{' '}
+          contributors
+        </span>
+      ) : (
+        <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-card/90 px-2.5 py-1 text-[11px] font-medium text-muted-foreground shadow-sm">Simplified map</span>
+      )}
     </div>
   )
 }

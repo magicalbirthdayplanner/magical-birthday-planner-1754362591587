@@ -6,7 +6,7 @@
  *                                              Google failed → stale cache → stored venues (PostGIS)
  *   → merge & dedupe by place id → rank → return
  *
- * Pure orchestration: Google, storage and clock are injected.
+ * Pure orchestration: the place source (Google or Geoapify), storage and clock are injected.
  */
 import { createHash } from 'node:crypto'
 import { milesToMeters } from '@/lib/geo/distance'
@@ -18,9 +18,38 @@ import { rankVenue, rankVenues } from './ranking'
 import { mergeVenue, type DiscoveryStore } from './store'
 import { getCategory, type DiscoveryCategory } from './taxonomy'
 import type { DiscoveryMeta, DiscoveryResult, PartyContext, RankedVenue, Venue } from './types'
+import type { LatLng } from '@/lib/geo/distance'
+
+/** Where places come from. Implementations normalize to `Venue`; absent data stays null. */
+export interface VenueSource {
+  /** Namespaces search cache keys so providers never share cached results. */
+  id: 'google' | 'geoapify'
+  /** Categories this source can search honestly; the query plan skips the rest. */
+  supports(categoryId: string): boolean
+  search(category: DiscoveryCategory, center: LatLng, radiusMeters: number, now: Date): Promise<Venue[]>
+  /** Fresh details for a place discovery already surfaced; null when the provider has nothing. */
+  details(placeId: string, known: Venue | null, now: Date): Promise<Venue | null>
+}
+
+/** Google Places (New): one Text Search per category. */
+export function googleSource(places: PlacesApi): VenueSource {
+  return {
+    id: 'google',
+    supports: () => true,
+    async search(category, center, radiusMeters, now) {
+      const raw = await places.searchText({ textQuery: category.query, center, radiusMeters, pageSize: 20 })
+      return raw.map((p) => normalizePlace(p, [category.id], now)).filter((v): v is Venue => !!v)
+    },
+    async details(placeId, known, now) {
+      return normalizePlace(await places.getPlace(placeId), known?.categories ?? [], now)
+    },
+  }
+}
 
 export interface DiscoveryDeps {
-  places: PlacesApi
+  /** Google client (used when no `source` is given). */
+  places?: PlacesApi
+  source?: VenueSource
   store: DiscoveryStore
   config: DiscoveryConfig
   now?: () => Date
@@ -43,9 +72,9 @@ export class DiscoveryUnavailableError extends Error {
   }
 }
 
-/** Cache key: query + location rounded to ~1 km + radius. Version-prefixed for safe invalidation. */
-export function searchCacheKey(categoryId: string, ctx: Pick<PartyContext, 'center' | 'radiusMiles'>): string {
-  const raw = ['v1', categoryId, ctx.center.lat.toFixed(2), ctx.center.lng.toFixed(2), Math.round(ctx.radiusMiles)].join('|')
+/** Cache key: query + location rounded to ~1 km + radius. Version/provider-prefixed for safe invalidation. */
+export function searchCacheKey(categoryId: string, ctx: Pick<PartyContext, 'center' | 'radiusMiles'>, sourceId: VenueSource['id'] = 'google'): string {
+  const raw = [sourceId === 'google' ? 'v1' : `${sourceId}-v1`, categoryId, ctx.center.lat.toFixed(2), ctx.center.lng.toFixed(2), Math.round(ctx.radiusMiles)].join('|')
   return createHash('sha256').update(raw).digest('hex').slice(0, 40)
 }
 
@@ -62,12 +91,22 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
   return out
 }
 
+function sourceOf(deps: DiscoveryDeps): VenueSource {
+  if (deps.source) return deps.source
+  if (!deps.places) throw new Error('DiscoveryDeps needs `source` or `places`')
+  return googleSource(deps.places)
+}
+
 export async function discoverVenues(ctx: PartyContext, deps: DiscoveryDeps, opts: DiscoverOptions = {}): Promise<DiscoveryResult> {
   const now = deps.now ?? (() => new Date())
   const started = Date.now()
+  const source = sourceOf(deps)
   const categories: DiscoveryCategory[] = opts.categoryIds?.length
-    ? opts.categoryIds.map(getCategory).filter((x): x is DiscoveryCategory => !!x)
-    : planQueries(ctx, deps.config.maxQueries).map((q) => q.category)
+    ? opts.categoryIds
+        .map(getCategory)
+        .filter((x): x is DiscoveryCategory => !!x)
+        .filter((c) => source.supports(c.id))
+    : planQueries(ctx, deps.config.maxQueries, source.supports).map((q) => q.category)
 
   const meta: DiscoveryMeta = {
     categories: categories.map((c) => c.id),
@@ -82,7 +121,7 @@ export async function discoverVenues(ctx: PartyContext, deps: DiscoveryDeps, opt
   const radiusMeters = milesToMeters(ctx.radiusMiles)
 
   const perCategory = await mapLimit(categories, deps.config.concurrency, async (category) => {
-    const cacheKey = searchCacheKey(category.id, ctx)
+    const cacheKey = searchCacheKey(category.id, ctx, source.id)
     const cached = await deps.store.getSearch(cacheKey).catch(() => null)
     if (cached && !opts.forceRefresh && cached.expiresAt > now()) {
       meta.cacheHits++
@@ -92,19 +131,16 @@ export async function discoverVenues(ctx: PartyContext, deps: DiscoveryDeps, opt
     meta.cacheMisses++
     const t0 = Date.now()
     try {
-      if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local Google call budget exhausted')
+      if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local place-search call budget exhausted')
       meta.apiCalls++
-      const raw = await deps.places.searchText({ textQuery: category.query, center: ctx.center, radiusMeters, pageSize: 20 })
       const fetchedAt = now()
-      // Google can return the same place twice in one response: dedupe before storing.
+      const found = await source.search(category, ctx.center, radiusMeters, fetchedAt)
+      // Providers can return the same place twice in one response: dedupe before storing.
       const unique = new Map<string, Venue>()
-      for (const p of raw) {
-        const v = normalizePlace(p, [category.id], fetchedAt)
-        if (v && !unique.has(v.placeId)) unique.set(v.placeId, v)
-      }
+      for (const v of found) if (!unique.has(v.placeId)) unique.set(v.placeId, v)
       const venues = Array.from(unique.values())
       const latencyMs = Date.now() - t0
-      deps.onMetric?.('places_search', { category: category.id, results: venues.length, latencyMs, cache: 'miss' })
+      deps.onMetric?.('places_search', { category: category.id, results: venues.length, latencyMs, cache: 'miss', provider: source.id })
       await deps.store
         .saveSearch({
           cacheKey,
@@ -171,7 +207,7 @@ export async function discoverVenues(ctx: PartyContext, deps: DiscoveryDeps, opt
 }
 
 /**
- * Venue details, fetched from Google only when a parent opens a venue and the
+ * Venue details, fetched from the provider only when a parent opens a venue and the
  * stored details are missing or older than the details TTL.
  */
 export async function getVenueDetails(
@@ -180,6 +216,7 @@ export async function getVenueDetails(
   ctx?: PartyContext | null,
 ): Promise<{ venue: RankedVenue | Venue; fromCache: boolean; stale: boolean }> {
   const now = deps.now ?? (() => new Date())
+  const source = sourceOf(deps)
   const stored = await deps.store.getVenue(placeId).catch(() => null)
   const fresh =
     stored?.detailsSyncedAt && now().getTime() - new Date(stored.detailsSyncedAt).getTime() < deps.config.detailsTtlDays * 86_400_000
@@ -189,12 +226,11 @@ export async function getVenueDetails(
   let stale = false
   if (!fresh) {
     try {
-      if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local Google call budget exhausted')
+      if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local place-details call budget exhausted')
       const t0 = Date.now()
-      const raw = await deps.places.getPlace(placeId)
       const syncedAt = now()
-      const normalized = normalizePlace(raw, stored?.categories ?? [], syncedAt)
-      deps.onMetric?.('places_details', { latencyMs: Date.now() - t0, cache: 'miss' })
+      const normalized = await source.details(placeId, stored, syncedAt)
+      deps.onMetric?.('places_details', { latencyMs: Date.now() - t0, cache: 'miss', provider: source.id })
       if (normalized) {
         venue = mergeVenue(stored, { ...normalized, detailsSyncedAt: syncedAt.toISOString() })
         await deps.store.saveVenueDetails(venue).catch(() => undefined)
