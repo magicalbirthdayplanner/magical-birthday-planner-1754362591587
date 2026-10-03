@@ -93,3 +93,15 @@ export async function grantSuperAdmin(email: string) {
   if (error) throw error
   return user.id
 }
+
+/** Test stack only: give a seeded user an effective plan (admin override, as Super Admin plan switching does). */
+export async function setPlanForE2E(email: string, plan: 'FREE' | 'STARTER' | 'PLUS' | 'PRO') {
+  const admin = createClient(URL, SERVICE, opts)
+  const { data } = await admin.auth.admin.listUsers({ perPage: 1000 })
+  const user = data.users.find((u) => u.email === email)
+  if (!user) throw new Error('user not found')
+  await admin.from('plan_overrides').delete().eq('user_id', user.id)
+  await admin.from('users').update({ is_trial_active: false, trial_expires_at: '2020-01-01T00:00:00Z' }).eq('id', user.id)
+  if (plan !== 'FREE') await admin.from('plan_overrides').insert({ user_id: user.id, plan, expires_at: null })
+  await admin.rpc('recompute_entitlement', { p_user: user.id })
+}

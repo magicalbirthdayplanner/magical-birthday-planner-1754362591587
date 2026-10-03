@@ -49,3 +49,21 @@ for (const width of [375, 390, 393, 430]) {
     await ctx.close()
   })
 }
+
+test('AI tools on Plan: Free sees calm locked rows; Plus builds the checklist and adds all', async ({ page }) => {
+  const { setPlanForE2E } = await import('./helpers')
+  const s = await seedUser({ withParty: true })
+  await setPlanForE2E(s.email, 'FREE')
+  await login(page, s, '/plan')
+  await expect(page.getByText('AI tools')).toBeVisible()
+  await expect(page.getByText('Included with Starter').first()).toBeVisible()
+  await setPlanForE2E(s.email, 'PLUS')
+  await page.reload()
+  await page.getByTestId('ai-tool-checklist').click()
+  await expect(page.getByRole('dialog', { name: 'Your AI checklist' })).toBeVisible()
+  await page.getByRole('button', { name: 'Add all to checklist' }).click()
+  await expect(page.getByText(/Added \d+ tasks? to your checklist/)).toBeVisible({ timeout: 15_000 })
+  await page.keyboard.press('Escape')
+  await page.goto('/plan/checklist')
+  await expect(page.getByText('Ask the studio what kids should wear')).toBeVisible()
+})
