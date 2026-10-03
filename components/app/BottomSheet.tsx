@@ -39,7 +39,7 @@ export function BottomSheet({
               <Drawer.Title className="font-display text-2xl font-semibold">{title}</Drawer.Title>
               {description ? <Drawer.Description className="mt-0.5 text-sm text-muted-foreground">{description}</Drawer.Description> : <Drawer.Description className="sr-only">{title}</Drawer.Description>}
             </div>
-            <Drawer.Close aria-label="Close" className="tap -mr-2 inline-flex h-11 w-11 items-center justify-center rounded-full active:bg-muted">
+            <Drawer.Close aria-label="Close" className="tap -mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full active:bg-muted">
               <X className="h-5 w-5" />
             </Drawer.Close>
           </div>

@@ -76,7 +76,7 @@ export function ApplyControls({ generationId, target, itemId, label, partyId }: 
         </div>
       ) : null}
       <div className="flex items-center gap-1">
-        <AppButton size="sm" variant={t === 'theme' ? 'primary' : 'secondary'} loading={state === 'busy'} onClick={apply} aria-label={`${LABEL[t]}: ${label}`}>
+        <AppButton size="sm" className="min-h-[44px]" variant={t === 'theme' ? 'primary' : 'secondary'} loading={state === 'busy'} onClick={apply} aria-label={`${LABEL[t]}: ${label}`}>
           {LABEL[t]}
         </AppButton>
         {t !== 'theme' ? (

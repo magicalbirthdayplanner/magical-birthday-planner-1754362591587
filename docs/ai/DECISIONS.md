@@ -15,3 +15,4 @@
 - The existing /api/themes/ai (Azure) route and its UI stay untouched for backward compatibility; theme_ideas is the new, gated path.
 - Migrations are applied only to the local Supabase stack; production is the only remote DB, so nothing is applied there (LAUNCH_CHECKLIST lists them).
 - Phase order: the shared route factory needs flags/entitlements/limits to be safe, so capabilities.ts + usage.ts + the factory ship in Phase 3; Phase 6 adds the capabilities route UI wiring, limit UX and the dedicated race/limit tests.
+- Accessibility: AI Apply buttons use the app's sm button with min-h 44px; BottomSheet's Close button gets shrink-0 (was squeezed to 35px wide by long sheet descriptions — an existing shared-component bug, fixed for all sheets).
