@@ -17,12 +17,12 @@ export function LogoMark({ className }: { className?: string }) {
   )
 }
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, textClassName }: { className?: string; textClassName?: string }) {
   return (
     <span className={cn('inline-flex items-center gap-2', className)}>
       <LogoMark />
-      <span className="font-display text-[19px] font-semibold leading-none tracking-tight">
-        Magical<span className="text-primary"> Party</span>
+      <span className={cn('font-display text-[19px] font-semibold leading-none tracking-tight', textClassName)}>
+        Magical Birthday<span className="text-primary"> Planner</span>
       </span>
     </span>
   )
