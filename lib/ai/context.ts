@@ -26,7 +26,9 @@ export interface PartyAIContext {
   foodPreferences: string[]
   existingActivities: string[]
   existingChecklist: { title: string; done: boolean }[]
-  currentBudgetLines: { category: string; label: string | null; amount: number }[]
+  /** amount = planned estimate; actual = what the parent says they spent (null = not entered). */
+  currentBudgetLines: { category: string; label: string | null; amount: number; actual: number | null }[]
+  existingShoppingItems: string[]
   plan: string
   /** Invitation writer only. */
   invitation?: { childFirstName: string; venueName: string | null; venueAddress: string | null; startTime: string | null; endTime: string | null }
@@ -59,12 +61,13 @@ export async function buildPartyAIContext(
     .maybeSingle()
   if (!party) return null // RLS: another user's party is indistinguishable from a missing one
 
-  const [venueRes, checklistRes, activitiesRes, budgetRes, inviteRes] = await Promise.all([
+  const [venueRes, checklistRes, activitiesRes, budgetRes, inviteRes, shoppingRes] = await Promise.all([
     supabase.from('party_venues').select('custom_name, custom_address, is_custom, venues(name, formatted_address, address, categories, primary_type_label, category)').eq('party_id', partyId).maybeSingle(),
     supabase.from('checklist_items').select('title, completed_at').eq('party_id', partyId).order('sort_order').limit(60),
     supabase.from('party_ai_activities').select('name').eq('party_id', partyId).limit(30),
-    supabase.from('party_budget_lines').select('category, label, amount').eq('party_id', partyId).limit(40),
+    supabase.from('party_budget_lines').select('category, label, amount, actual_amount').eq('party_id', partyId).limit(40),
     opts.includeInvitationFields ? supabase.from('party_invitations').select('start_time, end_time').eq('party_id', partyId).maybeSingle() : Promise.resolve({ data: null }),
+    supabase.from('party_shopping_items').select('item').eq('party_id', partyId).limit(40),
   ])
 
   const v = venueRes.data as null | { custom_name: string | null; custom_address: string | null; is_custom: boolean | null; venues: { name: string | null; formatted_address: string | null; address: string | null; categories: string[] | null; primary_type_label: string | null; category: string | null } | null }
@@ -81,7 +84,7 @@ export async function buildPartyAIContext(
     daysUntilParty: daysUntil(party.party_date ?? null, opts.today),
     city: party.city ?? null,
     state: party.state ?? null,
-    guestCountEstimate: party.guest_count ?? null,
+    guestCountEstimate: party.guest_count || null, // 0 is the column default = "not set"
     budget: party.budget != null ? Number(party.budget) : null,
     venue: venueName ? { name: venueName.slice(0, 120), type: venueType, booked: true } : null,
     theme: details?.name ?? (party.theme && !party.theme.startsWith('ai:') ? party.theme : null),
@@ -90,7 +93,8 @@ export async function buildPartyAIContext(
     foodPreferences: [],
     existingActivities: (activitiesRes.data ?? []).map((a) => a.name),
     existingChecklist: (checklistRes.data ?? []).map((c) => ({ title: c.title, done: !!c.completed_at })),
-    currentBudgetLines: (budgetRes.data ?? []).map((b) => ({ category: b.category, label: b.label, amount: Number(b.amount) })),
+    currentBudgetLines: (budgetRes.data ?? []).map((b) => ({ category: b.category, label: b.label, amount: Number(b.amount), actual: b.actual_amount != null ? Number(b.actual_amount) : null })),
+    existingShoppingItems: (shoppingRes.data ?? []).map((x) => x.item),
     plan: opts.plan,
   }
   if (opts.includeInvitationFields) {

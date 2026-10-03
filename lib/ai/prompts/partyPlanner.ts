@@ -23,6 +23,8 @@ export function partyPlannerPrompt(ctx: PartyAIContext, overrides: PlannerOverri
   const user = `Create a practical birthday party plan.
 Return JSON with exactly this shape (3 to 5 activities; timeline "minute" = minutes after the party starts, increasing, within durationMinutes).
 Budget: when a budget is given, the budget lines MUST add up to no more than about 95% of it (leave a small buffer), and the shopping list and activity costs must fit inside those lines. Cut or simplify items rather than exceed it.
+Make it specific to THIS party: use the age, interests, theme, setting, guest count and budget from the facts and the parent's notes. Shopping quantities follow the guest count (e.g. "12 paper masks", not "masks"). Do not repeat existingActivities or existingShoppingItems.
+If the parent tells you little, still return a complete, sensible starting plan from the party facts, list what you assumed, and ask up to 4 short followUpQuestions that would most improve the plan.
 ${SHAPE}
 
 Party facts (from the app): ${contextForPrompt(ctx)}

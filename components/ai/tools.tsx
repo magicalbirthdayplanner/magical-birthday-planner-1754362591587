@@ -3,6 +3,7 @@
 import type { ComponentType, ReactNode } from 'react'
 import { Clock, ListChecks, PiggyBank, Puzzle, ShoppingBasket, UtensilsCrossed } from 'lucide-react'
 import type { AIFeature } from '@/lib/ai/types'
+import type { AskConfig } from './AIToolSheet'
 import type { ChecklistResult } from '@/lib/ai/schemas/checklist'
 import { ChecklistResultView } from './results/ChecklistResultView'
 import type { BudgetResult } from '@/lib/ai/schemas/budget'
@@ -25,14 +26,16 @@ export interface ToolDef {
   icon: ComponentType<{ className?: string }>
   steps?: string[]
   body?: () => Record<string, unknown>
+  /** Optional question before generating (free text, sent as notes). */
+  ask?: AskConfig
   render: (result: never, generationId: string, partyId: string, rerun: (extra: Record<string, unknown>) => void) => ReactNode
 }
 
 export const TOOLS: ToolDef[] = [
   {
     feature: 'checklist',
-    label: () => 'Build my checklist',
-    sub: 'Tasks that fit the days you have left',
+    label: () => 'What am I forgetting?',
+    sub: 'Specific tasks with dates, based on your plan so far',
     title: 'Your AI checklist',
     path: '/api/ai/checklist',
     icon: ListChecks,
@@ -41,8 +44,8 @@ export const TOOLS: ToolDef[] = [
   },
   {
     feature: 'budget_optimizer',
-    label: (budget) => (budget != null ? `Help me stay under $${budget}` : 'Help me plan my budget'),
-    sub: 'Savings and missing costs, with real totals',
+    label: (budget) => (budget != null ? `Help me stretch my $${budget} budget` : 'Help me plan my budget'),
+    sub: 'Where the money goes, savings and missing costs',
     title: 'Budget assistant',
     path: '/api/ai/budget',
     icon: PiggyBank,
@@ -51,12 +54,13 @@ export const TOOLS: ToolDef[] = [
   },
   {
     feature: 'activities',
-    label: () => 'Suggest activities',
-    sub: 'Games and crafts with setup and cleanup',
+    label: () => 'Need activity ideas?',
+    sub: 'Age-right games and crafts with materials and costs',
     title: 'Activity ideas',
     path: '/api/ai/activities',
     icon: Puzzle,
     steps: ['Thinking about the birthday…', 'Matching activities to age and space…', 'Writing simple instructions…'],
+    ask: { label: 'Anything we should know?', placeholder: 'e.g. “small living room”, “we have lots of cardboard”, “one calm activity please”', cta: '✨ Suggest activities' },
     render: (r: ActivitiesResult, gid, partyId) => <ActivitiesResultView r={r} generationId={gid} partyId={partyId} />,
   },
   {
@@ -67,6 +71,7 @@ export const TOOLS: ToolDef[] = [
     path: '/api/ai/food',
     icon: UtensilsCrossed,
     steps: ['Counting hungry guests…', 'Picking kid-friendly food…', 'Writing your shopping list…'],
+    ask: { label: 'Any food preferences?', placeholder: 'e.g. “nut-free school”, “two vegetarian kids”, “no time to cook”', cta: '✨ Plan the food' },
     render: (r: FoodResult, gid, partyId) => <FoodResultView r={r} generationId={gid} partyId={partyId} />,
   },
   {

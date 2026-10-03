@@ -9,7 +9,7 @@ export function BudgetResultView({ r, generationId, partyId }: { r: BudgetResult
   return (
     <div className="space-y-3">
       <Card className="grid grid-cols-3 gap-2 p-4 text-center text-sm">
-        <div><p className="text-xs text-muted-foreground">Planned</p><p className="font-semibold">{$(r.currentTotal)}</p></div>
+        <div><p className="text-xs text-muted-foreground">Planned now</p><p className="font-semibold">{$(r.currentTotal)}</p></div>
         <div><p className="text-xs text-muted-foreground">After changes</p><p className="font-semibold">{$(r.projectedTotal)}</p></div>
         <div><p className="text-xs text-muted-foreground">Budget</p><p className={`font-semibold ${r.overBy ? 'text-destructive' : 'text-success'}`}>{r.target != null ? $(r.target) : '—'}</p></div>
       </Card>
@@ -43,7 +43,7 @@ export function BudgetResultView({ r, generationId, partyId }: { r: BudgetResult
         </>
       ) : null}
       {r.tradeoffs.length ? <ul className="list-inside list-disc text-sm text-muted-foreground">{r.tradeoffs.map((t) => <li key={t}>{t}</li>)}</ul> : null}
-      <p className="text-xs text-muted-foreground">Estimates only — prices vary by store and area.</p>
+      <p className="text-xs text-muted-foreground">Estimates only — prices vary by store and area. Using a suggestion changes the planned amount for that line; what you’ve actually spent is never changed.</p>
     </div>
   )
 }

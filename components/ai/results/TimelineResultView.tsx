@@ -1,6 +1,7 @@
 'use client'
 import { Card, Chip } from '@/components/app/ui'
 import type { TimelineResult } from '@/lib/ai/schemas/timeline'
+import { AddAllButton } from '../AddAllButton'
 import { ApplyControls } from '../ApplyControls'
 
 const ADJUST = [['relaxed', 'Make it more relaxed'], ['more_games', 'Add more games'], ['less_prep', 'Reduce preparation']] as const
@@ -22,7 +23,10 @@ export function TimelineResultView({ r, generationId, partyId, rerun }: { r: Tim
       </div>
       {r.prepTasks.length ? (
         <>
-          <p className="text-sm font-semibold">Before the party</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold">Before the party</p>
+            <AddAllButton generationId={generationId} target="checklist" itemIds={r.prepTasks.map((p) => p.id)} partyId={partyId} label="Add all to checklist" />
+          </div>
           <Card className="divide-y divide-border">
             {r.prepTasks.map((p) => (
               <div key={p.id} className="flex items-start gap-3 px-4 py-3">

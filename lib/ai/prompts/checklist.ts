@@ -11,7 +11,8 @@ Rules:
 - The party is in ${ctx.daysUntilParty ?? 'an unknown number of'} days.${soon ? ' It is SOON: compress the plan; no task may need more lead time than remains. If something is normally booked further ahead (e.g. a custom cake needs 1-2 weeks), give a fast alternative instead (e.g. order a decorated bakery cake or decorate store-bought cupcakes) and say why in notes.' : ''}
 - Do not repeat anything in existingChecklist.
 - ${ctx.venue?.booked ? `A venue is already booked (${ctx.venue.type ?? 'venue'}): do NOT suggest booking or choosing a venue${/(studio|play|museum|art|class|trampoline|bowling)/i.test(`${ctx.venue.type} ${ctx.venue.name}`) ? ', and do NOT suggest booking entertainment or an activity — the venue provides it; instead add tasks tied to the venue (confirm headcount, what to bring, arrival time)' : ''}.` : 'No venue is booked yet.'}
-- Tailor tasks to the theme${ctx.theme ? ` "${ctx.theme}"` : ''} and the guest count.
+- Tailor tasks to the theme${ctx.theme ? ` "${ctx.theme}"` : ''} and the guest count. Be specific and concrete: name the item, the quantity from the guest count and the theme, e.g. "Order ${ctx.guestCountEstimate ?? 12} ${ctx.theme ? `${ctx.theme.toLowerCase()} ` : ''}themed plates and cups", never generic tasks like "Buy decorations" or "Plan activities".
+- Use existingActivities and existingShoppingItems: add the prep those need (buy/prepare materials, test a craft) instead of re-planning them.
 Return JSON exactly: {"tasks":[{"title":"","notes":"","daysBeforeParty":7,"priority":"high","effort":"quick"}],"assumptions":[""]}
 Party facts: ${contextForPrompt(ctx)}
 ${notes ? wrapParentNotes(notes) : '<parent_notes></parent_notes>'}`,

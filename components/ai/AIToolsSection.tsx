@@ -1,6 +1,6 @@
 'use client'
 /**
- * Plan → "AI tools": one row per contextual AI action whose screen doesn't exist yet (activities, food, budget,
+ * Plan → "Planning help": one row per contextual AI action whose screen doesn't exist yet (activities, food, budget,
  * checklist, timeline, shopping list). Rows come from the TOOLS registry (components/ai/tools.tsx); a row shows
  * only when its feature is enabled server-side. Locked rows explain calmly and link to pricing.
  */
@@ -17,7 +17,7 @@ export function AIToolsSection({ partyId, budget }: { partyId: string; budget: n
   const visible = TOOLS.filter((t) => caps.get(t.feature)?.enabled)
   if (!visible.length) return null
   return (
-    <Section title="AI tools">
+    <Section title="✨ Planning help">
       <Card className="divide-y divide-border overflow-hidden">
         {visible.map((t) => {
           const cap = caps.get(t.feature)!
@@ -53,6 +53,9 @@ export function AIToolsSection({ partyId, budget }: { partyId: string; budget: n
           path={active.path}
           body={{ partyId, ...(active.body?.() ?? {}) }}
           steps={active.steps}
+          feature={active.feature}
+          restore
+          ask={active.ask}
           onUsed={() => caps.mutate()}
           render={(r, gid, rerun) => active.render(r as never, gid, partyId, rerun)}
         />

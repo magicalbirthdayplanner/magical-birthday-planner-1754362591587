@@ -94,7 +94,7 @@ export async function applyItem(db: DB, userId: string, req: ApplyRequest): Prom
     const name = e.title ?? s(item.name, 120)
     const { data, error } = await db
       .from('party_ai_activities')
-      .insert({ party_id: partyId, user_id: userId, name, description: (e.notes ?? s(item.description, 1000)) || null, duration_min: n(item.durationMin, 0, 600), estimated_cost: n(item.estimatedCost), materials: (Array.isArray(item.materials) ? item.materials : []).map((m) => s(m, 60)).filter(Boolean).slice(0, 12), details: pickDetails(item), source_generation_id: gen.id, source_item_id: req.itemId })
+      .insert({ party_id: partyId, user_id: userId, name, description: (e.notes ?? (s(item.description, 1000) || s(item.whyItFits, 1000))) || null, duration_min: n(item.durationMin, 0, 600), estimated_cost: n(item.estimatedCost), materials: (Array.isArray(item.materials) ? item.materials : []).map((m) => s(m, 60)).filter(Boolean).slice(0, 12), details: pickDetails(item), source_generation_id: gen.id, source_item_id: req.itemId })
       .select('id')
       .single()
     if (isUnique(error)) return { status: 'duplicate', message: 'That activity is already in your plan.' }
@@ -154,7 +154,7 @@ export async function applyItem(db: DB, userId: string, req: ApplyRequest): Prom
 
 function pickDetails(item: Item): NonNullable<Json> {
   const keep: Record<string, unknown> = {}
-  for (const k of ['whyItFits', 'setup', 'instructions', 'cleanup', 'ageSuitability', 'difficulty']) {
+  for (const k of ['whyItFits', 'setup', 'instructions', 'cleanup', 'ageSuitability', 'difficulty', 'setting']) {
     const v = item[k]
     if (typeof v === 'string') keep[k] = s(v, 600)
     else if (Array.isArray(v)) keep[k] = v.map((x) => s(x, 200)).filter(Boolean).slice(0, 10)

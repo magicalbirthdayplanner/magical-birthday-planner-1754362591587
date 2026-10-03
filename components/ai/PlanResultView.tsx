@@ -4,14 +4,24 @@
  * Apply / Edit / Dismiss controls plug in without changing the layout.
  */
 import type { ReactNode } from 'react'
+import Link from 'next/link'
+import { ChevronRight, ClipboardCheck, MapPin, Send } from 'lucide-react'
 import { Card, Section } from '@/components/app/ui'
 import type { PartyPlanResult } from '@/lib/ai/schemas/partyPlanner'
 
 export type ItemAction = (target: 'activities' | 'shopping_list' | 'theme' | 'budget' | 'checklist', itemId: string, label: string) => ReactNode
+export type BulkAction = (target: 'activities' | 'shopping_list' | 'budget', itemIds: string[], label: string) => ReactNode
+
+/** Real places in the app to continue — not AI output. */
+const NEXT_STEPS = [
+  { href: '/discover', icon: MapPin, label: 'Find a venue near you', sub: 'Discover places that fit this plan' },
+  { href: '/plan/invite', icon: Send, label: 'Create the invitation', sub: 'Share it and track RSVPs' },
+  { href: '/plan/checklist', icon: ClipboardCheck, label: 'Open your checklist', sub: 'Tasks with dates, ready to tick off' },
+]
 
 const money = (n: number) => (n === 0 ? 'Free' : `$${n % 1 === 0 ? n : n.toFixed(2)}`)
 
-export function PlanResultView({ plan, action }: { plan: PartyPlanResult; action?: ItemAction }) {
+export function PlanResultView({ plan, action, bulk, nextSteps = false }: { plan: PartyPlanResult; action?: ItemAction; bulk?: BulkAction; nextSteps?: boolean }) {
   return (
     <div className="space-y-1 pb-4" aria-live="polite">
       <div className="rounded-3xl bg-secondary p-5">
@@ -39,7 +49,7 @@ export function PlanResultView({ plan, action }: { plan: PartyPlanResult; action
         </Card>
       </Section>
 
-      <Section title="Activities">
+      <Section title="Activities" action={bulk?.('activities', plan.activities.map((a) => a.id), 'Add all')}>
         <div className="space-y-3">
           {plan.activities.map((a) => (
             <Card key={a.id} className="p-4">
@@ -99,7 +109,7 @@ export function PlanResultView({ plan, action }: { plan: PartyPlanResult; action
       ) : null}
 
       {plan.shoppingList.length ? (
-        <Section title="Shopping list">
+        <Section title="Shopping list" action={bulk?.('shopping_list', plan.shoppingList.map((x) => x.id), 'Add all')}>
           <Card className="divide-y divide-border">
             {plan.shoppingList.map((s) => (
               <div key={s.id} className="flex min-h-[56px] items-center gap-3 px-4 py-2 text-sm">
@@ -117,7 +127,7 @@ export function PlanResultView({ plan, action }: { plan: PartyPlanResult; action
       ) : null}
 
       {plan.budget.lines.length ? (
-        <Section title="Budget (estimates)">
+        <Section title="Budget (estimates)" action={bulk?.('budget', plan.budget.lines.map((l) => l.id), 'Use all')}>
           <Card className="divide-y divide-border">
             {plan.budget.lines.map((l) => (
               <div key={l.id} className="flex min-h-[52px] items-center gap-3 px-4 py-2 text-sm">
@@ -157,7 +167,20 @@ export function PlanResultView({ plan, action }: { plan: PartyPlanResult; action
           </ul>
         </Section>
       ) : null}
-      <p className="px-4 text-xs text-muted-foreground">AI suggestions are estimates — prices and availability vary.</p>
+      {nextSteps ? (
+        <Section title="Next steps">
+          <Card className="divide-y divide-border overflow-hidden">
+            {NEXT_STEPS.map(({ href, icon: Icon, label, sub }) => (
+              <Link key={href} href={href} className="tap flex min-h-[56px] items-center gap-3 px-4 py-3 active:bg-muted">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary"><Icon className="h-4 w-4" /></span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{label}</span><span className="block text-xs text-muted-foreground">{sub}</span></span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </Link>
+            ))}
+          </Card>
+        </Section>
+      ) : null}
+      <p className="px-4 text-xs text-muted-foreground">AI suggestions are estimates — prices and availability vary. Added items appear under “Your party plan” on the Plan tab.</p>
     </div>
   )
 }

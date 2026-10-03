@@ -16,7 +16,7 @@ export function DiscoverWhyItFits({ partyId, placeIds }: { partyId: string; plac
   return (
     <div className="px-4 pb-2">
       <button type="button" onClick={() => setOpen(true)} className="tap flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-primary" data-testid="ai-discover-explain">
-        <Sparkles className="h-4 w-4" /> Why these fit your party
+        <Sparkles className="h-4 w-4" /> Why these places might work for your party
       </button>
       {open ? (
         <AIToolSheet<DiscoverExplainResult>

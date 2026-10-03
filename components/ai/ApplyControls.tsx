@@ -10,6 +10,7 @@ import { useSWRConfig } from 'swr'
 import { AppButton } from '@/components/app/ui'
 import { TextField } from '@/components/app/fields'
 import { apiFetch, friendlyError } from '@/lib/data/api'
+import { useApplied } from './applied'
 
 type Target = 'checklist' | 'activities' | 'shopping_list' | 'theme' | 'budget'
 const LABEL: Record<Target, string> = { checklist: 'Add to checklist', activities: 'Add to activities', shopping_list: 'Add to list', theme: 'Use this theme', budget: 'Add to budget' }
@@ -17,6 +18,7 @@ const LABEL: Record<Target, string> = { checklist: 'Add to checklist', activitie
 export function ApplyControls({ generationId, target, itemId, label, partyId }: { generationId: string; target: string; itemId: string; label: string; partyId: string }) {
   const t = target as Target
   const { mutate } = useSWRConfig()
+  const applied = useApplied()
   const [state, setState] = useState<'idle' | 'busy' | 'added' | 'dismissed'>('idle')
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(label)
@@ -34,6 +36,7 @@ export function ApplyControls({ generationId, target, itemId, label, partyId }: 
       if (editing && t === 'budget' && amount.trim() && Number.isFinite(Number(amount))) edits.amount = Number(amount)
       const r = await apiFetch<{ status: string; message: string; undo?: boolean }>('/api/ai/apply', { method: 'POST', body: JSON.stringify({ generationId, itemId, target, ...(Object.keys(edits).length ? { edits } : {}) }) })
       setState('added')
+      applied.mark(t, [itemId])
       setEditing(false)
       refresh()
       if (r.status === 'applied') {
@@ -45,6 +48,7 @@ export function ApplyControls({ generationId, target, itemId, label, partyId }: 
                   try {
                     await apiFetch('/api/ai/apply', { method: 'DELETE', body: JSON.stringify({ generationId, itemId, target }) })
                     setState('idle')
+                    applied.unmark(t, itemId)
                     refresh()
                   } catch (e) {
                     toast.error(friendlyError(e))
@@ -61,7 +65,7 @@ export function ApplyControls({ generationId, target, itemId, label, partyId }: 
   }
 
   if (state === 'dismissed') return null
-  if (state === 'added')
+  if (state === 'added' || (state === 'idle' && applied.has(t, itemId)))
     return (
       <span className="inline-flex min-h-[44px] shrink-0 items-center gap-1 text-sm font-semibold text-success" role="status">
         <Check className="h-4 w-4" /> Added

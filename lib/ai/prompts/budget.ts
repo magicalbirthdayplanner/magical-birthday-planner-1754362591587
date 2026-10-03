@@ -3,7 +3,7 @@ import { wrapParentNotes } from '../safety'
 import { SYSTEM_PROMPT } from './system'
 
 export function budgetPrompt(ctx: PartyAIContext, notes: string) {
-  const lines = ctx.currentBudgetLines.length ? 'currentBudgetLines lists what the parent has planned so far.' : 'There are no budget lines yet: propose a sensible allocation by category (each as a suggestion with newAmount).'
+  const lines = ctx.currentBudgetLines.length ? 'currentBudgetLines lists what the parent has planned so far (amount = planned estimate; actual = what they already spent — never suggest changing money already spent).' : 'There are no budget lines yet: propose a sensible allocation by category (each as a suggestion with newAmount).'
   return {
     system: SYSTEM_PROMPT,
     user: `Help the parent stay under their budget${ctx.budget != null ? ` of $${ctx.budget}` : ''}. ${lines}

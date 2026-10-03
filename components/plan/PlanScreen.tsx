@@ -13,6 +13,7 @@ import { INTERESTS } from '@/lib/discovery/taxonomy'
 import { settingFromVenueType } from '@/lib/discovery/party-context'
 import { track } from '@/lib/analytics/client'
 import { PartyEditSheet } from './PartyEditSheet'
+import { PartyPlanSection } from './PartyPlanSection'
 import { PlanWithAICard } from '@/components/ai/PlanWithAICard'
 import { AIToolsSection } from '@/components/ai/AIToolsSection'
 
@@ -126,6 +127,8 @@ export function PlanScreen() {
           <Row href="/plan/checklist" icon={ClipboardCheck} title="Checklist" value={`${summary.input.checklistDone} of ${summary.input.checklistTotal} done`} done={summary.input.checklistTotal > 0 && summary.input.checklistDone === summary.input.checklistTotal} />
         </Card>
       </Section>
+
+      <PartyPlanSection partyId={party.id} budget={budget} />
 
       <AIToolsSection partyId={party.id} budget={budget} />
 

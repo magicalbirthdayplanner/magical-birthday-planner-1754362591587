@@ -13,7 +13,7 @@ export function useAICapabilities(partyId: string | null | undefined) {
   return { ...swr, get }
 }
 
-export type GenState<R> = { phase: 'idle' } | { phase: 'loading' } | { phase: 'done'; generationId: string; result: R; remaining: number | null } | { phase: 'error'; code: string; message: string; upgradeTo?: string | null }
+export type GenState<R> = { phase: 'idle' } | { phase: 'loading' } | { phase: 'done'; generationId: string; result: R; remaining: number | null; appliedKeys?: string[]; restoredAt?: string } | { phase: 'error'; code: string; message: string; upgradeTo?: string | null }
 
 export function useAIGenerate<R>(path: string) {
   const [state, setState] = useState<GenState<R>>({ phase: 'idle' })
@@ -37,5 +37,9 @@ export function useAIGenerate<R>(path: string) {
     setState({ phase: 'idle' })
   }, [])
   const reset = useCallback(() => setState({ phase: 'idle' }), [])
-  return { state, run, cancel, reset }
+  /** Show a stored result again (no new generation). */
+  const restore = useCallback((g: { generationId: string; result: R; appliedKeys: string[]; createdAt: string }) => {
+    setState({ phase: 'done', generationId: g.generationId, result: g.result, remaining: null, appliedKeys: g.appliedKeys, restoredAt: g.createdAt })
+  }, [])
+  return { state, run, cancel, reset, restore }
 }

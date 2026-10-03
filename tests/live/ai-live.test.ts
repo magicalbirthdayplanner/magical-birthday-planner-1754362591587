@@ -20,7 +20,7 @@ import { ThemeIdeasSchema } from '@/lib/ai/schemas/themeIdeas'
 
 const live = process.env.AI_LIVE === '1' && !!process.env.AI_API_KEY
 const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: 'opencode' } as NodeJS.ProcessEnv)
-const base: PartyAIContext = { childAge: 7, childInterests: ['art', 'animals'], partyDate: null, daysUntilParty: 30, city: 'Troy', state: 'MI', guestCountEstimate: 12, budget: 250, venue: null, theme: null, durationMinutes: 120, indoorOutdoor: 'indoor', foodPreferences: [], existingActivities: [], existingChecklist: [], currentBudgetLines: [], plan: 'PLUS' }
+const base: PartyAIContext = { childAge: 7, childInterests: ['art', 'animals'], partyDate: null, daysUntilParty: 30, city: 'Troy', state: 'MI', guestCountEstimate: 12, budget: 250, venue: null, theme: null, durationMinutes: 120, indoorOutdoor: 'indoor', foodPreferences: [], existingActivities: [], existingChecklist: [], currentBudgetLines: [], existingShoppingItems: [], plan: 'PLUS' }
 
 describe.skipIf(!live)('live model (manual)', () => {
   it('golden A: planner → valid plan, ≤ $250 after server recompute, no named artist', async () => {
