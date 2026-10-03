@@ -142,6 +142,10 @@ html:has(.mbp-app) {
 [data-sonner-toaster] [data-sonner-toast] {
   font-family: var(--font-sans), ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
+/* An open sheet makes the page inert (pointer-events: none on body); toasts and their Undo stay tappable. */
+[data-sonner-toaster] [data-sonner-toast] {
+  pointer-events: auto;
+}
 
 .mbp-app {
   font-family: var(--font-sans), ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;

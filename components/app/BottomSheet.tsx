@@ -28,6 +28,10 @@ export function BottomSheet({
         <Drawer.Overlay className="fixed inset-0 z-50 bg-[hsl(252_32%_10%/0.45)] backdrop-blur-[2px]" />
         <Drawer.Content
           aria-describedby={description ? undefined : undefined}
+          // Toasts (e.g. "Added · Undo") sit outside the sheet: tapping them must not close it.
+          onInteractOutside={(e) => {
+            if ((e.target as Element | null)?.closest?.('[data-sonner-toaster]')) e.preventDefault()
+          }}
           className={cn(
             'mbp-app fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] w-full max-w-xl flex-col rounded-t-[28px] bg-background outline-none',
             className,

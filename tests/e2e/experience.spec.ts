@@ -44,6 +44,14 @@ test('create → add → plan, checklist, shopping, budget, timeline → host sp
   await expect(dialog(page).getByText('Suggested change:')).toBeVisible({ timeout: 20_000 })
   await dialog(page).getByRole('button', { name: 'Use this version' }).click()
   await expect(page.getByText('Activity updated.')).toBeVisible()
+  // Undo from the toast works while the sheet is open, and doesn't close it
+  await page.locator('[data-sonner-toast]').filter({ hasText: 'Activity updated.' }).getByRole('button', { name: 'Undo' }).click()
+  await expect(page.getByText('Undone.')).toBeVisible()
+  await expect(dialog(page).getByText('✨ Make it yours')).toBeVisible()
+  await dialog(page).getByRole('button', { name: 'Make it cheaper' }).click()
+  await expect(dialog(page).getByText('Suggested change:')).toBeVisible({ timeout: 20_000 })
+  await dialog(page).getByRole('button', { name: 'Use this version' }).click()
+  await expect(page.getByText('Activity updated.').first()).toBeVisible()
   await page.keyboard.press('Escape')
 
   // everything is connected on the Plan tab
