@@ -158,7 +158,7 @@ export function VenueDetailScreen({ placeId }: { placeId: string }) {
             {venue.setting && venue.setting !== 'either' ? ` · ${venue.setting === 'indoor' ? 'Indoor' : 'Outdoor'}` : ''}
           </p>
         ) : null}
-        <h1 className="mt-1 font-display text-[30px] font-semibold leading-tight tracking-tight">{venue.name}</h1>
+        <h1 className="mt-1 font-display text-[30px] font-extrabold leading-tight tracking-tight">{venue.name}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-muted-foreground">
           <Stars rating={venue.rating} count={venue.reviewCount} />
           {distance ? <span>· {distance} away</span> : null}

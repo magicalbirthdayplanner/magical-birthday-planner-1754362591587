@@ -71,7 +71,7 @@ export function PlanScreen() {
       <div className="flex items-start justify-between gap-3 px-4 pt-5">
         <div>
           <p className="text-sm font-semibold text-primary">{child} turns {party.child_age}</p>
-          <h1 className="font-display text-[28px] font-semibold leading-tight tracking-tight">
+          <h1 className="font-display text-[28px] font-extrabold leading-tight tracking-tight">
             {summary.days >= 0 ? `${child}’s party is ${summary.days === 0 ? 'today!' : summary.days === 1 ? 'tomorrow' : `${summary.days} days away`}` : `${child}’s party`}
           </h1>
         </div>

@@ -21,7 +21,7 @@ export function Logo({ className, textClassName }: { className?: string; textCla
   return (
     <span className={cn('inline-flex items-center gap-2', className)}>
       <LogoMark />
-      <span className={cn('font-display text-[19px] font-semibold leading-none tracking-tight', textClassName)}>
+      <span className={cn('font-display text-[19px] font-bold leading-none tracking-tight', textClassName)}>
         Magical Birthday<span className="text-primary"> Planner</span>
       </span>
     </span>

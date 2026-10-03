@@ -34,7 +34,7 @@ export function PlanResultView({ plan, action, bulk, nextSteps = false }: { plan
         <Card className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="font-display text-xl font-semibold">{plan.theme.name}</p>
+              <p className="font-display text-xl font-bold">{plan.theme.name}</p>
               {plan.theme.why ? <p className="mt-1 text-sm text-muted-foreground">{plan.theme.why}</p> : null}
             </div>
             {action?.('theme', 'theme', plan.theme.name)}

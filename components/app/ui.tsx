@@ -102,7 +102,7 @@ export function PageHeader({ title, subtitle, back, action, className }: { title
         )
       ) : null}
       <div className="min-w-0 flex-1">
-        <h1 className="font-display text-[28px] font-semibold leading-tight tracking-tight text-balance">{title}</h1>
+        <h1 className="font-display text-[28px] font-extrabold leading-tight tracking-tight text-balance">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
       </div>
       {action ? <div className="shrink-0 pt-1">{action}</div> : null}
@@ -115,7 +115,7 @@ export function Section({ title, action, children, className }: { title?: ReactN
     <section className={cn('px-4 py-3', className)}>
       {title || action ? (
         <div className="mb-3 flex items-center justify-between gap-3">
-          {title ? <h2 className="text-lg font-semibold tracking-tight">{title}</h2> : <span />}
+          {title ? <h2 className="text-lg font-bold tracking-tight">{title}</h2> : <span />}
           {action}
         </div>
       ) : null}
@@ -159,7 +159,7 @@ export function EmptyState({ icon, title, body, action, className }: { icon?: Re
   return (
     <div className={cn('flex flex-col items-center px-6 py-10 text-center', className)}>
       {icon ? <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-3xl text-primary">{icon}</div> : null}
-      <h3 className="font-display text-xl font-semibold">{title}</h3>
+      <h3 className="font-display text-xl font-bold">{title}</h3>
       {body ? <p className="mt-2 max-w-xs text-sm text-muted-foreground">{body}</p> : null}
       {action ? <div className="mt-5 w-full max-w-xs">{action}</div> : null}
     </div>
@@ -172,7 +172,7 @@ export function ErrorState({ title = 'Something went wrong', message, onRetry, o
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-foreground">
         {offline ? <WifiOff className="h-7 w-7" /> : <AlertCircle className="h-7 w-7" />}
       </div>
-      <h3 className="font-display text-xl font-semibold">{offline ? "You're offline" : title}</h3>
+      <h3 className="font-display text-xl font-bold">{offline ? "You're offline" : title}</h3>
       {message ? <p className="mt-2 max-w-xs text-sm text-muted-foreground">{message}</p> : null}
       {onRetry ? (
         <AppButton variant="outline" className="mt-5" onClick={onRetry}>

@@ -9,6 +9,18 @@ import { BottomNav } from './BottomNav'
 import { PartyProvider, useParty } from './PartyProvider'
 import { OfflineBanner } from './OfflineBanner'
 import { ErrorState, Skeleton } from './ui'
+import { Footer } from './Footer'
+
+/** The founder footer sits under normal page content — not on the full-screen map (Discover). */
+function AppFooter() {
+  const pathname = usePathname() ?? ''
+  return pathname === '/discover' ? null : <Footer className="mt-6" />
+}
+/** Flow screens are immersive (wizard, venue sheet, public RSVP): only the sign-in screens get the footer. */
+const FLOW_FOOTER_PATHS = new Set(['/login', '/join', '/reset-password'])
+function FlowFooter() {
+  return FLOW_FOOTER_PATHS.has(usePathname() ?? '') ? <Footer /> : null
+}
 
 /** Screens that render their own signed-out state. */
 const PUBLIC_APP_PATHS = new Set(['/home'])
@@ -93,6 +105,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <RequireAuth>
             <PartyLoadGate>{children}</PartyLoadGate>
           </RequireAuth>
+          <AppFooter />
         </main>
         <BottomNav />
         <Toaster position="top-center" richColors closeButton toastOptions={{ className: 'mt-[env(safe-area-inset-top)]' }} />
@@ -108,6 +121,7 @@ export function FlowShell({ children }: { children: ReactNode }) {
     <div className="mbp-app min-h-dvh bg-background text-foreground">
       <PartyProvider>
         {children}
+        <FlowFooter />
         <Toaster position="top-center" richColors closeButton />
       </PartyProvider>
     </div>

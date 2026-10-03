@@ -181,7 +181,7 @@ export function DiscoverScreen() {
     <div ref={headerRef} className={cn('px-4 pb-2', view === 'map' ? 'pt-2' : 'pt-4')}>
       <div className={cn('flex items-start justify-between gap-3', view === 'map' && 'sr-only')}>
         <div className="min-w-0">
-          <h1 className="font-display text-[28px] font-semibold leading-tight tracking-tight">Party places near you</h1>
+          <h1 className="font-display text-[28px] font-extrabold leading-tight tracking-tight">Party places near you</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <Link href="/discover/saved" className="tap mt-1 inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm font-semibold" aria-label={`Saved places (${savedCount})`}>
@@ -294,7 +294,7 @@ export function DiscoverScreen() {
                   role="status"
                 >
                   <p className="text-sm font-medium opacity-90">✨ {vendors ? 'Cakes, decor & more' : `Matched to ${party?.child_name.split(' ')[0]}`}</p>
-                  <p className="mt-1 font-display text-2xl font-semibold leading-snug" data-testid="aha">
+                  <p className="mt-1 font-display text-2xl font-extrabold leading-snug" data-testid="aha">
                     We found {discovery.data.total} party option{discovery.data.total === 1 ? '' : 's'} near you.
                   </p>
                   <button type="button" onClick={() => setShowAha(false)} className="mt-3 text-sm font-semibold underline underline-offset-4">

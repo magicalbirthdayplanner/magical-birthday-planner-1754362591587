@@ -1,13 +1,13 @@
 import './globals.css';
 import { siteUrl } from '@/lib/site-url';
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Inter } from 'next/font/google';
+import { Nunito } from 'next/font/google';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ServiceWorkerRegistrar } from '@/components/app/ServiceWorkerRegistrar';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
-const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-display', display: 'swap', axes: ['SOFT', 'opsz'] });
+// One typeface for the whole product. Display headings use the same family (heavier weights), see tailwind.config.ts.
+const nunito = Nunito({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-sans', display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -47,8 +47,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
-      <body className={inter.className}>
+    <html lang="en" className={nunito.variable}>
+      <body className={nunito.className}>
         <ErrorBoundary>
           <AuthProvider>
             {children}

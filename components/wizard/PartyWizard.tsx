@@ -260,7 +260,7 @@ export function PartyWizard() {
           }}
         >
           <div key={step} className="mbp-rise flex-1 px-5 pt-8">
-            <h1 className="font-display text-[30px] font-semibold leading-tight tracking-tight text-balance">{q.title(draft)}</h1>
+            <h1 className="font-display text-[30px] font-extrabold leading-tight tracking-tight text-balance">{q.title(draft)}</h1>
             {q.sub ? <p className="mt-2 text-muted-foreground">{q.sub(draft)}</p> : null}
             <div className="mt-8">
               <StepBody step={step} draft={draft} update={update} today={today} zipState={zipState} themes={themes} />
@@ -390,7 +390,7 @@ function StepBody({
             <IconButton label="Fewer guests" className="h-14 w-14 border border-border bg-card" onClick={() => update({ guestCount: Math.max(1, draft.guestCount - 1) })}>
               <Minus className="h-6 w-6" />
             </IconButton>
-            <output aria-live="polite" className="w-28 text-center font-display text-6xl font-semibold tabular-nums">
+            <output aria-live="polite" className="w-28 text-center font-display text-6xl font-extrabold tabular-nums">
               {draft.guestCount}
             </output>
             <IconButton label="More guests" className="h-14 w-14 border border-border bg-card" onClick={() => update({ guestCount: Math.min(200, draft.guestCount + 1) })}>
@@ -577,7 +577,7 @@ function Finale({
       <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-hero text-white shadow-lg shadow-primary/30">
         <Sparkles className="h-6 w-6" />
       </div>
-      <h1 className="font-display text-[32px] font-semibold leading-tight tracking-tight">Let’s find your perfect party.</h1>
+      <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Let’s find your perfect party.</h1>
       <div className="mt-5 flex flex-wrap gap-2">
         {items.map(([emoji, label, idx]) => (
           <button key={emoji} type="button" onClick={() => onEdit(idx)} className="tap inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm">

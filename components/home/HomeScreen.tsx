@@ -26,7 +26,7 @@ function Welcome() {
         <p className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-xs font-semibold text-primary shadow-sm">
           <Sparkles className="h-3.5 w-3.5" /> Local party discovery
         </p>
-        <h1 className="mt-4 font-display text-[38px] font-semibold leading-[1.08] tracking-tight text-balance">Plan your child’s birthday in minutes.</h1>
+        <h1 className="mt-4 font-display text-[38px] font-extrabold leading-[1.08] tracking-tight text-balance">Plan your child’s birthday in minutes.</h1>
         <p className="mt-3 text-[17px] leading-relaxed text-muted-foreground">
           No more hours of searching. Tell us about your child and your ZIP code — we’ll find party venues, cake shops and ideas near you.
         </p>
@@ -66,7 +66,7 @@ function NoParty({ name }: { name: string }) {
   return (
     <div className="bg-magic px-5 pb-10 pt-8">
       <p className="text-muted-foreground">{greeting(new Date().getHours())}{name ? `, ${name}` : ''} 👋</p>
-      <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight tracking-tight">Let’s plan your first party.</h1>
+      <h1 className="mt-2 font-display text-[34px] font-extrabold leading-tight tracking-tight">Let’s plan your first party.</h1>
       <p className="mt-3 text-muted-foreground">Nine quick questions, then we’ll find party places near you.</p>
       <LinkButton href="/start" size="lg" variant="magic" block className="mt-6">
         Plan a party <ArrowRight className="h-5 w-5" />
@@ -130,7 +130,7 @@ export function HomeScreen() {
           <div className="relative flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-white/85">{past ? `${child}’s party was` : `${child}’s birthday is in`}</p>
-              <p className="mt-1 font-display text-[44px] font-semibold leading-none tracking-tight" data-testid="countdown">
+              <p className="mt-1 font-display text-[44px] font-extrabold leading-none tracking-tight" data-testid="countdown">
                 {past ? 'Done 🎉' : countdownLabel(summary.days).toUpperCase()}
               </p>
               <p className="mt-2 flex items-center gap-1.5 text-sm text-white/85">

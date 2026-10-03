@@ -81,7 +81,7 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary">
           <MailCheck className="h-8 w-8" />
         </div>
-        <h2 className="font-display text-2xl font-semibold">Check your inbox</h2>
+        <h2 className="font-display text-2xl font-extrabold">Check your inbox</h2>
         <p className="mt-2 text-muted-foreground">
           We sent a confirmation link to <strong className="text-foreground">{email}</strong>. Open it on this phone to continue planning.
         </p>

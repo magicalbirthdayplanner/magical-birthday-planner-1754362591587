@@ -36,7 +36,7 @@ export function BottomSheet({
           <div className="mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/25" aria-hidden />
           <div className="flex items-start justify-between gap-3 px-5 pb-2 pt-3">
             <div>
-              <Drawer.Title className="font-display text-2xl font-semibold">{title}</Drawer.Title>
+              <Drawer.Title className="font-display text-2xl font-extrabold">{title}</Drawer.Title>
               {description ? <Drawer.Description className="mt-0.5 text-sm text-muted-foreground">{description}</Drawer.Description> : <Drawer.Description className="sr-only">{title}</Drawer.Description>}
             </div>
             <Drawer.Close aria-label="Close" className="tap -mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full active:bg-muted">

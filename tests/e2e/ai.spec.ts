@@ -62,13 +62,13 @@ for (const width of [375, 390, 393, 430]) {
     await page.getByRole('button', { name: '✨ Plan my party' }).click()
     await expect(page.getByText('Your AI plan')).toBeVisible({ timeout: 20_000 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
-    const small = await page.evaluate(() =>
-      [...document.querySelectorAll('[role="dialog"] button')]
+    // polled: the sheet's open animation can report sub-pixel sizes for a few frames; a truly small target stays small
+    const smallTargets = (sel: string) => page.evaluate((q) =>
+      [...document.querySelectorAll(q)]
         .map((b) => ({ r: b.getBoundingClientRect(), name: b.getAttribute('aria-label') || b.textContent?.trim().slice(0, 30) }))
         .filter(({ r }) => r.width > 0 && r.height > 0 && (r.height < 44 || r.width < 44))
-        .map(({ r, name }) => `${name} ${Math.round(r.width)}x${Math.round(r.height)}`),
-    )
-    expect(small).toEqual([])
+        .map(({ r, name }) => `${name} ${r.width.toFixed(2)}x${r.height.toFixed(2)}`), sel)
+    await expect.poll(() => smallTargets('[role="dialog"] button'), { timeout: 3000 }).toEqual([])
     // saved plan sheets (budget has inputs + remove buttons) at the same width
     await page.getByRole('dialog').getByRole('button', { name: 'Use all' }).click()
     await expect(page.getByText(/Added 4 budget lines to your budget/)).toBeVisible({ timeout: 15_000 })
@@ -79,13 +79,7 @@ for (const width of [375, 390, 393, 430]) {
     await page.getByLabel('Actually spent on Activities').press('Enter')
     await expect(page.getByRole('dialog', { name: 'Budget' }).getByText('$41.50')).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
-    const smallPlan = await page.evaluate(() =>
-      [...document.querySelectorAll('[role="dialog"] button, [role="dialog"] input')]
-        .map((b) => ({ r: b.getBoundingClientRect(), name: b.getAttribute('aria-label') || b.textContent?.trim().slice(0, 30) }))
-        .filter(({ r }) => r.width > 0 && r.height > 0 && (r.height < 44 || r.width < 44))
-        .map(({ r, name }) => `${name} ${Math.round(r.width)}x${Math.round(r.height)}`),
-    )
-    expect(smallPlan).toEqual([])
+    await expect.poll(() => smallTargets('[role="dialog"] button, [role="dialog"] input'), { timeout: 3000 }).toEqual([])
     await ctx.close()
   })
 }

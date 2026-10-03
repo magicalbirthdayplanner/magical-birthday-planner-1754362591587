@@ -51,7 +51,7 @@ export function ThemeIdeasSection({ partyId }: { partyId: string }) {
                 <Card key={t.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-display text-lg font-semibold">
+                      <p className="font-display text-lg font-bold">
                         <span aria-hidden>{t.emoji}</span> {t.name}
                       </p>
                       {t.description ? <p className="mt-0.5 text-sm">{t.description}</p> : null}

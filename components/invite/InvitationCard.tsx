@@ -58,7 +58,7 @@ export function InvitationCard({ inv, className }: { inv: InvitationView; classN
       ) : null}
       <div className="relative">
         <p className={cn('text-xs font-semibold uppercase tracking-[0.2em]', elegant ? 'text-primary' : 'text-white/85')}>You’re invited</p>
-        <h2 className="mt-3 font-display text-[34px] font-semibold leading-tight text-balance">{inv.headline?.trim() || `${first}’s ${inv.childAge ? `${ordinal(inv.childAge)} ` : ''}Birthday Party`}</h2>
+        <h2 className="mt-3 font-display text-[34px] font-extrabold leading-tight text-balance">{inv.headline?.trim() || `${first}’s ${inv.childAge ? `${ordinal(inv.childAge)} ` : ''}Birthday Party`}</h2>
         {inv.message ? <p className={cn('mx-auto mt-3 max-w-xs whitespace-pre-line text-[15px] leading-relaxed', elegant ? 'text-muted-foreground' : 'text-white/90')}>{inv.message}</p> : null}
         <div className={cn('mx-auto mt-6 max-w-xs space-y-2 rounded-2xl p-4 text-left text-[15px]', elegant ? 'bg-white' : 'bg-white/15 backdrop-blur')}>
           <p className="flex items-center gap-2">

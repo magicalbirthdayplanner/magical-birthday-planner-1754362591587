@@ -137,8 +137,14 @@ html:has(.mbp-app) {
   color-scheme: light;
 }
 
+/* Third-party UI that sets its own stack (sonner toasts) inherits the product typeface. */
+[data-sonner-toaster][data-sonner-toaster],
+[data-sonner-toaster] [data-sonner-toast] {
+  font-family: var(--font-sans), ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
 .mbp-app {
-  font-family: var(--font-sans), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-sans), ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
   -webkit-tap-highlight-color: transparent;
   text-rendering: optimizeLegibility;
 }

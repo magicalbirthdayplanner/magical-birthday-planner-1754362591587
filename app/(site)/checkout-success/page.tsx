@@ -20,7 +20,7 @@ function CheckoutResult() {
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-foreground">
         <PartyPopper className="h-8 w-8" />
       </div>
-      <h1 className="font-display text-3xl font-semibold">Thanks for your order!</h1>
+      <h1 className="font-display text-3xl font-extrabold">Thanks for your order!</h1>
       <div className="mt-4 w-full">
         <CheckoutStatus providerStatus={params.get('status')} />
       </div>

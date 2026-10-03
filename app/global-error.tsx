@@ -5,7 +5,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   if (typeof console !== 'undefined') console.error('global error', error.digest ?? '')
   return (
     <html lang="en">
-      <body style={{ margin: 0, minHeight: '100dvh', display: 'grid', placeItems: 'center', background: '#fbf8f3', color: '#221b3a', fontFamily: 'system-ui, -apple-system, Segoe UI, sans-serif' }}>
+      <body style={{ margin: 0, minHeight: '100dvh', display: 'grid', placeItems: 'center', background: '#fbf8f3', color: '#221b3a', fontFamily: 'Nunito, ui-rounded, system-ui, -apple-system, Segoe UI, sans-serif' }}>
         <main style={{ maxWidth: 360, padding: 24, textAlign: 'center' }}>
           <h1 style={{ fontSize: 24, margin: '0 0 8px' }}>Something went wrong</h1>
           <p style={{ margin: '0 0 20px', color: '#6b6480' }}>Please try again. If it keeps happening, come back in a few minutes.</p>

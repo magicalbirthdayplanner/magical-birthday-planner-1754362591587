@@ -109,7 +109,7 @@ export function PublicInviteScreen({ token }: { token: string }) {
       {done ? (
         <div className="mbp-rise mt-6 rounded-3xl bg-card p-6 text-center shadow-sm" role="status">
           <PartyPopper className="mx-auto h-10 w-10 text-primary" />
-          <h2 className="mt-3 font-display text-2xl font-semibold">{status === 'DECLINED' ? 'Thanks for letting us know' : 'You’re on the list!'}</h2>
+          <h2 className="mt-3 font-display text-2xl font-extrabold">{status === 'DECLINED' ? 'Thanks for letting us know' : 'You’re on the list!'}</h2>
           <p className="mt-1 text-muted-foreground">{status === 'DECLINED' ? `We’ll miss you at ${first}’s party.` : `${first} can’t wait to celebrate with you.`}</p>
           <button type="button" className="mt-4 text-sm font-semibold text-primary" onClick={() => setDone(false)}>
             Change my RSVP
@@ -117,7 +117,7 @@ export function PublicInviteScreen({ token }: { token: string }) {
         </div>
       ) : (
         <form onSubmit={submit} className="mt-6 space-y-4 rounded-3xl bg-card p-5 shadow-sm" noValidate>
-          <h2 className="font-display text-2xl font-semibold">Can you make it?</h2>
+          <h2 className="font-display text-2xl font-extrabold">Can you make it?</h2>
           <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="RSVP">
             {(
               [
