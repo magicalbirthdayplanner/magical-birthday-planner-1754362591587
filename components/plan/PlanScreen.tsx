@@ -14,6 +14,7 @@ import { settingFromVenueType } from '@/lib/discovery/party-context'
 import { track } from '@/lib/analytics/client'
 import { PartyEditSheet } from './PartyEditSheet'
 import { PlanWithAICard } from '@/components/ai/PlanWithAICard'
+import { AIToolsSection } from '@/components/ai/AIToolsSection'
 
 function Row({ href, icon: Icon, title, value, done }: { href: string; icon: typeof Cake; title: string; value: React.ReactNode; done?: boolean }) {
   return (
@@ -125,6 +126,8 @@ export function PlanScreen() {
           <Row href="/plan/checklist" icon={ClipboardCheck} title="Checklist" value={`${summary.input.checklistDone} of ${summary.input.checklistTotal} done`} done={summary.input.checklistTotal > 0 && summary.input.checklistDone === summary.input.checklistTotal} />
         </Card>
       </Section>
+
+      <AIToolsSection partyId={party.id} budget={budget} />
 
       <Section title="Details">
         <Card className="space-y-3 p-4 text-[15px]">

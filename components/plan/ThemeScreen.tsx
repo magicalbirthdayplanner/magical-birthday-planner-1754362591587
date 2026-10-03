@@ -18,6 +18,7 @@ import { track } from '@/lib/analytics/client'
 import { cn } from '@/lib/utils'
 import type { ClassicTheme } from '@/data/themes-data'
 import type { Json } from '@/lib/db/database.types'
+import { ThemeIdeasSection } from '@/components/ai/ThemeIdeasSection'
 
 interface PreviewTheme {
   id: string
@@ -162,6 +163,8 @@ export function ThemeScreen() {
           ))}
         </div>
       </Section>
+
+      {party ? <ThemeIdeasSection partyId={party.id} /> : null}
 
       <Section title="AI ideas" action={<span className="text-xs text-muted-foreground">Optional</span>}>
         {ai.state === 'idle' ? (

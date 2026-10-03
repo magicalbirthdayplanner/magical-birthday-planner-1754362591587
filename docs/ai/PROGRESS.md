@@ -11,3 +11,4 @@ Branch: `feat/ai-upgrade` (from `mobile-first` @ a50a5fb). Production branch `ma
 ## Next
 - Phase 0: write AUDIT.md.
 | 3 Party planner | 04:27 | done | (see git log) | factory + capabilities + planner route/UI; 11 integration tests |
+| 4 Contextual actions | — | done | (see git log) | theme_ideas + generic AIToolSheet + Plan AI tools registry |

@@ -21,7 +21,7 @@ function routes(dir = APP, prefix = ''): string[] {
 }
 
 /** AI routes (feature flags + plan + limits enforced server-side in lib/ai/handler.ts). */
-const AI_ROUTES = ['/api/ai/capabilities', '/api/ai/party-planner']
+const AI_ROUTES = ['/api/ai/capabilities', '/api/ai/party-planner', '/api/ai/theme-ideas']
 
 const EXPECTED = [
   // public marketing + legal

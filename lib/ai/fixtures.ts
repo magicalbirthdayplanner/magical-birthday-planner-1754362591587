@@ -3,6 +3,16 @@
  * party_planner = golden scenario A (7, art + animals, ~12 kids, $250, indoors, October).
  */
 export const FIXTURES: Record<string, unknown> = {
+  theme_ideas: {
+    themes: [
+      { name: 'Wild Art Safari', emoji: '🦁', why: 'Paint and sculpt favourite animals.', palette: ['#F4A259', '#5B8E7D', '#F4E285'], decorations: ['Animal-print table runners', 'Paint-splatter balloons', 'Easel welcome sign'], activities: ['Animal mask painting', 'Clay critters', 'Safari scavenger hunt'], ageFit: 'Simple crafts a 7-year-old can finish in 20 minutes.' },
+      { name: 'Pop-Star Concert Party', emoji: '🎤', why: 'Sing-along stage fun without any real artists.', palette: ['#B5179E', '#7209B7', '#F72585'], decorations: ['Starry backdrop', 'Microphone cupcake toppers'], activities: ['Lip-sync showcase', 'Design your tour shirt'], ageFit: 'Great for confident performers aged 6-10.' },
+      { name: 'Rainforest Explorers', emoji: '🌿', why: 'Animals plus hands-on discovery.', palette: ['#2D6A4F', '#95D5B2', '#FFB703'], decorations: ['Paper vines', 'Binocular favors'], activities: ['Bug hunt', 'Leaf rubbing art'], ageFit: 'Active but gentle for mixed ages.' },
+      { name: 'Little Picasso Studio', emoji: '🎨', why: 'A gallery day for budding artists.', palette: ['#E63946', '#F1FAEE', '#457B9D'], decorations: ['Mini gallery wall', 'Frame photo booth'], activities: ['Canvas painting', 'Gallery walk'], ageFit: 'Calm, creative and easy indoors.' },
+      { name: 'Pet Spa Day', emoji: '🐶', why: 'Pamper plush pets with crafts.', palette: ['#FFAFCC', '#BDE0FE', '#CDB4DB'], decorations: ['Pet bed centerpieces'], activities: ['Decorate a pet collar', 'Plush pet show'], ageFit: 'Gentle, imaginative play for 5-8.' },
+    ],
+    assumptions: ['Indoor party assumed.'],
+  },
   party_planner: {
     summary: 'A colourful indoor art-and-animals studio party for about 12 kids, built to stay under $250.',
     partyConcept: 'Kids become "wild artists" who paint, sculpt and parade their own animal creations.',
