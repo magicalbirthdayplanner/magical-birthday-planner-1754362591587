@@ -22,7 +22,7 @@ function cleanOverrides(o: PlannerOverrides): PlannerOverrides {
 export function partyPlannerPrompt(ctx: PartyAIContext, overrides: PlannerOverrides, notes: string) {
   const user = `Create a practical birthday party plan.
 Return JSON with exactly this shape (3 to 5 activities; timeline "minute" = minutes after the party starts, increasing, within durationMinutes).
-Budget: when a budget is given, the budget lines MUST add up to no more than about 95% of it (leave a small buffer), and the shopping list and activity costs must fit inside those lines. Cut or simplify items rather than exceed it.
+Budget: when a budget is given, the budget lines MUST add up to no more than about 90% of it (leave a buffer), and the shopping list and activity costs must fit inside those lines. Add the budget lines up before you answer; if the sum is over, cut or simplify items until it fits. Small budgets need simpler plans, not overspending.
 Make it specific to THIS party: use the age, interests, theme, setting, guest count and budget from the facts and the parent's notes. Shopping quantities follow the guest count (e.g. "12 paper masks", not "masks"). Do not repeat existingActivities or existingShoppingItems.
 If the parent tells you little, still return a complete, sensible starting plan from the party facts, list what you assumed, and ask up to 4 short followUpQuestions that would most improve the plan.
 ${SHAPE}
