@@ -52,8 +52,8 @@ begin
       and char_length(coalesce(designed_for_theme, '')) <= 80);
   end if;
 end $$;
--- Existing rows were added from AI suggestions by the parent = planned + approved.
-update public.party_ai_activities set approved_at = created_at where approved_at is null and status = 'planned';
+-- Existing rows keep their data untouched (no backfill): status defaults to 'planned' (they were added to the plan by
+-- the parent); approved_at stays null for them, which the app treats the same as approved.
 create index if not exists party_ai_activities_party_idx on public.party_ai_activities (party_id, status, sort_order);
 
 -- ---------------------------------------------------------------- links back to an activity
