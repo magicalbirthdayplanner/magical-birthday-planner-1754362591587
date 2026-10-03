@@ -3,6 +3,20 @@
  * party_planner = golden scenario A (7, art + animals, ~12 kids, $250, indoors, October).
  */
 export const FIXTURES: Record<string, unknown> = {
+  // golden scenario B: party in 8 days, turns 10, art studio booked, theme "Royal Ball", 15 guests
+  checklist: {
+    tasks: [
+      { title: 'Book a party venue', notes: 'Compare a few places.', daysBeforeParty: 30, priority: 'high', effort: 'big' },
+      { title: 'Book entertainment or an activity', notes: 'A magician or craft host.', daysBeforeParty: 21, priority: 'medium', effort: 'medium' },
+      { title: 'Order a decorated bakery cake (custom is too late)', notes: 'Custom cakes need 1-2 weeks; most bakeries decorate a stock cake in 2-3 days.', daysBeforeParty: 3, priority: 'high', effort: 'quick' },
+      { title: 'Confirm headcount and arrival time with the art studio', notes: 'Studios usually need a final number 3-5 days before.', daysBeforeParty: 5, priority: 'high', effort: 'quick' },
+      { title: 'Ask the studio what kids should wear', notes: 'Paint happens — tell families on the invite.', daysBeforeParty: 6, priority: 'medium', effort: 'quick' },
+      { title: 'Buy crowns and royal sashes', notes: 'Fits the Royal Ball theme; doubles as favors.', daysBeforeParty: 4, priority: 'medium', effort: 'quick' },
+      { title: 'Send custom save-the-dates', notes: 'Normally 4 weeks ahead.', daysBeforeParty: 28, priority: 'low', effort: 'quick' },
+      { title: 'Order the cake', notes: 'duplicate of existing', daysBeforeParty: 10, priority: 'high', effort: 'quick' },
+    ],
+    assumptions: ['The studio provides art supplies and cleanup.'],
+  },
   theme_ideas: {
     themes: [
       { name: 'Wild Art Safari', emoji: '🦁', why: 'Paint and sculpt favourite animals.', palette: ['#F4A259', '#5B8E7D', '#F4E285'], decorations: ['Animal-print table runners', 'Paint-splatter balloons', 'Easel welcome sign'], activities: ['Animal mask painting', 'Clay critters', 'Safari scavenger hunt'], ageFit: 'Simple crafts a 7-year-old can finish in 20 minutes.' },

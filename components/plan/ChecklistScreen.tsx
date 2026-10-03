@@ -13,6 +13,7 @@ import { bucketFor, daysBetween, groupTasks, localToday } from '@/lib/planning/c
 import { countdownLabel } from '@/lib/planning/progress'
 import { track } from '@/lib/analytics/client'
 import { cn } from '@/lib/utils'
+import { ChecklistAIButton } from '@/components/ai/ChecklistAIButton'
 
 const fmt = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 
@@ -127,6 +128,7 @@ export function ChecklistScreen() {
           </button>
         }
       />
+      {party ? <ChecklistAIButton partyId={party.id} /> : null}
       <div className="px-4">
         <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={total ? Math.round((done / total) * 100) : 0} aria-valuemin={0} aria-valuemax={100} aria-label="Checklist progress">
           <div className="h-full rounded-full bg-success transition-[width] duration-500" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />

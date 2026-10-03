@@ -15,3 +15,4 @@ Branch: `feat/ai-upgrade` (from `mobile-first` @ a50a5fb). Production branch `ma
 | 5 Apply/save/edit/dismiss/undo | — | done | (see git log) | /api/ai/apply POST+DELETE, ApplyControls; 4 integration tests |
 | 6 Usage controls | — | done | (see git log) | breaker, hourly cap, trial=Free, admin switching; 5 integration tests |
 | P0 checkpoint | 04:54 | GREEN | (see git log) | lint, typecheck, unit 188, integration 158, E2E 31 (6 AI @375-430), build, secret+bundle scan clean |
+| 7 Checklist | 04:55 | done | (see git log) | golden B passes; date clamp + dedupe server-side |

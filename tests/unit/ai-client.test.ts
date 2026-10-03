@@ -140,3 +140,18 @@ describe('server-only guard', () => {
     for (const f of files) expect(readFileSync(path.join(dir, f), 'utf8'), f).toMatch(/import 'server-only'/)
   })
 })
+
+describe('schedule (server date math)', async () => {
+  const { dueDateFor, alreadyListed } = await import('@/lib/ai/schedule')
+  const today = new Date('2026-10-03T15:00:00Z')
+  it('converts offsets to dates and clamps to today', () => {
+    expect(dueDateFor('2026-10-11', 3, today)).toEqual({ dueDate: '2026-10-08', late: false })
+    expect(dueDateFor('2026-10-11', 30, today)).toEqual({ dueDate: '2026-10-03', late: true })
+    expect(dueDateFor('2026-10-11', -5, today)).toEqual({ dueDate: '2026-10-11', late: false })
+    expect(dueDateFor(null, 3, today)).toEqual({ dueDate: null, late: false })
+  })
+  it('detects near-duplicate checklist titles', () => {
+    expect(alreadyListed('Order the cake!', [{ title: 'order the cake' }])).toBe(true)
+    expect(alreadyListed('Buy candles', [{ title: 'Order the cake' }])).toBe(false)
+  })
+})

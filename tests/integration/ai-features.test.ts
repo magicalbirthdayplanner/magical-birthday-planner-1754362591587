@@ -117,3 +117,30 @@ describe.skipIf(!up)('apply / dedupe / undo', () => {
     }
   })
 })
+
+describe.skipIf(!up)('checklist — golden scenario B (8 days, art studio booked, Royal Ball, 15 guests)', () => {
+  it('compressed, respects what exists, fast cake alternative, dates clamped to today or later', async () => {
+    await A.client.from('checklist_items').upsert({ party_id: partyA, user_id: A.id, task_key: 'order-cake', title: 'Order the cake' }, { onConflict: 'party_id,task_key' })
+    const r = await call('checklist', { partyId: partyA })
+    expect(r.status).toBe(200)
+    const { result, generationId } = await r.json()
+    const titles: string[] = result.tasks.map((t: { title: string }) => t.title)
+    expect(titles.some((t) => /book a party venue/i.test(t))).toBe(false) // venue already booked
+    expect(titles.some((t) => /book entertainment/i.test(t))).toBe(false) // the art studio is the activity
+    expect(titles.filter((t) => /^order the cake$/i.test(t))).toEqual([]) // already on the checklist
+    expect(titles.some((t) => /bakery cake/i.test(t))).toBe(true) // fast alternative to a custom cake
+    expect(titles.some((t) => /studio/i.test(t))).toBe(true) // tied to the venue
+    expect(result.skipped).toBe(3)
+    const today = new Date().toISOString().slice(0, 10)
+    for (const t of result.tasks) expect(t.dueDate >= today).toBe(true)
+    expect(result.tasks.find((t: { title: string }) => /save-the-dates/.test(t.title))).toMatchObject({ late: true, dueDate: today })
+    // apply one → it lands on the real checklist with the computed due date; second time is a no-op
+    const mod = await import('@/app/api/ai/apply/route')
+    const ap = (b: unknown) => mod.POST(new Request('http://app.test/api/ai/apply', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${A.accessToken}` }, body: JSON.stringify(b) }))
+    const first = result.tasks[0]
+    expect((await (await ap({ generationId, itemId: first.id, target: 'checklist' })).json()).status).toBe('applied')
+    const row = (await A.client.from('checklist_items').select('title, due_date, is_custom').eq('party_id', partyA).eq('title', first.title).single()).data!
+    expect(row).toMatchObject({ title: first.title, due_date: first.dueDate, is_custom: true })
+    expect((await (await ap({ generationId, itemId: first.id, target: 'checklist' })).json()).status).toBe('already')
+  })
+})
