@@ -247,3 +247,23 @@ describe.skipIf(!up)('shopping_list', () => {
     expect(JSON.stringify(mockCalls().at(-1)!.messages[1].content)).not.toContain('Balloons') // already-categorised items not even sent
   })
 })
+
+describe.skipIf(!up)('discover_explain (stretch)', () => {
+  it('ranks only supplied, already-fetched venues; invented places and prices are removed; no Places calls', async () => {
+    const db = adminClient()
+    await db.from('venues').upsert([
+      { place_id: 'ChIJfixture0000001', name: 'Fixture Art Studio', source: 'google', categories: ['art-studio'], tags: [], photo_refs: [] },
+      { place_id: 'ChIJfixture0000002', name: 'Fixture Play Place', source: 'google', categories: ['indoor-playground'], tags: [], photo_refs: [] },
+    ] as never, { onConflict: 'place_id' })
+    const r = await call('discover-explain', { partyId: partyA, placeIds: ['ChIJfixture0000001', 'ChIJfixture0000002'] })
+    expect(r.status).toBe(200)
+    const { result } = await r.json()
+    expect(result.picks).toEqual([{ id: 'pick-1', placeId: 'ChIJfixture0000001', name: 'Fixture Art Studio', reason: 'Hands-on art for a 7-year-old, about per kid.' }])
+    const sent = mockCalls().at(-1)!.messages[1].content
+    expect(sent).toContain('Fixture Play Place')
+    expect((await call('discover-explain', { partyId: partyA, placeIds: [] })).status).toBe(400)
+    const src = (await import('node:fs')).readFileSync('lib/ai/features/discoverExplain.ts', 'utf8')
+    expect(src).not.toMatch(/lib\/google|places\.googleapis/)
+    await db.from('venues').delete().in('place_id', ['ChIJfixture0000001', 'ChIJfixture0000002'])
+  })
+})

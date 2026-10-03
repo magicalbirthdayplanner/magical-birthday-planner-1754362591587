@@ -128,7 +128,7 @@ describe('server-only guard', () => {
         if (!/\.(tsx?|jsx?)$/.test(n)) continue
         const src = readFileSync(p, 'utf8')
         if (!/^['"]use client['"]/m.test(src)) continue
-        if (/from ['"]@\/lib\/ai\/(?!types['"]|schemas\/)/.test(src)) bad.push(path.relative(root, p))
+        if (/from ['"]@\/lib\/ai\/(?!types['"]|schemas\/|features\/[a-zA-Z]+\.types['"])/.test(src)) bad.push(path.relative(root, p))
       }
     }
     for (const d of ['app', 'components', 'contexts']) walk(path.join(root, d))

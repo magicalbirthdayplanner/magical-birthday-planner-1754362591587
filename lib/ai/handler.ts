@@ -40,7 +40,7 @@ export const BaseBody = z.object({
 export interface FeatureSpec<B extends z.ZodTypeAny, R> {
   feature: AIFeature
   /** Optional extra data for this feature, loaded with the user's RLS session (never the service role). */
-  load?: (db: AuthedRequest['supabase'], partyId: string, ctx: PartyAIContext) => Promise<unknown>
+  load?: (db: AuthedRequest['supabase'], partyId: string, ctx: PartyAIContext, body: z.infer<B>) => Promise<unknown>
   body: B
   result: z.ZodType<R>
   /** Prompt pieces from the validated body + the private context. */
@@ -90,7 +90,7 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
       return aiError('limit_reached', { upgradeTo: ent.tier === 'PRO' ? null : ent.tier === 'PLUS' ? 'PRO' : ent.tier === 'STARTER' ? 'PLUS' : 'STARTER' })
     }
     // 7. model (client abort propagates via req.signal)
-    const extra = spec.load ? await spec.load(auth.supabase, partyId, ctx) : undefined
+    const extra = spec.load ? await spec.load(auth.supabase, partyId, ctx, body) : undefined
     const { system, user } = spec.prompt({ body, ctx, notes, extra })
     const r = await callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg })
     const log = { feature: spec.feature, user_id: auth.user.id, party_id: partyId, provider: r.provider, model: r.model, duration_ms: r.durationMs, attempts: r.attempts }

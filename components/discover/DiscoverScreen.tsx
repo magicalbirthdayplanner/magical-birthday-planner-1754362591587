@@ -19,6 +19,7 @@ import { FiltersSheet } from './FiltersSheet'
 import { MapView } from './MapView'
 import { MapSheet, type SheetSnap } from './MapSheet'
 import { useSaveVenue } from './useSaveVenue'
+import { DiscoverWhyItFits } from '@/components/ai/DiscoverWhyItFits'
 
 const VIEW_KEY = 'mbp.discoverView'
 const FILTERS_KEY = 'mbp.discoverFilters'
@@ -241,6 +242,7 @@ export function DiscoverScreen() {
   return (
     <div>
       {header}
+      {view === 'list' && party && results.length ? <DiscoverWhyItFits partyId={party.id} placeIds={results.slice(0, 10).map((v) => v.placeId)} /> : null}
 
       {view === 'map' ? (
         <div className="fixed inset-x-0 z-10 mx-auto max-w-xl" style={{ top: headerBottom, bottom: 'calc(var(--app-nav-h) + env(safe-area-inset-bottom))' }}>

@@ -22,3 +22,4 @@ Branch: `feat/ai-upgrade` (from `mobile-first` @ a50a5fb). Production branch `ma
 | 11 Invitation writer | 05:06 | done | (see git log) | copy-only draft into the editor; never sends |
 | 12 Timeline | 05:08 | done | (see git log) | validated minutes; enum adjusters; prep → checklist |
 | 13 Shopping list | 05:11 | done | (see git log) | deterministic merge; model only categorises |
+| 13b Discover explain (stretch) | 05:13 | done | (see git log) | supplied candidates only; prices stripped; no Places calls |
