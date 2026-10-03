@@ -33,6 +33,9 @@ export class OpenAICompatibleProvider implements AIProvider {
           max_tokens: req.maxTokens,
           temperature: 0.7,
           ...(req.json ? { response_format: { type: 'json_object' } } : {}),
+          // DeepSeek V4 reasons by default and can spend the whole token budget thinking (empty answer, timeouts).
+          // Only sent to DeepSeek models; other providers may reject unknown parameters.
+          ...(/deepseek/i.test(this.cfg.model) && !this.cfg.thinking ? { thinking: { type: 'disabled' } } : {}),
         }),
         cache: 'no-store',
       })
@@ -44,7 +47,7 @@ export class OpenAICompatibleProvider implements AIProvider {
     if (res.status === 401 || res.status === 403) throw new ProviderError('auth', 'provider rejected credentials', res.status)
     if (res.status >= 500) throw new ProviderError('unavailable', `provider ${res.status}`, res.status)
     if (!res.ok) throw new ProviderError('bad_request', `provider ${res.status}`, res.status)
-    let body: { model?: string; choices?: { message?: { content?: string | null } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } }
+    let body: { model?: string; choices?: { message?: { content?: string | null }; finish_reason?: string }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } }
     try {
       body = await res.json()
     } catch {
@@ -52,6 +55,8 @@ export class OpenAICompatibleProvider implements AIProvider {
     }
     // reasoning_content (DeepSeek) is deliberately ignored — never shown or stored.
     const text = body.choices?.[0]?.message?.content ?? ''
+    // Out of tokens before any answer (e.g. all spent reasoning): a provider problem, not something a retry fixes.
+    if (!text.trim() && body.choices?.[0]?.finish_reason === 'length') throw new ProviderError('unavailable', 'no answer before the token limit')
     return { text, model: body.model ?? this.cfg.model, inputTokens: body.usage?.prompt_tokens ?? null, outputTokens: body.usage?.completion_tokens ?? null }
   }
 }

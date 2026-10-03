@@ -14,7 +14,8 @@ const SHAPE = `{"summary":"2 sentences","partyConcept":"1 sentence","theme":{"na
 
 export function partyPlannerPrompt(ctx: PartyAIContext, overrides: PlannerOverrides, notes: string) {
   const user = `Create a practical birthday party plan.
-Return JSON with exactly this shape (3 to 5 activities; timeline "minute" = minutes after the party starts, increasing, within durationMinutes; budget lines are estimates and must fit the budget when one is given):
+Return JSON with exactly this shape (3 to 5 activities; timeline "minute" = minutes after the party starts, increasing, within durationMinutes).
+Budget: when a budget is given, the budget lines MUST add up to no more than about 95% of it (leave a small buffer), and the shopping list and activity costs must fit inside those lines. Cut or simplify items rather than exceed it.
 ${SHAPE}
 
 Party facts (from the app): ${contextForPrompt(ctx)}
