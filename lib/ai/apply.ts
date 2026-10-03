@@ -143,6 +143,7 @@ export async function applyItem(db: DB, userId: string, req: ApplyRequest): Prom
     const { error } = await db.from('party_ai_activities').update({ ...cols, details: cols.details as NonNullable<Json>, user_edited: false, designed_for_guests: r.designedForGuests ?? null, designed_for_theme: r.designedForTheme?.slice(0, 80) ?? null }).eq('id', r.targetActivityId)
     if (isUnique(error)) return { status: 'duplicate', message: 'Another activity already has that name.' }
     if (error) return { status: 'error', code: 'provider_error', message: 'We couldn’t update that activity. Please try again.' }
+    if (cols.name !== prev.name) await db.from('party_budget_lines').update({ label: cols.name.slice(0, 120) }).eq('source_activity_id', r.targetActivityId)
     rowId = r.targetActivityId
     undo = { previous: prev }
     message = 'Activity updated.'

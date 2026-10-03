@@ -103,8 +103,9 @@ export async function buildPartyAIContext(
       }
     : null
   const minutesOf = new Map(acts.map((a) => [a.id, a.duration_min]))
+  const nameOf = new Map(acts.map((a) => [a.id, a.name]))
   const startTime = (party.party_time ?? invite?.start_time ?? null)?.slice(0, 5) ?? null
-  const tl = computeTimeline((timelineRes.data ?? []).map((r) => ({ ...r, kind: r.kind as TimelineKind })), (id) => minutesOf.get(id) ?? null, startTime)
+  const tl = computeTimeline((timelineRes.data ?? []).map((r) => ({ ...r, kind: r.kind as TimelineKind, label: (r.activity_id && nameOf.get(r.activity_id)) || r.label })), (id) => minutesOf.get(id) ?? null, startTime)
 
   const ctx: PartyAIContext = {
     childAge: party.child_age ?? null,

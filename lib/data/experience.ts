@@ -84,6 +84,8 @@ export async function createActivity(partyId: string, userId: string, input: Act
 export async function updateActivity(id: string, patch: Partial<ActivityInput> & { details?: ActivityDetails }) {
   const { error } = await db.from('party_ai_activities').update({ ...patch, details: patch.details as NonNullable<Json> | undefined, user_edited: true }).eq('id', id)
   fail(error)
+  // its planned-cost line is labelled with the activity's name — keep it in step (the timeline reads the name live)
+  if (patch.name) await db.from('party_budget_lines').update({ label: patch.name.slice(0, 120) }).eq('source_activity_id', id)
 }
 
 export async function setActivityStatus(id: string, status: 'idea' | 'planned') {
@@ -134,7 +136,7 @@ export async function addCostToBudget(a: Activity) {
   const amount = Number(a.estimated_cost ?? 0)
   const { data: existing } = await db.from('party_budget_lines').select('id').eq('party_id', a.party_id).eq('source_activity_id', a.id).maybeSingle()
   if (existing) {
-    const { error } = await db.from('party_budget_lines').update({ amount }).eq('id', existing.id)
+    const { error } = await db.from('party_budget_lines').update({ amount, label: a.name.slice(0, 120) }).eq('id', existing.id)
     fail(error)
     return 'updated' as const
   }

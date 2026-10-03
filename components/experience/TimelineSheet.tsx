@@ -14,7 +14,9 @@ const KIND_LABEL: Record<TimelineKind, string> = { arrival: 'Arrival', welcome: 
 
 export function timelineOf(data: Experience, startTime: string | null) {
   const minutes = new Map(data.activities.map((a) => [a.id, a.duration_min]))
-  return computeTimeline(data.timeline.map((t) => ({ ...t, kind: t.kind as TimelineKind })), (id) => minutes.get(id) ?? null, startTime)
+  const names = new Map(data.activities.map((a) => [a.id, a.name]))
+  // activity steps show the activity's current name and length (one source of truth)
+  return computeTimeline(data.timeline.map((t) => ({ ...t, kind: t.kind as TimelineKind, label: (t.activity_id && names.get(t.activity_id)) || t.label })), (id) => minutes.get(id) ?? null, startTime)
 }
 
 export function TimelineSheet({ partyId, data, startTime, partyMinutes, open, onOpenChange }: { partyId: string; data: Experience; startTime: string | null; partyMinutes: number | null; open: boolean; onOpenChange: (o: boolean) => void }) {

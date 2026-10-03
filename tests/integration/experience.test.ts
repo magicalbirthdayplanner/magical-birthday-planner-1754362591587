@@ -93,6 +93,10 @@ describe.skipIf(!up)('activity studio', () => {
     expect((await json(apply({ generationId: g.generationId, itemId: 'act-1', target: 'activity_update' }))).status).toBe('applied')
     const after = (await A.client.from('party_ai_activities').select('id, name, estimated_cost, status, user_edited').eq('id', row.id).single()).data!
     expect(after).toEqual({ id: row.id, name: 'Galaxy Rescue Mission', estimated_cost: 3, status: 'planned', user_edited: false })
+    // renamed activity: the timeline the AI sees uses the current name (rows link by id, not by label)
+    await A.client.from('party_timeline_items').insert({ party_id: P, user_id: A.id, kind: 'activity', label: 'Old label', activity_id: row.id, sort_order: 1 })
+    await create('x')
+    expect(facts().timeline).toEqual([{ label: 'Galaxy Rescue Mission', min: 25 }])
     await apply({ generationId: g.generationId, itemId: 'act-1', target: 'activity_update' }, 'DELETE')
     expect((await A.client.from('party_ai_activities').select('estimated_cost, user_edited').eq('id', row.id).single()).data).toEqual({ estimated_cost: 12, user_edited: true })
   })
