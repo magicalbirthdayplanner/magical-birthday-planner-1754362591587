@@ -197,3 +197,18 @@ describe.skipIf(!up)('food', () => {
     expect(result.shoppingList[3]).toMatchObject({ id: 'food-4', category: 'food' }) // "drinks" normalised
   })
 })
+
+describe.skipIf(!up)('invitation', () => {
+  it('may use the first name + chosen venue (only this feature); tone validated; Free is denied', async () => {
+    const r = await call('invitation', { partyId: partyA, tone: 'elegant' })
+    expect(r.status).toBe(200)
+    const { result } = await r.json()
+    expect(result).toMatchObject({ tone: 'elegant', options: [{ id: 'inv-1' }, { id: 'inv-2' }] })
+    const sent = JSON.stringify(mockCalls().at(-1)!.messages)
+    expect(sent).toContain('Ava')
+    expect(sent).toContain('Little Picasso Art Studio')
+    expect((await call('invitation', { partyId: partyA, tone: 'rude' })).status).toBe(400)
+    await setPlan('FREE')
+    expect((await call('invitation', { partyId: partyA, tone: 'simple' })).status).toBe(403)
+  })
+})

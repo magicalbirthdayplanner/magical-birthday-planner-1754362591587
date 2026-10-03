@@ -19,3 +19,4 @@ Branch: `feat/ai-upgrade` (from `mobile-first` @ a50a5fb). Production branch `ma
 | 8 Budget assistant | 04:59 | done | (see git log) | server-computed totals/savings; Pro only |
 | 9 Activity generator | 05:01 | done | (see git log) | Plus+; details saved on apply |
 | 10 Food planner | 05:04 | done | (see git log) | Pro; disclaimer + claim-stripping server-side |
+| 11 Invitation writer | 05:06 | done | (see git log) | copy-only draft into the editor; never sends |

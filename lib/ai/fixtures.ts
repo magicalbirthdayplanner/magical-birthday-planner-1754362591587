@@ -3,6 +3,12 @@
  * party_planner = golden scenario A (7, art + animals, ~12 kids, $250, indoors, October).
  */
 export const FIXTURES: Record<string, unknown> = {
+  invitation: {
+    options: [
+      { headline: 'You’re invited to a Royal Ball!', message: 'Ava is turning 10 and wants her favourite people at the Little Picasso Art Studio. Come ready to paint, laugh and feast. Please RSVP using the link so we can save you a seat.' },
+      { headline: 'Paint, crowns and cake', message: 'Join us to celebrate Ava’s 10th birthday with a royal art party. Smocks are provided — wear clothes that can get a little paint on them. Please RSVP with the link.' },
+    ],
+  },
   food: {
     menu: { main: [{ name: 'Mini cheese pizzas', qty: '30' }], snacks: [{ name: 'Fruit skewers', qty: '20' }, { name: 'Nut-free trail mix', qty: '2 bowls' }], dessert: [{ name: 'Crown cupcakes', qty: '18' }], drinks: [{ name: 'Water and juice boxes', qty: '24' }] },
     shoppingList: [{ item: 'Mini pizza bases', qty: '30', category: 'food', estimatedCost: 24 }, { item: 'Mozzarella', qty: '2 lb', category: 'food', estimatedCost: 9 }, { item: 'Cupcakes', qty: '18', category: 'food', estimatedCost: 27.5 }, { item: 'Juice boxes', qty: '24', category: 'drinks', estimatedCost: 12 }],

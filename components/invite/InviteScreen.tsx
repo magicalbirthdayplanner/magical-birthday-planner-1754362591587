@@ -13,6 +13,7 @@ import { friendlyError } from '@/lib/data/api'
 import { track } from '@/lib/analytics/client'
 import { cn } from '@/lib/utils'
 import { INVITE_DESIGNS, InvitationCard } from './InvitationCard'
+import { InvitationWriter } from '@/components/ai/InvitationWriter'
 
 export function InviteScreen() {
   const { party } = useParty()
@@ -197,6 +198,9 @@ export function InviteScreen() {
           </Section>
 
           <Section title="Details">
+            <div className="mb-3">
+              <InvitationWriter partyId={party.id} onUse={(headline, message) => set({ headline, message })} />
+            </div>
             <Card className="space-y-4 p-4">
               <TextField label="Headline (optional)" value={form.headline ?? ''} onChange={(e) => set({ headline: e.target.value })} placeholder={`${party.child_name.split(' ')[0]}’s Birthday Party`} maxLength={120} />
               <div className="grid grid-cols-2 gap-3">
