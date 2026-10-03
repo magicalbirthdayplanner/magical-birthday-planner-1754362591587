@@ -1,3 +1,5 @@
+const { withSentryConfig } = require('@sentry/nextjs/config')
+
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -24,4 +26,15 @@ const nextConfig = {
   }
 };
 
-module.exports = nextConfig;
+// Sentry: source maps are uploaded at build time only when SENTRY_AUTH_TOKEN is set (Vercel build env), then
+// deleted from the output, so no .map file is ever served. Without the token the build still succeeds (no upload).
+module.exports = withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG || 'magical-birthday-planner',
+  project: process.env.SENTRY_PROJECT || 'javascript-nextjs',
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI && !process.env.VERCEL,
+  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN, deleteSourcemapsAfterUpload: true },
+  widenClientFileUpload: false,
+  telemetry: false,
+  webpack: { treeshake: { removeDebugLogging: true }, automaticVercelMonitors: false },
+});

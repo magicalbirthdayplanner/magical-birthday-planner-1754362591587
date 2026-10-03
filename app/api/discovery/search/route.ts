@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { reportDbError, reportError } from '@/lib/observability/telemetry'
 import { z } from 'zod'
 import { getAuthedRequest } from '@/lib/server/auth'
 import { apiError } from '@/lib/server/http'
@@ -60,7 +61,10 @@ export async function POST(req: Request) {
     .select('id, child_name, child_age, guest_count, budget, interests, venue_type, zip_code, latitude, longitude, city, state, search_radius_miles')
     .eq('id', body.partyId)
     .maybeSingle()
-  if (error) return apiError(500, 'server_error', 'Something went wrong loading your party.')
+  if (error) {
+    reportDbError('discovery_load_party', error)
+    return apiError(500, 'server_error', 'Something went wrong loading your party.')
+  }
   if (!party) return apiError(404, 'not_found', 'Party not found.')
 
   let center = { lat: party.latitude as number, lng: party.longitude as number }
@@ -117,7 +121,10 @@ export async function POST(req: Request) {
   } catch (err) {
     const kind = err instanceof DiscoveryUnavailableError ? err.kind : 'google_unavailable'
     trackServer('venue_search_failed', { kind }, { userId: auth.user.id, partyId: party.id })
-    if (!(err instanceof DiscoveryUnavailableError)) console.error('discovery failed', err)
+    if (!(err instanceof DiscoveryUnavailableError)) {
+      console.error('discovery failed', err)
+      reportError(err, { area: 'api', op: 'discovery_search' })
+    }
     const [status, message] = MESSAGES[kind] ?? MESSAGES.google_unavailable
     return apiError(status, kind as 'quota', message)
   }

@@ -6,6 +6,7 @@ import type { ClientVenue } from '@/lib/discovery/client-venue'
 import { primaryCategory } from '@/lib/discovery/taxonomy'
 import { zoomForRadius } from '@/lib/geo/cluster'
 import { cn } from '@/lib/utils'
+import { reportError, track } from '@/lib/observability/telemetry'
 import type { MapViewProps } from './MapView'
 
 function ClusteredMarkers({ venues, selectedId, onSelect }: Pick<MapViewProps, 'venues' | 'selectedId' | 'onSelect'>) {
@@ -67,7 +68,14 @@ function PanToSelected({ venues, selectedId }: { venues: ClientVenue[]; selected
 export default function GoogleMapView({ venues, center, radiusMiles, selectedId, onSelect }: MapViewProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
   return (
-    <APIProvider apiKey={apiKey}>
+    <APIProvider
+      apiKey={apiKey}
+      onError={() => {
+        // The Maps JS script failed to load (key, referrer, billing or network). No location data is sent.
+        track('GOOGLE_MAPS_LOAD_FAILED', {}, undefined, 'warn')
+        reportError('Google Maps JS failed to load', { area: 'google', op: 'maps_js_load', level: 'warning', fingerprint: ['google-maps-js'] })
+      }}
+    >
       <Map
         className="h-full w-full"
         defaultCenter={center}

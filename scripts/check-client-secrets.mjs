@@ -15,6 +15,8 @@ const SERVER_ONLY = [
   'RESEND_API_KEY',
   'DODO_PAYMENTS_API_KEY',
   'DODO_PAYMENTS_WEBHOOK_SECRET',
+  'AI_API_KEY',
+  'SENTRY_AUTH_TOKEN',
   // deployment tooling tokens, if present in the environment
   'GITHUB_TOKEN',
   'VERCEL_TOKEN',
@@ -50,10 +52,19 @@ for (const file of files) {
       leaks++
     }
   }
+  if (/sntry[us]_[A-Za-z0-9+/=_-]{20,}/.test(text)) {
+    console.error(`LEAK: a Sentry auth token literal is embedded in ${file}`)
+    leaks++
+  }
   if (/AIzaSy[A-Za-z0-9_-]{30,}/.test(text) && !text.includes(env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '\u0000')) {
     console.error(`LEAK: a Google API key literal is embedded in ${file}`)
     leaks++
   }
+}
+// Source maps are uploaded to Sentry at build time and must never be publicly served.
+for (const file of files.filter((f) => f.endsWith('.map'))) {
+  console.error(`LEAK: public source map ${file}`)
+  leaks++
 }
 console.log(`Scanned ${files.length} client files for ${secrets.length} server-only secret values: ${leaks ? `${leaks} LEAK(S)` : 'clean'}`)
 process.exit(leaks ? 1 : 0)

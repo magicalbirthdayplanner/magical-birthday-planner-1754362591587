@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import { reportError } from '@/lib/observability/telemetry';
 
 interface Props {
   children: ReactNode;
@@ -44,11 +45,7 @@ class ErrorBoundary extends Component<Props, State> {
     // Log error to console for debugging
     console.error('Error caught by ErrorBoundary:', error, errorInfo);
 
-    // In production, you might want to send this to an error reporting service
-    if (process.env.NODE_ENV === 'production') {
-      // Example: Send to error reporting service
-      // logErrorToService(error, errorInfo);
-    }
+    reportError(error, { area: 'client', op: 'react_error_boundary' });
   }
 
   handleReset = () => {

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { reportDbError } from '@/lib/observability/telemetry'
 import { z } from 'zod'
 import { ADMIN_PLANS, OVERRIDE_DURATIONS, requireSuperAdmin } from '@/lib/server/admin'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
@@ -36,7 +37,10 @@ export async function POST(req: Request) {
   const { error: upErr } = await admin
     .from('plan_overrides')
     .upsert({ user_id: body.userId, plan: body.plan, expires_at: expiresAt, set_by: auth.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
-  if (upErr) return apiError(500, 'server_error', 'Could not save the override.')
+  if (upErr) {
+    reportDbError('admin_override_save', upErr)
+    return apiError(500, 'server_error', 'Could not save the override.')
+  }
   await admin.rpc('recompute_entitlement', { p_user: body.userId })
   await admin.from('admin_audit_log').insert({
     admin_user_id: auth.user.id,

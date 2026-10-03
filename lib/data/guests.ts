@@ -1,4 +1,5 @@
 import { db, type Tables } from '@/lib/db/browser'
+import { reportDbError } from '@/lib/observability/telemetry'
 
 export type Guest = Tables<'guests'>
 export type RsvpStatus = 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'MAYBE'
@@ -47,7 +48,10 @@ export async function addGuest(partyId: string, userId: string, input: GuestInpu
     })
     .select(COLS)
     .single()
-  if (error) throw error
+  if (error) {
+    if (error.code) reportDbError('guest_create', error) // no code = offline/network, not a database failure
+    throw error
+  }
   return data as Guest
 }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { reportError } from '@/lib/observability/telemetry'
 import { getAuthedRequest } from '@/lib/server/auth'
 import { apiError } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
@@ -49,6 +50,7 @@ export async function GET(req: Request, props: { params: Promise<{ placeId: stri
     if (err instanceof PlacesError && (err.kind === 'not_found' || err.kind === 'invalid_request')) {
       return apiError(404, 'not_found', "We couldn't find that place.")
     }
+    if (!(err instanceof PlacesError)) reportError(err, { area: 'api', op: 'place_details' }) // Places failures are reported by the client wrapper
     return apiError(503, 'google_unavailable', "We couldn't load this place right now. Please try again.")
   }
 }

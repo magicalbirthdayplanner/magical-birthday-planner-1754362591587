@@ -4,6 +4,7 @@ import { mutate as mutateAll } from 'swr'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase-client'
+import { authFailed } from '@/lib/observability/auth'
 
 interface AuthContextType {
   user: User | null
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { session }, error } = await supabase.auth.getSession()
         if (error) {
           console.error('Error getting session:', error)
+          authFailed('session', error)
           // Don't throw error, just clear state
           setSession(null)
           setUser(null)
@@ -125,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       
       if (error) {
+        authFailed('signup', error)
         return { error }
       }
       
@@ -160,6 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: null }
     } catch (error) {
       console.error('Signup failed:', error)
+      authFailed('signup', error)
       return { error }
     }
   }
@@ -172,6 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       
       if (error) {
+        authFailed('login', error)
         return { error }
       }
       
@@ -207,6 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: null }
     } catch (error) {
       console.error('Signin failed:', error)
+      authFailed('login', error)
       return { error }
     }
   }
@@ -220,9 +226,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         provider: 'google',
         options: { redirectTo, queryParams: { access_type: 'offline', prompt: 'consent' }, scopes: 'openid email profile' },
       })
-      if (error) console.warn('Google sign-in failed to start', error.name)
+      if (error) {
+        console.warn('Google sign-in failed to start', error.name)
+        authFailed('google', error)
+      }
       return { error }
     } catch (err) {
+      authFailed('google', err)
       return { error: err }
     }
   }

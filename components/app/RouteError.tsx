@@ -1,11 +1,13 @@
 'use client'
 import { useEffect } from 'react'
+import { reportError } from '@/lib/observability/telemetry'
 import { AppButton, ErrorState, LinkButton } from './ui'
 
 /** Route-level error boundary UI. Never shows stack traces; logs for diagnostics. */
 export function RouteError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error('route error', error.digest ?? '', error.message)
+    reportError(error, { area: 'client', op: 'route_error' })
   }, [error])
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false
   return (

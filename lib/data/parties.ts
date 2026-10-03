@@ -1,6 +1,7 @@
 import { db, type Tables, type TablesUpdate } from '@/lib/db/browser'
 import type { InterestId, Setting } from '@/lib/discovery/taxonomy'
 import { venueTypeFromSetting } from '@/lib/discovery/party-context'
+import { reportDbError } from '@/lib/observability/telemetry'
 
 export type Party = Tables<'parties'>
 
@@ -49,7 +50,10 @@ export async function createParty(userId: string, input: NewPartyInput): Promise
     })
     .select(PARTY_COLUMNS)
     .single()
-  if (error) throw error
+  if (error) {
+    if (error.code) reportDbError('party_create', error) // no code = offline/network, not a database failure
+    throw error
+  }
   return data as Party
 }
 

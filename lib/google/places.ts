@@ -12,6 +12,7 @@ import 'server-only'
 import type { LatLng } from '@/lib/geo/distance'
 import type { OpeningHours, PhotoRef, Venue } from '@/lib/discovery/types'
 import { categoriesForGoogleTypes } from '@/lib/discovery/taxonomy'
+import { placesFailed, placesSucceeded, type PlacesOp } from '@/lib/observability/google'
 
 export type PlacesErrorKind =
   | 'not_configured'
@@ -268,7 +269,21 @@ export function createPlacesClient(opts: PlacesClientOptions = {}): PlacesApi {
     }
   }
 
-  return {
+  /** Telemetry: success/failure, latency and status for every Places call (never the key, query or payload). */
+  async function observed<T>(op: PlacesOp, run: () => Promise<T>, count?: (r: T) => number): Promise<T> {
+    const started = Date.now()
+    try {
+      const r = await run()
+      placesSucceeded(op, Date.now() - started, count?.(r))
+      return r
+    } catch (err) {
+      const e = err instanceof PlacesError ? err : null
+      placesFailed(op, Date.now() - started, e?.kind ?? 'unexpected', e?.status)
+      throw err
+    }
+  }
+
+  const api: PlacesApi = {
     async searchText({ textQuery, center, radiusMeters, pageSize = 20 }) {
       // Hard restriction to the circle's bounding box: Google never returns (and we never
       // pay for) places outside it. Ranking then trims the corners to the true radius.
@@ -313,6 +328,11 @@ export function createPlacesClient(opts: PlacesClientOptions = {}): PlacesApi {
       if (!data?.photoUri) throw new PlacesError('not_found', 'No photo URI returned')
       return data.photoUri
     },
+  }
+  return {
+    searchText: (p) => observed('search', () => api.searchText(p), (r) => r.length),
+    getPlace: (id) => observed('details', () => api.getPlace(id)),
+    getPhotoUri: (name, w) => observed('photo', () => api.getPhotoUri(name, w)),
   }
 }
 

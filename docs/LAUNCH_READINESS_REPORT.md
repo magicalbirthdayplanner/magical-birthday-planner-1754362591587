@@ -26,7 +26,7 @@ The Next.js 15 upgrade is built and fully tested, but it couldn't be promoted ov
 | Resend | domain verified; all mail from `noreply@magicalbirthdayplanner.app`; delivered |
 | Dodo | **LIVE** since 2026-10-03: `DODO_PAYMENTS_ENVIRONMENT=live_mode`, `DODO_LIVE_PAYMENTS_ENABLED=true`, live products 4.99 / 9.99 / 14.99 USD |
 | Vercel | production branch `master`; Vercel Authentication on previews unchanged; no bypass secrets |
-| Monitoring | **NOT CONFIGURED** |
+| Monitoring | Sentry (errors, tracing, logs, metrics, AI, uptime, alerts) — see docs/OBSERVABILITY.md |
 
 ## Completed overnight
 

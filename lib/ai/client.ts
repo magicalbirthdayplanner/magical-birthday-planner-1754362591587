@@ -4,6 +4,7 @@
  */
 import 'server-only'
 import type { z } from 'zod'
+import { aiRetried } from '@/lib/observability/ai'
 import { aiConfig, type AIConfig } from './config'
 import { getProvider, ProviderError, type ChatMessage } from './provider'
 import { cleanResult, looksLikePromptLeak } from './safety'
@@ -85,6 +86,7 @@ export async function callStructured<T>(opts: {
       const reason = truncated
         ? 'it was cut off at the length limit. Return a SHORTER complete JSON object: fewer items and shorter text'
         : checked && !checked.success ? zodSummary(checked.error) : checked?.success ? 'the output repeated internal instructions' : 'it was not a single valid JSON object'
+      aiRetried({ feature: opts.feature, ...base }, truncated ? 'truncated' : checked && !checked.success ? 'schema' : checked?.success ? 'leak' : 'json')
       messages.push(...(truncated ? [] : [{ role: 'assistant' as const, content: text.slice(0, 4000) }]), { role: 'user', content: `Your last output was invalid because: ${reason}. Return only the corrected JSON object.` })
     }
   } finally {

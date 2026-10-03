@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { reportError } from '@/lib/observability/telemetry'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getAuthedRequest } from '@/lib/server/auth'
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ themes, cached: false })
   } catch (err) {
     console.error('ai themes failed', (err as Error)?.message)
+    reportError(err, { area: 'ai', op: 'azure_theme_ideas', level: 'warning' })
     return apiError(503, 'server_error', 'AI ideas are taking a break. Browse our themes instead.')
   }
 }

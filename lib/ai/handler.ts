@@ -10,6 +10,7 @@ import { getAuthedRequest, type AuthedRequest } from '@/lib/server/auth'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
 import { getUserPlan } from '@/lib/billing/server'
 import { logMetric } from '@/lib/analytics/server'
+import { aiLimitReached, aiPostProcessingFailed, observeAICall } from '@/lib/observability/ai'
 import { aiConfig, featureEnabled } from './config'
 import { capability, PARTY_CAP, planAllows, tierFor, USER_HOURLY_CAP, type Tier } from './capabilities'
 import { callStructured } from './client'
@@ -108,7 +109,10 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
       return aiError('forbidden_plan', { upgradeTo: capability(spec.feature, { enabled: true, tier: ent.tier, superAdmin: false, used: 0 }).upgradeTo })
     }
     // 6. limits: global breaker, then reserve + rank (race-safe)
-    if (cfg.globalDailyLimit > 0 && (await globalCountToday(auth.supabase)) >= cfg.globalDailyLimit) return aiError('high_demand')
+    if (cfg.globalDailyLimit > 0 && (await globalCountToday(auth.supabase)) >= cfg.globalDailyLimit) {
+      aiLimitReached({ feature: spec.feature, plan: ent.tier, superAdmin: ent.superAdmin, partyId }, 'global')
+      return aiError('high_demand')
+    }
     const notes = sanitizeFreeText((body as { notes?: string }).notes)
     const ctx = await buildPartyAIContext(auth.supabase, partyId, { plan: ent.tier, includeInvitationFields: spec.includeInvitationFields })
     if (!ctx) return aiError('not_found')
@@ -123,6 +127,7 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     if (over) {
       await finalizeGeneration(auth.user.id, genId, { status: 'rejected', errorCode: `limit_${over}` })
       logMetric('ai_generation', { feature: spec.feature, user_id: auth.user.id, party_id: partyId, status: 'rejected', error_code: `limit_${over}` })
+      aiLimitReached({ feature: spec.feature, plan: ent.tier, superAdmin: ent.superAdmin, requestId: genId, partyId }, over)
       if (over !== 'party') return aiError('limit_reached', { upgradeTo: null }, over === 'hourly' ? 'You’ve asked for lots of ideas in the last hour. Please try again a little later.' : 'You’ve reached today’s limit for AI suggestions. Please try again tomorrow.')
       return aiError('limit_reached', { upgradeTo: ent.tier === 'PRO' ? null : ent.tier === 'PLUS' ? 'PRO' : ent.tier === 'STARTER' ? 'PLUS' : 'STARTER' })
     }
@@ -130,7 +135,8 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     const extra = spec.load ? await spec.load(auth.supabase, partyId, ctx, body) : undefined
     const { system, user } = spec.prompt({ body, ctx, notes, extra })
     const callCfg = spec.long ? { ...cfg, timeoutMs: cfg.longTimeoutMs } : cfg
-    const r = await callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg: callCfg })
+    const meta = { feature: spec.feature, plan: ent.tier, superAdmin: ent.superAdmin, provider: cfg.provider, model: cfg.model, requestId: genId, partyId }
+    const r = await observeAICall(meta, () => callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg: callCfg }))
     const log = { feature: spec.feature, user_id: auth.user.id, party_id: partyId, provider: r.provider, model: r.model, duration_ms: r.durationMs, attempts: r.attempts }
     if (!r.ok) {
       // code = what the parent saw; detail = why (timeout / unavailable / rate_limited / auth / json / schema) for diagnosis
@@ -142,7 +148,8 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     let result: R
     try {
       result = spec.post ? spec.post({ result: r.data, body, ctx, scrubbed: r.scrubbed, extra }) : r.data
-    } catch {
+    } catch (err) {
+      aiPostProcessingFailed({ ...meta, provider: r.provider, model: r.model }, err)
       await finalizeGeneration(auth.user.id, genId, { status: 'failed', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, errorCode: 'invalid_response' })
       logMetric('ai_generation', { ...log, status: 'failed', error_code: 'post_processing' })
       return aiError('invalid_response')

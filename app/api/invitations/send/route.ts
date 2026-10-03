@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { reportDbError } from '@/lib/observability/telemetry'
 import { z } from 'zod'
 import { getAuthedRequest } from '@/lib/server/auth'
 import { apiError } from '@/lib/server/http'
@@ -48,7 +49,10 @@ export async function POST(req: Request) {
   let q = auth.supabase.from('guests').select('id, name, email, invite_status').eq('party_id', party.id).not('email', 'is', null)
   if (body.guestIds?.length) q = q.in('id', body.guestIds)
   const { data: guests, error } = await q
-  if (error) return apiError(500, 'server_error', 'Couldn’t load your guests.')
+  if (error) {
+    reportDbError('invitations_load_guests', error)
+    return apiError(500, 'server_error', 'Couldn’t load your guests.')
+  }
 
   // Daily cap across all instances (email_logs): the app must not become a spam relay.
   const remaining = dailyInviteCap() - (await emailsSentSince({ userId: auth.user.id, types: ['INVITATION'], hours: 24 }))

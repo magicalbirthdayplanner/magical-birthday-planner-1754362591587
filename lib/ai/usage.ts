@@ -8,6 +8,7 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, Json } from '@/lib/db/database.types'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
+import { aiUsageRecordingFailed } from '@/lib/observability/ai'
 import type { AIFeature } from './types'
 
 type DB = SupabaseClient<Database>
@@ -18,6 +19,7 @@ const USER_COUNTED = ['pending', 'success', 'failed']
 
 export async function reserveGeneration(db: DB, partyId: string, feature: AIFeature, inputSummary: Record<string, unknown>): Promise<string | null> {
   const { data, error } = await db.rpc('ai_reserve', { p_party: partyId, p_feature: feature, p_input_summary: inputSummary as Json })
+  if (error) aiUsageRecordingFailed('reserve', feature, error.code)
   return error ? null : (data as string)
 }
 
@@ -52,8 +54,9 @@ export async function globalCountToday(db: DB): Promise<number> {
 
 /** Service role only (see migration 0900). `userId` must own the pending row. */
 export async function finalizeGeneration(userId: string, id: string, f: { status: 'success' | 'failed' | 'rejected'; provider?: string; model?: string; inputTokens?: number | null; outputTokens?: number | null; durationMs?: number; errorCode?: string | null; result?: unknown }) {
-  await getSupabaseAdmin().rpc('ai_finalize', {
+  const { error } = await getSupabaseAdmin().rpc('ai_finalize', {
     p_id: id, p_user: userId, p_status: f.status, p_provider: f.provider ?? '', p_model: f.model ?? '', p_input_tokens: f.inputTokens ?? 0,
     p_output_tokens: f.outputTokens ?? 0, p_duration_ms: f.durationMs ?? 0, p_error_code: (f.errorCode ?? null) as string, p_result: (f.result ?? null) as Json,
   })
+  if (error) aiUsageRecordingFailed('finalize', undefined, error.code)
 }

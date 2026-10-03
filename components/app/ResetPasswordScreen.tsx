@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { db } from '@/lib/db/browser'
 import { AppButton, PageHeader } from './ui'
 import { TextField } from './fields'
+import { authFailed } from '@/lib/observability/auth'
 
 /** Landing page for Supabase's password-recovery link (session arrives in the URL). */
 export function ResetPasswordScreen() {
@@ -31,7 +32,10 @@ export function ResetPasswordScreen() {
     setBusy(true)
     const { error: err } = await db.auth.updateUser({ password })
     setBusy(false)
-    if (err) return setError('That link has expired. Request a new one from the sign-in screen.')
+    if (err) {
+      authFailed('password_update', err)
+      return setError('That link has expired. Request a new one from the sign-in screen.')
+    }
     router.replace('/home')
   }
 

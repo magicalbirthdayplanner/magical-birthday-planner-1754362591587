@@ -1,8 +1,13 @@
 'use client'
+import { useEffect } from 'react'
+import { reportError } from '@/lib/observability/telemetry'
 
 /** Last-resort error page (root layout failed). Never shows error details to users. */
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  if (typeof console !== 'undefined') console.error('global error', error.digest ?? '')
+  useEffect(() => {
+    console.error('global error', error.digest ?? '')
+    reportError(error, { area: 'client', op: 'global_error', level: 'fatal' })
+  }, [error])
   return (
     <html lang="en">
       <body style={{ margin: 0, minHeight: '100dvh', display: 'grid', placeItems: 'center', background: '#fbf8f3', color: '#221b3a', fontFamily: 'Nunito, ui-rounded, system-ui, -apple-system, Segoe UI, sans-serif' }}>

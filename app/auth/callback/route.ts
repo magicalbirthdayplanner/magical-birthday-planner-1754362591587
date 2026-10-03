@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { safeNext } from '@/lib/security/redirect'
+import { authCallbackFailed } from '@/lib/observability/auth'
 
 // Never cache upstream fetches in this handler.
 export const fetchCache = "force-no-store";
@@ -21,6 +22,7 @@ export async function GET(request: Request) {
   const next = safeNext(url.searchParams.get('next'), '/home')
   if (url.searchParams.get('error') || url.searchParams.get('error_code')) {
     console.warn('auth callback: provider returned an error', url.searchParams.get('error_code') ?? url.searchParams.get('error'))
+    authCallbackFailed(url.searchParams.get('error_code') ?? url.searchParams.get('error'))
     return NextResponse.redirect(new URL(`/login?error=callback&next=${encodeURIComponent(next)}`, url.origin))
   }
   return NextResponse.redirect(new URL(next, url.origin))

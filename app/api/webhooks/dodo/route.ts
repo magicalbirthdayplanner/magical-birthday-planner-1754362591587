@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { verifyWebhook } from '@/lib/billing/webhook-signature'
 import { processWebhookEvent } from '@/lib/billing/server'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
+import { webhookFailed, webhookInvalidSignature, webhookNotConfigured, webhookOutcome, webhookReceived, webhookSummary } from '@/lib/observability/billing'
 
 // Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
 export const fetchCache = "force-no-store";
@@ -16,6 +17,8 @@ const MAX_BODY = 512 * 1024
  * unmatched events (no pointless retries); 500 on transient failures so Dodo retries.
  */
 export async function POST(req: Request) {
+  const started = Date.now()
+  webhookReceived()
   const raw = await req.text()
   if (raw.length > MAX_BODY) return NextResponse.json({ error: 'Payload too large' }, { status: 413 })
   const headers = {
@@ -26,11 +29,18 @@ export async function POST(req: Request) {
   const secret = process.env.DODO_PAYMENTS_WEBHOOK_SECRET
   const verified = verifyWebhook(secret, headers, raw)
   if (!verified.ok) {
-    if (verified.reason === 'no_secret') return NextResponse.json({ error: 'Not configured' }, { status: 503 })
+    if (verified.reason === 'no_secret') {
+      webhookNotConfigured('secret')
+      return NextResponse.json({ error: 'Not configured' }, { status: 503 })
+    }
+    webhookInvalidSignature(verified.reason)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
   if (!headers.id || headers.id.length > 200) return NextResponse.json({ error: 'Invalid event id' }, { status: 400 })
-  if (!hasServiceRole()) return NextResponse.json({ error: 'Not configured' }, { status: 503 })
+  if (!hasServiceRole()) {
+    webhookNotConfigured('service_role')
+    return NextResponse.json({ error: 'Not configured' }, { status: 503 })
+  }
 
   let payload: unknown
   try {
@@ -38,11 +48,14 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   }
+  const summary = webhookSummary(payload)
   try {
     const outcome = await processWebhookEvent(getSupabaseAdmin(), headers.id, payload)
+    webhookOutcome(summary, outcome, Date.now() - started)
     return NextResponse.json({ received: true, outcome: outcome.status })
   } catch (err) {
     console.error('dodo webhook processing failed', (err as Error)?.name)
+    webhookFailed(summary, err, Date.now() - started)
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 })
   }
 }

@@ -10,6 +10,7 @@ import { db } from '@/lib/db/browser'
 import { AppButton, IconButton, PageHeader } from './ui'
 import { GoogleIcon, TextField } from './fields'
 import { safeNext } from '@/lib/security/redirect'
+import { authFailed } from '@/lib/observability/auth'
 
 export { safeNext }
 
@@ -129,7 +130,10 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
                 setError(null)
                 if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError('Enter your email above, then tap “Forgot password?”.')
                 // Supabase Auth sends the reset email; we never reveal whether the account exists.
-                await db.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` }).catch(() => undefined)
+                await db.auth
+                  .resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` })
+                  .then(({ error }) => error && authFailed('password_reset', error))
+                  .catch((err) => authFailed('password_reset', err))
                 setResetSent(true)
               }}
             >

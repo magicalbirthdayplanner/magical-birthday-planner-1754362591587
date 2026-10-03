@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { reportDbError } from '@/lib/observability/telemetry'
 import { z } from 'zod'
 import { apiError, clientIp } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
@@ -62,6 +63,7 @@ export async function POST(req: Request, props: { params: Promise<{ token: strin
     const key = Object.keys(MESSAGES).find((k) => error.message.includes(k))
     if (key) return apiError(MESSAGES[key][0], 'invalid_request', MESSAGES[key][1])
     console.error('rsvp failed', error.code)
+    reportDbError('rsvp_submit', error)
     return apiError(500, 'server_error', 'We couldn’t save your RSVP. Please try again.')
   }
   // Notifications are best-effort: an email problem never fails the RSVP.

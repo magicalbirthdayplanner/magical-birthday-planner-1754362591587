@@ -1,22 +1,15 @@
 import { NextResponse } from 'next/server'
-import { safeJson } from '@/lib/server/safe-json';
 
-// Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
-export const fetchCache = "force-no-store";
-
-// Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
-  try {
-    return safeJson({
-      status: 'healthy',
-      timestamp: new Date().toISOString()
-    })
-  } catch (error) {
-    return safeJson({
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
-  }
+/**
+ * GET /api/health — "is the app reachable?" for uptime monitoring (Sentry Uptime).
+ * Deliberately shallow: no database, AI, Google or payment calls, and nothing about the environment.
+ */
+export function GET() {
+  return NextResponse.json({ status: 'ok', service: 'magical-birthday-planner' }, { headers: { 'Cache-Control': 'no-store' } })
+}
+
+export function HEAD() {
+  return new NextResponse(null, { status: 200, headers: { 'Cache-Control': 'no-store' } })
 }
