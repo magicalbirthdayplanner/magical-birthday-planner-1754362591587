@@ -95,4 +95,13 @@ describe.skipIf(!up)('party context reaches the model', () => {
     // the model never gets a tool or a database handle: the only effect of AI output is items the parent applies
     expect(mockCalls().every((c) => Object.keys(c).sort().join() === 'feature,json,maxTokens,messages,sessionId,signal')).toBe(true)
   })
+
+  it('near-empty answers are retried once, then a friendly error (seen live: an empty food menu)', async () => {
+    const empty = JSON.stringify({ menu: { main: [], snacks: [], dessert: [], drinks: [] }, shoppingList: [], prepTimeline: [], tips: [] })
+    scriptMock(empty, empty)
+    const r = await call('food', { partyId: P.A })
+    expect(r.status).toBe(502)
+    expect((await r.json()).error.code).toBe('invalid_response')
+    expect(mockCalls()).toHaveLength(2)
+  })
 })

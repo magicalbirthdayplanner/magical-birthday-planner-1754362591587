@@ -18,6 +18,14 @@ import { postProcessChecklist } from '@/lib/ai/features/checklist'
 import { themeIdeasPrompt } from '@/lib/ai/prompts/themeIdeas'
 import { ThemeIdeasSchema } from '@/lib/ai/schemas/themeIdeas'
 import { sanitizeFreeText } from '@/lib/ai/safety'
+import { activitiesPrompt } from '@/lib/ai/prompts/activities'
+import { ActivitiesAISchema, type ActivitiesModelOutput } from '@/lib/ai/schemas/activities'
+import { foodPrompt } from '@/lib/ai/prompts/food'
+import { FoodAISchema, type FoodModelOutput } from '@/lib/ai/schemas/food'
+import { postProcessFood } from '@/lib/ai/features/food'
+import { budgetPrompt } from '@/lib/ai/prompts/budget'
+import { BudgetAISchema, type BudgetModelOutput } from '@/lib/ai/schemas/budget'
+import { postProcessBudget } from '@/lib/ai/features/budget'
 
 const live = process.env.AI_LIVE === '1' && !!process.env.AI_API_KEY
 const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: 'opencode' } as NodeJS.ProcessEnv)
@@ -104,5 +112,36 @@ describe.skipIf(!live)('live model (manual)', () => {
     expect(t.length).toBeGreaterThanOrEqual(3)
     expect(t.some((x) => /pink unicorn/i.test(x.name))).toBe(false)
     console.log('USAGE', JSON.stringify(usage))
+  }, 120_000)
+
+  const sc: PartyAIContext = { ...base, childAge: 10, guestCountEstimate: 20, budget: 600, childInterests: ['sports'], indoorOutdoor: 'outdoor' }
+  it('P1 activities (scenario C): age/setting-appropriate, with materials and costs', async () => {
+    const r = await callStructured({ feature: 'activities', schema: ActivitiesAISchema, ...activitiesPrompt(sc, '', ''), sessionId: `live-${Date.now()}-act`, cfg })
+    usage.push({ name: 'activities', ms: r.durationMs, attempts: r.attempts, in: r.inputTokens ?? null, out: r.outputTokens ?? null })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    const a = (r.data as unknown as ActivitiesModelOutput).activities
+    console.log('activities:', a.map((x) => `${x.name} [${x.setting}, ${x.durationMin}m, $${x.estimatedCost}] ${x.materials.join(', ')}`).join(' | '))
+    expect(a.length).toBeGreaterThanOrEqual(3)
+  }, 120_000)
+  it('P1 food (scenario A): quantities for 12, allergy note, no safety claims', async () => {
+    const r = await callStructured({ feature: 'food', schema: FoodAISchema, ...foodPrompt({ ...base, budget: 300 }, '', 'one vegetarian child'), sessionId: `live-${Date.now()}-food`, cfg })
+    usage.push({ name: 'food', ms: r.durationMs, attempts: r.attempts, in: r.inputTokens ?? null, out: r.outputTokens ?? null })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    const f = postProcessFood(r.data as unknown as FoodModelOutput)
+    console.log('food:', JSON.stringify(f.menu), '| est $' + f.estimatedTotal)
+    expect(JSON.stringify({ ...f, allergyNote: '' })).not.toMatch(/allergen[- ]free|nut[- ]free/i)
+    expect(Object.values(f.menu).flat().length).toBeGreaterThanOrEqual(3)
+  }, 120_000)
+  it('P1 budget (scenario A, no lines yet): allocation that fits', async () => {
+    const ctx = { ...base, budget: 300 }
+    const r = await callStructured({ feature: 'budget_optimizer', schema: BudgetAISchema, ...budgetPrompt(ctx, ''), sessionId: `live-${Date.now()}-bud`, cfg })
+    usage.push({ name: 'budget', ms: r.durationMs, attempts: r.attempts, in: r.inputTokens ?? null, out: r.outputTokens ?? null })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    const b = postProcessBudget(r.data as unknown as BudgetModelOutput, ctx)
+    console.log('budget:', b.suggestions.map((x) => `${x.category} $${x.newAmount}`).join(', '), '| projected $' + b.projectedTotal, '| missing:', b.missing.map((m) => `${m.category} $${m.amount}`).join(', '))
+    console.log('USAGE2', JSON.stringify(usage))
   }, 120_000)
 })
