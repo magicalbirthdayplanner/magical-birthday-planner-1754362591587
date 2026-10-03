@@ -93,6 +93,25 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"ai_generations": {
+                  Row: {
+                    "applied": NonNullable<Json>,"created_at": string,"duration_ms": number | null,"error_code": string | null,"feature": string,"id": string,"input_summary": NonNullable<Json>,"input_tokens": number | null,"model": string | null,"output_tokens": number | null,"party_id": string,"provider": string | null,"result": Json | null,"status": string,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "applied"?: NonNullable<Json>,"created_at"?: string,"duration_ms"?: number | null,"error_code"?: string | null,"feature": string,"id"?: string,"input_summary"?: NonNullable<Json>,"input_tokens"?: number | null,"model"?: string | null,"output_tokens"?: number | null,"party_id": string,"provider"?: string | null,"result"?: Json | null,"status"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "applied"?: NonNullable<Json>,"created_at"?: string,"duration_ms"?: number | null,"error_code"?: string | null,"feature"?: string,"id"?: string,"input_summary"?: NonNullable<Json>,"input_tokens"?: number | null,"model"?: string | null,"output_tokens"?: number | null,"party_id"?: string,"provider"?: string | null,"result"?: Json | null,"status"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_generations_party_id_fkey"
+      columns: ["party_id"]
+isOneToOne: false
+      referencedRelation: "parties"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"analytics_events": {
                   Row: {
                     "anonymous_id": string | null,"created_at": string,"event": string,"id": number,"party_id": string | null,"path": string | null,"properties": NonNullable<Json>,"session_id": string | null,"source": string,"user_id": string | null
@@ -338,6 +357,56 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"party_ai_activities": {
+                  Row: {
+                    "created_at": string,"description": string | null,"details": NonNullable<Json>,"duration_min": number | null,"estimated_cost": number | null,"id": string,"materials": (string)[],"name": string,"party_id": string,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"description"?: string | null,"details"?: NonNullable<Json>,"duration_min"?: number | null,"estimated_cost"?: number | null,"id"?: string,"materials"?: (string)[],"name": string,"party_id": string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"description"?: string | null,"details"?: NonNullable<Json>,"duration_min"?: number | null,"estimated_cost"?: number | null,"id"?: string,"materials"?: (string)[],"name"?: string,"party_id"?: string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "party_ai_activities_party_id_fkey"
+      columns: ["party_id"]
+isOneToOne: false
+      referencedRelation: "parties"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "party_ai_activities_source_generation_id_fkey"
+      columns: ["source_generation_id"]
+isOneToOne: false
+      referencedRelation: "ai_generations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"party_budget_lines": {
+                  Row: {
+                    "amount": number,"category": string,"created_at": string,"id": string,"label": string | null,"party_id": string,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "amount": number,"category": string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id": string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "amount"?: number,"category"?: string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id"?: string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "party_budget_lines_party_id_fkey"
+      columns: ["party_id"]
+isOneToOne: false
+      referencedRelation: "parties"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "party_budget_lines_source_generation_id_fkey"
+      columns: ["source_generation_id"]
+isOneToOne: false
+      referencedRelation: "ai_generations"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"party_invitations": {
                   Row: {
                     "created_at": string,"design": string,"end_time": string | null,"headline": string | null,"host_name": string | null,"id": string,"is_active": boolean,"last_shared_at": string | null,"location_text": string | null,"message": string | null,"party_id": string,"rsvp_by": string | null,"share_count": number,"start_time": string | null,"token": string,"updated_at": string,"user_id": string
@@ -354,6 +423,31 @@ isOneToOne: false
       columns: ["party_id"]
 isOneToOne: true
       referencedRelation: "parties"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"party_shopping_items": {
+                  Row: {
+                    "category": string,"created_at": string,"done": boolean,"estimated_cost": number | null,"id": string,"item": string,"party_id": string,"qty": string | null,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "category"?: string,"created_at"?: string,"done"?: boolean,"estimated_cost"?: number | null,"id"?: string,"item": string,"party_id": string,"qty"?: string | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "category"?: string,"created_at"?: string,"done"?: boolean,"estimated_cost"?: number | null,"id"?: string,"item"?: string,"party_id"?: string,"qty"?: string | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "party_shopping_items_party_id_fkey"
+      columns: ["party_id"]
+isOneToOne: false
+      referencedRelation: "parties"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "party_shopping_items_source_generation_id_fkey"
+      columns: ["source_generation_id"]
+isOneToOne: false
+      referencedRelation: "ai_generations"
       referencedColumns: ["id"]
     }
                   ]
@@ -553,7 +647,19 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "check_and_expire_trial":
+            "ai_finalize":
+{ Args: { "p_duration_ms": number,"p_error_code": string,"p_id": string,"p_input_tokens": number,"p_model": string,"p_output_tokens": number,"p_provider": string,"p_result": Json,"p_status": string }; Returns: undefined
+                           },
+"ai_global_count_today":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"ai_mark_applied":
+{ Args: { "p_entry": Json,"p_id": string }; Returns: undefined
+                           },
+"ai_reserve":
+{ Args: { "p_feature": string,"p_input_summary"?: Json,"p_party": string }; Returns: string
+                           },
+"check_and_expire_trial":
 { Args: { "user_id": string }; Returns: boolean
                            },
 "get_invitation":
