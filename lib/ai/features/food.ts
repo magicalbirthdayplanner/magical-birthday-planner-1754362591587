@@ -10,9 +10,9 @@ export const FoodBody = BaseBody.extend({ preferences: z.string().max(500).optio
 /** Never let model text claim medical/allergen safety. */
 const SAFETY_CLAIM = /\b(allergen[- ]free|nut[- ]free|gluten[- ]free|safe for (all|everyone|allergies|kids with allergies)|allergy[- ]safe)\b/gi
 const unclaim = (s: string) => s.replace(SAFETY_CLAIM, 'check-with-families')
-/** A dietary tag is a label, not a promise: "nut-free" → "nut-free option (check labels)". */
+/** A dietary tag is a label, not a promise: "nut-free" → "nut-free option" (the allergy note always applies). */
 const CLAIM_TAG = new RegExp(SAFETY_CLAIM.source, 'i')
-const tag = (t: string) => (CLAIM_TAG.test(t) ? `${t.toLowerCase()} option (check labels)`.slice(0, 40) : t)
+const tag = (t: string) => (CLAIM_TAG.test(t) ? `${t.toLowerCase()} option`.slice(0, 40) : t)
 
 /** Claims are stripped from every model string; quantities, totals and the headcount are server-side facts. */
 export function postProcessFood(out: FoodModelOutput, headcount: { guests: number | null; kids: number | null; adults: number | null } = { guests: null, kids: null, adults: null }): FoodResult {

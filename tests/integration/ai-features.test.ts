@@ -196,7 +196,7 @@ describe.skipIf(!up)('food', () => {
     expect(result.allergyNote).toMatch(/check allergies and dietary needs with each family/i)
     // names never claim safety; a dietary tag becomes a labelled option, not a promise
     expect(result.items.map((d: { name: string }) => d.name).join(' ')).not.toMatch(/nut[- ]free/i)
-    expect(result.items[2].dietary_tags).toEqual(['nut-free option (check labels)'])
+    expect(result.items[2].dietary_tags).toEqual(['nut-free option'])
     expect(result.items[0]).toMatchObject({ id: 'dish-1', quantity: 30, unit: 'mini pizzas', category: 'main' })
     expect(result.guests).toBe(15)
     expect(result.shoppingList[3]).toMatchObject({ id: 'food-4', category: 'food' }) // "drinks" normalised
