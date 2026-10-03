@@ -133,8 +133,9 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     const r = await callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg: callCfg })
     const log = { feature: spec.feature, user_id: auth.user.id, party_id: partyId, provider: r.provider, model: r.model, duration_ms: r.durationMs, attempts: r.attempts }
     if (!r.ok) {
-      await finalizeGeneration(auth.user.id, genId, { status: 'failed', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, errorCode: r.code })
-      logMetric('ai_generation', { ...log, status: 'failed', error_code: r.code, input_tokens: r.inputTokens ?? null, output_tokens: r.outputTokens ?? null })
+      // code = what the parent saw; detail = why (timeout / unavailable / rate_limited / auth / json / schema) for diagnosis
+      await finalizeGeneration(auth.user.id, genId, { status: 'failed', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, errorCode: r.detail ? `${r.code}:${r.detail}` : r.code })
+      logMetric('ai_generation', { ...log, status: 'failed', error_code: r.code, error_detail: r.detail ?? null, input_tokens: r.inputTokens ?? null, output_tokens: r.outputTokens ?? null })
       return aiError(r.code)
     }
     // 8. server post-processing (never trust model arithmetic/dates)

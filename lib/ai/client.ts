@@ -80,7 +80,7 @@ export async function callStructured<T>(opts: {
         return { ok: true, data: value, ...base, inputTokens: inTok, outputTokens: outTok, durationMs: Date.now() - started, attempts, scrubbed }
       }
       if (attempts > cfg.maxRetries) {
-        return { ok: false, code: 'invalid_response', ...base, durationMs: Date.now() - started, attempts, detail: checked ? 'schema' : 'json', inputTokens: inTok, outputTokens: outTok }
+        return { ok: false, code: 'invalid_response', ...base, durationMs: Date.now() - started, attempts, detail: truncated ? 'truncated' : checked?.success ? 'leak' : checked ? 'schema' : 'json', inputTokens: inTok, outputTokens: outTok }
       }
       const reason = truncated
         ? 'it was cut off at the length limit. Return a SHORTER complete JSON object: fewer items and shorter text'
