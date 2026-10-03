@@ -14,7 +14,7 @@ export function AIToolSheet<R>({ open, onOpenChange, title, description, path, b
   path: string
   body: Record<string, unknown>
   steps?: string[]
-  render: (result: R, generationId: string) => ReactNode
+  render: (result: R, generationId: string, rerun: (extra: Record<string, unknown>) => void) => ReactNode
   onUsed?: () => void
 }) {
   const gen = useAIGenerate<R>(path)
@@ -36,7 +36,7 @@ export function AIToolSheet<R>({ open, onOpenChange, title, description, path, b
       ) : null}
       {s.phase === 'done' ? (
         <div className="space-y-4 pb-2" aria-live="polite">
-          {render(s.result, s.generationId)}
+          {render(s.result, s.generationId, (extra) => void run({ regenerate: true, ...extra }))}
           <AppButton variant="outline" block onClick={() => run({ regenerate: true })}>
             Regenerate
           </AppButton>

@@ -20,3 +20,4 @@ Branch: `feat/ai-upgrade` (from `mobile-first` @ a50a5fb). Production branch `ma
 | 9 Activity generator | 05:01 | done | (see git log) | Plus+; details saved on apply |
 | 10 Food planner | 05:04 | done | (see git log) | Pro; disclaimer + claim-stripping server-side |
 | 11 Invitation writer | 05:06 | done | (see git log) | copy-only draft into the editor; never sends |
+| 12 Timeline | 05:08 | done | (see git log) | validated minutes; enum adjusters; prep → checklist |

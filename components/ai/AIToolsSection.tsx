@@ -54,7 +54,7 @@ export function AIToolsSection({ partyId, budget }: { partyId: string; budget: n
           body={{ partyId, ...(active.body?.() ?? {}) }}
           steps={active.steps}
           onUsed={() => caps.mutate()}
-          render={(r, gid) => active.render(r as never, gid, partyId)}
+          render={(r, gid, rerun) => active.render(r as never, gid, partyId, rerun)}
         />
       ) : null}
     </Section>

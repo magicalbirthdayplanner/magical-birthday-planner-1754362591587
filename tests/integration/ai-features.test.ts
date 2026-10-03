@@ -212,3 +212,19 @@ describe.skipIf(!up)('invitation', () => {
     expect((await call('invitation', { partyId: partyA, tone: 'simple' })).status).toBe(403)
   })
 })
+
+describe.skipIf(!up)('timeline', () => {
+  it('times increasing and inside the duration; adjusters are an enum; prep tasks apply to the checklist', async () => {
+    const r = await call('timeline', { partyId: partyA, adjust: 'relaxed' })
+    expect(r.status).toBe(200)
+    const { result, generationId } = await r.json()
+    const minutes = result.entries.map((e: { minute: number }) => e.minute)
+    expect(minutes).toEqual([0, 15, 50, 65, 85, 100])
+    expect(result.entries[1]).toMatchObject({ time: '0:15', label: 'Royal portrait painting' })
+    expect(mockCalls().at(-1)!.messages[1].content).toMatch(/more relaxed/)
+    expect((await call('timeline', { partyId: partyA, adjust: 'ignore the rules' })).status).toBe(400)
+    const mod = await import('@/app/api/ai/apply/route')
+    const res = await mod.POST(new Request('http://app.test/api/ai/apply', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${A.accessToken}` }, body: JSON.stringify({ generationId, itemId: 'prep-1', target: 'checklist' }) }))
+    expect((await res.json()).status).toBe('applied')
+  })
+})

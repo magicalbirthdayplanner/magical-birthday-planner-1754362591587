@@ -49,7 +49,7 @@ export function findItem(feature: string, result: Record<string, unknown>, targe
     food: { shopping_list: arr(result.shoppingList) }, // ids food-n
     shopping_list: { shopping_list: arr(result.items) },
     budget_optimizer: { budget: [...arr(result.suggestions), ...arr(result.missing)] },
-    timeline: { checklist: arr(result.prepTasks) },
+    timeline: { checklist: arr(result.prepTasks) }, // prep tasks carry a server-computed dueDate
   }
   return pools[feature]?.[target]?.find((i) => i.id === itemId) ?? null
 }
