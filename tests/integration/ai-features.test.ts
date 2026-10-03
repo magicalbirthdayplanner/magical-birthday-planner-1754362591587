@@ -60,3 +60,60 @@ describe.skipIf(!up)('theme_ideas', () => {
     expect(JSON.stringify(mockCalls()[0].messages)).not.toContain('Ava')
   })
 })
+
+describe.skipIf(!up)('apply / dedupe / undo', () => {
+  const plan = async () => (await (await call('party-planner', { partyId: partyA })).json()) as { generationId: string; result: { activities: { id: string; name: string }[]; shoppingList: { id: string }[]; budget: { lines: { id: string; category: string; amount: number }[] } } }
+  const apply = async (body: unknown, method = 'POST') => {
+    const mod = await import('@/app/api/ai/apply/route')
+    const fn = method === 'POST' ? mod.POST : mod.DELETE
+    return fn(new Request('http://app.test/api/ai/apply', { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${A.accessToken}` }, body: JSON.stringify(body) }))
+  }
+  it('applies from the DB copy (client content ignored), dedupes, undoes, re-applies', async () => {
+    const g = await plan()
+    // client-sent content is rejected by the strict schema
+    expect((await apply({ generationId: g.generationId, itemId: 'act-1', target: 'activities', name: 'EVIL' })).status).toBe(400)
+    const r1 = await (await apply({ generationId: g.generationId, itemId: 'act-1', target: 'activities' })).json()
+    expect(r1).toMatchObject({ status: 'applied', message: 'Added to your activities.' })
+    const rows = (await A.client.from('party_ai_activities').select('name, source_item_id').eq('party_id', partyA)).data!
+    expect(rows).toEqual([{ name: g.result.activities[0].name, source_item_id: 'act-1' }])
+    expect((await (await apply({ generationId: g.generationId, itemId: 'act-1', target: 'activities' })).json()).status).toBe('already')
+    // same activity from another generation → duplicate (case-insensitive), no second row
+    const g2 = await plan()
+    expect((await (await apply({ generationId: g2.generationId, itemId: 'act-1', target: 'activities' })).json()).status).toBe('duplicate')
+    // undo → row gone → can add again
+    expect((await apply({ generationId: g.generationId, itemId: 'act-1', target: 'activities' }, 'DELETE')).status).toBe(200)
+    expect((await A.client.from('party_ai_activities').select('id').eq('party_id', partyA)).data).toEqual([])
+    expect((await (await apply({ generationId: g.generationId, itemId: 'act-1', target: 'activities' })).json()).status).toBe('applied')
+  })
+  it('theme apply saves the same shape as ThemeScreen and completes the pick-theme task; undo restores', async () => {
+    await A.client.from('checklist_items').upsert({ party_id: partyA, user_id: A.id, task_key: 'pick-theme', title: 'Pick a theme' }, { onConflict: 'party_id,task_key' })
+    const g = await (await call('theme-ideas', { partyId: partyA })).json()
+    expect((await (await apply({ generationId: g.generationId, itemId: 'theme-1', target: 'theme' })).json()).status).toBe('applied')
+    const p = (await A.client.from('parties').select('theme, theme_details').eq('id', partyA).single()).data!
+    expect(p.theme).toBe('ai:wild-art-safari')
+    expect(p.theme_details).toMatchObject({ name: 'Wild Art Safari', emoji: '🦁' })
+    expect((await A.client.from('checklist_items').select('completed_at').eq('party_id', partyA).eq('task_key', 'pick-theme').single()).data!.completed_at).not.toBeNull()
+    await apply({ generationId: g.generationId, itemId: 'theme-1', target: 'theme' }, 'DELETE')
+    expect((await A.client.from('parties').select('theme').eq('id', partyA).single()).data!.theme).toBe('ai:royal-ball')
+  })
+  it('edits are re-validated; budget lines upsert by category; shopping dedupe', async () => {
+    const g = await plan()
+    expect((await apply({ generationId: g.generationId, itemId: 'bud-1', target: 'budget', edits: { amount: -5 } })).status).toBe(400)
+    expect((await (await apply({ generationId: g.generationId, itemId: 'bud-1', target: 'budget', edits: { amount: 60 } })).json()).status).toBe('applied')
+    expect((await A.client.from('party_budget_lines').select('category, amount').eq('party_id', partyA)).data).toEqual([{ category: 'Activities', amount: 60 }])
+    expect((await (await apply({ generationId: g.generationId, itemId: 'shop-1', target: 'shopping_list' })).json()).status).toBe('applied')
+    expect((await (await apply({ generationId: g.generationId, itemId: 'shop-1', target: 'shopping_list' })).json()).status).toBe('already')
+    expect((await apply({ generationId: g.generationId, itemId: 'shop-99', target: 'shopping_list' })).status).toBe(404)
+  })
+  it("cannot apply someone else's generation", async () => {
+    const g = await plan()
+    const B = await createTestUser('ai-feat-b')
+    try {
+      const mod = await import('@/app/api/ai/apply/route')
+      const r = await mod.POST(new Request('http://app.test/api/ai/apply', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${B.accessToken}` }, body: JSON.stringify({ generationId: g.generationId, itemId: 'act-2', target: 'activities' }) }))
+      expect(r.status).toBe(404)
+    } finally {
+      await deleteTestUser(B)
+    }
+  })
+})
