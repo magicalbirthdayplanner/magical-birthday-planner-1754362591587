@@ -40,7 +40,7 @@ export function TimelineSheet({ partyId, data, startTime, partyMinutes, open, on
                     <span className="block text-xs text-muted-foreground">{r.minutes} min · from the activity</span>
                   ) : (
                     <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <input inputMode="numeric" aria-label={`Minutes for ${r.label}`} className="h-8 w-12 rounded-lg border border-input bg-card px-1 text-center text-base text-foreground" defaultValue={r.minutes} onBlur={(e) => { const v = Number(e.target.value); if (Number.isFinite(v) && v !== r.minutes) void act(partyId, () => setTimelineMinutes(r.id, v)) }} />
+                      <input inputMode="numeric" aria-label={`Minutes for ${r.label}`} className="h-11 w-14 rounded-lg border border-input bg-card px-1 text-center text-base text-foreground" defaultValue={r.minutes} onBlur={(e) => { const v = Number(e.target.value); if (Number.isFinite(v) && v !== r.minutes) void act(partyId, () => setTimelineMinutes(r.id, v)) }} />
                       min
                     </label>
                   )}

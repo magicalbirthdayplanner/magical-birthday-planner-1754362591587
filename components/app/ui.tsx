@@ -190,7 +190,7 @@ export function Chip({ active, children, className, ...props }: ButtonHTMLAttrib
       type="button"
       aria-pressed={active}
       className={cn(
-        'tap inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-medium transition active:scale-95',
+        'tap inline-flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-medium transition active:scale-95',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground',
         className,

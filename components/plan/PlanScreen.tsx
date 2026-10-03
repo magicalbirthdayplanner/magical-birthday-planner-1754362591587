@@ -94,7 +94,7 @@ export function PlanScreen() {
           <div className="min-w-0 flex-1">
             <p className="text-sm text-muted-foreground">{summary.progress}% complete · Next</p>
             <p className="truncate text-lg font-semibold">{summary.next.title}</p>
-            <Link href={summary.next.href} className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+            <Link href={summary.next.href} className="-mb-2 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-primary">
               {summary.next.cta} <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
