@@ -3,6 +3,14 @@
  * party_planner = golden scenario A (7, art + animals, ~12 kids, $250, indoors, October).
  */
 export const FIXTURES: Record<string, unknown> = {
+  activities: {
+    activities: [
+      { name: 'Royal portrait studio', whyItFits: 'Art + the Royal Ball theme for 10-year-olds.', durationMin: 25, estimatedCost: 18, materials: ['Mini canvases', 'Acrylic paints', 'Gold paint pens'], setup: 'Set 15 canvases on covered tables.', instructions: ['Sketch a royal self-portrait', 'Paint the background', 'Add gold details'], cleanup: 'Wet wipes and a drying rack.', ageSuitability: 'Ages 8-12', difficulty: 'medium' },
+      { name: 'Crown design challenge', whyItFits: 'Quick, creative and becomes a favor.', durationMin: 15, estimatedCost: 12, materials: ['Paper crowns', 'Gem stickers'], setup: 'One crown per guest.', instructions: ['Decorate', 'Vote on categories'], cleanup: 'Sweep sticker backs.', ageSuitability: 'Ages 5-12', difficulty: 'easy' },
+      { name: 'Royal court charades', whyItFits: 'No-cost energy break between crafts.', durationMin: 10, estimatedCost: 0, materials: [], setup: 'Write prompts on cards.', instructions: ['Act it out', 'Teams guess'], cleanup: 'None', ageSuitability: 'Ages 6+', difficulty: 'easy' },
+    ],
+    assumptions: ['The studio provides tables and smocks.'],
+  },
   budget_optimizer: {
     suggestions: [
       { category: 'Food & cake', change: 'Swap catered pizza for homemade mini pizzas', newAmount: 70, reason: 'Kids love assembling their own.' },

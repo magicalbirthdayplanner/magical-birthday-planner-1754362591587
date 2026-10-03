@@ -17,3 +17,4 @@ Branch: `feat/ai-upgrade` (from `mobile-first` @ a50a5fb). Production branch `ma
 | P0 checkpoint | 04:54 | GREEN | (see git log) | lint, typecheck, unit 188, integration 158, E2E 31 (6 AI @375-430), build, secret+bundle scan clean |
 | 7 Checklist | 04:55 | done | (see git log) | golden B passes; date clamp + dedupe server-side |
 | 8 Budget assistant | 04:59 | done | (see git log) | server-computed totals/savings; Pro only |
+| 9 Activity generator | 05:01 | done | (see git log) | Plus+; details saved on apply |

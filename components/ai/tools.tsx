@@ -1,12 +1,14 @@
 'use client'
 /** Registry of Plan → AI tools. Each phase (7–13) adds its tool here. */
 import type { ComponentType, ReactNode } from 'react'
-import { ListChecks, PiggyBank } from 'lucide-react'
+import { ListChecks, PiggyBank, Puzzle } from 'lucide-react'
 import type { AIFeature } from '@/lib/ai/types'
 import type { ChecklistResult } from '@/lib/ai/schemas/checklist'
 import { ChecklistResultView } from './results/ChecklistResultView'
 import type { BudgetResult } from '@/lib/ai/schemas/budget'
 import { BudgetResultView } from './results/BudgetResultView'
+import type { ActivitiesResult } from '@/lib/ai/schemas/activities'
+import { ActivitiesResultView } from './results/ActivitiesResultView'
 
 export interface ToolDef {
   feature: AIFeature
@@ -40,5 +42,15 @@ export const TOOLS: ToolDef[] = [
     icon: PiggyBank,
     steps: ['Adding up your plan…', 'Finding savings that keep the fun…', 'Checking for missing costs…'],
     render: (r: BudgetResult, gid, partyId) => <BudgetResultView r={r} generationId={gid} partyId={partyId} />,
+  },
+  {
+    feature: 'activities',
+    label: () => 'Suggest activities',
+    sub: 'Games and crafts with setup and cleanup',
+    title: 'Activity ideas',
+    path: '/api/ai/activities',
+    icon: Puzzle,
+    steps: ['Thinking about the birthday…', 'Matching activities to age and space…', 'Writing simple instructions…'],
+    render: (r: ActivitiesResult, gid, partyId) => <ActivitiesResultView r={r} generationId={gid} partyId={partyId} />,
   },
 ]
