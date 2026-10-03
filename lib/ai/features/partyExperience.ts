@@ -28,19 +28,8 @@ export const ExperienceAISchema = z.object({
 })
 type Out = z.infer<typeof ExperienceAISchema>
 
-export interface ExperienceResult {
-  summary: string
-  theme: Out['theme'] & { id: 'theme'; activities: string[] }
-  activities: (ActivityDetail & { id: string })[]
-  timeline: { id: string; minute: number; duration: number; label: string; kind: TimelineKind }[]
-  food: (FoodItem & { id: string })[]
-  shopping: (Out['shopping'][number] & { id: string })[]
-  host: { id: string; kind: 'welcome' | 'cake' | 'closing'; title: string; body: string }[]
-  checklist: { id: string; title: string; daysBeforeParty: number; dueDate: string | null; late: boolean }[]
-  budget: { lines: { id: string; category: string; amount: number }[]; total: number; overBy: number | null }
-  assumptions: string[]
-  designedForGuests: number | null
-}
+export type { ExperienceResult } from './partyExperience.types'
+import type { ExperienceResult } from './partyExperience.types'
 
 const r2 = (n: number) => Math.round(n * 100) / 100
 const HOST_TITLES = { welcome: 'Welcome speech', cake: 'Cake announcement', closing: 'Closing speech' } as const

@@ -84,20 +84,20 @@ for (const width of [375, 390, 393, 430]) {
   })
 }
 
-test('AI tools on Plan: Free sees calm locked rows; Plus builds the checklist and adds all', async ({ page }) => {
+test('Party Magic on Plan: Free sees calm locked cards; Plus builds the checklist and adds all', async ({ page }) => {
   const { setPlanForE2E } = await import('./helpers')
   const s = await seedUser({ withParty: true })
   await setPlanForE2E(s.email, 'FREE')
   await login(page, s, '/plan')
-  await expect(page.getByText('✨ Planning help')).toBeVisible()
+  await expect(page.getByText('✨ Party Magic')).toBeVisible()
   await expect(page.getByText('Included with Starter').first()).toBeVisible()
   await setPlanForE2E(s.email, 'PLUS')
-  await page.reload()
-  await page.getByTestId('ai-tool-checklist').click()
+  await page.goto('/plan/checklist')
+  await page.getByTestId('ai-build-checklist').click()
   await expect(page.getByRole('dialog', { name: 'Your AI checklist' })).toBeVisible()
   await page.getByRole('button', { name: 'Add all to checklist' }).click()
   await expect(page.getByText(/Added \d+ tasks? to your checklist/)).toBeVisible({ timeout: 15_000 })
   await page.keyboard.press('Escape')
-  await page.goto('/plan/checklist')
+  await page.reload()
   await expect(page.getByText('Ask the studio what kids should wear')).toBeVisible()
 })

@@ -10,6 +10,10 @@ const fmt = (d: string | null) => (d ? new Date(`${d}T12:00:00`).toLocaleDateStr
 export function TimelineResultView({ r, generationId, partyId, rerun }: { r: TimelineResult; generationId: string; partyId: string; rerun: (extra: Record<string, unknown>) => void }) {
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">Add it to your party timeline — activity steps link to your activities.</p>
+        <AddAllButton generationId={generationId} target="timeline" itemIds={r.entries.map((e) => e.id)} partyId={partyId} label="Add timeline" />
+      </div>
       <Card className="divide-y divide-border">
         {r.entries.map((e) => (
           <div key={e.id} className="flex gap-3 px-4 py-2.5 text-sm">

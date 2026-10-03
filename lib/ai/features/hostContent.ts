@@ -24,8 +24,8 @@ export const HostAISchema = z.object({
 }).refine((h) => h.body.length >= 20 || h.messages.length > 0, { message: 'write the message in "body" (or one per guest in "messages")' })
 type Out = z.infer<typeof HostAISchema>
 
-export interface HostItem { id: string; kind: HostKind; title: string; body: string; activityId: string | null; guestId: string | null; guestName: string | null }
-export interface HostResult { kind: HostKind; items: HostItem[] }
+export type { HostItem, HostResult } from './hostContent.types'
+import type { HostResult } from './hostContent.types'
 interface Extra { activity?: { id: string; name: string; description: string | null; host_script?: unknown }; guests?: { id: string; first: string }[] }
 
 export const hostSpec: FeatureSpec<typeof HostBody, HostResult> = {

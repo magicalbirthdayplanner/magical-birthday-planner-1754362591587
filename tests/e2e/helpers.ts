@@ -105,3 +105,18 @@ export async function setPlanForE2E(email: string, plan: 'FREE' | 'STARTER' | 'P
   if (plan !== 'FREE') await admin.from('plan_overrides').insert({ user_id: user.id, plan, expires_at: null })
   await admin.rpc('recompute_entitlement', { p_user: user.id })
 }
+
+/** Change party facts behind the app's back (guest count / theme), as another device would. Test stack only. */
+export async function patchParty(partyId: string, patch: Record<string, unknown>) {
+  const admin = createClient(URL, SERVICE, opts)
+  const { error } = await admin.from('parties').update(patch).eq('id', partyId)
+  if (error) throw error
+}
+
+/** Read rows of a party table (test assertions only). */
+export async function partyRows(table: string, partyId: string, columns = '*') {
+  const admin = createClient(URL, SERVICE, opts)
+  const { data, error } = await admin.from(table).select(columns).eq('party_id', partyId)
+  if (error) throw error
+  return (data ?? []) as unknown as Record<string, unknown>[]
+}

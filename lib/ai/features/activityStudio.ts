@@ -7,7 +7,7 @@ import 'server-only'
 import { z } from 'zod'
 import { BaseBody, type FeatureSpec } from '../handler'
 import { activityCreatePrompt, activityEditPrompt } from '../prompts/experience'
-import { ACTIVITY_EDIT_KEYS, ACTIVITY_EDITS, ActivityDetailSchema, type ActivityDetail, type ActivityEdit } from '@/lib/experience/model'
+import { ACTIVITY_EDIT_KEYS, ACTIVITY_EDITS, ActivityDetailSchema, type ActivityEdit } from '@/lib/experience/model'
 import { optStr } from '../schemas/shared'
 
 export const ActivityStudioBody = BaseBody.extend({
@@ -19,15 +19,8 @@ export const ActivityStudioBody = BaseBody.extend({
 export const ActivityStudioAISchema = z.object({ activity: ActivityDetailSchema, what_changed: optStr(200) })
 type Out = z.infer<typeof ActivityStudioAISchema>
 
-export interface ActivityStudioResult {
-  mode: 'create' | 'edit'
-  /** Server-set from the validated request — apply uses this, never a client value. */
-  targetActivityId: string | null
-  designedForGuests: number | null
-  designedForTheme: string | null
-  whatChanged: string
-  activity: ActivityDetail & { id: 'act-1' }
-}
+export type { ActivityStudioResult } from './activityStudio.types'
+import type { ActivityStudioResult } from './activityStudio.types'
 
 /** The activity as the model sees it when editing (no ids, no provenance). */
 async function loadActivity(db: Parameters<NonNullable<FeatureSpec<typeof ActivityStudioBody, ActivityStudioResult>['load']>>[0], partyId: string, id: string) {

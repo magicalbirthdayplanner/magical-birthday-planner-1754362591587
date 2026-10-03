@@ -5,25 +5,35 @@
  * parent actually spent; only the parent ever enters "spent".
  */
 import { useState } from 'react'
-import { ChevronRight, PiggyBank, Puzzle, ShoppingBasket, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { ChevronRight, Clock, Copy, Mic, PiggyBank, Puzzle, ShoppingBasket, Trash2, UtensilsCrossed } from 'lucide-react'
 import { toast } from 'sonner'
 import { BottomSheet } from '@/components/app/BottomSheet'
 import { Card, Section } from '@/components/app/ui'
 import { friendlyError } from '@/lib/data/api'
 import { listPlanItems, removeActivity, removeBudgetLine, removeShoppingItem, setActualSpend, setShoppingDone, usePlanItems, type BudgetLine, type PartyPlanItems } from '@/lib/data/partyPlanItems'
 import { cn } from '@/lib/utils'
+import { EXPERIENCE_ENABLED } from '@/lib/experience/flags'
+import { addFoodToShopping, removeFoodItem, useExperience, type Experience } from '@/lib/data/experience'
+import { formatMinutes } from '@/lib/experience/model'
+import { TimelineSheet, timelineOf } from '@/components/experience/TimelineSheet'
+import { act as actExp } from '@/components/experience/apply'
 
 const $ = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`
 const CATEGORY = { food: 'Food', decorations: 'Decorations', activities: 'Activities', favors: 'Party favors', other: 'Other' } as Record<string, string>
 
-type Open = null | 'activities' | 'shopping' | 'budget'
+type Open = null | 'activities' | 'shopping' | 'budget' | 'timeline' | 'menu' | 'host'
 
-export function PartyPlanSection({ partyId, budget }: { partyId: string; budget: number | null }) {
+export function PartyPlanSection({ partyId, budget, startTime = null, partyMinutes = null }: { partyId: string; budget: number | null; startTime?: string | null; partyMinutes?: number | null }) {
   const { data, mutate } = usePlanItems(partyId)
+  const exp = useExperience(EXPERIENCE_ENABLED ? partyId : null)
   const [open, setOpen] = useState<Open>(null)
   if (!data) return null
   const { activities, shopping, budget: lines } = data
-  if (!activities.length && !shopping.length && !lines.length) return null
+  const x: Experience | null = exp.data ?? null
+  const hasExperience = !!x && (x.timeline.length > 0 || x.food.length > 0 || x.host.length > 0 || activities.length > 0)
+  if (!activities.length && !shopping.length && !lines.length && !hasExperience) return null
+  const tl = x ? timelineOf(x, startTime) : null
 
   const bought = shopping.filter((s) => s.done).length
   const planned = lines.reduce((s, l) => s + Number(l.amount), 0)
@@ -54,7 +64,16 @@ export function PartyPlanSection({ partyId, budget }: { partyId: string; budget:
   return (
     <Section title="Your party plan">
       <Card className="divide-y divide-border overflow-hidden">
-        {activities.length ? row('activities', Puzzle, 'Activities', `${activities.length} planned · ${activities.reduce((s, a) => s + (a.duration_min ?? 0), 0)} min`) : null}
+        {activities.length ? (EXPERIENCE_ENABLED ? (
+          <Link href="/activities" className="tap flex min-h-[64px] w-full items-center gap-3 px-4 py-3 active:bg-muted" data-testid="party-plan-activities">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary"><Puzzle className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1"><span className="block text-sm text-muted-foreground">Activities</span><span className="block truncate font-semibold">{activities.length} planned · {formatMinutes(activities.reduce((s, a) => s + (a.duration_min ?? 0), 0))}</span></span>
+            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+          </Link>
+        ) : row('activities', Puzzle, 'Activities', `${activities.length} planned · ${activities.reduce((s, a) => s + (a.duration_min ?? 0), 0)} min`)) : null}
+        {x && (x.timeline.length || activities.length) ? row('timeline', Clock, 'Timeline', x.timeline.length ? `${x.timeline.length} steps · ${formatMinutes(tl!.totalMinutes)}${partyMinutes ? ` of ${formatMinutes(partyMinutes)}` : ''}` : 'Plan the party day') : null}
+        {x?.food.length ? row('menu', UtensilsCrossed, 'Menu', `${x.food.length} item${x.food.length === 1 ? '' : 's'}`) : null}
+        {x?.host.length ? row('host', Mic, 'What to say', `${x.host.length} saved`) : null}
         {shopping.length ? row('shopping', ShoppingBasket, 'Shopping list', `${bought} of ${shopping.length} bought`) : null}
         {lines.length ? row('budget', PiggyBank, 'Budget', `${$(planned)} planned${spent ? ` · ${$(spent)} spent` : ''}${budget != null ? ` of ${$(budget)}` : ''}`) : null}
       </Card>
@@ -125,6 +144,39 @@ export function PartyPlanSection({ partyId, budget }: { partyId: string; budget:
           </Card>
         </div>
       </BottomSheet>
+
+      {x ? <TimelineSheet partyId={partyId} data={x} startTime={startTime} partyMinutes={partyMinutes} open={open === 'timeline'} onOpenChange={(o) => !o && setOpen(null)} /> : null}
+
+      {x ? (
+        <BottomSheet open={open === 'menu'} onOpenChange={(o) => !o && setOpen(null)} title="Menu" description="Quantities are estimates. Please check allergies with each family.">
+          <Card className="mb-2 divide-y divide-border">
+            {x.food.map((f) => (
+              <div key={f.id} className="flex items-center gap-2 py-2 pl-4 pr-1">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium">{f.name}</span>
+                  <span className="block text-xs text-muted-foreground">{[f.quantity != null ? `${Number(f.quantity)} ${f.unit ?? ''}`.trim() : null, f.estimated_cost ? `~${$(Number(f.estimated_cost))}` : null, ...(f.dietary_tags ?? [])].filter(Boolean).join(' · ')}{f.designed_for_guests ? ` · for ${f.designed_for_guests} guests` : ''}</span>
+                </span>
+                <button type="button" className="tap min-h-[44px] shrink-0 rounded-full px-3 text-sm font-semibold text-primary" onClick={() => actExp(partyId, () => addFoodToShopping(f), (r) => (r ? 'Added to your shopping list.' : 'Already on your list.'))}>To list</button>
+                <button type="button" aria-label={`Remove ${f.name}`} onClick={() => actExp(partyId, () => removeFoodItem(f.id))} className="tap flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground active:bg-muted"><Trash2 className="h-4 w-4" /></button>
+              </div>
+            ))}
+          </Card>
+        </BottomSheet>
+      ) : null}
+
+      {x ? (
+        <BottomSheet open={open === 'host'} onOpenChange={(o) => !o && setOpen(null)} title="What to say" description="Saved to your party. Nothing is sent for you.">
+          <div className="space-y-3 pb-2">
+            {x.host.map((h) => (
+              <Card key={h.id} className="space-y-2 p-4">
+                <p className="text-sm font-semibold text-primary">{h.title || h.kind.replace(/_/g, ' ')}</p>
+                <p className="whitespace-pre-line text-sm leading-relaxed">{h.body}</p>
+                <button type="button" className="tap inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-primary" onClick={async () => { try { await navigator.clipboard.writeText(h.body); toast.success('Copied.') } catch { toast('Select the text to copy it.') } }}><Copy className="h-4 w-4" /> Copy</button>
+              </Card>
+            ))}
+          </div>
+        </BottomSheet>
+      ) : null}
     </Section>
   )
 }

@@ -7,7 +7,7 @@ import useSWR from 'swr'
 import { db, type Tables } from '@/lib/db/browser'
 import type { AIFeature } from '@/lib/ai/types'
 
-export type PlanActivity = Pick<Tables<'party_ai_activities'>, 'id' | 'name' | 'description' | 'duration_min' | 'estimated_cost' | 'materials' | 'details'>
+export type PlanActivity = Pick<Tables<'party_ai_activities'>, 'id' | 'name' | 'description' | 'duration_min' | 'estimated_cost' | 'materials' | 'details' | 'status'>
 export type ShoppingItem = Pick<Tables<'party_shopping_items'>, 'id' | 'item' | 'qty' | 'category' | 'estimated_cost' | 'done'>
 export type BudgetLine = Pick<Tables<'party_budget_lines'>, 'id' | 'category' | 'label' | 'amount' | 'actual_amount' | 'source_generation_id'>
 
@@ -22,7 +22,7 @@ export const planItemsKey = (partyId: string) => ['ai-party-items', partyId] as 
 /** Empty (not an error) when the AI tables aren't there yet, so non-AI screens never break. */
 export async function listPlanItems(partyId: string): Promise<PartyPlanItems> {
   const [a, s, b] = await Promise.all([
-    db.from('party_ai_activities').select('id, name, description, duration_min, estimated_cost, materials, details').eq('party_id', partyId).order('created_at'),
+    db.from('party_ai_activities').select('id, name, description, duration_min, estimated_cost, materials, details, status').eq('party_id', partyId).eq('status', 'planned').order('sort_order').order('created_at'),
     db.from('party_shopping_items').select('id, item, qty, category, estimated_cost, done').eq('party_id', partyId).order('created_at'),
     db.from('party_budget_lines').select('id, category, label, amount, actual_amount, source_generation_id').eq('party_id', partyId).order('created_at'),
   ])
@@ -33,8 +33,9 @@ export function usePlanItems(partyId: string | null | undefined) {
   return useSWR(partyId ? planItemsKey(partyId) : null, () => listPlanItems(partyId!), { revalidateOnFocus: false })
 }
 
+/** Same cleanup as the Activities tab: timeline slot, unfinished prep tasks and estimate-only budget lines go too. */
 export async function removeActivity(id: string) {
-  const { error } = await db.from('party_ai_activities').delete().eq('id', id)
+  const { error } = await db.rpc('remove_party_activity', { p_activity: id })
   if (error) throw error
 }
 export async function setShoppingDone(id: string, done: boolean) {

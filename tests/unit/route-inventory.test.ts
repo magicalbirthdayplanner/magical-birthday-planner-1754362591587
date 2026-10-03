@@ -29,7 +29,7 @@ const EXPECTED = [
   // full-screen flows (public: auth, guest invitation, offline; wizard needs sign-in)
   '/login [page]', '/join [page]', '/reset-password [page]', '/offline [page]', '/invite/[token] [page]', '/start [page]', '/venue/[placeId] [page]',
   // signed-in app (bottom navigation)
-  '/home [page]', '/plan [page]', '/plan/theme [page]', '/plan/checklist [page]', '/plan/invite [page]', '/discover [page]', '/discover/saved [page]', '/guests [page]', '/more [page]',
+  '/home [page]', '/plan [page]', '/activities [page]', '/plan/theme [page]', '/plan/checklist [page]', '/plan/invite [page]', '/discover [page]', '/discover/saved [page]', '/guests [page]', '/more [page]',
   // Super Admin (server-verified role; 404 for everyone else)
   '/admin [page]',
   // auth return point
@@ -76,7 +76,8 @@ describe('route inventory', () => {
   })
 
   it('the retired desktop planner and its APIs are gone', () => {
-    for (const p of ['/dashboard', '/party-plan', '/create-party', '/account', '/signin', '/signup', '/activities', '/api/parties', '/api/venues-search', '/api/user/subscription']) {
+    // ('/activities' was a retired desktop page; it returns as the mobile Activities tab, listed in EXPECTED above.)
+    for (const p of ['/dashboard', '/party-plan', '/create-party', '/account', '/signin', '/signup', '/api/parties', '/api/venues-search', '/api/user/subscription']) {
       expect(actual.some((r) => r.startsWith(`${p} `)), p).toBe(false)
     }
   })

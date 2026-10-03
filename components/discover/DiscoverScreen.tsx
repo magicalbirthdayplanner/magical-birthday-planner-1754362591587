@@ -43,10 +43,12 @@ export function DiscoverScreen() {
   const { savedIds, toggle, count: savedCount } = useSaveVenue()
 
   const [view, setView] = useState<'list' | 'map'>('list')
-  const [chip, setChip] = useState<ChipFilter>('recommended')
+  // Deep links from the rest of the app (e.g. an activity's "Find nearby places"): ?chip=art&q=pizza
+  const linkChip = params?.get('chip')
+  const [chip, setChip] = useState<ChipFilter>(CHIPS.some((c) => c.id === linkChip) ? (linkChip as ChipFilter) : 'recommended')
   const [filters, setFilters] = useState<VenueFilters>(DEFAULT_FILTERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(() => (params?.get('q') ?? '').slice(0, 60))
   const debouncedQuery = useDebounced(query)
   const [visible, setVisible] = useState(PAGE)
   const [selectedId, setSelectedId] = useState<string | null>(null)

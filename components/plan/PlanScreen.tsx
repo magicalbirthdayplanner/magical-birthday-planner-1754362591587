@@ -16,6 +16,9 @@ import { PartyEditSheet } from './PartyEditSheet'
 import { PartyPlanSection } from './PartyPlanSection'
 import { PlanWithAICard } from '@/components/ai/PlanWithAICard'
 import { AIToolsSection } from '@/components/ai/AIToolsSection'
+import { PartyMagic } from '@/components/experience/PartyMagic'
+import { usePartyFacts } from '@/components/activities/usePartyFacts'
+import { EXPERIENCE_ENABLED } from '@/lib/experience/flags'
 
 function Row({ href, icon: Icon, title, value, done }: { href: string; icon: typeof Cake; title: string; value: React.ReactNode; done?: boolean }) {
   return (
@@ -36,6 +39,7 @@ export function PlanScreen() {
   const params = useSearchParams()
   const { party, isLoading } = useParty()
   const summary = usePartySummary(party)
+  const facts = usePartyFacts(party)
   const [editOpen, setEditOpen] = useState(false)
   const focus = params?.get('edit')
 
@@ -128,9 +132,9 @@ export function PlanScreen() {
         </Card>
       </Section>
 
-      <PartyPlanSection partyId={party.id} budget={budget} />
+      <PartyPlanSection partyId={party.id} budget={budget} startTime={facts?.startTime ?? null} partyMinutes={facts?.minutes ?? null} />
 
-      <AIToolsSection partyId={party.id} budget={budget} />
+      {EXPERIENCE_ENABLED ? <PartyMagic partyId={party.id} /> : <AIToolsSection partyId={party.id} budget={budget} />}
 
       <Section title="Details">
         <Card className="space-y-3 p-4 text-[15px]">
