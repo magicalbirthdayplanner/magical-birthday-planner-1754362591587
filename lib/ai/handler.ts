@@ -16,7 +16,7 @@ import { callStructured } from './client'
 import { buildPartyAIContext, type PartyAIContext } from './context'
 import { aiError } from './errors'
 import { sanitizeFreeText } from './safety'
-import { finalizeGeneration, globalCountToday, reserveGeneration, usedForParty, withinLimits } from './usage'
+import { finalizeGeneration, globalCountToday, reserveGeneration, usedForParty, limitExceeded } from './usage'
 import type { AIFeature } from './types'
 
 export interface Entitlement { tier: Tier; plan: string; superAdmin: boolean }
@@ -29,6 +29,34 @@ export async function resolveEntitlement(auth: AuthedRequest): Promise<Entitleme
   ])
   const p = plan ?? { plan: 'FREE', source: 'free' }
   return { tier: tierFor(p), plan: p.plan, superAdmin: role.data?.role === 'super_admin' }
+}
+
+/** Largest AI request body we accept (free text is capped at 1,500 chars; this leaves room for JSON + fields). */
+export const MAX_BODY_BYTES = 16 * 1024
+
+/** Parse a JSON body without ever buffering more than `max` bytes. Returns undefined when too large or invalid. */
+export async function readJsonBody(req: Request, max = MAX_BODY_BYTES): Promise<unknown | undefined> {
+  const declared = Number(req.headers.get('content-length') ?? '')
+  if (Number.isFinite(declared) && declared > max) return undefined
+  if (!req.body) return undefined
+  const reader = req.body.getReader()
+  const chunks: Uint8Array[] = []
+  let size = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    size += value.byteLength
+    if (size > max) {
+      await reader.cancel().catch(() => undefined)
+      return undefined
+    }
+    chunks.push(value)
+  }
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'))
+  } catch {
+    return undefined
+  }
 }
 
 export const BaseBody = z.object({
@@ -59,19 +87,16 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     const auth = await getAuthedRequest(req)
     if (!auth) return aiError('unauthenticated')
     // 2. input
-    let body: z.infer<B>
-    try {
-      body = spec.body.parse(await req.json())
-    } catch {
-      return aiError('invalid_input')
-    }
+    const parsed = spec.body.safeParse(await readJsonBody(req))
+    if (!parsed.success) return aiError('invalid_input')
+    const body: z.infer<B> = parsed.data
     const partyId = (body as { partyId: string }).partyId
     // 3. party ownership (RLS: someone else's party looks missing)
     const { data: party } = await auth.supabase.from('parties').select('id').eq('id', partyId).maybeSingle()
     if (!party) return aiError('not_found')
-    // 4. flag
+    // 4. flag (fail closed without the service role: usage can't be finalized safely without it)
     const cfg = aiConfig()
-    if (!featureEnabled(spec.feature, cfg)) return aiError('ai_disabled')
+    if (!featureEnabled(spec.feature, cfg) || !hasServiceRole()) return aiError('ai_disabled')
     // 5. entitlement
     const ent = await resolveEntitlement(auth)
     if (!planAllows(spec.feature, ent.tier, ent.superAdmin)) {
@@ -84,9 +109,15 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     if (!ctx) return aiError('not_found')
     const genId = await reserveGeneration(auth.supabase, partyId, spec.feature, { ...(spec.summary?.(body, ctx) ?? {}), hasNotes: notes.length > 0 })
     if (!genId) return aiError('provider_error')
-    const ok = await withinLimits(auth.supabase, genId, { partyId, userId: auth.user.id, partyCap: ent.superAdmin ? null : PARTY_CAP[ent.tier], hourlyCap: ent.superAdmin ? null : USER_HOURLY_CAP })
-    if (!ok) {
-      await finalizeGeneration(auth.supabase, genId, { status: 'rejected', errorCode: 'limit_reached' })
+    const over = await limitExceeded(auth.supabase, genId, {
+      partyId, userId: auth.user.id,
+      partyCap: ent.superAdmin ? null : PARTY_CAP[ent.tier],
+      hourlyCap: ent.superAdmin ? null : USER_HOURLY_CAP,
+      dailyCap: ent.superAdmin ? null : cfg.userDailyLimit,
+    })
+    if (over) {
+      await finalizeGeneration(auth.user.id, genId, { status: 'rejected', errorCode: `limit_${over}` })
+      if (over !== 'party') return aiError('limit_reached', { upgradeTo: null }, over === 'hourly' ? 'You’ve asked for lots of ideas in the last hour. Please try again a little later.' : 'You’ve reached today’s limit for AI suggestions. Please try again tomorrow.')
       return aiError('limit_reached', { upgradeTo: ent.tier === 'PRO' ? null : ent.tier === 'PLUS' ? 'PRO' : ent.tier === 'STARTER' ? 'PLUS' : 'STARTER' })
     }
     // 7. model (client abort propagates via req.signal)
@@ -95,13 +126,20 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     const r = await callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg })
     const log = { feature: spec.feature, user_id: auth.user.id, party_id: partyId, provider: r.provider, model: r.model, duration_ms: r.durationMs, attempts: r.attempts }
     if (!r.ok) {
-      await finalizeGeneration(auth.supabase, genId, { status: 'failed', provider: r.provider, model: r.model, durationMs: r.durationMs, errorCode: r.code })
-      logMetric('ai_generation', { ...log, status: 'failed', error_code: r.code })
+      await finalizeGeneration(auth.user.id, genId, { status: 'failed', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, errorCode: r.code })
+      logMetric('ai_generation', { ...log, status: 'failed', error_code: r.code, input_tokens: r.inputTokens ?? null, output_tokens: r.outputTokens ?? null })
       return aiError(r.code)
     }
     // 8. server post-processing (never trust model arithmetic/dates)
-    const result = spec.post ? spec.post({ result: r.data, body, ctx, scrubbed: r.scrubbed, extra }) : r.data
-    await finalizeGeneration(auth.supabase, genId, { status: 'success', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, result })
+    let result: R
+    try {
+      result = spec.post ? spec.post({ result: r.data, body, ctx, scrubbed: r.scrubbed, extra }) : r.data
+    } catch {
+      await finalizeGeneration(auth.user.id, genId, { status: 'failed', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, errorCode: 'invalid_response' })
+      logMetric('ai_generation', { ...log, status: 'failed', error_code: 'post_processing' })
+      return aiError('invalid_response')
+    }
+    await finalizeGeneration(auth.user.id, genId, { status: 'success', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, result })
     logMetric('ai_generation', { ...log, status: 'success', input_tokens: r.inputTokens, output_tokens: r.outputTokens })
     const used = await usedForParty(auth.supabase, partyId)
     const cap = capability(spec.feature, { enabled: true, tier: ent.tier, superAdmin: ent.superAdmin, used })

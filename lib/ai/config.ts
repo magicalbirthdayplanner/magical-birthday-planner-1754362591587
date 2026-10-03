@@ -18,6 +18,8 @@ export interface AIConfig {
   timeoutMs: number
   maxRetries: number
   globalDailyLimit: number
+  /** Per-user generations in any rolling 24 h (all parties, all features, failures included). */
+  userDailyLimit: number
   /** Reasoning-model 'thinking' (DeepSeek V4): off by default — measured: on = 3000 reasoning tokens, empty answer, >45 s; off = valid JSON in ~12 s. */
   thinking: boolean
   /** True when the provider can actually be called (mock always can; others need a key). */
@@ -64,6 +66,7 @@ export function readAIConfig(env: NodeJS.ProcessEnv = process.env): AIConfig {
     timeoutMs: int(env.AI_TIMEOUT_MS, 45_000, 2_000, 120_000),
     maxRetries: int(env.AI_MAX_RETRIES, 1, 0, 1), // hard cap: never more than one retry
     globalDailyLimit: int(env.AI_GLOBAL_DAILY_LIMIT, 2000, 0, 1_000_000),
+    userDailyLimit: int(env.AI_USER_DAILY_LIMIT, 30, 1, 1000),
     thinking: env.AI_THINKING?.trim().toLowerCase() === 'on',
     configured,
   }

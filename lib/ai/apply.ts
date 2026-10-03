@@ -15,10 +15,15 @@ export type ApplyOutcome =
   | { status: 'duplicate' | 'already'; message: string }
   | { status: 'error'; code: 'not_found' | 'invalid_input' | 'provider_error'; message: string }
 
+const ItemId = z.string().regex(/^(?:[a-z]+-\d{1,3}|theme)$/) // "theme" = the party plan's single theme
+const Target = z.enum(['checklist', 'activities', 'shopping_list', 'theme', 'budget'])
+/** "Add all": several items of one generation into one target (never the theme — there is only one). */
+export const ApplyManyBody = z.object({ generationId: z.string().uuid(), target: Target.exclude(['theme']), itemIds: z.array(ItemId).min(1).max(40) }).strict()
+
 export const ApplyBody = z.object({
   generationId: z.string().uuid(),
-  itemId: z.string().regex(/^[a-z]+-\d{1,3}$/),
-  target: z.enum(['checklist', 'activities', 'shopping_list', 'theme', 'budget']),
+  itemId: ItemId,
+  target: Target,
   edits: z
     .object({
       title: z.string().trim().min(1).max(200).optional(),
@@ -41,7 +46,8 @@ export function findItem(feature: string, result: Record<string, unknown>, targe
       activities: arr(result.activities),
       shopping_list: arr(result.shoppingList),
       budget: arr((result.budget as { lines?: unknown })?.lines),
-      theme: result.theme ? [{ ...(result.theme as object), id: 'theme' } as Item] : [],
+      // the plan's theme carries the plan's decorations and activity names, so the Theme page shows them too
+      theme: result.theme ? [{ decorations: result.decorations, activities: arr(result.activities).map((a) => a.name), ...(result.theme as object), id: 'theme' } as Item] : [],
     },
     theme_ideas: { theme: arr(result.themes) },
     checklist: { checklist: arr(result.tasks) },
@@ -132,7 +138,8 @@ export async function applyItem(db: DB, userId: string, req: ApplyRequest): Prom
     // theme: same shape ThemeScreen saves for AI themes (theme 'ai:<slug>' + theme_details)
     const name = e.title ?? s(item.name, 60)
     const { data: prev } = await db.from('parties').select('theme, theme_details').eq('id', partyId).single()
-    const details = { name, emoji: s(item.emoji, 8) || '🎉', description: s(item.why, 240), colors: arr(item.palette).length ? (item.palette as string[]).filter((c) => /^#[0-9a-f]{3,8}$/i.test(c)).slice(0, 6) : [], activities: (Array.isArray(item.activities) ? item.activities : []).map((x) => s(x, 100)).filter(Boolean).slice(0, 5), decorations: (Array.isArray(item.decorations) ? item.decorations : []).map((x) => s(x, 100)).filter(Boolean).slice(0, 5) }
+    const list = (v: unknown, max: number) => (Array.isArray(v) ? v : []).map((x) => s(x, max)).filter(Boolean)
+    const details = { name, emoji: s(item.emoji, 8) || '🎉', description: s(item.description, 240) || s(item.why, 240), why: s(item.why, 240), food: list(item.food, 100).slice(0, 5), invitationIdea: s(item.invitationIdea, 200), colors: arr(item.palette).length ? (item.palette as string[]).filter((c) => /^#[0-9a-f]{3,8}$/i.test(c)).slice(0, 6) : [], activities: (Array.isArray(item.activities) ? item.activities : []).map((x) => s(x, 100)).filter(Boolean).slice(0, 5), decorations: (Array.isArray(item.decorations) ? item.decorations : []).map((x) => s(x, 100)).filter(Boolean).slice(0, 5) }
     if (prev?.theme === `ai:${slug(name)}`) return { status: 'duplicate', message: 'That’s already your theme.' }
     const { error } = await db.from('parties').update({ theme: `ai:${slug(name)}`, theme_details: details as Json }).eq('id', partyId)
     if (error) return { status: 'error', code: 'provider_error', message: 'We couldn’t save that theme. Please try again.' }
@@ -160,9 +167,10 @@ export async function undoItem(db: DB, req: { generationId: string; itemId: stri
   const { data: gen } = await db.from('ai_generations').select('id, party_id, applied').eq('id', req.generationId).maybeSingle()
   if (!gen) return false
   const entry = ((Array.isArray(gen.applied) ? gen.applied : []) as { itemId: string; target: string; rowId: string | null; undo?: Record<string, unknown> }[])
-    .filter((a) => a.itemId === req.itemId && a.target === req.target)
+    .filter((a) => a.itemId === req.itemId && (a.target === req.target || a.target === `undo:${req.target}`))
     .at(-1)
-  if (!entry) return false
+  // Nothing applied, or already undone: a second Undo must not restore stale values over newer edits.
+  if (!entry || entry.target !== req.target) return false
   const table = { checklist: 'checklist_items', activities: 'party_ai_activities', shopping_list: 'party_shopping_items', budget: 'party_budget_lines' } as const
   if (req.target === 'theme') {
     await db.from('parties').update({ theme: (entry.undo?.previousTheme as string | null) ?? null, theme_details: (entry.undo?.previousDetails as Json) ?? null }).eq('id', gen.party_id)

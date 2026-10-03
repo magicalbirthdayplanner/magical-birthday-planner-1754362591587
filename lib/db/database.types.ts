@@ -384,13 +384,13 @@ isOneToOne: false
                   ]
                 },"party_budget_lines": {
                   Row: {
-                    "amount": number,"category": string,"created_at": string,"id": string,"label": string | null,"party_id": string,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
+                    "actual_amount": number | null,"amount": number,"category": string,"created_at": string,"id": string,"label": string | null,"party_id": string,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "amount": number,"category": string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id": string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "actual_amount"?: number | null,"amount": number,"category": string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id": string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "amount"?: number,"category"?: string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id"?: string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "actual_amount"?: number | null,"amount"?: number,"category"?: string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id"?: string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -648,7 +648,7 @@ isOneToOne: false
           }
           Functions: {
             "ai_finalize":
-{ Args: { "p_duration_ms": number,"p_error_code": string,"p_id": string,"p_input_tokens": number,"p_model": string,"p_output_tokens": number,"p_provider": string,"p_result": Json,"p_status": string }; Returns: undefined
+{ Args: { "p_duration_ms": number,"p_error_code": string,"p_id": string,"p_input_tokens": number,"p_model": string,"p_output_tokens": number,"p_provider": string,"p_result": Json,"p_status": string,"p_user": string }; Returns: undefined
                            },
 "ai_global_count_today":
 { Args: Record<PropertyKey, never>; Returns: number

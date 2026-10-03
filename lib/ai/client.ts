@@ -10,7 +10,7 @@ import { cleanResult, looksLikePromptLeak } from './safety'
 import type { AIErrorCode } from './types'
 
 export interface StructuredOk<T> { ok: true; data: T; model: string; provider: string; inputTokens: number | null; outputTokens: number | null; durationMs: number; attempts: number; scrubbed: boolean }
-export interface StructuredErr { ok: false; code: AIErrorCode; model: string; provider: string; durationMs: number; attempts: number; detail?: string }
+export interface StructuredErr { ok: false; code: AIErrorCode; model: string; provider: string; durationMs: number; attempts: number; detail?: string; inputTokens?: number | null; outputTokens?: number | null }
 export type StructuredResult<T> = StructuredOk<T> | StructuredErr
 
 /** Safe repair: strip code fences, take the outermost JSON object, parse. Unknown keys are dropped by zod. */
@@ -69,7 +69,7 @@ export async function callStructured<T>(opts: {
       } catch (e) {
         const kind = e instanceof ProviderError ? e.kind : 'unavailable'
         const code: AIErrorCode = kind === 'timeout' || (kind === 'aborted' && String(timeout.signal.reason) === 'timeout') ? 'timeout' : kind === 'rate_limited' ? 'high_demand' : 'provider_error'
-        return { ok: false, code, ...base, durationMs: Date.now() - started, attempts, detail: kind }
+        return { ok: false, code, ...base, durationMs: Date.now() - started, attempts, detail: kind, inputTokens: inTok, outputTokens: outTok }
       }
       const parsed = repairJson(text)
       const checked = parsed === undefined ? null : opts.schema.safeParse(parsed)
@@ -78,7 +78,7 @@ export async function callStructured<T>(opts: {
         return { ok: true, data: value, ...base, inputTokens: inTok, outputTokens: outTok, durationMs: Date.now() - started, attempts, scrubbed }
       }
       if (attempts > cfg.maxRetries) {
-        return { ok: false, code: 'invalid_response', ...base, durationMs: Date.now() - started, attempts, detail: checked ? 'schema' : 'json' }
+        return { ok: false, code: 'invalid_response', ...base, durationMs: Date.now() - started, attempts, detail: checked ? 'schema' : 'json', inputTokens: inTok, outputTokens: outTok }
       }
       const reason = checked && !checked.success ? zodSummary(checked.error) : checked?.success ? 'the output repeated internal instructions' : 'it was not a single valid JSON object'
       messages.push({ role: 'assistant', content: text.slice(0, 4000) }, { role: 'user', content: `Your last output was invalid because: ${reason}. Return only the corrected JSON object.` })

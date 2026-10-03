@@ -53,11 +53,18 @@ describe.skipIf(!up)('ai_generations RLS', () => {
     await A.client.from('ai_generations').update({ status: 'failed' }).eq('id', id!)
     await A.client.from('ai_generations').delete().eq('id', id!)
     expect((await adminClient().from('ai_generations').select('status').eq('id', id!).single()).data!.status).toBe('pending')
-    // B cannot finalize A's row; A can finalize once; success rows are immutable afterwards
-    await B.client.rpc('ai_finalize', { p_id: id!, p_status: 'failed', p_provider: 'x', p_model: 'x', p_input_tokens: 0, p_output_tokens: 0, p_duration_ms: 0, p_error_code: 'x', p_result: {} })
+    // Neither B nor the owner A can finalize (service role only, migration 0900): A could otherwise mark an
+    // in-flight generation failed and stop it counting toward their limits.
+    const fin = (p_user: string, p_status: string, p_result: { ok?: boolean } = {}) =>
+      ({ p_id: id!, p_user, p_status, p_provider: 'x', p_model: 'x', p_input_tokens: 0, p_output_tokens: 0, p_duration_ms: 0, p_error_code: 'x', p_result })
+    expect((await B.client.rpc('ai_finalize', fin(B.id, 'failed'))).error).not.toBeNull()
+    expect((await A.client.rpc('ai_finalize', fin(A.id, 'failed'))).error).not.toBeNull()
     expect((await adminClient().from('ai_generations').select('status').eq('id', id!).single()).data!.status).toBe('pending')
-    await A.client.rpc('ai_finalize', { p_id: id!, p_status: 'success', p_provider: 'mock', p_model: 'm', p_input_tokens: 1, p_output_tokens: 2, p_duration_ms: 3, p_error_code: null as unknown as string, p_result: { ok: true } })
-    await A.client.rpc('ai_finalize', { p_id: id!, p_status: 'failed', p_provider: 'mock', p_model: 'm', p_input_tokens: 0, p_output_tokens: 0, p_duration_ms: 0, p_error_code: 'x', p_result: {} })
+    // the server finalizes once, only for the row's owner; success rows are immutable afterwards
+    await adminClient().rpc('ai_finalize', fin(B.id, 'failed'))
+    expect((await adminClient().from('ai_generations').select('status').eq('id', id!).single()).data!.status).toBe('pending')
+    await adminClient().rpc('ai_finalize', fin(A.id, 'success', { ok: true }))
+    await adminClient().rpc('ai_finalize', fin(A.id, 'failed'))
     expect((await adminClient().from('ai_generations').select('status, result').eq('id', id!).single()).data).toEqual({ status: 'success', result: { ok: true } })
   })
   it("cannot reserve against someone else's party; anon cannot call the RPCs", async () => {
