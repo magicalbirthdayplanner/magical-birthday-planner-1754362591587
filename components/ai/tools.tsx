@@ -1,7 +1,7 @@
 'use client'
 /** Registry of Plan → AI tools. Each phase (7–13) adds its tool here. */
 import type { ComponentType, ReactNode } from 'react'
-import { ListChecks, PiggyBank, Puzzle } from 'lucide-react'
+import { ListChecks, PiggyBank, Puzzle, UtensilsCrossed } from 'lucide-react'
 import type { AIFeature } from '@/lib/ai/types'
 import type { ChecklistResult } from '@/lib/ai/schemas/checklist'
 import { ChecklistResultView } from './results/ChecklistResultView'
@@ -9,6 +9,8 @@ import type { BudgetResult } from '@/lib/ai/schemas/budget'
 import { BudgetResultView } from './results/BudgetResultView'
 import type { ActivitiesResult } from '@/lib/ai/schemas/activities'
 import { ActivitiesResultView } from './results/ActivitiesResultView'
+import type { FoodResult } from '@/lib/ai/schemas/food'
+import { FoodResultView } from './results/FoodResultView'
 
 export interface ToolDef {
   feature: AIFeature
@@ -52,5 +54,15 @@ export const TOOLS: ToolDef[] = [
     icon: Puzzle,
     steps: ['Thinking about the birthday…', 'Matching activities to age and space…', 'Writing simple instructions…'],
     render: (r: ActivitiesResult, gid, partyId) => <ActivitiesResultView r={r} generationId={gid} partyId={partyId} />,
+  },
+  {
+    feature: 'food',
+    label: () => 'What should I serve?',
+    sub: 'Menu, quantities and a food shopping list',
+    title: 'Food plan',
+    path: '/api/ai/food',
+    icon: UtensilsCrossed,
+    steps: ['Counting hungry guests…', 'Picking kid-friendly food…', 'Writing your shopping list…'],
+    render: (r: FoodResult, gid, partyId) => <FoodResultView r={r} generationId={gid} partyId={partyId} />,
   },
 ]

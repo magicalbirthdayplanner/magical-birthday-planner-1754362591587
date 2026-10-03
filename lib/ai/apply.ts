@@ -46,7 +46,7 @@ export function findItem(feature: string, result: Record<string, unknown>, targe
     theme_ideas: { theme: arr(result.themes) },
     checklist: { checklist: arr(result.tasks) },
     activities: { activities: arr(result.activities) },
-    food: { shopping_list: arr(result.shoppingList) },
+    food: { shopping_list: arr(result.shoppingList) }, // ids food-n
     shopping_list: { shopping_list: arr(result.items) },
     budget_optimizer: { budget: [...arr(result.suggestions), ...arr(result.missing)] },
     timeline: { checklist: arr(result.prepTasks) },

@@ -185,3 +185,15 @@ describe.skipIf(!up)('activities', () => {
     expect((await call('activities', { partyId: partyA })).status).toBe(403)
   })
 })
+
+describe.skipIf(!up)('food', () => {
+  it('server sums cost, always adds the allergy disclaimer and strips allergen-safety claims', async () => {
+    const r = await call('food', { partyId: partyA, preferences: 'one vegetarian guest' })
+    expect(r.status).toBe(200)
+    const { result } = await r.json()
+    expect(result.estimatedTotal).toBe(72.5)
+    expect(result.allergyNote).toMatch(/check allergies and dietary needs with each family/i)
+    expect(JSON.stringify(result)).not.toMatch(/nut[- ]free/i)
+    expect(result.shoppingList[3]).toMatchObject({ id: 'food-4', category: 'food' }) // "drinks" normalised
+  })
+})
