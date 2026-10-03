@@ -1,19 +1,10 @@
 import { cn } from '@/lib/utils'
 
+// Brand mark (source: docs/brand/MBP.png). Plain <img>: tiny static asset, already precached by the service worker.
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden className={cn('h-8 w-8', className)}>
-      <defs>
-        <linearGradient id="mbp-logo" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="hsl(258 56% 45%)" />
-          <stop offset="0.6" stopColor="hsl(278 52% 48%)" />
-          <stop offset="1" stopColor="hsl(12 88% 64%)" />
-        </linearGradient>
-      </defs>
-      <rect width="32" height="32" rx="9" fill="url(#mbp-logo)" />
-      <path d="M16 6.5l2.2 5.6 5.8.4-4.5 3.7 1.5 5.7L16 18.7l-5 3.2 1.5-5.7L8 12.5l5.8-.4z" fill="#fff" />
-      <circle cx="24.5" cy="24.5" r="2" fill="hsl(40 92% 70%)" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/icons/icon-192.png" alt="" aria-hidden width={32} height={32} className={cn('h-8 w-8 rounded-[9px]', className)} />
   )
 }
 

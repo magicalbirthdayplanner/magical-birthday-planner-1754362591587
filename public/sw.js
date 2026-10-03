@@ -1,6 +1,6 @@
 /* Magical Birthday Planner service worker — offline shell + static asset cache.
  * Never caches API responses or cross-origin requests (user data stays live). */
-const VERSION = 'v1'
+const VERSION = 'v2'
 const STATIC = `mbp-static-${VERSION}`
 const PAGES = `mbp-pages-${VERSION}`
 const PRECACHE = ['/offline', '/icons/icon-192.png', '/icons/apple-touch-icon.png', '/manifest.webmanifest']
