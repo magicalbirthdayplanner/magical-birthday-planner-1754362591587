@@ -1,7 +1,7 @@
 'use client'
 /** Registry of Plan → AI tools. Each phase (7–13) adds its tool here. */
 import type { ComponentType, ReactNode } from 'react'
-import { Clock, ListChecks, PiggyBank, Puzzle, UtensilsCrossed } from 'lucide-react'
+import { Clock, ListChecks, PiggyBank, Puzzle, ShoppingBasket, UtensilsCrossed } from 'lucide-react'
 import type { AIFeature } from '@/lib/ai/types'
 import type { ChecklistResult } from '@/lib/ai/schemas/checklist'
 import { ChecklistResultView } from './results/ChecklistResultView'
@@ -13,6 +13,8 @@ import type { FoodResult } from '@/lib/ai/schemas/food'
 import { FoodResultView } from './results/FoodResultView'
 import type { TimelineResult } from '@/lib/ai/schemas/timeline'
 import { TimelineResultView } from './results/TimelineResultView'
+import type { ShoppingListResult } from '@/lib/ai/schemas/shoppingList'
+import { ShoppingListResultView } from './results/ShoppingListResultView'
 
 export interface ToolDef {
   feature: AIFeature
@@ -76,5 +78,15 @@ export const TOOLS: ToolDef[] = [
     icon: Clock,
     steps: ['Thinking about the party day…', 'Fitting everything into the time you have…'],
     render: (r: TimelineResult, gid, partyId, rerun) => <TimelineResultView r={r} generationId={gid} partyId={partyId} rerun={rerun} />,
+  },
+  {
+    feature: 'shopping_list',
+    label: () => 'Make my shopping list',
+    sub: 'Everything in one de-duplicated list',
+    title: 'Shopping list',
+    path: '/api/ai/shopping-list',
+    icon: ShoppingBasket,
+    steps: ['Collecting everything you’ve planned…', 'Removing duplicates…', 'Grouping your list…'],
+    render: (r: ShoppingListResult, gid, partyId) => <ShoppingListResultView r={r} generationId={gid} partyId={partyId} />,
   },
 ]

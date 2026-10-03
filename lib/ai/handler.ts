@@ -39,12 +39,14 @@ export const BaseBody = z.object({
 
 export interface FeatureSpec<B extends z.ZodTypeAny, R> {
   feature: AIFeature
+  /** Optional extra data for this feature, loaded with the user's RLS session (never the service role). */
+  load?: (db: AuthedRequest['supabase'], partyId: string, ctx: PartyAIContext) => Promise<unknown>
   body: B
   result: z.ZodType<R>
   /** Prompt pieces from the validated body + the private context. */
-  prompt: (args: { body: z.infer<B>; ctx: PartyAIContext; notes: string }) => { system: string; user: string }
+  prompt: (args: { body: z.infer<B>; ctx: PartyAIContext; notes: string; extra: unknown }) => { system: string; user: string }
   /** Server-side post-processing: ids, recomputed totals, clamped dates. */
-  post?: (args: { result: R; body: z.infer<B>; ctx: PartyAIContext; scrubbed: boolean }) => R
+  post?: (args: { result: R; body: z.infer<B>; ctx: PartyAIContext; scrubbed: boolean; extra: unknown }) => R
   /** Structured, non-free-text summary stored with the generation (never the notes). */
   summary?: (body: z.infer<B>, ctx: PartyAIContext) => Record<string, unknown>
   includeInvitationFields?: boolean
@@ -88,7 +90,8 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
       return aiError('limit_reached', { upgradeTo: ent.tier === 'PRO' ? null : ent.tier === 'PLUS' ? 'PRO' : ent.tier === 'STARTER' ? 'PLUS' : 'STARTER' })
     }
     // 7. model (client abort propagates via req.signal)
-    const { system, user } = spec.prompt({ body, ctx, notes })
+    const extra = spec.load ? await spec.load(auth.supabase, partyId, ctx) : undefined
+    const { system, user } = spec.prompt({ body, ctx, notes, extra })
     const r = await callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg })
     const log = { feature: spec.feature, user_id: auth.user.id, party_id: partyId, provider: r.provider, model: r.model, duration_ms: r.durationMs, attempts: r.attempts }
     if (!r.ok) {
@@ -97,7 +100,7 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
       return aiError(r.code)
     }
     // 8. server post-processing (never trust model arithmetic/dates)
-    const result = spec.post ? spec.post({ result: r.data, body, ctx, scrubbed: r.scrubbed }) : r.data
+    const result = spec.post ? spec.post({ result: r.data, body, ctx, scrubbed: r.scrubbed, extra }) : r.data
     await finalizeGeneration(auth.supabase, genId, { status: 'success', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, result })
     logMetric('ai_generation', { ...log, status: 'success', input_tokens: r.inputTokens, output_tokens: r.outputTokens })
     const used = await usedForParty(auth.supabase, partyId)

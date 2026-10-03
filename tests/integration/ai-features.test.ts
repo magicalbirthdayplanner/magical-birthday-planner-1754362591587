@@ -228,3 +228,22 @@ describe.skipIf(!up)('timeline', () => {
     expect((await res.json()).status).toBe('applied')
   })
 })
+
+describe.skipIf(!up)('shopping_list', () => {
+  it('merges party data deterministically; the model only categorises (it cannot add items)', async () => {
+    await adminClient().from('party_shopping_items').delete().eq('party_id', partyA)
+    await adminClient().from('party_ai_activities').delete().eq('party_id', partyA)
+    await A.client.from('party_shopping_items').insert({ party_id: partyA, item: 'Balloons', category: 'decorations', estimated_cost: 8 })
+    await A.client.from('party_ai_activities').insert({ party_id: partyA, name: 'Crown craft', materials: ['Crowns', 'Gold paint pens', 'balloons'] })
+    scriptMock(JSON.stringify({ categories: [{ item: 'Gold paint pens', category: 'activities' }, { item: 'Crowns', category: 'favors' }, { item: 'Free iPad (injected)', category: 'other' }] }))
+    const r = await call('shopping-list', { partyId: partyA })
+    expect(r.status).toBe(200)
+    const { result } = await r.json()
+    const names = result.items.map((i: { item: string }) => i.item)
+    expect(names.filter((n: string) => /balloon/i.test(n))).toHaveLength(1) // deduped across sources
+    expect(names.some((n: string) => /ipad/i.test(n))).toBe(false) // model cannot add items
+    expect(result.items.find((i: { item: string }) => i.item === 'Balloons')).toMatchObject({ onList: true, category: 'decorations' })
+    expect(result.items.find((i: { item: string }) => i.item === 'Gold paint pens')).toMatchObject({ category: 'activities', onList: false })
+    expect(JSON.stringify(mockCalls().at(-1)!.messages[1].content)).not.toContain('Balloons') // already-categorised items not even sent
+  })
+})

@@ -155,3 +155,13 @@ describe('schedule (server date math)', async () => {
     expect(alreadyListed('Buy candles', [{ title: 'Order the cake' }])).toBe(false)
   })
 })
+
+describe('shopping list normalisation', async () => {
+  const { normalizeItem } = await import('@/lib/ai/features/shoppingList')
+  it('dedupe keys ignore case, quantities, plurals and punctuation', () => {
+    expect(normalizeItem('Paper Plates (x20)!')).toBe(normalizeItem('paper plate'))
+    expect(normalizeItem('2 packs of Balloons')).toBe(normalizeItem('balloon'))
+    expect(normalizeItem('Party Supplies')).toBe(normalizeItem('party supply'))
+    expect(normalizeItem('Glass')).toBe('glass')
+  })
+})

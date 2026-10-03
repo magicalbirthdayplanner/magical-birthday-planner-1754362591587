@@ -3,6 +3,7 @@
  * party_planner = golden scenario A (7, art + animals, ~12 kids, $250, indoors, October).
  */
 export const FIXTURES: Record<string, unknown> = {
+  shopping_list: { categories: [{ item: 'Gold paint pens', category: 'activities' }, { item: 'Crowns', category: 'favors' }] },
   timeline: {
     entries: [{ minute: 0, label: 'Guests arrive, crown station' }, { minute: 15, label: 'Royal portrait painting' }, { minute: 50, label: 'Royal court charades' }, { minute: 65, label: 'Pizza and juice' }, { minute: 85, label: 'Cake, candles and Happy Birthday' }, { minute: 100, label: 'Gallery walk and goodbyes' }, { minute: 500, label: 'out of range — dropped' }, { minute: 15, label: 'duplicate minute — dropped' }],
     prepTasks: [{ title: 'Pack crowns, candles and a lighter', daysBeforeParty: 1, notes: '' }, { title: 'Confirm pizza pickup time', daysBeforeParty: 2, notes: '' }],
