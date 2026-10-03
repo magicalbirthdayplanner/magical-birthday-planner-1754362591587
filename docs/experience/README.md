@@ -58,3 +58,17 @@ thank-yous 4 s, food 16 s / ~1,800 tokens, full experience 27 s / ~3,350 tokens 
 - Thank-you messages are copy-only (no sending); per-guest uses confirmed guests' first names only.
 - Discover integration is deep links (`/discover?chip=…`); there is no "party supplies" category to link to.
 - A future "Party Rescue" and streaming responses are not built.
+
+## Production launch log (2026-10-03)
+| Step | Result |
+|---|---|
+| Migration `20251004001000` | applied with `supabase db push` (dry run first); recorded; 4 tables RLS-on with 4 policies each; `remove_party_activity` invoker-only for `authenticated`; existing rows' original columns byte-identical before/after (backfill removed in 1f8cf70) |
+| Deploy, experience OFF | `dpl_ExJACbzKHfNufFSqcbfLy6cno5rU` (1f8cf70): full regression + P0 AI + Super Admin + Dodo test mode pass |
+| `NEXT_PUBLIC_EXPERIENCE_ENABLED=true` | `dpl_3hsYsY6vSrapeomuW6oSpNcpkxpT`: 6-item nav at 375/390/393/430/1280 |
+| `activity_studio` → `host_content` → `party_experience` | enabled one at a time, each verified on production before the next |
+| Fixes found by the production checks | d468329 toast Undo under an open sheet · 0ae24d8 timeline step kept an old activity name · 838ff96 failure cause recorded · adce66b 44 px chips/footer/inputs · a3ac12f 55 s for long answers |
+| Final | `dpl_J6eKxt3846MxoAJqL5xrZaLQ7Lrn` (a3ac12f) |
+
+Rollback: set `NEXT_PUBLIC_EXPERIENCE_ENABLED=false` and remove the three features from `AI_ENABLED_FEATURES`, redeploy
+(UI returns to the pre-experience look; data stays). Full code rollback: promote `dpl_9JwJKw7rGULTnAiz3SUC1Fpfm21g`
+(78d24f1) — safe with migration 1000 applied (it only adds tables/columns that old code ignores).
