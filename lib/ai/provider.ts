@@ -12,7 +12,7 @@ export interface CompletionRequest {
   /** Stable per generation; OpenCode Go requires it (x-opencode-session). */
   sessionId: string
 }
-export interface CompletionResult { text: string; model: string; inputTokens: number | null; outputTokens: number | null }
+export interface CompletionResult { text: string; model: string; inputTokens: number | null; outputTokens: number | null; /** Hit the output-token cap (answer cut off). */ truncated?: boolean }
 
 export type ProviderErrorKind = 'timeout' | 'aborted' | 'rate_limited' | 'unavailable' | 'auth' | 'bad_request' | 'not_configured'
 export class ProviderError extends Error {

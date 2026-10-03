@@ -28,7 +28,7 @@ export const foodSpec: FeatureSpec<typeof FoodBody, FoodResult> = {
   feature: 'food',
   body: FoodBody,
   result: FoodAISchema as unknown as z.ZodType<FoodResult>,
-  maxTokens: 2000,
+  maxTokens: 2600, // measured ~1,500 live; headroom so the menu is never cut off
   prompt: ({ body, ctx, notes }) => foodPrompt(ctx, notes, sanitizeFreeText(body.preferences, 200)),
   post: ({ result }) => postProcessFood(result as unknown as FoodModelOutput),
   summary: (body, ctx) => ({ guests: ctx.guestCountEstimate, hasPreferences: !!body.preferences }),

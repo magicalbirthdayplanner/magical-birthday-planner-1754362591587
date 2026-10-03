@@ -18,6 +18,12 @@ import { postProcessChecklist } from '@/lib/ai/features/checklist'
 import { themeIdeasPrompt } from '@/lib/ai/prompts/themeIdeas'
 import { ThemeIdeasSchema } from '@/lib/ai/schemas/themeIdeas'
 import { sanitizeFreeText } from '@/lib/ai/safety'
+import { themeIdeasSpec } from '@/lib/ai/features/themeIdeas'
+import { checklistSpec } from '@/lib/ai/features/checklist'
+import { partyPlannerSpec } from '@/lib/ai/features/partyPlanner'
+import { activitiesSpec } from '@/lib/ai/features/activities'
+import { foodSpec } from '@/lib/ai/features/food'
+import { budgetSpec } from '@/lib/ai/features/budget'
 import { activitiesPrompt } from '@/lib/ai/prompts/activities'
 import { ActivitiesAISchema, type ActivitiesModelOutput } from '@/lib/ai/schemas/activities'
 import { foodPrompt } from '@/lib/ai/prompts/food'
@@ -35,7 +41,7 @@ const plans: Record<string, PartyPlanResult> = {}
 
 async function plan(name: string, ctx: PartyAIContext, notes: string) {
   const p = partyPlannerPrompt(ctx, {}, sanitizeFreeText(notes))
-  const r = await callStructured({ feature: 'party_planner', schema: PartyPlanAIResultSchema, ...p, sessionId: `live-${Date.now()}-${name}`, cfg })
+  const r = await callStructured({ feature: 'party_planner', schema: PartyPlanAIResultSchema, ...p, maxTokens: partyPlannerSpec.maxTokens, sessionId: `live-${Date.now()}-${name}`, cfg })
   usage.push({ name, ms: r.durationMs, attempts: r.attempts, in: r.inputTokens ?? null, out: r.outputTokens ?? null })
   if (!r.ok) {
     console.log(`${name}: FAILED ${r.code} (${r.detail}) after ${r.durationMs} ms`)
@@ -93,7 +99,7 @@ describe.skipIf(!live)('live model (manual)', () => {
 
   it('golden B: checklist → compressed, no venue/activity booking, dates handled by server', async () => {
     const ctx: PartyAIContext = { ...base, childAge: 10, daysUntilParty: 8, partyDate: new Date(Date.now() + 8 * 864e5).toISOString().slice(0, 10), guestCountEstimate: 15, theme: 'Royal Ball', venue: { name: 'Little Picasso Art Studio', type: 'Art studio', booked: true }, existingChecklist: [{ title: 'Order the cake', done: false }] }
-    const r = await callStructured({ feature: 'checklist', schema: ChecklistAISchema, ...checklistPrompt(ctx, ''), sessionId: `live-${Date.now()}-b`, cfg })
+    const r = await callStructured({ feature: 'checklist', schema: ChecklistAISchema, ...checklistPrompt(ctx, ''), maxTokens: checklistSpec.maxTokens, sessionId: `live-${Date.now()}-b`, cfg })
     usage.push({ name: 'checklist', ms: r.durationMs, attempts: r.attempts, in: r.inputTokens ?? null, out: r.outputTokens ?? null })
     expect(r.ok).toBe(true)
     if (!r.ok) return
@@ -103,7 +109,7 @@ describe.skipIf(!live)('live model (manual)', () => {
   }, 120_000)
 
   it('theme wishes: unicorns but not a typical pink unicorn party', async () => {
-    const r = await callStructured({ feature: 'theme_ideas', schema: ThemeIdeasSchema, ...themeIdeasPrompt(base, 'She loves unicorns but I don’t want a typical pink unicorn party.'), sessionId: `live-${Date.now()}-t`, cfg })
+    const r = await callStructured({ feature: 'theme_ideas', schema: ThemeIdeasSchema, ...themeIdeasPrompt(base, 'She loves unicorns but I don’t want a typical pink unicorn party.'), maxTokens: themeIdeasSpec.maxTokens, sessionId: `live-${Date.now()}-t`, cfg })
     usage.push({ name: 'themes', ms: r.durationMs, attempts: r.attempts, in: r.inputTokens ?? null, out: r.outputTokens ?? null })
     expect(r.ok).toBe(true)
     if (!r.ok) return
@@ -116,7 +122,7 @@ describe.skipIf(!live)('live model (manual)', () => {
 
   const sc: PartyAIContext = { ...base, childAge: 10, guestCountEstimate: 20, budget: 600, childInterests: ['sports'], indoorOutdoor: 'outdoor' }
   it('P1 activities (scenario C): age/setting-appropriate, with materials and costs', async () => {
-    const r = await callStructured({ feature: 'activities', schema: ActivitiesAISchema, ...activitiesPrompt(sc, '', ''), sessionId: `live-${Date.now()}-act`, cfg })
+    const r = await callStructured({ feature: 'activities', schema: ActivitiesAISchema, ...activitiesPrompt(sc, '', ''), maxTokens: activitiesSpec.maxTokens, sessionId: `live-${Date.now()}-act`, cfg })
     usage.push({ name: 'activities', ms: r.durationMs, attempts: r.attempts, in: r.inputTokens ?? null, out: r.outputTokens ?? null })
     expect(r.ok).toBe(true)
     if (!r.ok) return
@@ -125,7 +131,7 @@ describe.skipIf(!live)('live model (manual)', () => {
     expect(a.length).toBeGreaterThanOrEqual(3)
   }, 120_000)
   it('P1 food (scenario A): quantities for 12, allergy note, no safety claims', async () => {
-    const r = await callStructured({ feature: 'food', schema: FoodAISchema, ...foodPrompt({ ...base, budget: 300 }, '', 'one vegetarian child'), sessionId: `live-${Date.now()}-food`, cfg })
+    const r = await callStructured({ feature: 'food', schema: FoodAISchema, ...foodPrompt({ ...base, budget: 300 }, '', 'one vegetarian child'), maxTokens: foodSpec.maxTokens, sessionId: `live-${Date.now()}-food`, cfg })
     usage.push({ name: 'food', ms: r.durationMs, attempts: r.attempts, in: r.inputTokens ?? null, out: r.outputTokens ?? null })
     expect(r.ok).toBe(true)
     if (!r.ok) return
@@ -136,7 +142,7 @@ describe.skipIf(!live)('live model (manual)', () => {
   }, 120_000)
   it('P1 budget (scenario A, no lines yet): allocation that fits', async () => {
     const ctx = { ...base, budget: 300 }
-    const r = await callStructured({ feature: 'budget_optimizer', schema: BudgetAISchema, ...budgetPrompt(ctx, ''), sessionId: `live-${Date.now()}-bud`, cfg })
+    const r = await callStructured({ feature: 'budget_optimizer', schema: BudgetAISchema, ...budgetPrompt(ctx, ''), maxTokens: budgetSpec.maxTokens, sessionId: `live-${Date.now()}-bud`, cfg })
     usage.push({ name: 'budget', ms: r.durationMs, attempts: r.attempts, in: r.inputTokens ?? null, out: r.outputTokens ?? null })
     expect(r.ok).toBe(true)
     if (!r.ok) return

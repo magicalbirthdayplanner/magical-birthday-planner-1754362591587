@@ -60,9 +60,11 @@ export async function callStructured<T>(opts: {
     for (;;) {
       attempts++
       let text: string
+      let truncated = false
       try {
         const r = await provider.complete({ feature: opts.feature, messages, maxTokens: opts.maxTokens ?? cfg.maxOutputTokens, json: true, signal: timeout.signal, sessionId: opts.sessionId })
         text = r.text
+        truncated = !!r.truncated
         base.model = r.model
         inTok = (inTok ?? 0) + (r.inputTokens ?? 0)
         outTok = (outTok ?? 0) + (r.outputTokens ?? 0)
@@ -80,8 +82,10 @@ export async function callStructured<T>(opts: {
       if (attempts > cfg.maxRetries) {
         return { ok: false, code: 'invalid_response', ...base, durationMs: Date.now() - started, attempts, detail: checked ? 'schema' : 'json', inputTokens: inTok, outputTokens: outTok }
       }
-      const reason = checked && !checked.success ? zodSummary(checked.error) : checked?.success ? 'the output repeated internal instructions' : 'it was not a single valid JSON object'
-      messages.push({ role: 'assistant', content: text.slice(0, 4000) }, { role: 'user', content: `Your last output was invalid because: ${reason}. Return only the corrected JSON object.` })
+      const reason = truncated
+        ? 'it was cut off at the length limit. Return a SHORTER complete JSON object: fewer items and shorter text'
+        : checked && !checked.success ? zodSummary(checked.error) : checked?.success ? 'the output repeated internal instructions' : 'it was not a single valid JSON object'
+      messages.push(...(truncated ? [] : [{ role: 'assistant' as const, content: text.slice(0, 4000) }]), { role: 'user', content: `Your last output was invalid because: ${reason}. Return only the corrected JSON object.` })
     }
   } finally {
     clearTimeout(timer)

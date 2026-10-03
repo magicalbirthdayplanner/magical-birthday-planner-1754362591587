@@ -94,6 +94,16 @@ describe('callStructured', () => {
     ac.abort()
     expect(await p).toMatchObject({ ok: false })
   })
+  it('a cut-off answer (output cap) is retried once asking for a shorter answer, without echoing the cut-off text', async () => {
+    const cut = { complete: async () => ({ text: '{"title":"Galaxy Unicorn Quest","count":', model: 'm', inputTokens: 10, outputTokens: 1800, truncated: true }) }
+    const calls: { role: string; content: string }[][] = []
+    setProviderOverride({ name: 'x', model: 'm', complete: async (req) => { calls.push(req.messages.map((m) => ({ ...m }))); return calls.length === 1 ? cut.complete() : { text: '{"title":"ok","count":1}', model: 'm', inputTokens: 10, outputTokens: 5 } } })
+    const r = await call()
+    expect(r.ok).toBe(true)
+    expect(calls).toHaveLength(2)
+    expect(calls[1].map((m) => m.role)).toEqual(['system', 'user', 'user'])
+    expect(calls[1][2].content).toMatch(/cut off.*SHORTER/)
+  })
   it('a response that leaks the system prompt is rejected', async () => {
     scriptMock('{"title":"You are a practical birthday-planning assistant","count":1}', '{"title":"Fine","count":1}')
     expect(await call()).toMatchObject({ ok: true, data: { title: 'Fine' }, attempts: 2 })

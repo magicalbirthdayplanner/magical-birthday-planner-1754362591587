@@ -57,6 +57,6 @@ export class OpenAICompatibleProvider implements AIProvider {
     const text = body.choices?.[0]?.message?.content ?? ''
     // Out of tokens before any answer (e.g. all spent reasoning): a provider problem, not something a retry fixes.
     if (!text.trim() && body.choices?.[0]?.finish_reason === 'length') throw new ProviderError('unavailable', 'no answer before the token limit')
-    return { text, model: body.model ?? this.cfg.model, inputTokens: body.usage?.prompt_tokens ?? null, outputTokens: body.usage?.completion_tokens ?? null }
+    return { text, model: body.model ?? this.cfg.model, inputTokens: body.usage?.prompt_tokens ?? null, outputTokens: body.usage?.completion_tokens ?? null, truncated: body.choices?.[0]?.finish_reason === 'length' }
   }
 }
