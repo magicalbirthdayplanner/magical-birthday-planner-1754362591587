@@ -13,6 +13,7 @@ import { INTERESTS } from '@/lib/discovery/taxonomy'
 import { settingFromVenueType } from '@/lib/discovery/party-context'
 import { track } from '@/lib/analytics/client'
 import { PartyEditSheet } from './PartyEditSheet'
+import { PlanWithAICard } from '@/components/ai/PlanWithAICard'
 
 function Row({ href, icon: Icon, title, value, done }: { href: string; icon: typeof Cake; title: string; value: React.ReactNode; done?: boolean }) {
   return (
@@ -76,6 +77,8 @@ export function PlanScreen() {
           <Pencil className="h-5 w-5" />
         </button>
       </div>
+
+      <PlanWithAICard party={party} className="px-4 pt-4" />
 
       <div className="px-4 pt-4">
         <Card className="flex items-center gap-4 p-4">

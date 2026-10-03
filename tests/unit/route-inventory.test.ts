@@ -20,6 +20,9 @@ function routes(dir = APP, prefix = ''): string[] {
   return out
 }
 
+/** AI routes (feature flags + plan + limits enforced server-side in lib/ai/handler.ts). */
+const AI_ROUTES = ['/api/ai/capabilities', '/api/ai/party-planner']
+
 const EXPECTED = [
   // public marketing + legal
   '/ [page]', '/pricing [page]', '/checkout-success [page]', '/privacy [page]', '/terms [page]',
@@ -37,6 +40,8 @@ const EXPECTED = [
   '/api/themes/ai [api]', '/api/invitations/send [api]', '/api/invite/[token]/rsvp [api]',
   '/api/billing/checkout [api]', '/api/billing/status [api]', '/api/webhooks/dodo [api]',
   '/api/admin/session [api]', '/api/admin/users [api]', '/api/admin/stats [api]', '/api/admin/override [api]', '/api/admin/audit [api]',
+  // AI planning assistant (every route authenticates; behind AI_ENABLED + per-feature flags)
+  ...AI_ROUTES.map((r) => `${r} [api]`),
 ].sort()
 // The only routes allowed to carry "admin": each verifies the super_admin role server-side.
 const SUPER_ADMIN_ROUTES = new Set(['/admin', '/api/admin/session', '/api/admin/users', '/api/admin/stats', '/api/admin/override', '/api/admin/audit'])
@@ -60,6 +65,13 @@ describe('route inventory', () => {
       const handlers = src.match(/export async function (GET|POST|PUT|PATCH|DELETE)/g) ?? []
       expect(handlers.length, r).toBeGreaterThan(0)
       expect((src.match(/await requireSuperAdmin\(req\)/g) ?? []).length, r).toBe(handlers.length)
+    }
+  })
+
+  it('every AI route authenticates (createAIRoute or getAuthedRequest)', () => {
+    for (const r of AI_ROUTES) {
+      const src = readFileSync(path.join(APP, r, 'route.ts'), 'utf8')
+      expect(/createAIRoute\(|await getAuthedRequest\(req\)/.test(src), r).toBe(true)
     }
   })
 

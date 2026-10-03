@@ -17,6 +17,7 @@ import { clampRadius } from '@/lib/discovery/config'
 import { track } from '@/lib/analytics/client'
 import { useSWRConfig } from 'swr'
 import { cn } from '@/lib/utils'
+import { PlanWithAICard } from '@/components/ai/PlanWithAICard'
 
 function Welcome() {
   return (
@@ -153,6 +154,9 @@ export function HomeScreen() {
           </Link>
         </div>
       </div>
+
+      {/* AI planning assistant (renders nothing unless the server enables it) */}
+      <PlanWithAICard party={party} className="px-4 pt-4" />
 
       {/* recommended venues */}
       {!summary.chosenVenue ? (
