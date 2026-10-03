@@ -16,6 +16,8 @@ export interface AIConfig {
   model: string
   maxOutputTokens: number
   timeoutMs: number
+  /** Features with long answers (plan, themes, food, experience): AI_LONG_TIMEOUT_MS, default 55 s (route limit is 60 s). */
+  longTimeoutMs: number
   maxRetries: number
   globalDailyLimit: number
   /** Per-user generations in any rolling 24 h (all parties, all features, failures included). */
@@ -64,6 +66,7 @@ export function readAIConfig(env: NodeJS.ProcessEnv = process.env): AIConfig {
     model,
     maxOutputTokens: int(env.AI_MAX_OUTPUT_TOKENS, 3000, 256, 8000),
     timeoutMs: int(env.AI_TIMEOUT_MS, 45_000, 2_000, 120_000),
+    longTimeoutMs: int(env.AI_LONG_TIMEOUT_MS, 55_000, 2_000, 55_000),
     maxRetries: int(env.AI_MAX_RETRIES, 1, 0, 1), // hard cap: never more than one retry
     globalDailyLimit: int(env.AI_GLOBAL_DAILY_LIMIT, 2000, 0, 1_000_000),
     userDailyLimit: int(env.AI_USER_DAILY_LIMIT, 30, 1, 1000),

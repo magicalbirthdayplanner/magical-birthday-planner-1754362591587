@@ -32,6 +32,11 @@ describe('config + flags', () => {
     const c = readAIConfig(env({ AI_API_KEY: 'k', AI_MAX_RETRIES: '9', AI_PROVIDER: 'something' }))
     expect(c).toMatchObject({ provider: 'opencode', baseUrl: 'https://opencode.ai/zen/go/v1', model: 'deepseek-v4-pro', maxRetries: 1, configured: true })
   })
+  it('long features get AI_LONG_TIMEOUT_MS (default 55 s, never above the 60 s route limit)', () => {
+    expect(readAIConfig(env({})).longTimeoutMs).toBe(55_000)
+    expect(readAIConfig(env({ AI_LONG_TIMEOUT_MS: '90000' })).longTimeoutMs).toBe(55_000)
+    expect(readAIConfig(env({ AI_LONG_TIMEOUT_MS: '3000' })).longTimeoutMs).toBe(3000)
+  })
   it('mock is never implicit', () => {
     expect(readAIConfig(env({ AI_ENABLED: 'true' })).provider).toBe('opencode')
   })

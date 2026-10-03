@@ -6,7 +6,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { ANON_KEY, SERVICE_ROLE_KEY, SUPABASE_URL, adminClient, createTestUser, deleteTestUser, isSupabaseUp, type TestUser } from './helpers/supabase'
 
-Object.assign(process.env, { NEXT_PUBLIC_SUPABASE_URL: SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY: ANON_KEY, SUPABASE_SERVICE_ROLE_KEY: SERVICE_ROLE_KEY, AI_ENABLED: 'true', AI_PROVIDER: 'mock', AI_ENABLED_FEATURES: 'party_planner', AI_TIMEOUT_MS: '3000' })
+Object.assign(process.env, { NEXT_PUBLIC_SUPABASE_URL: SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY: ANON_KEY, SUPABASE_SERVICE_ROLE_KEY: SERVICE_ROLE_KEY, AI_ENABLED: 'true', AI_PROVIDER: 'mock', AI_ENABLED_FEATURES: 'party_planner', AI_TIMEOUT_MS: '3000', AI_LONG_TIMEOUT_MS: '3000' })
 const { resetAIConfig } = await import('@/lib/ai/config')
 const { scriptMock, resetMock, mockCalls } = await import('@/lib/ai/providers/mock')
 const { ProviderError } = await import('@/lib/ai/provider')
@@ -128,10 +128,12 @@ describe.skipIf(!up)('POST /api/ai/party-planner', () => {
     expect((await r.json()).error.code).toBe('high_demand')
     scriptMock((req) => new Promise((_, rej) => req.signal.addEventListener('abort', () => rej(new ProviderError('timeout', 't')))))
     process.env.AI_TIMEOUT_MS = '2000'
+    process.env.AI_LONG_TIMEOUT_MS = '2000'
     resetAIConfig()
     r = await post(A, { partyId: partyA })
     expect((await r.json()).error.code).toBe('timeout')
     process.env.AI_TIMEOUT_MS = '3000'
+    process.env.AI_LONG_TIMEOUT_MS = '3000'
     expect((await adminClient().from('ai_generations').select('id').eq('party_id', partyA).in('status', ['pending', 'success'])).data).toEqual([])
   })
   it('15. prompt injection: notes stay data; a leaking response is rejected; no error stack ever returned', async () => {

@@ -79,8 +79,8 @@ export interface FeatureSpec<B extends z.ZodTypeAny, R> {
   summary?: (body: z.infer<B>, ctx: PartyAIContext) => Record<string, unknown>
   includeInvitationFields?: boolean
   maxTokens?: number
-  /** Longer answers (several sections) may need more than the default timeout; capped below the 60 s route limit. */
-  timeoutMs?: number
+  /** Long answers (several sections / many items) use cfg.longTimeoutMs instead of the default timeout. */
+  long?: boolean
   /** Extra ownership checks on ids in the body (e.g. an activity of this party). false → not_found, nothing counted. */
   precheck?: (db: AuthedRequest['supabase'], partyId: string, body: z.infer<B>) => Promise<boolean>
 }
@@ -129,7 +129,7 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     // 7. model (client abort propagates via req.signal)
     const extra = spec.load ? await spec.load(auth.supabase, partyId, ctx, body) : undefined
     const { system, user } = spec.prompt({ body, ctx, notes, extra })
-    const callCfg = spec.timeoutMs ? { ...cfg, timeoutMs: Math.min(55_000, Math.max(cfg.timeoutMs, spec.timeoutMs)) } : cfg
+    const callCfg = spec.long ? { ...cfg, timeoutMs: cfg.longTimeoutMs } : cfg
     const r = await callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg: callCfg })
     const log = { feature: spec.feature, user_id: auth.user.id, party_id: partyId, provider: r.provider, model: r.model, duration_ms: r.durationMs, attempts: r.attempts }
     if (!r.ok) {

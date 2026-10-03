@@ -55,6 +55,7 @@ export const partyPlannerSpec: FeatureSpec<typeof PlannerBody, PartyPlanResult> 
   body: PlannerBody,
   result: PartyPlanAIResultSchema as unknown as z.ZodType<PartyPlanResult>,
   maxTokens: 3000,
+  long: true, // ~1,500–2,300 output tokens; provider speed varies 55–100 tokens/s
   prompt: ({ body, ctx, notes }) => partyPlannerPrompt(ctx, body.overrides as PlannerOverrides, notes),
   post: ({ result, body, ctx, scrubbed }) =>
     postProcessPlan(result as unknown as PartyPlanModelOutput, { budget: body.overrides.budget ?? ctx.budget, durationMinutes: ctx.durationMinutes, scrubbed }),

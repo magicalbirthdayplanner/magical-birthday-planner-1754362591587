@@ -26,8 +26,8 @@ const space: PartyAIContext = {
 }
 const log: { name: string; ms: number; attempts: number; out: number | null }[] = []
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const run = async (name: string, schema: z.ZodType<any>, p: { system: string; user: string }, spec: { maxTokens?: number; timeoutMs?: number }): Promise<StructuredResult<any>> => { // eslint-disable-line @typescript-eslint/no-explicit-any
-  const c = spec.timeoutMs ? { ...cfg, timeoutMs: Math.min(55_000, spec.timeoutMs) } : cfg
+const run = async (name: string, schema: z.ZodType<any>, p: { system: string; user: string }, spec: { maxTokens?: number; long?: boolean }): Promise<StructuredResult<any>> => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const c = spec.long ? { ...cfg, timeoutMs: cfg.longTimeoutMs } : cfg
   const r = await callStructured({ feature: name, schema, ...p, maxTokens: spec.maxTokens, sessionId: `live-exp-${Date.now()}-${name}`, cfg: c })
   log.push({ name, ms: r.durationMs, attempts: r.attempts, out: r.ok ? r.outputTokens : null })
   if (!r.ok) console.log(name, 'FAILED', r.code, r.detail, r.durationMs, 'ms')

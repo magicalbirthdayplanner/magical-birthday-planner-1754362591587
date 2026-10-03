@@ -65,7 +65,7 @@ export const experienceSpec: FeatureSpec<typeof ExperienceBody, ExperienceResult
   body: ExperienceBody,
   result: ExperienceAISchema as unknown as z.ZodType<ExperienceResult>,
   maxTokens: 4000,
-  timeoutMs: 55_000,
+  long: true,
   prompt: ({ ctx, notes }) => partyExperiencePrompt(ctx, notes),
   post: ({ result, ctx, scrubbed }) => postProcessExperience(result as unknown as Out, { budget: ctx.budget, durationMinutes: ctx.durationMinutes, partyDate: ctx.partyDate, guests: ctx.guestCountEstimate, scrubbed }),
   summary: (_b, ctx) => ({ guests: ctx.guestCountEstimate, budget: ctx.budget, theme: ctx.theme }),

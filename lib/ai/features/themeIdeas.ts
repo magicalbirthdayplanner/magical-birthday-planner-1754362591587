@@ -22,6 +22,7 @@ export const themeIdeasSpec: FeatureSpec<typeof ThemeIdeasBody, ThemeIdeasResult
   body: ThemeIdeasBody,
   result: ThemeIdeasSchema as unknown as z.ZodType<ThemeIdeasResult>,
   maxTokens: 3000, // 5 themes × (palette, decorations, activities, food, invitation idea) measured ~1,800–2,100 tokens live
+  long: true, // ~1,500–2,300 output tokens; provider speed varies 55–100 tokens/s
   prompt: ({ ctx, notes }) => themeIdeasPrompt(ctx, notes),
   post: ({ result, scrubbed }) => postProcessThemes(result as unknown as ThemeIdeasModelOutput, scrubbed),
   summary: (_b, ctx) => ({ childAge: ctx.childAge, interests: ctx.childInterests.length, daysUntilParty: ctx.daysUntilParty }),

@@ -32,7 +32,7 @@ export function AIProgress({ steps = DEFAULT_STEPS, onCancel }: { steps?: string
           Cancel
         </AppButton>
       ) : (
-        <p className="text-xs text-muted-foreground">This usually takes 10–30 seconds.</p>
+        <p className="text-xs text-muted-foreground">This usually takes 15–40 seconds.</p>
       )}
     </div>
   )
