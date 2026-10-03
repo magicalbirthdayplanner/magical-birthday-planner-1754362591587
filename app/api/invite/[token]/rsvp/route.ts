@@ -34,7 +34,8 @@ const MESSAGES: Record<string, [number, string]> = {
  * The token (192-bit random) is the only credential. Validated and rate-limited
  * here; the database function only accepts calls from the service role.
  */
-export async function POST(req: Request, { params }: { params: { token: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params
   if (!TOKEN_RE.test(params.token)) return apiError(404, 'not_found', MESSAGES.invitation_not_found[1])
   const ip = clientIp(req)
   if (!rateLimit(`rsvp:${ip}:${params.token}`, 6, 10 * 60_000).ok || !rateLimit(`rsvp-ip:${ip}`, 30, 3_600_000).ok) {

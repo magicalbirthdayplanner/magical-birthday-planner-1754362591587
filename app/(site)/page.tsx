@@ -17,7 +17,7 @@ export default function Home() {
   const proCardRef = useRef<HTMLDivElement>(null);
 
   // Animated border effect handler
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, cardRef: React.RefObject<HTMLDivElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, cardRef: React.RefObject<HTMLDivElement | null>) => {
     if (!cardRef.current) return;
     
     const rect = cardRef.current.getBoundingClientRect();
@@ -28,12 +28,12 @@ export default function Home() {
     cardRef.current.style.setProperty('--mouse-y', `${y}px`);
   };
 
-  const handleMouseEnter = (cardRef: React.RefObject<HTMLDivElement>) => {
+  const handleMouseEnter = (cardRef: React.RefObject<HTMLDivElement | null>) => {
     if (!cardRef.current) return;
     cardRef.current.style.setProperty('--opacity', '1');
   };
 
-  const handleMouseLeave = (cardRef: React.RefObject<HTMLDivElement>) => {
+  const handleMouseLeave = (cardRef: React.RefObject<HTMLDivElement | null>) => {
     if (!cardRef.current) return;
     cardRef.current.style.setProperty('--opacity', '0');
   };

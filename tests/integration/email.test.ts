@@ -75,7 +75,7 @@ beforeEach(() => {
 const sendInvites = (body: unknown, tok = H.accessToken) =>
   inviteRoute.POST(new Request('http://app.test/api/invitations/send', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` }, body: JSON.stringify(body) }))
 const rsvp = (body: unknown, ip = '203.0.113.50') =>
-  rsvpRoute.POST(new Request(`http://app.test/api/invite/${token}/rsvp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-forwarded-for': ip }, body: JSON.stringify(body) }), { params: { token } })
+  rsvpRoute.POST(new Request(`http://app.test/api/invite/${token}/rsvp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-forwarded-for': ip }, body: JSON.stringify(body) }), { params: Promise.resolve({ token }) })
 
 describe('invitation emails', () => {
   it('emails only guests with an address, from the configured sender, with the RSVP link', async () => {

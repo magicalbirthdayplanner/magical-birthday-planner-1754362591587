@@ -4,7 +4,8 @@ import { RequireSignedIn } from '@/components/app/RequireSignedIn'
 
 export const metadata: Metadata = { title: 'Venue' }
 
-export default function VenuePage({ params }: { params: { placeId: string } }) {
+export default async function VenuePage(props: { params: Promise<{ placeId: string }> }) {
+  const params = await props.params
   return (
     <RequireSignedIn>
       <VenueDetailScreen placeId={decodeURIComponent(params.placeId)} />

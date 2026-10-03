@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default function PublicInvitePage({ params }: { params: { token: string } }) {
+export default async function PublicInvitePage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params
   return <PublicInviteScreen token={params.token} />
 }

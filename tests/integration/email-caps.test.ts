@@ -64,7 +64,7 @@ describe.skipIf(!up)('launch hardening', () => {
       await adminClient().from('email_logs').insert({ party_id: partyId, email_type: 'RSVP_CONFIRMATION', recipient_email: 'y@guest.test', subject: 's', status: 'SENT' })
       const res = await rsvp.POST(
         req(`/api/invite/${token}/rsvp`, { method: 'POST', body: JSON.stringify({ name: 'Nguyen family', email: 'victim@example.test', status: 'CONFIRMED', adults: 1, children: 1 }) }),
-        { params: { token } } as never,
+        { params: Promise.resolve({ token }) } as never,
       )
       expect(res.status).toBe(200)
       expect(await res.json()).toEqual({ ok: true, emailed: { guest: false, host: false } })

@@ -184,7 +184,7 @@ describe('entitlements cannot be self-granted', () => {
 // ------------------------------------------------------------------------------------- invitations
 describe('invitation links', () => {
   const rsvp = (token: string, body: unknown, ip = '203.0.113.7') =>
-    rsvpRoute.POST(new Request(`http://app.test/api/invite/${token}/rsvp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-forwarded-for': ip }, body: JSON.stringify(body) }), { params: { token } })
+    rsvpRoute.POST(new Request(`http://app.test/api/invite/${token}/rsvp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-forwarded-for': ip }, body: JSON.stringify(body) }), { params: Promise.resolve({ token }) })
 
   it('tokens are 192-bit random hex, unique per party, not derived from ids', () => {
     for (const t of [A.token, B.token]) expect(t).toMatch(/^[0-9a-f]{48}$/)
@@ -283,7 +283,7 @@ describe('discovery input validation (server-side)', () => {
   })
 
   it('details refuses place ids discovery never surfaced (no Google call, no cost)', async () => {
-    const res = await detailsRoute.GET(new Request('http://app.test/api/discovery/places/ChIJneverSeenBefore123', { headers: { Authorization: `Bearer ${A.user.accessToken}` } }), { params: { placeId: 'ChIJneverSeenBefore123' } })
+    const res = await detailsRoute.GET(new Request('http://app.test/api/discovery/places/ChIJneverSeenBefore123', { headers: { Authorization: `Bearer ${A.user.accessToken}` } }), { params: Promise.resolve({ placeId: 'ChIJneverSeenBefore123' }) })
     expect(res.status).toBe(404)
   })
 

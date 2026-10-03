@@ -16,7 +16,8 @@ export const fetchCache = "force-no-store";
 export const dynamic = 'force-dynamic'
 
 /** GET /api/discovery/places/:placeId?partyId=… → full venue details (+ "why recommended" for that party). */
-export async function GET(req: Request, { params }: { params: { placeId: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ placeId: string }> }) {
+  const params = await props.params
   const auth = await getAuthedRequest(req)
   if (!auth) return apiError(401, 'unauthorized', 'Please sign in to view venue details.')
   if (!rateLimit(`details:${auth.user.id}`, 60, 60_000).ok) return apiError(429, 'rate_limited', 'Slow down a little — try again in a moment.')

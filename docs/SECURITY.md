@@ -48,7 +48,7 @@ Current security model of the mobile-first app. Evidence and test results:
 | Item | Notes |
 |---|---|
 | Rotate historical credentials | 30 secret values exist in Git history from the original repository (old Supabase project, Postgres URLs, Google, Azure OpenAI, Resend, Apify, Dodo). None is used by the current app; all must be rotated or revoked at their providers. History is not rewritten. |
-| Next.js 14 advisories | Fixed only in Next 15.5.x. Upgrade planned (P1). |
+| PostCSS advisories (build-time) | Upgraded to Next 15.5.27 + React 19.3.0: the 23 Next.js 14 advisories are fixed. `npm audit` still flags PostCSS source-map file-read issues in Next's bundled `postcss@8.4.31` (no Next 15 fix) and the direct `postcss@8.4.47` (fixed in 8.5.28; separate bump). Both only process the app's own CSS at build time. |
 | Distributed rate limiting | In-memory limits are per serverless instance. Google Cloud quotas are the fleet-wide hard cap. |
 | Script CSP | Framing, plugin and `<base>` restrictions are shipped; a nonce-based `script-src` is P2. |
 | Error monitoring | Not configured (vendor/cost decision). |

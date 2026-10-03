@@ -6,7 +6,7 @@ party venues, builds a plan, and handles invitations, RSVPs and a checklist.
 
 | Layer | Service |
 |---|---|
-| App | Next.js 14 (App Router) + TypeScript + Tailwind, deployed on **Vercel** |
+| App | Next.js 15 (App Router) + React 19 + TypeScript + Tailwind, deployed on **Vercel** |
 | Database & auth | **Supabase** (Postgres + RLS, email/password auth) |
 | Venues & map | **Google Places API (New)** (server) · **Google Maps JavaScript API** (browser) |
 | Email | **Resend** (invitation, RSVP confirmation, host notification) |

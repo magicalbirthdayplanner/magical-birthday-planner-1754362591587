@@ -164,7 +164,7 @@ describe('GET /api/discovery/places/:placeId', () => {
     const before = await stats()
     const req = () =>
       details.GET(new Request(`http://app.test/api/discovery/places/${target.placeId}?partyId=${partyA}`, { headers: { Authorization: `Bearer ${A.accessToken}` } }), {
-        params: { placeId: target.placeId },
+        params: Promise.resolve({ placeId: target.placeId }),
       })
     const res = await req()
     expect(res.status).toBe(200)
@@ -177,7 +177,7 @@ describe('GET /api/discovery/places/:placeId', () => {
   })
 
   it('requires auth', async () => {
-    const res = await details.GET(new Request('http://app.test/api/discovery/places/ChIJmockabcdefghijkl'), { params: { placeId: 'ChIJmockabcdefghijkl' } })
+    const res = await details.GET(new Request('http://app.test/api/discovery/places/ChIJmockabcdefghijkl'), { params: Promise.resolve({ placeId: 'ChIJmockabcdefghijkl' }) })
     expect(res.status).toBe(401)
   })
 })
