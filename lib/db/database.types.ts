@@ -179,13 +179,13 @@ isOneToOne: false
                   ]
                 },"checklist_items": {
                   Row: {
-                    "category": string,"completed_at": string | null,"created_at": string,"detail": string | null,"due_date": string | null,"id": string,"is_custom": boolean,"party_id": string,"sort_order": number,"task_key": string,"title": string,"updated_at": string,"user_id": string
+                    "category": string,"completed_at": string | null,"created_at": string,"detail": string | null,"due_date": string | null,"id": string,"is_custom": boolean,"party_id": string,"sort_order": number,"source_activity_id": string | null,"task_key": string,"title": string,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "category"?: string,"completed_at"?: string | null,"created_at"?: string,"detail"?: string | null,"due_date"?: string | null,"id"?: string,"is_custom"?: boolean,"party_id": string,"sort_order"?: number,"task_key": string,"title": string,"updated_at"?: string,"user_id"?: string
+                    "category"?: string,"completed_at"?: string | null,"created_at"?: string,"detail"?: string | null,"due_date"?: string | null,"id"?: string,"is_custom"?: boolean,"party_id": string,"sort_order"?: number,"source_activity_id"?: string | null,"task_key": string,"title": string,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "category"?: string,"completed_at"?: string | null,"created_at"?: string,"detail"?: string | null,"due_date"?: string | null,"id"?: string,"is_custom"?: boolean,"party_id"?: string,"sort_order"?: number,"task_key"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string
+                    "category"?: string,"completed_at"?: string | null,"created_at"?: string,"detail"?: string | null,"due_date"?: string | null,"id"?: string,"is_custom"?: boolean,"party_id"?: string,"sort_order"?: number,"source_activity_id"?: string | null,"task_key"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -193,6 +193,12 @@ isOneToOne: false
       columns: ["party_id"]
 isOneToOne: false
       referencedRelation: "parties"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "checklist_items_source_activity_id_fkey"
+      columns: ["source_activity_id"]
+isOneToOne: false
+      referencedRelation: "party_ai_activities"
       referencedColumns: ["id"]
     }
                   ]
@@ -359,13 +365,13 @@ isOneToOne: false
                   ]
                 },"party_ai_activities": {
                   Row: {
-                    "created_at": string,"description": string | null,"details": NonNullable<Json>,"duration_min": number | null,"estimated_cost": number | null,"id": string,"materials": (string)[],"name": string,"party_id": string,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
+                    "age_max": number | null,"age_min": number | null,"approved_at": string | null,"category": string,"cleanup_level": string,"created_at": string,"description": string | null,"designed_for_guests": number | null,"designed_for_theme": string | null,"details": NonNullable<Json>,"difficulty": string,"duration_min": number | null,"estimated_cost": number | null,"id": string,"materials": (string)[],"name": string,"origin": string,"party_id": string,"setting": string,"sort_order": number,"source_generation_id": string | null,"source_item_id": string | null,"status": string,"updated_at": string,"user_edited": boolean,"user_id": string
                   }
                   Insert: {
-                    "created_at"?: string,"description"?: string | null,"details"?: NonNullable<Json>,"duration_min"?: number | null,"estimated_cost"?: number | null,"id"?: string,"materials"?: (string)[],"name": string,"party_id": string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "age_max"?: number | null,"age_min"?: number | null,"approved_at"?: string | null,"category"?: string,"cleanup_level"?: string,"created_at"?: string,"description"?: string | null,"designed_for_guests"?: number | null,"designed_for_theme"?: string | null,"details"?: NonNullable<Json>,"difficulty"?: string,"duration_min"?: number | null,"estimated_cost"?: number | null,"id"?: string,"materials"?: (string)[],"name": string,"origin"?: string,"party_id": string,"setting"?: string,"sort_order"?: number,"source_generation_id"?: string | null,"source_item_id"?: string | null,"status"?: string,"updated_at"?: string,"user_edited"?: boolean,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"description"?: string | null,"details"?: NonNullable<Json>,"duration_min"?: number | null,"estimated_cost"?: number | null,"id"?: string,"materials"?: (string)[],"name"?: string,"party_id"?: string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "age_max"?: number | null,"age_min"?: number | null,"approved_at"?: string | null,"category"?: string,"cleanup_level"?: string,"created_at"?: string,"description"?: string | null,"designed_for_guests"?: number | null,"designed_for_theme"?: string | null,"details"?: NonNullable<Json>,"difficulty"?: string,"duration_min"?: number | null,"estimated_cost"?: number | null,"id"?: string,"materials"?: (string)[],"name"?: string,"origin"?: string,"party_id"?: string,"setting"?: string,"sort_order"?: number,"source_generation_id"?: string | null,"source_item_id"?: string | null,"status"?: string,"updated_at"?: string,"user_edited"?: boolean,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -384,13 +390,13 @@ isOneToOne: false
                   ]
                 },"party_budget_lines": {
                   Row: {
-                    "actual_amount": number | null,"amount": number,"category": string,"created_at": string,"id": string,"label": string | null,"party_id": string,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
+                    "actual_amount": number | null,"amount": number,"category": string,"created_at": string,"id": string,"label": string | null,"party_id": string,"source_activity_id": string | null,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "actual_amount"?: number | null,"amount": number,"category": string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id": string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "actual_amount"?: number | null,"amount": number,"category": string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id": string,"source_activity_id"?: string | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "actual_amount"?: number | null,"amount"?: number,"category"?: string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id"?: string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "actual_amount"?: number | null,"amount"?: number,"category"?: string,"created_at"?: string,"id"?: string,"label"?: string | null,"party_id"?: string,"source_activity_id"?: string | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -400,7 +406,75 @@ isOneToOne: false
       referencedRelation: "parties"
       referencedColumns: ["id"]
     },{
+      foreignKeyName: "party_budget_lines_source_activity_id_fkey"
+      columns: ["source_activity_id"]
+isOneToOne: false
+      referencedRelation: "party_ai_activities"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "party_budget_lines_source_generation_id_fkey"
+      columns: ["source_generation_id"]
+isOneToOne: false
+      referencedRelation: "ai_generations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"party_food_items": {
+                  Row: {
+                    "category": string,"created_at": string,"designed_for_guests": number | null,"dietary_tags": (string)[],"estimated_cost": number | null,"id": string,"name": string,"notes": string | null,"origin": string,"party_id": string,"quantity": number | null,"source_generation_id": string | null,"source_item_id": string | null,"unit": string | null,"updated_at": string,"user_edited": boolean,"user_id": string
+                  }
+                  Insert: {
+                    "category"?: string,"created_at"?: string,"designed_for_guests"?: number | null,"dietary_tags"?: (string)[],"estimated_cost"?: number | null,"id"?: string,"name": string,"notes"?: string | null,"origin"?: string,"party_id": string,"quantity"?: number | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"unit"?: string | null,"updated_at"?: string,"user_edited"?: boolean,"user_id"?: string
+                  }
+                  Update: {
+                    "category"?: string,"created_at"?: string,"designed_for_guests"?: number | null,"dietary_tags"?: (string)[],"estimated_cost"?: number | null,"id"?: string,"name"?: string,"notes"?: string | null,"origin"?: string,"party_id"?: string,"quantity"?: number | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"unit"?: string | null,"updated_at"?: string,"user_edited"?: boolean,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "party_food_items_party_id_fkey"
+      columns: ["party_id"]
+isOneToOne: false
+      referencedRelation: "parties"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "party_food_items_source_generation_id_fkey"
+      columns: ["source_generation_id"]
+isOneToOne: false
+      referencedRelation: "ai_generations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"party_host_content": {
+                  Row: {
+                    "activity_id": string | null,"body": string,"created_at": string,"guest_id": string | null,"id": string,"kind": string,"origin": string,"party_id": string,"source_generation_id": string | null,"source_item_id": string | null,"title": string | null,"updated_at": string,"user_edited": boolean,"user_id": string
+                  }
+                  Insert: {
+                    "activity_id"?: string | null,"body": string,"created_at"?: string,"guest_id"?: string | null,"id"?: string,"kind": string,"origin"?: string,"party_id": string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"title"?: string | null,"updated_at"?: string,"user_edited"?: boolean,"user_id"?: string
+                  }
+                  Update: {
+                    "activity_id"?: string | null,"body"?: string,"created_at"?: string,"guest_id"?: string | null,"id"?: string,"kind"?: string,"origin"?: string,"party_id"?: string,"source_generation_id"?: string | null,"source_item_id"?: string | null,"title"?: string | null,"updated_at"?: string,"user_edited"?: boolean,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "party_host_content_activity_id_fkey"
+      columns: ["activity_id"]
+isOneToOne: false
+      referencedRelation: "party_ai_activities"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "party_host_content_guest_id_fkey"
+      columns: ["guest_id"]
+isOneToOne: false
+      referencedRelation: "guests"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "party_host_content_party_id_fkey"
+      columns: ["party_id"]
+isOneToOne: false
+      referencedRelation: "parties"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "party_host_content_source_generation_id_fkey"
       columns: ["source_generation_id"]
 isOneToOne: false
       referencedRelation: "ai_generations"
@@ -428,13 +502,13 @@ isOneToOne: true
                   ]
                 },"party_shopping_items": {
                   Row: {
-                    "category": string,"created_at": string,"done": boolean,"estimated_cost": number | null,"id": string,"item": string,"party_id": string,"qty": string | null,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
+                    "category": string,"created_at": string,"done": boolean,"estimated_cost": number | null,"id": string,"item": string,"party_id": string,"qty": string | null,"source_activity_id": string | null,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "category"?: string,"created_at"?: string,"done"?: boolean,"estimated_cost"?: number | null,"id"?: string,"item": string,"party_id": string,"qty"?: string | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "category"?: string,"created_at"?: string,"done"?: boolean,"estimated_cost"?: number | null,"id"?: string,"item": string,"party_id": string,"qty"?: string | null,"source_activity_id"?: string | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "category"?: string,"created_at"?: string,"done"?: boolean,"estimated_cost"?: number | null,"id"?: string,"item"?: string,"party_id"?: string,"qty"?: string | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "category"?: string,"created_at"?: string,"done"?: boolean,"estimated_cost"?: number | null,"id"?: string,"item"?: string,"party_id"?: string,"qty"?: string | null,"source_activity_id"?: string | null,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -444,7 +518,44 @@ isOneToOne: false
       referencedRelation: "parties"
       referencedColumns: ["id"]
     },{
+      foreignKeyName: "party_shopping_items_source_activity_id_fkey"
+      columns: ["source_activity_id"]
+isOneToOne: false
+      referencedRelation: "party_ai_activities"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "party_shopping_items_source_generation_id_fkey"
+      columns: ["source_generation_id"]
+isOneToOne: false
+      referencedRelation: "ai_generations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"party_timeline_items": {
+                  Row: {
+                    "activity_id": string | null,"created_at": string,"duration_min": number | null,"id": string,"kind": string,"label": string,"origin": string,"party_id": string,"sort_order": number,"source_generation_id": string | null,"source_item_id": string | null,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "activity_id"?: string | null,"created_at"?: string,"duration_min"?: number | null,"id"?: string,"kind"?: string,"label": string,"origin"?: string,"party_id": string,"sort_order"?: number,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "activity_id"?: string | null,"created_at"?: string,"duration_min"?: number | null,"id"?: string,"kind"?: string,"label"?: string,"origin"?: string,"party_id"?: string,"sort_order"?: number,"source_generation_id"?: string | null,"source_item_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "party_timeline_items_activity_id_fkey"
+      columns: ["activity_id"]
+isOneToOne: false
+      referencedRelation: "party_ai_activities"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "party_timeline_items_party_id_fkey"
+      columns: ["party_id"]
+isOneToOne: false
+      referencedRelation: "parties"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "party_timeline_items_source_generation_id_fkey"
       columns: ["source_generation_id"]
 isOneToOne: false
       referencedRelation: "ai_generations"
@@ -679,6 +790,9 @@ isOneToOne: false
                            },
 "recompute_entitlement":
 { Args: { "p_user": string }; Returns: string
+                           },
+"remove_party_activity":
+{ Args: { "p_activity": string }; Returns: Json
                            },
 "start_24_hour_trial":
 { Args: { "user_id": string }; Returns: undefined
