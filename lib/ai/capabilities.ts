@@ -19,6 +19,10 @@ export const FEATURE_MIN_TIER: Record<AIFeature, Tier> = {
   discover_explain: 'PLUS',
   budget_optimizer: 'PRO', // Pro: "Smart budget tracker with cost insights" (Plus: manual input only)
   food: 'PRO', // Pro: "Personalized food suggestions by age & theme"
+  // Party Experience (proposal; all flagged off until enabled — see docs/experience/README.md)
+  activity_studio: 'PLUS', // creating/personalising activities = "Personalized activity ideas" (Plus)
+  host_content: 'STARTER', // short speeches and messages, sits with the Starter invitation creator
+  party_experience: 'PLUS', // the multi-section plan; Free keeps the lighter Plan My Party
 }
 
 /** Generations per party (all features together), plus a per-user hourly cap. */

@@ -3,6 +3,35 @@
  * party_planner = golden scenario A (7, art + animals, ~12 kids, $250, indoors, October).
  */
 export const FIXTURES: Record<string, unknown> = {
+  activity_studio: {
+    activity: {
+      name: 'Cosmic Treasure Hunt', emoji: '🚀', description: 'Crews follow clue cards to find hidden planets and rebuild the solar system.', category: 'treasure_hunt',
+      age_min: 6, age_max: 8, duration_minutes: 25, indoor_outdoor: 'indoor', estimated_cost: 12, difficulty: 'easy',
+      materials: ['Glow sticks × 15', 'Paper planets × 8', 'Small treasure bags × 15', 'Clue cards × 8'],
+      preparation_steps: ['Print the 8 clue cards', 'Hide the paper planets', 'Fill the treasure bags'],
+      instructions: ['Split into 3 crews', 'Read clue 1 aloud', 'Each planet hides the next clue', 'Last clue leads to the treasure'],
+      host_script: 'Okay astronauts! Mission control has detected eight lost planets. Find them all to save the galaxy!',
+      cleanup_level: 'low', safety_notes: ['Keep clues away from stairs'], variations: ['Glow version with lights off'], backup_version: 'Hide planets in one room only.',
+    },
+    what_changed: '',
+  },
+  host_content: { title: 'Welcome, astronauts!', body: 'Welcome, astronauts! Today we are going on a mission to celebrate Mia turning 7. Find your crew badge and get ready for lift-off!', messages: [{ guest: 1, body: 'Thank you, Emma, for coming to Mia’s birthday — your rocket was the best!' }] },
+  party_experience: {
+    summary: 'A cosmic art adventure at home for 15 kids: paint planets, hunt for stars and launch into cake.',
+    theme: { name: 'Cosmic Art Adventure', emoji: '🪐', description: 'Paint-your-own planets in a galaxy studio.', palette: ['#1B1F3B', '#6C63FF', '#FFB347'], decorations: ['Star garlands', 'Planet balloons'] },
+    activities: [
+      { name: 'Design Your Own Planet', emoji: '🎨', description: 'Paint a paper-plate planet.', category: 'craft', age_min: 6, age_max: 8, duration_minutes: 25, indoor_outdoor: 'indoor', estimated_cost: 15, difficulty: 'easy', materials: ['Paper plates × 15', 'Washable paint × 6'], instructions: ['Hand out plates', 'Paint', 'Dry on the rack'], cleanup_level: 'medium' },
+      { name: 'Cosmic Treasure Hunt', emoji: '🚀', description: 'Find hidden planets.', category: 'treasure_hunt', age_min: 6, age_max: 8, duration_minutes: 20, indoor_outdoor: 'indoor', estimated_cost: 10, difficulty: 'easy', materials: ['Clue cards × 8'], instructions: ['Read clue 1', 'Search'], cleanup_level: 'low' },
+      { name: 'Planet Relay', emoji: '🏃', description: 'Carry a planet on a spoon.', category: 'active', age_min: 6, age_max: 8, duration_minutes: 15, indoor_outdoor: 'either', estimated_cost: 0, difficulty: 'easy', materials: ['Spoons × 4'], instructions: ['Two teams', 'Race'], cleanup_level: 'none' },
+    ],
+    timeline: [{ minute: 0, label: 'Guests arrive', kind: 'arrival' }, { minute: 15, label: 'Welcome', kind: 'welcome' }, { minute: 20, label: 'Design Your Own Planet', kind: 'activity' }, { minute: 45, label: 'Cosmic Treasure Hunt', kind: 'activity' }, { minute: 70, label: 'Pizza', kind: 'food' }, { minute: 95, label: 'Cake', kind: 'cake' }, { minute: 110, label: 'Goodbye', kind: 'closing' }],
+    food: [{ name: 'Cheese pizza', category: 'main', quantity: 4, unit: 'large pizzas', estimated_cost: 48, dietary_tags: ['vegetarian'] }, { name: 'Galaxy cupcakes', category: 'dessert', quantity: 18, unit: 'cupcakes', estimated_cost: 27, dietary_tags: [] }, { name: 'Fruit rockets', category: 'snack', quantity: 15, unit: 'skewers', estimated_cost: 12, dietary_tags: ['vegan'] }],
+    shopping: [{ item: 'Paper plates', qty: '15', category: 'activities', estimatedCost: 4 }, { item: 'Washable paint', qty: '6', category: 'activities', estimatedCost: 11 }, { item: 'Star garlands', qty: '3', category: 'decorations', estimatedCost: 9 }],
+    host: { welcome: 'Welcome, astronauts! Today we explore the galaxy for Mia’s birthday.', cake: 'Astronauts, gather round — it is time for our birthday celebration!', closing: 'Mission accomplished! Thank you for flying with us today.' },
+    checklist: [{ title: 'Order 4 large pizzas for pickup', daysBeforeParty: 1 }, { title: 'Print 8 treasure hunt clues', daysBeforeParty: 2 }],
+    budget: [{ category: 'Food', amount: 90 }, { category: 'Activities', amount: 30 }, { category: 'Decorations', amount: 20 }],
+    assumptions: ['Two-hour party at home.'],
+  },
   discover_explain: { picks: [{ placeId: 'ChIJfixture0000001', reason: 'Hands-on art for a 7-year-old, about $15 per kid.' }, { placeId: 'ChIJinvented999', reason: 'Made up' }] },
   shopping_list: { categories: [{ item: 'Gold paint pens', category: 'activities' }, { item: 'Crowns', category: 'favors' }] },
   timeline: {
@@ -17,7 +46,13 @@ export const FIXTURES: Record<string, unknown> = {
     ],
   },
   food: {
-    menu: { main: [{ name: 'Mini cheese pizzas', qty: '30' }], snacks: [{ name: 'Fruit skewers', qty: '20' }, { name: 'Nut-free trail mix', qty: '2 bowls' }], dessert: [{ name: 'Crown cupcakes', qty: '18' }], drinks: [{ name: 'Water and juice boxes', qty: '24' }] },
+    items: [
+      { name: 'Mini cheese pizzas', category: 'main', quantity: 30, unit: 'mini pizzas', estimated_cost: 24, dietary_tags: ['vegetarian'], notes: '2 per child' },
+      { name: 'Fruit skewers', category: 'snack', quantity: 20, unit: 'skewers', estimated_cost: 12, dietary_tags: ['vegan'], notes: '' },
+      { name: 'Nut-free trail mix', category: 'snack', quantity: 2, unit: 'bowls', estimated_cost: 8, dietary_tags: ['nut-free'], notes: '' },
+      { name: 'Crown cupcakes', category: 'dessert', quantity: 18, unit: 'cupcakes', estimated_cost: 27.5, dietary_tags: [], notes: '' },
+      { name: 'Water and juice boxes', category: 'drink', quantity: 24, unit: 'boxes', estimated_cost: 12, dietary_tags: [], notes: '' },
+    ],
     shoppingList: [{ item: 'Mini pizza bases', qty: '30', category: 'food', estimatedCost: 24 }, { item: 'Mozzarella', qty: '2 lb', category: 'food', estimatedCost: 9 }, { item: 'Cupcakes', qty: '18', category: 'food', estimatedCost: 27.5 }, { item: 'Juice boxes', qty: '24', category: 'drinks', estimatedCost: 12 }],
     prepTimeline: [{ when: '2 days before', task: 'Order cupcakes' }, { when: 'Morning of', task: 'Assemble fruit skewers' }],
     tips: ['Label each dish so families can check ingredients.'],

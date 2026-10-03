@@ -1,6 +1,8 @@
 /** Shared AI types. Safe to import from client code (no secrets, no server modules). */
 export const AI_FEATURES = [
   'party_planner', 'theme_ideas', 'checklist', 'budget_optimizer', 'activities', 'food', 'invitation', 'timeline', 'shopping_list', 'discover_explain',
+  // Party Experience layer (each behind AI_ENABLED_FEATURES like the rest)
+  'activity_studio', 'host_content', 'party_experience',
 ] as const
 export type AIFeature = (typeof AI_FEATURES)[number]
 export const isAIFeature = (v: unknown): v is AIFeature => typeof v === 'string' && (AI_FEATURES as readonly string[]).includes(v)
@@ -9,7 +11,7 @@ export type AIErrorCode =
   | 'unauthenticated' | 'forbidden_plan' | 'limit_reached' | 'invalid_input' | 'provider_error' | 'timeout'
   | 'invalid_response' | 'ai_disabled' | 'not_found' | 'high_demand'
 
-export type ApplyTarget = 'checklist' | 'activities' | 'shopping_list' | 'theme' | 'budget' | 'invitation'
+export type ApplyTarget = 'checklist' | 'activities' | 'activity_update' | 'shopping_list' | 'theme' | 'budget' | 'invitation' | 'timeline' | 'food' | 'host'
 
 /** What /api/ai/capabilities returns for one feature. */
 export interface FeatureCapability {

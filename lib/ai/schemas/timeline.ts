@@ -10,7 +10,7 @@ export const TimelineAISchema = z.object({
 export type TimelineModelOutput = z.infer<typeof TimelineAISchema>
 export interface TimelineResult {
   durationMinutes: number
-  entries: { id: string; minute: number; time: string; label: string; notes: string }[]
+  entries: { id: string; minute: number; time: string; label: string; notes: string; duration: number; kind: import('@/lib/experience/model').TimelineKind }[]
   prepTasks: { id: string; title: string; notes: string; daysBeforeParty: number; dueDate: string | null; late: boolean }[]
   assumptions: string[]
 }

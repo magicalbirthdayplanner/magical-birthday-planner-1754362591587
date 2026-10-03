@@ -191,9 +191,14 @@ describe.skipIf(!up)('food', () => {
     const r = await call('food', { partyId: partyA, preferences: 'one vegetarian guest' })
     expect(r.status).toBe(200)
     const { result } = await r.json()
-    expect(result.estimatedTotal).toBe(72.5)
+    expect(result.estimatedTotal).toBe(83.5) // max(menu 83.5, shopping list 72.5)
+    expect(result.budget).toEqual([{ id: 'fbud-1', category: 'Food & drinks', amount: 83.5 }])
     expect(result.allergyNote).toMatch(/check allergies and dietary needs with each family/i)
-    expect(JSON.stringify(result)).not.toMatch(/nut[- ]free/i)
+    // names never claim safety; a dietary tag becomes a labelled option, not a promise
+    expect(result.items.map((d: { name: string }) => d.name).join(' ')).not.toMatch(/nut[- ]free/i)
+    expect(result.items[2].dietary_tags).toEqual(['nut-free option (check labels)'])
+    expect(result.items[0]).toMatchObject({ id: 'dish-1', quantity: 30, unit: 'mini pizzas', category: 'main' })
+    expect(result.guests).toBe(15)
     expect(result.shoppingList[3]).toMatchObject({ id: 'food-4', category: 'food' }) // "drinks" normalised
   })
 })

@@ -79,6 +79,10 @@ export interface FeatureSpec<B extends z.ZodTypeAny, R> {
   summary?: (body: z.infer<B>, ctx: PartyAIContext) => Record<string, unknown>
   includeInvitationFields?: boolean
   maxTokens?: number
+  /** Longer answers (several sections) may need more than the default timeout; capped below the 60 s route limit. */
+  timeoutMs?: number
+  /** Extra ownership checks on ids in the body (e.g. an activity of this party). false → not_found, nothing counted. */
+  precheck?: (db: AuthedRequest['supabase'], partyId: string, body: z.infer<B>) => Promise<boolean>
 }
 
 export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>) {
@@ -97,6 +101,7 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     // 4. flag (fail closed without the service role: usage can't be finalized safely without it)
     const cfg = aiConfig()
     if (!featureEnabled(spec.feature, cfg) || !hasServiceRole()) return aiError('ai_disabled')
+    if (spec.precheck && !(await spec.precheck(auth.supabase, partyId, body))) return aiError('not_found')
     // 5. entitlement
     const ent = await resolveEntitlement(auth)
     if (!planAllows(spec.feature, ent.tier, ent.superAdmin)) {
@@ -123,7 +128,8 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     // 7. model (client abort propagates via req.signal)
     const extra = spec.load ? await spec.load(auth.supabase, partyId, ctx, body) : undefined
     const { system, user } = spec.prompt({ body, ctx, notes, extra })
-    const r = await callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg })
+    const callCfg = spec.timeoutMs ? { ...cfg, timeoutMs: Math.min(55_000, Math.max(cfg.timeoutMs, spec.timeoutMs)) } : cfg
+    const r = await callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg: callCfg })
     const log = { feature: spec.feature, user_id: auth.user.id, party_id: partyId, provider: r.provider, model: r.model, duration_ms: r.durationMs, attempts: r.attempts }
     if (!r.ok) {
       await finalizeGeneration(auth.user.id, genId, { status: 'failed', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, errorCode: r.code })

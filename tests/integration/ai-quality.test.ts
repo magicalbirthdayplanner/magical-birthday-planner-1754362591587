@@ -97,7 +97,7 @@ describe.skipIf(!up)('party context reaches the model', () => {
   })
 
   it('near-empty answers are retried once, then a friendly error (seen live: an empty food menu)', async () => {
-    const empty = JSON.stringify({ menu: { main: [], snacks: [], dessert: [], drinks: [] }, shoppingList: [], prepTimeline: [], tips: [] })
+    const empty = JSON.stringify({ items: [], shoppingList: [], prepTimeline: [], tips: [] })
     scriptMock(empty, empty)
     const r = await call('food', { partyId: P.A })
     expect(r.status).toBe(502)

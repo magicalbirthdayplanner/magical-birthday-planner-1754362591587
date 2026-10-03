@@ -35,7 +35,7 @@ import { postProcessBudget } from '@/lib/ai/features/budget'
 
 const live = process.env.AI_LIVE === '1' && !!process.env.AI_API_KEY
 const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: 'opencode' } as NodeJS.ProcessEnv)
-const base: PartyAIContext = { childAge: 7, childInterests: ['art', 'animals'], partyDate: null, daysUntilParty: 30, city: 'Troy', state: 'MI', guestCountEstimate: 12, budget: 250, venue: null, theme: null, durationMinutes: 120, indoorOutdoor: 'indoor', foodPreferences: [], existingActivities: [], existingChecklist: [], currentBudgetLines: [], existingShoppingItems: [], plan: 'PLUS' }
+const base: PartyAIContext = { childAge: 7, childInterests: ['art', 'animals'], partyDate: null, daysUntilParty: 30, city: 'Troy', state: 'MI', guestCountEstimate: 12, budget: 250, venue: null, theme: null, durationMinutes: 120, indoorOutdoor: 'indoor', foodPreferences: [], existingActivities: [], existingChecklist: [], currentBudgetLines: [], existingShoppingItems: [], rsvp: null, partyStartTime: null, activityPlan: [], timeline: [], menu: [], savedVenueCount: 0, plan: 'PLUS' }
 const usage: { name: string; ms: number; attempts: number; in: number | null; out: number | null }[] = []
 const plans: Record<string, PartyPlanResult> = {}
 
@@ -136,9 +136,9 @@ describe.skipIf(!live)('live model (manual)', () => {
     expect(r.ok).toBe(true)
     if (!r.ok) return
     const f = postProcessFood(r.data as unknown as FoodModelOutput)
-    console.log('food:', JSON.stringify(f.menu), '| est $' + f.estimatedTotal)
+    console.log('food:', f.items.map((d) => `${d.quantity} ${d.unit} ${d.name} [$${d.estimated_cost}${d.dietary_tags.length ? ' ' + d.dietary_tags.join('/') : ''}]`).join(' | '), '| est $' + f.estimatedTotal)
     expect(JSON.stringify({ ...f, allergyNote: '' })).not.toMatch(/allergen[- ]free|nut[- ]free/i)
-    expect(Object.values(f.menu).flat().length).toBeGreaterThanOrEqual(3)
+    expect(f.items.length).toBeGreaterThanOrEqual(3)
   }, 120_000)
   it('P1 budget (scenario A, no lines yet): allocation that fits', async () => {
     const ctx = { ...base, budget: 300 }

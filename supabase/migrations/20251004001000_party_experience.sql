@@ -151,8 +151,11 @@ begin
   if new.activity_id is not null and not exists (select 1 from public.party_ai_activities a where a.id = new.activity_id and a.party_id = new.party_id) then
     raise exception 'activity belongs to another party' using errcode = '23503';
   end if;
-  if tg_table_name = 'party_host_content' and new.guest_id is not null and not exists (select 1 from public.guests g where g.id = new.guest_id and g.party_id = new.party_id) then
-    raise exception 'guest belongs to another party' using errcode = '23503';
+  if tg_table_name = 'party_host_content' then
+    -- (separate IF: plpgsql may evaluate both sides of AND, and timeline rows have no guest_id)
+    if new.guest_id is not null and not exists (select 1 from public.guests g where g.id = new.guest_id and g.party_id = new.party_id) then
+      raise exception 'guest belongs to another party' using errcode = '23503';
+    end if;
   end if;
   return new;
 end $$;

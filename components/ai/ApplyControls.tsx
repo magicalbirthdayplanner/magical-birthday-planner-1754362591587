@@ -12,8 +12,8 @@ import { TextField } from '@/components/app/fields'
 import { apiFetch, friendlyError } from '@/lib/data/api'
 import { useApplied } from './applied'
 
-type Target = 'checklist' | 'activities' | 'shopping_list' | 'theme' | 'budget'
-const LABEL: Record<Target, string> = { checklist: 'Add to checklist', activities: 'Add to activities', shopping_list: 'Add to list', theme: 'Use this theme', budget: 'Add to budget' }
+type Target = 'checklist' | 'activities' | 'activity_update' | 'shopping_list' | 'theme' | 'budget' | 'timeline' | 'food' | 'host'
+const LABEL: Record<Target, string> = { checklist: 'Add to checklist', activities: 'Add to activities', activity_update: 'Use this version', shopping_list: 'Add to list', theme: 'Use this theme', budget: 'Add to budget', timeline: 'Add to timeline', food: 'Add to menu', host: 'Save to party' }
 
 export function ApplyControls({ generationId, target, itemId, label, partyId }: { generationId: string; target: string; itemId: string; label: string; partyId: string }) {
   const t = target as Target
@@ -26,7 +26,7 @@ export function ApplyControls({ generationId, target, itemId, label, partyId }: 
 
   const refresh = () => {
     void mutate(['checklist', partyId])
-    void mutate((k) => Array.isArray(k) && (k[0] === 'party' || k[0] === 'parties' || k[0] === 'ai-party-items'))
+    void mutate((k) => Array.isArray(k) && (k[0] === 'party' || k[0] === 'parties' || k[0] === 'ai-party-items' || k[0] === 'experience'))
   }
   const apply = async () => {
     setState('busy')
@@ -83,7 +83,7 @@ export function ApplyControls({ generationId, target, itemId, label, partyId }: 
         <AppButton size="sm" className="min-h-[44px]" variant={t === 'theme' ? 'primary' : 'secondary'} loading={state === 'busy'} onClick={apply} aria-label={`${LABEL[t]}: ${label}`}>
           {LABEL[t]}
         </AppButton>
-        {t !== 'theme' ? (
+        {t !== 'theme' && t !== 'activity_update' && t !== 'host' ? (
           <button type="button" onClick={() => setEditing((x) => !x)} aria-label={editing ? 'Stop editing' : `Edit before adding: ${label}`} aria-pressed={editing} className="tap flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground active:bg-muted">
             <Pencil className="h-4 w-4" />
           </button>

@@ -8,6 +8,8 @@ import { z } from 'zod'
 import type { Database, Json } from '@/lib/db/database.types'
 import { cleanText } from './safety'
 import type { ApplyTarget } from './types'
+import { activityColumns, ActivityDetailSchema, TIMELINE_KINDS, type TimelineKind } from '@/lib/experience/model'
+import { FOOD_CATEGORIES } from './schemas/food'
 
 type DB = SupabaseClient<Database>
 export type ApplyOutcome =
@@ -16,9 +18,9 @@ export type ApplyOutcome =
   | { status: 'error'; code: 'not_found' | 'invalid_input' | 'provider_error'; message: string }
 
 const ItemId = z.string().regex(/^(?:[a-z]+-\d{1,3}|theme)$/) // "theme" = the party plan's single theme
-const Target = z.enum(['checklist', 'activities', 'shopping_list', 'theme', 'budget'])
-/** "Add all": several items of one generation into one target (never the theme — there is only one). */
-export const ApplyManyBody = z.object({ generationId: z.string().uuid(), target: Target.exclude(['theme']), itemIds: z.array(ItemId).min(1).max(40) }).strict()
+const Target = z.enum(['checklist', 'activities', 'activity_update', 'shopping_list', 'theme', 'budget', 'timeline', 'food', 'host'])
+/** "Add all": several items of one generation into one target (never the theme or an activity revision — there is only one). */
+export const ApplyManyBody = z.object({ generationId: z.string().uuid(), target: Target.exclude(['theme', 'activity_update']), itemIds: z.array(ItemId).min(1).max(40) }).strict()
 
 export const ApplyBody = z.object({
   generationId: z.string().uuid(),
@@ -30,6 +32,10 @@ export const ApplyBody = z.object({
       notes: z.string().trim().max(500).optional(),
       amount: z.number().min(0).max(100000).optional(),
       qty: z.string().trim().max(40).optional(),
+      /** host content: the parent's edited text */
+      body: z.string().trim().min(1).max(4000).optional(),
+      /** activities: save as an idea instead of adding to the party plan */
+      status: z.enum(['idea', 'planned']).optional(),
     })
     .strict()
     .optional(),
@@ -52,10 +58,22 @@ export function findItem(feature: string, result: Record<string, unknown>, targe
     theme_ideas: { theme: arr(result.themes) },
     checklist: { checklist: arr(result.tasks) },
     activities: { activities: arr(result.activities) },
-    food: { shopping_list: arr(result.shoppingList) }, // ids food-n
+    food: { shopping_list: arr(result.shoppingList), food: arr(result.items), budget: arr(result.budget) }, // ids food-n / dish-n / fbud-1
     shopping_list: { shopping_list: arr(result.items) },
     budget_optimizer: { budget: [...arr(result.suggestions), ...arr(result.missing)] },
-    timeline: { checklist: arr(result.prepTasks) }, // prep tasks carry a server-computed dueDate
+    timeline: { checklist: arr(result.prepTasks), timeline: arr(result.entries) }, // prep tasks carry a server-computed dueDate
+    activity_studio: result.activity ? { activities: [result.activity as Item], activity_update: result.targetActivityId ? [result.activity as Item] : [] } : {},
+    host_content: { host: arr(result.items) },
+    party_experience: {
+      theme: result.theme ? [result.theme as Item] : [],
+      activities: arr(result.activities),
+      timeline: arr(result.timeline),
+      food: arr(result.food),
+      shopping_list: arr(result.shopping),
+      host: arr(result.host),
+      checklist: arr(result.checklist),
+      budget: arr((result.budget as { lines?: unknown })?.lines),
+    },
   }
   return pools[feature]?.[target]?.find((i) => i.id === itemId) ?? null
 }
@@ -91,16 +109,87 @@ export async function applyItem(db: DB, userId: string, req: ApplyRequest): Prom
     rowId = data.id
     message = 'Added to your checklist.'
   } else if (req.target === 'activities') {
-    const name = e.title ?? s(item.name, 120)
+    const r = gen.result as { designedForGuests?: number | null; designedForTheme?: string | null }
+    const detailed = Array.isArray(item.instructions) && typeof item.duration_minutes === 'number'
+    const parsed = detailed ? ActivityDetailSchema.safeParse(item) : null
+    if (parsed && !parsed.success) return { status: 'error', code: 'not_found', message: 'That suggestion is no longer available.' }
+    const base = parsed?.success
+      ? activityColumns(parsed.data)
+      : { name: s(item.name, 120), description: (s(item.description, 1000) || s(item.whyItFits, 1000)) || null, duration_min: n(item.durationMin, 0, 600), estimated_cost: n(item.estimatedCost), materials: (Array.isArray(item.materials) ? item.materials : []).map((m) => s(m, 60)).filter(Boolean).slice(0, 12), details: pickDetails(item) }
+    const status = e.status ?? 'planned'
+    const { data: last } = await db.from('party_ai_activities').select('sort_order').eq('party_id', partyId).order('sort_order', { ascending: false }).limit(1).maybeSingle()
     const { data, error } = await db
       .from('party_ai_activities')
-      .insert({ party_id: partyId, user_id: userId, name, description: (e.notes ?? (s(item.description, 1000) || s(item.whyItFits, 1000))) || null, duration_min: n(item.durationMin, 0, 600), estimated_cost: n(item.estimatedCost), materials: (Array.isArray(item.materials) ? item.materials : []).map((m) => s(m, 60)).filter(Boolean).slice(0, 12), details: pickDetails(item), source_generation_id: gen.id, source_item_id: req.itemId })
+      .insert({
+        ...base, name: e.title ?? base.name, description: e.notes ?? base.description, details: base.details as NonNullable<Json>,
+        party_id: partyId, user_id: userId, status, origin: 'ai', approved_at: status === 'planned' ? new Date().toISOString() : null,
+        designed_for_guests: r.designedForGuests ?? null, designed_for_theme: r.designedForTheme?.slice(0, 80) ?? null, sort_order: (last?.sort_order ?? 0) + 1,
+        source_generation_id: gen.id, source_item_id: req.itemId,
+      })
       .select('id')
       .single()
-    if (isUnique(error)) return { status: 'duplicate', message: 'That activity is already in your plan.' }
+    if (isUnique(error)) return { status: 'duplicate', message: 'That activity is already in your party.' }
     if (error) return { status: 'error', code: 'provider_error', message: 'We couldn’t add that activity. Please try again.' }
     rowId = data.id
-    message = 'Added to your activities.'
+    message = status === 'idea' ? 'Saved to your activity ideas.' : 'Added to your activities.'
+  } else if (req.target === 'activity_update') {
+    // Replace an existing activity's content with the AI revision the parent chose (same row, same links).
+    const r = gen.result as { targetActivityId?: string | null; designedForGuests?: number | null; designedForTheme?: string | null }
+    const parsed = ActivityDetailSchema.safeParse(item)
+    if (!r.targetActivityId || !parsed.success) return { status: 'error', code: 'not_found', message: 'That suggestion is no longer available.' }
+    const { data: prev } = await db.from('party_ai_activities').select('name, description, duration_min, estimated_cost, materials, category, age_min, age_max, setting, difficulty, cleanup_level, details, user_edited, designed_for_guests, designed_for_theme').eq('id', r.targetActivityId).eq('party_id', partyId).maybeSingle()
+    if (!prev) return { status: 'error', code: 'not_found', message: 'That activity is no longer in your party.' }
+    const cols = activityColumns(parsed.data)
+    const { error } = await db.from('party_ai_activities').update({ ...cols, details: cols.details as NonNullable<Json>, user_edited: false, designed_for_guests: r.designedForGuests ?? null, designed_for_theme: r.designedForTheme?.slice(0, 80) ?? null }).eq('id', r.targetActivityId)
+    if (isUnique(error)) return { status: 'duplicate', message: 'Another activity already has that name.' }
+    if (error) return { status: 'error', code: 'provider_error', message: 'We couldn’t update that activity. Please try again.' }
+    rowId = r.targetActivityId
+    undo = { previous: prev }
+    message = 'Activity updated.'
+  } else if (req.target === 'timeline') {
+    const label = e.title ?? s(item.label, 120)
+    if (!label) return { status: 'error', code: 'invalid_input', message: 'That timeline step needs a name.' }
+    const kind: TimelineKind = (TIMELINE_KINDS as readonly string[]).includes(String(item.kind)) ? (item.kind as TimelineKind) : 'other'
+    const [{ data: rows }, { data: acts }] = await Promise.all([
+      db.from('party_timeline_items').select('label, sort_order, activity_id').eq('party_id', partyId),
+      db.from('party_ai_activities').select('id, name').eq('party_id', partyId).eq('status', 'planned'),
+    ])
+    if ((rows ?? []).some((x) => x.label.trim().toLowerCase() === label.toLowerCase())) return { status: 'duplicate', message: 'That’s already on your timeline.' }
+    // An activity step links to the party's own activity of that name (its duration then follows the activity).
+    const taken = new Set((rows ?? []).map((x) => x.activity_id).filter(Boolean))
+    const act = kind === 'activity' || kind === 'other' ? (acts ?? []).find((a) => !taken.has(a.id) && (label.toLowerCase().includes(a.name.toLowerCase()) || a.name.toLowerCase().includes(label.toLowerCase()))) : undefined
+    const sort = Math.max(0, ...(rows ?? []).map((x) => x.sort_order)) + 1
+    const { data, error } = await db.from('party_timeline_items').insert({ party_id: partyId, user_id: userId, kind: act ? 'activity' : kind, label, duration_min: act ? null : n(item.duration, 0, 600), sort_order: sort, activity_id: act?.id ?? null, origin: 'ai', source_generation_id: gen.id, source_item_id: req.itemId }).select('id').single()
+    if (isUnique(error)) return { status: 'duplicate', message: 'That activity is already on your timeline.' }
+    if (error) return { status: 'error', code: 'provider_error', message: 'We couldn’t add that to your timeline. Please try again.' }
+    rowId = data.id
+    message = 'Added to your timeline.'
+  } else if (req.target === 'food') {
+    const r = gen.result as { guests?: number | null; designedForGuests?: number | null }
+    const name = e.title ?? s(item.name, 120)
+    const cat = (FOOD_CATEGORIES as readonly string[]).includes(String(item.category)) ? String(item.category) : 'other'
+    const { data, error } = await db
+      .from('party_food_items')
+      .insert({ party_id: partyId, user_id: userId, name, category: cat, quantity: n(item.quantity, 0, 10000), unit: s(item.unit, 30) || null, estimated_cost: n(item.estimated_cost), dietary_tags: (Array.isArray(item.dietary_tags) ? item.dietary_tags : []).map((t) => s(t, 40)).filter(Boolean).slice(0, 5), notes: (e.notes ?? s(item.notes, 300)) || null, designed_for_guests: r.guests ?? r.designedForGuests ?? null, origin: 'ai', source_generation_id: gen.id, source_item_id: req.itemId })
+      .select('id')
+      .single()
+    if (isUnique(error)) return { status: 'duplicate', message: 'That’s already on your menu.' }
+    if (error) return { status: 'error', code: 'provider_error', message: 'We couldn’t add that to your menu. Please try again.' }
+    rowId = data.id
+    message = 'Added to your menu.'
+  } else if (req.target === 'host') {
+    const KINDS = ['welcome', 'activity_intro', 'cake', 'closing', 'thank_you_all', 'thank_you_guest', 'reminder']
+    const kind = KINDS.includes(String(item.kind)) ? String(item.kind) : 'welcome'
+    const body = e.body ?? s(item.body, 4000)
+    if (!body) return { status: 'error', code: 'invalid_input', message: 'That message is empty.' }
+    const { data, error } = await db
+      .from('party_host_content')
+      .insert({ party_id: partyId, user_id: userId, kind, title: s(item.title, 120) || null, body, activity_id: typeof item.activityId === 'string' ? item.activityId : null, guest_id: typeof item.guestId === 'string' ? item.guestId : null, origin: 'ai', user_edited: !!e.body, source_generation_id: gen.id, source_item_id: req.itemId })
+      .select('id')
+      .single()
+    if (error) return { status: 'error', code: error.code === '23503' ? 'not_found' : 'provider_error', message: error.code === '23503' ? 'That guest or activity is no longer in your party.' : 'We couldn’t save that. Please try again.' }
+    rowId = data.id
+    message = 'Saved to your party.'
   } else if (req.target === 'shopping_list') {
     const name = e.title ?? s(item.item, 120)
     const cat = ['food', 'decorations', 'activities', 'favors', 'other'].includes(String(item.category)) ? String(item.category) : 'other'
@@ -171,8 +260,10 @@ export async function undoItem(db: DB, req: { generationId: string; itemId: stri
     .at(-1)
   // Nothing applied, or already undone: a second Undo must not restore stale values over newer edits.
   if (!entry || entry.target !== req.target) return false
-  const table = { checklist: 'checklist_items', activities: 'party_ai_activities', shopping_list: 'party_shopping_items', budget: 'party_budget_lines' } as const
-  if (req.target === 'theme') {
+  const table = { checklist: 'checklist_items', activities: 'party_ai_activities', shopping_list: 'party_shopping_items', budget: 'party_budget_lines', timeline: 'party_timeline_items', food: 'party_food_items', host: 'party_host_content' } as const
+  if (req.target === 'activity_update') {
+    if (entry.rowId && entry.undo?.previous) await db.from('party_ai_activities').update(entry.undo.previous as Database['public']['Tables']['party_ai_activities']['Update']).eq('id', entry.rowId).eq('party_id', gen.party_id)
+  } else if (req.target === 'theme') {
     await db.from('parties').update({ theme: (entry.undo?.previousTheme as string | null) ?? null, theme_details: (entry.undo?.previousDetails as Json) ?? null }).eq('id', gen.party_id)
   } else if (req.target === 'budget' && entry.undo?.previousAmount != null && entry.rowId) {
     await db.from('party_budget_lines').update({ amount: entry.undo.previousAmount as number }).eq('id', entry.rowId)
