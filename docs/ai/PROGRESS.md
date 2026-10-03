@@ -29,3 +29,7 @@ Branch: `feat/ai-upgrade` (from `mobile-first` @ a50a5fb). Production branch `ma
 ## Status
 All phases complete. Recommended launch flags: party_planner, theme_ideas, checklist. Everything else is built, tested and flagged off.
 Next (human): docs/ai/LAUNCH_CHECKLIST.md.
+
+## Production-readiness pass (2026-10-03, later)
+Audit → hardening (migration 0900, usage-bypass fix) → actionable planner (Your party plan, Add all, restore) → theme
+wishes → P1 prompt/schema fixes → tests (integration 180, E2E 32, live A–E) → docs. See AI_PRODUCTION_READINESS_REPORT.md.

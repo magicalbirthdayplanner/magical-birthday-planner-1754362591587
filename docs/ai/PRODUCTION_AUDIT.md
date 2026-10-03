@@ -34,6 +34,9 @@ loading / timeout / failure / empty / retry / 44 px" hold for **every** feature 
 | S5 | Undo could run twice (second undo restored stale theme/budget values over later edits). | Polish | Undo only if the latest entry for that item is an apply |
 | S6 | Post-processing exceptions left generations `pending` for 10 min. | Polish | Finalize as failed |
 | S7 | Failed generations didn't record tokens (cost blind spot). | Polish | Tokens kept on failures |
+| B1 | Found while testing: **"Use this theme" on the party plan always failed** (400) — the apply validator rejected the item id `theme`. | Important | Accept `theme`; covered by a test |
+| B2 | Found while testing: `guest_count` defaults to 0, so an unset guest count reached the model as "0 guests". | Important | 0 → unknown |
+| B3 | Found live: the model once returned an empty food menu that passed validation. | Important | Food needs ≥ 3 dishes/drinks (one retry, then friendly error) |
 
 Verified fine (no change): key only in `lib/ai/config.ts` (server-only) and the Authorization header; client bundle scan;
 identity from the bearer token (`getAuthedRequest`); plan from `getUserPlan` (service role, trusted) with trial = Free and Super
