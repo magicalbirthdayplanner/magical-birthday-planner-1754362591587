@@ -172,6 +172,26 @@ describe('checkout', () => {
       process.env.DODO_PAYMENTS_ENVIRONMENT = 'test_mode'
     }
   })
+
+  it('never reuses a sandbox customer id in live mode (separate Dodo accounts)', async () => {
+    await send(payment(U)) // sandbox webhook binds cus_U → U
+    await post(U.accessToken, { plan: 'PLUS' })
+    expect((created.at(-1) as { customer: { customer_id?: string } }).customer.customer_id).toBe(`cus_${U.id.slice(0, 8)}`)
+    Object.assign(process.env, { DODO_PAYMENTS_ENVIRONMENT: 'live_mode', DODO_LIVE_PAYMENTS_ENABLED: 'true' })
+    try {
+      expect((await post(U.accessToken, { plan: 'PLUS' })).status).toBe(200)
+      const sent = created.at(-1) as { customer: { customer_id?: string; email?: string } }
+      expect(sent.customer.customer_id).toBeUndefined()
+      expect(sent.customer.email).toBe(U.email)
+      // The first live payment replaces the sandbox mapping.
+      await send(payment(U, { customer: { customer_id: 'cus_live_u', email: U.email } }))
+      const { data } = await adminClient().from('billing_customers').select('provider, provider_customer_id').eq('user_id', U.id).single()
+      expect(data).toEqual({ provider: 'dodo_live', provider_customer_id: 'cus_live_u' })
+    } finally {
+      process.env.DODO_PAYMENTS_ENVIRONMENT = 'test_mode'
+      delete process.env.DODO_LIVE_PAYMENTS_ENABLED
+    }
+  })
 })
 
 describe('webhook → entitlement', () => {

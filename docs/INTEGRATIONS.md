@@ -47,8 +47,13 @@ in the repository, and tooling never prints values. Variable list: [`.env.exampl
 4. Previews are behind Vercel Authentication, so Dodo's webhook can't reach them directly. For
    sandbox tests, create a Protection Bypass for Automation secret and use
    `<preview>/api/webhooks/dodo?x-vercel-protection-bypass=<secret>`. Revoke it afterwards.
-5. Live mode later: separate live keys and products, plus `DODO_PAYMENTS_ENVIRONMENT=live_mode` **and**
-   `DODO_LIVE_PAYMENTS_ENABLED=true`. Without both, checkout refuses to charge.
+5. Live mode: separate live keys, products and webhook endpoint (and its own signing secret), plus
+   `DODO_PAYMENTS_ENVIRONMENT=live_mode` **and** `DODO_LIVE_PAYMENTS_ENABLED=true`. Without both, checkout
+   refuses to charge. Live product prices must match `/pricing` (499 / 999 / 1499 USD cents): a USD payment
+   below the expected price is held for review instead of granting. Saved customer ids are tagged per mode
+   (`billing_customers.provider` = `dodo` sandbox / `dodo_live`), so a sandbox customer is never sent to live.
+   Production went live 2026-10-03; rollback = the sandbox values (test key, products, webhook secret) +
+   `DODO_PAYMENTS_ENVIRONMENT=test_mode`, `DODO_LIVE_PAYMENTS_ENABLED=false`, then redeploy.
 
 ### Google Cloud
 * Server key (`GOOGLE_PLACES_API_KEY`): API restriction Places API (New), plus Geocoding API if enabled.

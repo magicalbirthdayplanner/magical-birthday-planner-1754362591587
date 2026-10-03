@@ -10,6 +10,9 @@ import { checkoutEnvironmentAllowed, dodoApiBase, dodoMode, liveChargingAllowed,
 
 type Admin = SupabaseClient<Database>
 
+/** Sandbox and live customer ids live in separate Dodo accounts; never reuse one across modes. */
+const customerProvider = () => (dodoMode() === 'live_mode' ? 'dodo_live' : 'dodo')
+
 export class BillingError extends Error {
   constructor(
     public code: 'not_configured' | 'live_disabled' | 'provider_error' | 'invalid_response',
@@ -36,7 +39,7 @@ export async function createCheckout(admin: Admin, user: User, plan: PaidPlan, r
     .single()
   if (error || !checkout) throw new BillingError('provider_error', 'Could not start checkout.')
 
-  const { data: known } = await admin.from('billing_customers').select('provider_customer_id').eq('user_id', user.id).maybeSingle()
+  const { data: known } = await admin.from('billing_customers').select('provider_customer_id').eq('user_id', user.id).eq('provider', customerProvider()).maybeSingle()
   const name = (user.user_metadata?.display_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Customer').toString().slice(0, 80)
   const body = {
     product_cart: [{ product_id: productId, quantity: 1 }],
@@ -96,7 +99,7 @@ async function resolveUser(admin: Admin, e: DodoEvent): Promise<string | null> {
   const metaUser = typeof meta.mbp_user_id === 'string' && UUID.test(meta.mbp_user_id) ? meta.mbp_user_id : null
   const customerId = e.data.customer?.customer_id
   if (customerId) {
-    const { data } = await admin.from('billing_customers').select('user_id').eq('provider_customer_id', customerId).maybeSingle()
+    const { data } = await admin.from('billing_customers').select('user_id').eq('provider', customerProvider()).eq('provider_customer_id', customerId).maybeSingle()
     if (data?.user_id) {
       // A known customer always maps to its original user, whatever the metadata says.
       return data.user_id
@@ -181,9 +184,11 @@ export async function processWebhookEvent(admin: Admin, eventId: string, raw: un
 
     const customerId = event.data.customer?.customer_id
     if (customerId) {
+      // One row per user: a customer id from the other mode (sandbox ↔ live) is replaced, never reused.
+      await admin.from('billing_customers').delete().eq('user_id', userId).neq('provider', customerProvider())
       await admin
         .from('billing_customers')
-        .upsert({ user_id: userId, provider_customer_id: customerId, email: event.data.customer?.email ?? null }, { onConflict: 'user_id', ignoreDuplicates: true })
+        .upsert({ user_id: userId, provider: customerProvider(), provider_customer_id: customerId, email: event.data.customer?.email ?? null }, { onConflict: 'user_id', ignoreDuplicates: true })
     }
 
     // Out-of-order protection: never let an older event overwrite a newer one.
