@@ -24,3 +24,8 @@ Branch: `feat/ai-upgrade` (from `mobile-first` @ a50a5fb). Production branch `ma
 | 13 Shopping list | 05:11 | done | (see git log) | deterministic merge; model only categorises |
 | 13b Discover explain (stretch) | 05:13 | done | (see git log) | supplied candidates only; prices stripped; no Places calls |
 | 14 Full regression | 05:16 | done | (see git log) | lint, tsc, unit 191, integration 167, E2E 32 (7 AI), build, bundle+branch secret scans clean, billing untouched |
+| 15 Production readiness | 05:32 | done | (final commit) | LAUNCH_CHECKLIST, MANUAL_QA, REPORT |
+
+## Status
+All phases complete. Recommended launch flags: party_planner, theme_ideas, checklist. Everything else is built, tested and flagged off.
+Next (human): docs/ai/LAUNCH_CHECKLIST.md.
