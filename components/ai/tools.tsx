@@ -1,10 +1,12 @@
 'use client'
 /** Registry of Plan → AI tools. Each phase (7–13) adds its tool here. */
 import type { ComponentType, ReactNode } from 'react'
-import { ListChecks } from 'lucide-react'
+import { ListChecks, PiggyBank } from 'lucide-react'
 import type { AIFeature } from '@/lib/ai/types'
 import type { ChecklistResult } from '@/lib/ai/schemas/checklist'
 import { ChecklistResultView } from './results/ChecklistResultView'
+import type { BudgetResult } from '@/lib/ai/schemas/budget'
+import { BudgetResultView } from './results/BudgetResultView'
 
 export interface ToolDef {
   feature: AIFeature
@@ -28,5 +30,15 @@ export const TOOLS: ToolDef[] = [
     icon: ListChecks,
     steps: ['Looking at what’s already done…', 'Working back from the party date…', 'Putting your list together…'],
     render: (r: ChecklistResult, gid, partyId) => <ChecklistResultView r={r} generationId={gid} partyId={partyId} />,
+  },
+  {
+    feature: 'budget_optimizer',
+    label: (budget) => (budget != null ? `Help me stay under $${budget}` : 'Help me plan my budget'),
+    sub: 'Savings and missing costs, with real totals',
+    title: 'Budget assistant',
+    path: '/api/ai/budget',
+    icon: PiggyBank,
+    steps: ['Adding up your plan…', 'Finding savings that keep the fun…', 'Checking for missing costs…'],
+    render: (r: BudgetResult, gid, partyId) => <BudgetResultView r={r} generationId={gid} partyId={partyId} />,
   },
 ]

@@ -3,6 +3,15 @@
  * party_planner = golden scenario A (7, art + animals, ~12 kids, $250, indoors, October).
  */
 export const FIXTURES: Record<string, unknown> = {
+  budget_optimizer: {
+    suggestions: [
+      { category: 'Food & cake', change: 'Swap catered pizza for homemade mini pizzas', newAmount: 70, reason: 'Kids love assembling their own.' },
+      { category: 'Decorations', change: 'Reuse the art supplies as table decor', newAmount: 20, reason: 'Doubles as an activity.' },
+    ],
+    missingExpenses: [{ category: 'Tableware', amount: 15, note: 'Plates, cups and napkins for 15.' }],
+    tradeoffs: ['Homemade food takes about an hour of prep the day before.'],
+    assumptions: ['Prices are typical US supermarket estimates.'],
+  },
   // golden scenario B: party in 8 days, turns 10, art studio booked, theme "Royal Ball", 15 guests
   checklist: {
     tasks: [

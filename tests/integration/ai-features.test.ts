@@ -144,3 +144,28 @@ describe.skipIf(!up)('checklist — golden scenario B (8 days, art studio booked
     expect((await (await ap({ generationId, itemId: first.id, target: 'checklist' })).json()).status).toBe('already')
   })
 })
+
+describe.skipIf(!up)('budget_optimizer', () => {
+  it('server recomputes current/projected totals and savings from the real budget lines; apply updates one line', async () => {
+    await adminClient().from('party_budget_lines').delete().eq('party_id', partyA)
+    await A.client.from('party_budget_lines').insert([{ party_id: partyA, user_id: A.id, category: 'Food & cake', amount: 120 }, { party_id: partyA, user_id: A.id, category: 'Decorations', amount: 60 }, { party_id: partyA, user_id: A.id, category: 'Activities', amount: 150 }])
+    const r = await call('budget', { partyId: partyA })
+    expect(r.status).toBe(200)
+    const { result, generationId } = await r.json()
+    expect(result).toMatchObject({ target: 300, currentTotal: 330, projectedTotal: 240, overBy: null })
+    expect(result.suggestions[0]).toMatchObject({ id: 'sug-1', category: 'Food & cake', currentAmount: 120, newAmount: 70, savings: 50 })
+    expect(result.missing[0]).toMatchObject({ id: 'miss-1', category: 'Tableware', newAmount: 15 })
+    const mod = await import('@/app/api/ai/apply/route')
+    const ap = (b: unknown) => mod.POST(new Request('http://app.test/api/ai/apply', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${A.accessToken}` }, body: JSON.stringify(b) }))
+    expect((await (await ap({ generationId, itemId: 'sug-1', target: 'budget' })).json()).status).toBe('applied')
+    const lines = (await A.client.from('party_budget_lines').select('category, amount').eq('party_id', partyA).order('category')).data!
+    expect(lines).toEqual([{ category: 'Activities', amount: 150 }, { category: 'Decorations', amount: 60 }, { category: 'Food & cake', amount: 70 }])
+    expect((await (await ap({ generationId, itemId: 'miss-1', target: 'budget' })).json()).status).toBe('applied')
+  })
+  it('Plus users are denied (Pro feature) with an upgrade hint', async () => {
+    await setPlan('PLUS')
+    const r = await call('budget', { partyId: partyA })
+    expect(r.status).toBe(403)
+    expect((await r.json()).error).toMatchObject({ code: 'forbidden_plan', upgradeTo: 'PRO' })
+  })
+})
