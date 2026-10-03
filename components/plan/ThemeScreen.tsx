@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import type { ClassicTheme } from '@/data/themes-data'
 import type { Json } from '@/lib/db/database.types'
 import { ThemeIdeasSection } from '@/components/ai/ThemeIdeasSection'
+import { useAICapabilities } from '@/components/ai/useAI'
 
 interface PreviewTheme {
   id: string
@@ -81,6 +82,8 @@ export function ThemeScreen() {
   const [customOpen, setCustomOpen] = useState(false)
   const [customName, setCustomName] = useState('')
 
+  // One AI theme entry point: when the planning assistant's theme ideas are on, the older optional section hides.
+  const newThemeAI = !!useAICapabilities(party?.id).get('theme_ideas')?.enabled
   const current = resolveTheme(party, catalog.data)
   const all = useMemo(() => (catalog.data ?? []).map(fromClassic), [catalog.data])
   const recommended = useMemo(
@@ -166,7 +169,7 @@ export function ThemeScreen() {
 
       {party ? <ThemeIdeasSection partyId={party.id} /> : null}
 
-      <Section title="AI ideas" action={<span className="text-xs text-muted-foreground">Optional</span>}>
+      {newThemeAI ? null : <Section title="AI ideas" action={<span className="text-xs text-muted-foreground">Optional</span>}>
         {ai.state === 'idle' ? (
           <button type="button" onClick={generate} className="tap flex w-full items-center gap-3 rounded-3xl border border-dashed border-primary/40 bg-secondary/60 p-4 text-left">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-hero text-white">
@@ -197,7 +200,7 @@ export function ThemeScreen() {
             ))}
           </div>
         )}
-      </Section>
+      </Section>}
 
       <Section title="Browse all">
         <label className="relative block">
