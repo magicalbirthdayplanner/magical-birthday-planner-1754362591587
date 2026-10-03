@@ -134,7 +134,7 @@ export function PlanScreen() {
 
       <PartyPlanSection partyId={party.id} budget={budget} startTime={facts?.startTime ?? null} partyMinutes={facts?.minutes ?? null} />
 
-      {EXPERIENCE_ENABLED ? <PartyMagic partyId={party.id} /> : <AIToolsSection partyId={party.id} budget={budget} />}
+      {EXPERIENCE_ENABLED ? <PartyMagic partyId={party.id} basedOn={facts?.basedOn} /> : <AIToolsSection partyId={party.id} budget={budget} />}
 
       <Section title="Details">
         <Card className="space-y-3 p-4 text-[15px]">

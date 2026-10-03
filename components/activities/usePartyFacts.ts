@@ -27,6 +27,9 @@ export function usePartyFacts(party: Party | null | undefined) {
     const minutes = minutesBetween(invitation.data?.start_time, invitation.data?.end_time)
     const startTime = (party.party_time ?? invitation.data?.start_time ?? null)?.slice(0, 5) ?? null
     const label = [party.child_age ? `${ordinal(party.child_age)} Birthday` : null, theme ? `${theme.name} Theme` : null, guestsNow ? `${guestsNow} guests` : null, minutes ? formatMinutes(minutes).replace(' h', ' hours').replace(/^1 hours/, '1 hour') : null].filter(Boolean).join(' • ')
-    return { theme: theme?.name ?? null, guests: guestsNow, confirmed: t.confirmedHeads, minutes, startTime, label }
+    // "Based on your Space theme, 15 guests and your $200 budget" — what the AI will use, in the parent's words
+    const parts = [theme ? `your ${theme.name} theme` : party.child_age ? `a ${party.child_age}-year-old` : null, guestsNow ? `${guestsNow} guests` : null, party.budget != null ? `your $${Number(party.budget).toLocaleString('en-US')} budget` : null].filter(Boolean) as string[]
+    const basedOn = parts.length ? `Based on ${parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : parts[0]}.` : 'Based on your party details.'
+    return { theme: theme?.name ?? null, guests: guestsNow, confirmed: t.confirmedHeads, minutes, startTime, label, basedOn }
   }, [party, catalog.data, guests.data, invitation.data])
 }

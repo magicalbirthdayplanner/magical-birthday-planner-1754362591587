@@ -122,6 +122,7 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     })
     if (over) {
       await finalizeGeneration(auth.user.id, genId, { status: 'rejected', errorCode: `limit_${over}` })
+      logMetric('ai_generation', { feature: spec.feature, user_id: auth.user.id, party_id: partyId, status: 'rejected', error_code: `limit_${over}` })
       if (over !== 'party') return aiError('limit_reached', { upgradeTo: null }, over === 'hourly' ? 'You’ve asked for lots of ideas in the last hour. Please try again a little later.' : 'You’ve reached today’s limit for AI suggestions. Please try again tomorrow.')
       return aiError('limit_reached', { upgradeTo: ent.tier === 'PRO' ? null : ent.tier === 'PLUS' ? 'PRO' : ent.tier === 'STARTER' ? 'PLUS' : 'STARTER' })
     }
@@ -146,8 +147,8 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
       return aiError('invalid_response')
     }
     await finalizeGeneration(auth.user.id, genId, { status: 'success', provider: r.provider, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, durationMs: r.durationMs, result })
-    logMetric('ai_generation', { ...log, status: 'success', input_tokens: r.inputTokens, output_tokens: r.outputTokens })
     const used = await usedForParty(auth.supabase, partyId)
+    logMetric('ai_generation', { ...log, status: 'success', input_tokens: r.inputTokens, output_tokens: r.outputTokens, party_used: used })
     const cap = capability(spec.feature, { enabled: true, tier: ent.tier, superAdmin: ent.superAdmin, used })
     return NextResponse.json({ generationId: genId, result, remaining: cap.remaining }, { headers: { 'Cache-Control': 'no-store' } })
   }

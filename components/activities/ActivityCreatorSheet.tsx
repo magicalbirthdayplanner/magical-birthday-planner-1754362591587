@@ -13,7 +13,7 @@ import { applySuggestion } from '@/components/experience/apply'
 
 export const CREATING_STEPS = ['✨ Creating something special for your party…', 'Matching it to your guests and theme…', 'Writing the steps and what to say…']
 
-export function ActivityCreatorSheet({ partyId, open, onOpenChange, factsLabel, onUsed }: { partyId: string; open: boolean; onOpenChange: (o: boolean) => void; factsLabel: string; onUsed: () => void }) {
+export function ActivityCreatorSheet({ partyId, open, onOpenChange, basedOn, onUsed }: { partyId: string; open: boolean; onOpenChange: (o: boolean) => void; basedOn: string; onUsed: () => void }) {
   const gen = useAIGenerate<ActivityStudioResult>('/api/ai/activity')
   const [notes, setNotes] = useState('')
   const [done, setDone] = useState<null | 'planned' | 'idea'>(null)
@@ -28,7 +28,7 @@ export function ActivityCreatorSheet({ partyId, open, onOpenChange, factsLabel, 
   }
   const s = gen.state
   return (
-    <BottomSheet open={open} onOpenChange={(o) => { if (!o) gen.cancel(); onOpenChange(o) }} title="Create an activity" description={s.phase === 'done' ? 'Nothing changes until you tap Add to party.' : `We already know: ${factsLabel}.`}>
+    <BottomSheet open={open} onOpenChange={(o) => { if (!o) gen.cancel(); onOpenChange(o) }} title="Create an activity" description={s.phase === 'done' ? `${basedOn} Nothing changes until you tap Add to party.` : `${basedOn} No need to repeat any of it.`}>
       {s.phase === 'loading' ? (
         <AIProgress steps={CREATING_STEPS} onCancel={gen.cancel} />
       ) : s.phase === 'done' ? (

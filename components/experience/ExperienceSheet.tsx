@@ -29,7 +29,7 @@ function Block({ title, sub, action, children }: { title: string; sub?: string; 
   )
 }
 
-export function ExperienceSheet({ partyId, open, onOpenChange, onUsed }: { partyId: string; open: boolean; onOpenChange: (o: boolean) => void; onUsed: () => void }) {
+export function ExperienceSheet({ partyId, open, onOpenChange, onUsed, basedOn }: { partyId: string; open: boolean; onOpenChange: (o: boolean) => void; onUsed: () => void; basedOn?: string }) {
   const gen = useAIGenerate<ExperienceResult>('/api/ai/party-experience')
   const [notes, setNotes] = useState('')
   useEffect(() => {
@@ -47,7 +47,7 @@ export function ExperienceSheet({ partyId, open, onOpenChange, onUsed }: { party
   const p = (target: string, id: string, label: string) => <ApplyControls generationId={(s as { generationId: string }).generationId} target={target} itemId={id} label={label} partyId={partyId} />
   const all = (target: 'activities' | 'timeline' | 'food' | 'shopping_list' | 'host' | 'checklist' | 'budget', ids: string[], label = 'Add all') => <AddAllButton generationId={(s as { generationId: string }).generationId} target={target} itemIds={ids} partyId={partyId} label={label} />
   return (
-    <BottomSheet open={open} onOpenChange={(o) => { if (!o) gen.cancel(); onOpenChange(o) }} title="Create my party experience" description={s.phase === 'done' ? 'Pick what you like — each part is added only when you tap it.' : 'Describe the birthday you want. We already know your party details.'}>
+    <BottomSheet open={open} onOpenChange={(o) => { if (!o) gen.cancel(); onOpenChange(o) }} title="Create my party experience" description={s.phase === 'done' ? 'Pick what you like — each part is added only when you tap it.' : `Describe the birthday you want. ${basedOn ?? 'We already know your party details.'}`}>
       {s.phase === 'loading' ? (
         <AIProgress steps={STEPS} onCancel={gen.cancel} />
       ) : s.phase === 'done' ? (

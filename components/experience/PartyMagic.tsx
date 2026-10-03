@@ -18,7 +18,7 @@ import type { HostKind } from '@/lib/ai/features/hostContent.types'
 
 type CardDef = { key: string; emoji: string; title: string; sub: string; feature?: AIFeature; href?: string; onOpen?: () => void }
 
-export function PartyMagic({ partyId }: { partyId: string }) {
+export function PartyMagic({ partyId, basedOn }: { partyId: string; basedOn?: string }) {
   const caps = useAICapabilities(partyId)
   const exp = useExperience(partyId)
   const [tool, setTool] = useState<AIFeature | null>(null)
@@ -72,8 +72,8 @@ export function PartyMagic({ partyId }: { partyId: string }) {
       {active ? (
         <AIToolSheet key={active.feature} open onOpenChange={(o) => !o && setTool(null)} title={active.title} path={active.path} body={{ partyId, ...(active.body?.() ?? {}) }} steps={active.steps} feature={active.feature} restore ask={active.ask} onUsed={() => caps.mutate()} render={(r, gid, rerun) => active.render(r as never, gid, partyId, rerun)} />
       ) : null}
-      {on('host_content') ? <HostStudioSheet partyId={partyId} open={!!host} onOpenChange={(o) => !o && setHost(null)} activities={exp.data?.activities ?? []} saved={exp.data?.host ?? []} preset={host} onUsed={() => caps.mutate()} /> : null}
-      {exCap?.enabled ? <ExperienceSheet partyId={partyId} open={experience} onOpenChange={setExperience} onUsed={() => caps.mutate()} /> : null}
+      {on('host_content') ? <HostStudioSheet basedOn={basedOn} partyId={partyId} open={!!host} onOpenChange={(o) => !o && setHost(null)} activities={exp.data?.activities ?? []} saved={exp.data?.host ?? []} preset={host} onUsed={() => caps.mutate()} /> : null}
+      {exCap?.enabled ? <ExperienceSheet basedOn={basedOn} partyId={partyId} open={experience} onOpenChange={setExperience} onUsed={() => caps.mutate()} /> : null}
     </Section>
   )
 }

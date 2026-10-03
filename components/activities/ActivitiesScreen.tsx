@@ -108,7 +108,7 @@ export function ActivitiesScreen() {
         </Section>
       ) : null}
 
-      {studioOn ? <ActivityCreatorSheet partyId={party.id} open={creating} onOpenChange={setCreating} factsLabel={facts?.label || 'your party details'} onUsed={() => caps.mutate()} /> : null}
+      {studioOn ? <ActivityCreatorSheet partyId={party.id} open={creating} onOpenChange={setCreating} basedOn={facts?.basedOn ?? 'Based on your party details.'} onUsed={() => caps.mutate()} /> : null}
       <ActivityDetailSheet
         partyId={party.id}
         partyDate={party.party_date}
@@ -116,6 +116,7 @@ export function ActivitiesScreen() {
         experience={data}
         facts={{ guests: facts?.guests ?? null, theme: facts?.theme ?? null }}
         aiEditing={studioUsable}
+        basedOn={facts?.basedOn}
         open={!!opened}
         onOpenChange={(o) => !o && setOpenId(null)}
         onEdit={(a) => { setOpenId(null); setForm({ open: true, activity: a }) }}
@@ -123,7 +124,7 @@ export function ActivitiesScreen() {
         onUsed={() => caps.mutate()}
       />
       <ActivityFormSheet partyId={party.id} activity={form.activity} open={form.open} onOpenChange={(o) => setForm((f) => ({ ...f, open: o }))} context={{ guests: facts?.guests ?? null, theme: facts?.theme ?? null }} />
-      {host?.enabled ? <HostStudioSheet partyId={party.id} open={!!intro} onOpenChange={(o) => !o && setIntro(null)} activities={data.activities} saved={data.host} preset={intro} onUsed={() => caps.mutate()} /> : null}
+      {host?.enabled ? <HostStudioSheet basedOn={facts?.basedOn} partyId={party.id} open={!!intro} onOpenChange={(o) => !o && setIntro(null)} activities={data.activities} saved={data.host} preset={intro} onUsed={() => caps.mutate()} /> : null}
     </div>
   )
 }

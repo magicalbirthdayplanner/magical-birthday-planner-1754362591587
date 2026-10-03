@@ -31,7 +31,7 @@ async function copy(text: string) {
   }
 }
 
-export function HostStudioSheet({ partyId, open, onOpenChange, activities, saved, preset, onUsed }: {
+export function HostStudioSheet({ partyId, open, onOpenChange, activities, saved, preset, onUsed, basedOn }: {
   partyId: string
   open: boolean
   onOpenChange: (o: boolean) => void
@@ -39,6 +39,7 @@ export function HostStudioSheet({ partyId, open, onOpenChange, activities, saved
   saved: HostContent[]
   preset?: { kind: HostKind; activityId?: string } | null
   onUsed?: () => void
+  basedOn?: string
 }) {
   const gen = useAIGenerate<HostResult>('/api/ai/host')
   const [kind, setKind] = useState<HostKind>('welcome')
@@ -58,7 +59,7 @@ export function HostStudioSheet({ partyId, open, onOpenChange, activities, saved
   }
   const s = gen.state
   return (
-    <BottomSheet open={open} onOpenChange={(o) => { if (!o) gen.cancel(); onOpenChange(o) }} title="🎤 Party host" description="Speeches and messages for your party. Nothing is ever sent for you.">
+    <BottomSheet open={open} onOpenChange={(o) => { if (!o) gen.cancel(); onOpenChange(o) }} title="🎤 Party host" description={`${basedOn ? `${basedOn} ` : ""}Speeches and messages for your party — nothing is ever sent for you.`}>
       <div className="space-y-4 pb-2">
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="What to write">
           {ORDER.map((k) => <Chip key={k} role="radio" aria-checked={kind === k} active={kind === k} onClick={() => { setKind(k); gen.reset() }}>{HOST_LABELS[k]}</Chip>)}

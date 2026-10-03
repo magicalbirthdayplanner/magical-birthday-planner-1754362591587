@@ -198,6 +198,30 @@ describe.skipIf(!up)('guests, food, host content', () => {
   })
 })
 
+describe.skipIf(!up)('changing the party keeps everything coherent', () => {
+  it('age, date, venue and dietary changes reach every next AI call; approved items and links stay as they were', async () => {
+    const { row } = await addActivity()
+    await A.client.from('party_shopping_items').insert({ party_id: P, user_id: A.id, item: 'Glow sticks', qty: '15', source_activity_id: row.id })
+    await A.client.from('party_timeline_items').insert({ party_id: P, user_id: A.id, kind: 'activity', label: row.name, activity_id: row.id, sort_order: 1 })
+    const newDate = inDays(20)
+    await A.client.from('parties').update({ child_age: 8, party_date: newDate }).eq('id', P)
+    await A.client.from('party_venues').upsert({ party_id: P, user_id: A.id, is_custom: true, custom_name: 'Starlight Art Studio', custom_address: '1 Main St' }, { onConflict: 'party_id' })
+    await A.client.from('guests').insert({ party_id: P, user_id: A.id, name: 'Kim Lee', rsvp_status: 'CONFIRMED', child_count: 1, adult_count: 1, dietary_restrictions: ['Gluten-free'] })
+    const c = await json(call('checklist', { partyId: P }))
+    const f = facts()
+    expect(f).toMatchObject({ childAge: 8, partyDate: newDate, daysUntilParty: 20, venue: { name: 'Starlight Art Studio', booked: true }, rsvp: { dietary: ['gluten-free'] } })
+    expect(f.existingActivities).toEqual([{ name: row.name, min: 25, setting: 'indoor' }])
+    expect(f.timeline).toEqual([{ label: row.name, min: 25 }])
+    // dates come from the new party date, never in the past
+    for (const t of c.result.tasks) expect(t.dueDate! >= new Date().toISOString().slice(0, 10) && t.dueDate! <= newDate).toBe(true)
+    // the approved activity and its links are untouched
+    expect((await A.client.from('party_ai_activities').select('name, duration_min, designed_for_guests').eq('id', row.id).single()).data).toEqual({ name: row.name, duration_min: 25, designed_for_guests: 15 })
+    expect((await A.client.from('party_shopping_items').select('source_activity_id').eq('party_id', P).single()).data!.source_activity_id).toBe(row.id)
+    await adminClient().from('party_venues').delete().eq('party_id', P)
+    await A.client.from('parties').update({ child_age: 7, party_date: inDays(12) }).eq('id', P)
+  })
+})
+
 describe.skipIf(!up)('create my party experience', () => {
   it('returns separate sections; each applies on its own; nothing changes until applied', async () => {
     const g = await json(call('party-experience', { partyId: P, notes: 'She loves space and painting, not a typical space party, nothing too messy.' }))

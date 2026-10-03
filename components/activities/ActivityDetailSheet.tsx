@@ -22,7 +22,7 @@ import { ActivitySections } from './ActivitySections'
 const MAKE_IT: [ActivityEdit, string][] = [['cheaper', 'Make it cheaper'], ['exciting', 'More exciting'], ['easier', 'Make it easier'], ['shorter', 'Shorter'], ['longer', 'Longer'], ['indoor', 'Make it indoor'], ['outdoor', 'Make it outdoor'], ['less_messy', 'Less messy'], ['younger', 'For younger kids'], ['older', 'For older kids']]
 const DISCOVER_CHIP: Record<string, string> = { craft: 'art', performance: 'art', active: 'sports', game: 'play', treasure_hunt: 'play', calm: 'museums', food: 'vendors', other: 'recommended' }
 
-export function ActivityDetailSheet({ partyId, partyDate, activity, experience, facts, aiEditing, open, onOpenChange, onEdit, onIntro, onUsed }: {
+export function ActivityDetailSheet({ partyId, partyDate, activity, experience, facts, aiEditing, basedOn, open, onOpenChange, onEdit, onIntro, onUsed }: {
   partyId: string
   partyDate: string
   activity: Activity | null
@@ -30,6 +30,7 @@ export function ActivityDetailSheet({ partyId, partyDate, activity, experience, 
   facts: { guests: number | null; theme: string | null }
   /** activity_studio enabled + allowed for this plan */
   aiEditing: boolean
+  basedOn?: string
   open: boolean
   onOpenChange: (o: boolean) => void
   onEdit: (a: Activity) => void
@@ -144,7 +145,7 @@ export function ActivityDetailSheet({ partyId, partyDate, activity, experience, 
                   <TextField className="min-w-0 flex-1" label="Ask for a change" placeholder="“Can you make this work without buying anything?”" value={ask} maxLength={500} onChange={(e) => setAsk(e.target.value)} />
                   <AppButton className="h-14 shrink-0" disabled={ask.trim().length < 3} onClick={() => revise(null, ask.trim())}>Ask</AppButton>
                 </div>
-                <p className="text-xs text-muted-foreground">You’ll see the new version first — yours only changes if you choose it.</p>
+                <p className="text-xs text-muted-foreground">{basedOn ? `${basedOn} ` : ''}You’ll see the new version first — yours only changes if you choose it.</p>
               </section>
             ) : null}
 
