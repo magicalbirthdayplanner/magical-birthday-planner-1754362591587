@@ -66,7 +66,7 @@ entry is read by the code.
    * checklist;
    * sign out / sign in.
 4. **Monitor:**
-   * Vercel function logs and `venue_search_completed` metrics;
+   * Sentry issues, alerts and uptime (`docs/OBSERVABILITY.md`);
    * Google quota usage;
    * Resend bounces;
    * Supabase auth logs.
@@ -80,6 +80,9 @@ entry is read by the code.
 
 ## 7. Rollback
 
-* **App:** promote the previous Vercel deployment.
+* **Migrations before app.** Apply a new migration (`supabase db push --db-url <session pooler URL>`, after a
+  `--dry-run`), verify it, then fast-forward `master`. Each migration header states its compatibility.
+* **App:** promote the previous Vercel deployment — **check compatibility first**: after `20251004001200` the
+  previous app cannot reserve AI usage (AI would fail), so fix forward instead of rolling back past it.
 * **Database:** migrations only add columns, tables, functions and indexes, or replace policies with
   stricter ones. There are no destructive steps to undo.

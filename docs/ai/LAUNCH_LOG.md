@@ -6,7 +6,7 @@
 | Code | `master` = `mobile-first` = `feat/ai-upgrade` (fast-forward only, no force push) |
 | Rollback | Set `AI_ENABLED=false` in Vercel Production → redeploy. Pre-AI deployment: `dpl_9ztcb389XTSA2NNbbcdi7jDr8ZxY` (a50a5fb). |
 
-## Database (production Supabase `fnrgybrhmjtokmotqotk`)
+## Database (production Supabase `<project-ref>`)
 - Before: migrations 0000–0700 recorded; 0800/0900 pending; no AI tables.
 - `supabase db push` (dry run first): applied `20251003000800_ai_assistant.sql` → `20251003000900_ai_hardening.sql`.
 - Verified: both versions recorded; 4 AI tables with RLS (1 + 3×4 policies); `ai_finalize` executable by `service_role` only;

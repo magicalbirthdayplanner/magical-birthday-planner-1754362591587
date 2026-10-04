@@ -7,13 +7,15 @@ in the repository, and tooling never prints values. Variable list: [`.env.exampl
 
 | Service | Used for | Code | Automated tests | Real-service status | Blocker |
 |---|---|---|---|---|---|
-| **Supabase** | Auth (email/password), Postgres + RLS | Complete (`supabase/migrations`) | Integration suite on local Supabase | Production project: all migrations through `0500` applied, schema matches the migrations, RLS verified cross-user | Auth URL settings and SMTP (below). Migration `0600` awaits approval. |
-| **Google Places API (New)** | Venue search, details, photos | Complete: field masks, hard `locationRestriction`, cache-first (24 h / 7 d), in-flight dedupe, deadline, budgets | Unit + integration + E2E against `tests/mock-google` | Supplied key returns **403** (billing / Places API (New) not enabled) | Enable billing and the API; set quotas |
-| **Google Maps JavaScript API** | Map (`GoogleMapView`: Advanced Markers, clustering) | Complete. Simplified map when no key | E2E (simplified map) | No browser key yet | Referrer-restricted browser key + Map ID |
-| **Resend** | Invitation, RSVP confirmation, host notification | Complete: escaped templates, idempotency keys, `email_logs`, daily caps; failures never break the action | Integration + E2E (mock) | Domain `magicalbirthdayplanner.app` **verified**; production sends from `noreply@magicalbirthdayplanner.app` (delivered in the production smoke test) | — |
-| **Dodo Payments** | Checkout, webhook, entitlements | Complete (`BILLING_SECURITY.md`) | Unit + integration + E2E (mock test mode, signed webhooks) | Not yet run against the real sandbox | Test-mode API key, webhook secret, product ids |
-| **Azure OpenAI** (optional) | AI theme ideas on the Theme screen (`/api/themes/ai`) | Complete: auth, per-user limit, 30-day cache, timeout | Unit | Uses the configured deployment | None (feature hides when unset) |
-| **Vercel** | Hosting | `vercel.json` | — | **Production on `https://magicalbirthdayplanner.app`** (SSL, `www` and `*.vercel.app` → 308 apex); Preview on `mobile-first` | Production branch is still `master` (below) |
+| **Supabase** | Auth (email/password + Google OAuth), Postgres + RLS, RPCs | Complete (`supabase/migrations`, 13 migrations) | Integration suite on local Supabase | Production: all migrations through `20251004001200` applied; RLS verified cross-user | — |
+| **Google Places API (New)** | Venue search, details, photos | Complete: field masks, hard `locationRestriction`, cache-first (24 h / 7 d), in-flight dedupe, deadline, budgets | Unit + integration + E2E against `tests/mock-google` | Live in production (real results, details, photos) | Keep GCP quota caps + billing alerts |
+| **Google Maps JavaScript API** | Map (`GoogleMapView`: Advanced Markers, clustering) | Complete. Simplified map when no key | E2E (simplified map) | Live in production (referrer-restricted browser key + Map ID) | — |
+| **Resend** | Invitation, RSVP confirmation, host notification; Supabase auth email via SMTP | Complete: escaped templates, idempotency keys, `email_logs`, daily caps; failures never break the action | Integration + E2E (mock) | Production sends from the verified domain's `noreply@` address (delivered in production smoke tests) | — |
+| **Dodo Payments** | Checkout, webhook, entitlements | Complete (`BILLING_SECURITY.md`) | Unit + integration + E2E (mock test mode, signed webhooks) | **Live mode** in production; live checkout session verified; no live payment processed yet | One real purchase + refund (owner) |
+| **AI provider** (OpenAI-compatible) | All AI features (`lib/ai/*`) | Complete: provider abstraction, timeouts, retry, validation, server-only usage accounting | Unit + integration + E2E with a deterministic mock; opt-in live checks (`vitest.live.config.ts`) | Live: six features enabled (see `docs/ai/AI_FEATURES.md`) | — |
+| **Sentry** | Errors, tracing, logs, metrics, alerts, uptime | Complete (`docs/OBSERVABILITY.md`) | Unit + integration (in-memory Sentry mock) | Live; source maps uploaded at build | — |
+| **Azure OpenAI** (legacy, optional) | Old AI theme ideas route (`/api/themes/ai`) | Kept for compatibility | Unit | **Not configured** in production (route returns 503) | Retire |
+| **Vercel** | Hosting | `vercel.json` | — | Production on the canonical domain (SSL, `www` and `*.vercel.app` → 308 apex) from `master`; Preview on `mobile-first` (branch-scoped env vars) | — |
 | **Cloudflare** | DNS for `magicalbirthdayplanner.app` | — | — | Web + Resend records configured (below) | — |
 
 ## Setup notes

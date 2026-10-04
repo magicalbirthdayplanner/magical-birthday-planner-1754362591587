@@ -2,12 +2,15 @@
 
 | Layer | Tool | Location | Needs | Count |
 |---|---|---|---|---|
-| Unit | Vitest | `tests/unit` | nothing | 162 |
-| Integration (RLS, security, billing, email, API routes) | Vitest + supabase-js | `tests/integration` | local Supabase | 112 |
-| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google/Resend/Dodo + a production build | 23 |
+| Unit | Vitest | `tests/unit` | nothing | 238 (21 files) |
+| Integration (RLS, security, billing, email, AI, AI usage attacks, RSVP idempotency, observability) | Vitest + supabase-js | `tests/integration` | local Supabase | 254 (17 files) |
+| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google/Resend/Dodo + a production build | 40 runs (29 tests × projects) |
+
+Counts verified on 2026-10-04. AI tests use a deterministic mock provider; `vitest.live.config.ts` holds opt-in live
+provider checks (`AI_LIVE=1`). Production smoke tests use temporary accounts that are deleted afterwards.
 
 Google is **always mocked** in tests (`tests/mock-google/server.mjs` or injected fakes). No test
-calls real Google, OpenAI or Resend. Integration tests refuse to run against a non-local Supabase URL.
+calls real Google, an AI provider or Resend. Integration tests refuse to run against a non-local Supabase URL.
 
 ## Run
 

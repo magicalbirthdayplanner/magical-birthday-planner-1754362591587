@@ -20,7 +20,7 @@ The Next.js 15 upgrade is built and fully tested, but it couldn't be promoted ov
 | Next.js in production | **14.2.35** (Next.js 15.5.27 + React 19.3.0 is ready on `mobile-first` `0495bcc`) |
 | `mobile-first` | `d0dfd86` = Next 15 upgrade + PostCSS patch (not deployed); `master` can fast-forward to it |
 | Domain | `magicalbirthdayplanner.app`, HTTPS; `http://`, `www.` and `magical-birthday-planner.vercel.app` 308 → apex |
-| Supabase | project `fnrgybrhmjtokmotqotk`; migrations `0000`–`0700` applied; RLS on all 25 public tables |
+| Supabase | project `<project-ref>`; migrations `0000`–`0700` applied; RLS on all 25 public tables |
 | Google Places (New) | live: ZIP 48084 → 112/112 real Google venues, no fallback |
 | Google Maps JS | live: real map with Map ID, markers, sheet, details, pan, zoom |
 | Resend | domain verified; all mail from `noreply@magicalbirthdayplanner.app`; delivered |

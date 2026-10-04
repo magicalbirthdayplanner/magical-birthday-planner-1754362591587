@@ -7,7 +7,7 @@ Full assessment: `docs/ai/AI_PRODUCTION_READINESS_REPORT.md`.
 - [ ] **Rotate the OpenCode key** that was pasted into chat (OpenCode console → API keys), then use the new key below.
 - [ ] Review/merge `feat/ai-upgrade` → `mobile-first` → fast-forward `master` (normal pushes; production deploys from `master`).
 
-## 1. Database (production Supabase `fnrgybrhmjtokmotqotk`)
+## 1. Database (production Supabase `<project-ref>`)
 Apply in this order (0700 is already applied). **Both** are required — 0900 closes a usage-limit bypass in 0800.
 - [ ] Dry-run first: `npx supabase db push --db-url "$DBURL" --dry-run` → must list exactly
   `20251003000800_ai_assistant.sql` and `20251003000900_ai_hardening.sql`, then apply.

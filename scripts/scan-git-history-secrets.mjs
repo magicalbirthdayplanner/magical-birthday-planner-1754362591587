@@ -25,6 +25,11 @@ const PUBLIC_LOCAL_DEMO = new Set([
   // supabase start's well-known demo keys (public, local only)
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU',
+  // synthetic fixtures in tests/unit/observability.test.ts (scrubber tests; not real credentials)
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c', // the public jwt.io sample
+  'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+  'AIzaSyTESTKEYTESTKEYTESTKEYTESTKEY12345',
+  'whsec_abcdefghijklmnopqrstuv',
 ])
 
 function jwtRole(token) {

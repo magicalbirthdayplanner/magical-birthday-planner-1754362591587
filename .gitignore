@@ -67,3 +67,19 @@ logs/
 
 # Local tool settings
 .claude/settings.local.json
+
+# Credentials / local secrets (never commit)
+*.key
+*.p12
+*.pfx
+service-account*.json
+*credentials*.json
+.sentryclirc
+.secrets/
+secrets/
+*.secret
+*.log
+
+# Local QA / scratch artifacts
+.qa*
+/tmp/
