@@ -1,12 +1,14 @@
 'use client'
 /**
  * The four plans (Free · Starter · Plus · Pro), always all visible. Contents and prices come from the product
- * model (lib/entitlements.ts); CTAs adapt to the visitor (anonymous, Free, trial, paid) but never hide a plan.
+ * model (lib/entitlements.ts). Paid plans are bought PER PARTY: inside <PartyProvider> the cards show the active
+ * party's plan and checkout buys for that party; CTAs adapt to the visitor (anonymous, Free, trial, paid).
  */
 import Link from 'next/link'
 import { Check, Minus } from 'lucide-react'
 import { CheckoutButton } from './CheckoutButton'
 import { usePlanStatus } from './usePlanStatus'
+import { useOptionalParty } from '@/components/app/PartyProvider'
 import { useAuth } from '@/contexts/AuthContext'
 import { track } from '@/lib/analytics/client'
 import { formatPrice, PLAN_INFO, planRank, type Plan } from '@/lib/entitlements'
@@ -22,11 +24,33 @@ const ACCENT: Record<Plan, string> = {
 
 export function PlanCards({ highlight }: { highlight?: Plan | null }) {
   const { user } = useAuth()
+  const ctx = useOptionalParty()
+  const party = ctx?.party ?? null
   const status = usePlanStatus()
   const owned = user ? status.ownedPlan : null
+  const firstName = party?.child_name.split(' ')[0]
+  // Signed in inside the app context but no party yet: a plan needs a party to belong to.
+  const needsParty = !!user && !!ctx && !ctx.isLoading && !party
 
   return (
-    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" data-testid="plan-cards">
+    <div className="mx-auto max-w-6xl">
+      <p className="mb-5 text-center text-sm text-muted-foreground" data-testid="per-party-note">
+        Pay once for each party. No monthly subscription.
+      </p>
+      {user && party ? (
+        <div className="mb-5 flex flex-wrap items-center justify-center gap-2 text-sm" data-testid="pricing-party">
+          <span>Choosing a plan for <strong>{firstName}’s party</strong>.</span>
+          {ctx && ctx.parties.length > 1 ? (
+            <label className="inline-flex items-center gap-1">
+              <span className="sr-only">Party</span>
+              <select className="min-h-[44px] rounded-full border border-border bg-background px-3" value={party.id} onChange={(e) => ctx.setActivePartyId(e.target.value)}>
+                {ctx.parties.map((p) => <option key={p.id} value={p.id}>{p.child_name.split(' ')[0]}’s party · {p.party_date}</option>)}
+              </select>
+            </label>
+          ) : null}
+        </div>
+      ) : null}
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" data-testid="plan-cards">
       {(['FREE', 'STARTER', 'PLUS', 'PRO'] as const).map((p) => {
         const info = PLAN_INFO[p]
         const h = PLAN_HIGHLIGHTS[p]
@@ -45,7 +69,7 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
             <p className="mt-1 text-sm text-muted-foreground">{info.tagline}</p>
             <p className="mt-3">
               <span className="font-display text-3xl font-extrabold">{formatPrice(info.priceCents)}</span>
-              <span className="ml-1 text-sm text-muted-foreground">{p === 'FREE' ? 'forever' : 'one-time'}</span>
+              <span className="ml-1 text-sm text-muted-foreground">{p === 'FREE' ? 'forever' : 'per party'}</span>
             </p>
             {h.intro ? <p className="mt-4 text-sm font-semibold">{h.intro}</p> : <div className="mt-4" />}
             <ul className="mt-2 flex-1 space-y-2 text-sm">
@@ -56,16 +80,25 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
             </ul>
             <div className="mt-5">
               {isCurrent ? (
-                <span className="flex min-h-[44px] items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground" data-testid={`plan-current-${p}`}>Your current plan</span>
+                <span className="flex min-h-[44px] items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground" data-testid={`plan-current-${p}`}>{party ? 'This party’s plan' : 'Your current plan'}</span>
               ) : included ? (
-                <span className="flex min-h-[44px] items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">Included in your plan</span>
+                <span className="flex min-h-[44px] items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">{party ? 'Included in this party’s plan' : 'Included in your plan'}</span>
               ) : p === 'FREE' ? (
                 <Link href={user ? '/home' : '/start'} className="tap flex min-h-[44px] items-center justify-center rounded-full border-2 border-border bg-background text-sm font-semibold" onClick={() => track('plan_upgrade_clicked', { plan: 'FREE', from: 'pricing' })}>
                   {user ? 'Keep planning' : 'Start free'}
                 </Link>
+              ) : needsParty ? (
+                <Link href="/start" className="tap flex min-h-[44px] items-center justify-center rounded-full border-2 border-border bg-background text-sm font-semibold" data-testid={`create-party-${p}`}>
+                  Create your party first
+                </Link>
+              ) : user && !ctx ? (
+                <Link href={`/pricing?upgrade=${p.toLowerCase()}`} className="tap flex min-h-[44px] items-center justify-center rounded-full border-2 border-border bg-background text-sm font-semibold">
+                  {`Choose ${info.name} — ${formatPrice(info.priceCents)}`}
+                </Link>
               ) : (
                 <CheckoutButton
                   plan={p}
+                  partyId={party?.id ?? null}
                   className={cn(
                     'h-11 rounded-full text-sm',
                     p === 'STARTER' && 'bg-purple-600 hover:bg-purple-700',
@@ -80,6 +113,7 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
           </section>
         )
       })}
+    </div>
     </div>
   )
 }

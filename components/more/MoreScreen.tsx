@@ -35,7 +35,8 @@ export function MoreScreen() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [iosHelp, setIosHelp] = useState(false)
-  const billing = useSWR(user ? ['billing', user.id] : null, () => apiFetch<{ plan: string; source?: 'admin_override' | 'purchase' | 'trial' | 'free'; trialActive: boolean }>('/api/billing/status'), { revalidateOnFocus: true })
+  // Plans are bought per party: show the active party's plan.
+  const billing = useSWR(user ? ['billing', user.id, party?.id ?? null] : null, () => apiFetch<{ plan: string; source?: 'admin_override' | 'purchase' | 'trial' | 'free'; trialActive: boolean }>(`/api/billing/status${party ? `?partyId=${party.id}` : ''}`), { revalidateOnFocus: true })
   // 200 only for a server-verified Super Admin (404 otherwise): never decided by the client.
   const adminSession = useSWR(user ? ['admin-session', user.id] : null, () => apiFetch<{ admin: boolean }>('/api/admin/session').catch(() => null), { revalidateOnFocus: false, shouldRetryOnError: false })
 
@@ -83,7 +84,7 @@ export function MoreScreen() {
       <Section>
         <Link href="/pricing" className="tap flex items-center justify-between rounded-2xl border border-border bg-card p-4" data-testid="plan-row">
           <span>
-            <span className="block text-sm text-muted-foreground">Your plan</span>
+            <span className="block text-sm text-muted-foreground">{party ? `Plan for ${party.child_name.split(' ')[0]}’s party` : 'Your plan'}</span>
             <span className="block font-semibold">{billing.data ? (billing.data.source === 'trial' ? 'Free trial — Starter features for 24 h' : `${billing.data.plan.charAt(0)}${billing.data.plan.slice(1).toLowerCase()}`) : '…'}</span>
             {billing.data?.source === 'admin_override' || billing.data?.source === 'purchase' ? (
               <span className="block text-xs font-semibold text-muted-foreground" data-testid="plan-source">{billing.data.source === 'admin_override' ? 'Admin override' : 'Purchased'}</span>

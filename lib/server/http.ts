@@ -13,6 +13,7 @@ export type ApiErrorCode =
   | 'timeout'
   | 'not_configured'
   | 'server_error'
+  | 'already_owned'
 
 /** Consistent, user-safe error body. Never includes stack traces or upstream messages. */
 export function apiError(status: number, code: ApiErrorCode, message: string, headers?: HeadersInit) {

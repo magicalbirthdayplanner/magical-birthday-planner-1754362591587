@@ -32,7 +32,7 @@ export default function HelpPage() {
           <section className="mb-8" aria-labelledby="parents">
             <h2 id="parents" className="mb-3 text-2xl font-semibold text-gray-900 dark:text-gray-100">Planning a party</h2>
             <ul className="list-disc space-y-2 pl-6 text-gray-600 dark:text-gray-300">
-              <li>Plans and what each one includes are on the <Link href="/pricing" className="text-purple-700 underline dark:text-purple-300">pricing page</Link>. Paid plans are a one-time payment for your account, processed by Dodo Payments.</li>
+              <li>Plans and what each one includes are on the <Link href="/pricing" className="text-purple-700 underline dark:text-purple-300">pricing page</Link>. Paid plans are priced per party — you pay once for each party, with no subscription. Payments are processed by Dodo Payments.</li>
               <li>Forgot your password? Use <strong>Forgot password?</strong> on the <Link href="/login" className="text-purple-700 underline dark:text-purple-300">sign-in page</Link>.</li>
               <li>Want your account and party data deleted, or a copy of it? Email us from the address you signed up with and we’ll take care of it.</li>
             </ul>

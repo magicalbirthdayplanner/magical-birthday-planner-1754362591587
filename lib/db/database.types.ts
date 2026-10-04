@@ -98,10 +98,10 @@ isOneToOne: false
                     "applied": NonNullable<Json>,"created_at": string,"duration_ms": number | null,"error_code": string | null,"feature": string,"id": string,"input_summary": NonNullable<Json>,"input_tokens": number | null,"model": string | null,"output_tokens": number | null,"party_id": string | null,"provider": string | null,"result": Json | null,"status": string,"updated_at": string,"user_id": string | null
                   }
                   Insert: {
-                    "applied"?: NonNullable<Json>,"created_at"?: string,"duration_ms"?: number | null,"error_code"?: string | null,"feature": string,"id"?: string,"input_summary"?: NonNullable<Json>,"input_tokens"?: number | null,"model"?: string | null,"output_tokens"?: number | null,"party_id": string,"provider"?: string | null,"result"?: Json | null,"status"?: string,"updated_at"?: string,"user_id"?: string
+                    "applied"?: NonNullable<Json>,"created_at"?: string,"duration_ms"?: number | null,"error_code"?: string | null,"feature": string,"id"?: string,"input_summary"?: NonNullable<Json>,"input_tokens"?: number | null,"model"?: string | null,"output_tokens"?: number | null,"party_id"?: string | null,"provider"?: string | null,"result"?: Json | null,"status"?: string,"updated_at"?: string,"user_id"?: string | null
                   }
                   Update: {
-                    "applied"?: NonNullable<Json>,"created_at"?: string,"duration_ms"?: number | null,"error_code"?: string | null,"feature"?: string,"id"?: string,"input_summary"?: NonNullable<Json>,"input_tokens"?: number | null,"model"?: string | null,"output_tokens"?: number | null,"party_id"?: string,"provider"?: string | null,"result"?: Json | null,"status"?: string,"updated_at"?: string,"user_id"?: string
+                    "applied"?: NonNullable<Json>,"created_at"?: string,"duration_ms"?: number | null,"error_code"?: string | null,"feature"?: string,"id"?: string,"input_summary"?: NonNullable<Json>,"input_tokens"?: number | null,"model"?: string | null,"output_tokens"?: number | null,"party_id"?: string | null,"provider"?: string | null,"result"?: Json | null,"status"?: string,"updated_at"?: string,"user_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -127,16 +127,22 @@ isOneToOne: false
                   ]
                 },"billing_checkouts": {
                   Row: {
-                    "completed_at": string | null,"created_at": string,"customer_email": string | null,"id": string,"payment_ref": string | null,"plan": string,"product_id": string,"session_id": string | null,"status": string,"user_id": string
+                    "completed_at": string | null,"created_at": string,"customer_email": string | null,"id": string,"party_id": string | null,"payment_ref": string | null,"plan": string,"product_id": string,"session_id": string | null,"status": string,"user_id": string
                   }
                   Insert: {
-                    "completed_at"?: string | null,"created_at"?: string,"customer_email"?: string | null,"id"?: string,"payment_ref"?: string | null,"plan": string,"product_id": string,"session_id"?: string | null,"status"?: string,"user_id": string
+                    "completed_at"?: string | null,"created_at"?: string,"customer_email"?: string | null,"id"?: string,"party_id"?: string | null,"payment_ref"?: string | null,"plan": string,"product_id": string,"session_id"?: string | null,"status"?: string,"user_id": string
                   }
                   Update: {
-                    "completed_at"?: string | null,"created_at"?: string,"customer_email"?: string | null,"id"?: string,"payment_ref"?: string | null,"plan"?: string,"product_id"?: string,"session_id"?: string | null,"status"?: string,"user_id"?: string
+                    "completed_at"?: string | null,"created_at"?: string,"customer_email"?: string | null,"id"?: string,"party_id"?: string | null,"payment_ref"?: string | null,"plan"?: string,"product_id"?: string,"session_id"?: string | null,"status"?: string,"user_id"?: string
                   }
                   Relationships: [
-                    
+                    {
+      foreignKeyName: "billing_checkouts_party_id_fkey"
+      columns: ["party_id"]
+isOneToOne: false
+      referencedRelation: "parties"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"billing_customers": {
                   Row: {
@@ -153,16 +159,22 @@ isOneToOne: false
                   ]
                 },"billing_purchases": {
                   Row: {
-                    "amount_minor": number | null,"created_at": string,"currency": string | null,"current_period_end": string | null,"customer_ref": string | null,"id": string,"kind": string,"last_event_at": string | null,"plan": string,"product_id": string | null,"provider": string,"provider_ref": string,"status": string,"updated_at": string,"user_id": string
+                    "amount_minor": number | null,"created_at": string,"currency": string | null,"current_period_end": string | null,"customer_ref": string | null,"id": string,"kind": string,"last_event_at": string | null,"party_id": string | null,"plan": string,"product_id": string | null,"provider": string,"provider_ref": string,"scope": string,"status": string,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind": string,"last_event_at"?: string | null,"plan": string,"product_id"?: string | null,"provider"?: string,"provider_ref": string,"status": string,"updated_at"?: string,"user_id": string
+                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind": string,"last_event_at"?: string | null,"party_id"?: string | null,"plan": string,"product_id"?: string | null,"provider"?: string,"provider_ref": string,"scope"?: string,"status": string,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind"?: string,"last_event_at"?: string | null,"plan"?: string,"product_id"?: string | null,"provider"?: string,"provider_ref"?: string,"status"?: string,"updated_at"?: string,"user_id"?: string
+                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind"?: string,"last_event_at"?: string | null,"party_id"?: string | null,"plan"?: string,"product_id"?: string | null,"provider"?: string,"provider_ref"?: string,"scope"?: string,"status"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
-                    
+                    {
+      foreignKeyName: "billing_purchases_party_id_fkey"
+      columns: ["party_id"]
+isOneToOne: false
+      referencedRelation: "parties"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"billing_webhook_events": {
                   Row: {
@@ -779,11 +791,19 @@ isOneToOne: false
 "get_trial_status":
 { Args: { "user_id": string }; Returns: Json
                            },
+"has_paid_access":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           } |
+{ Args: { "p_party": string }; Returns: boolean
+                           },
 "is_end_user_request":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "owns_party":
 { Args: { "p_party_id": string }; Returns: boolean
+                           },
+"party_plan":
+{ Args: { "p_party": string }; Returns: string
                            },
 "purge_stale_places_content":
 { Args: { "p_max_age_days"?: number }; Returns: number
@@ -796,9 +816,6 @@ isOneToOne: false
                            },
 "start_24_hour_trial":
 { Args: { "user_id": string }; Returns: undefined
-                           },
-"has_paid_access":
-{ Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "submit_rsvp":
 { Args: { "p_adults"?: number,"p_children"?: number,"p_email": string,"p_name": string,"p_note"?: string,"p_respondent"?: string,"p_status": string,"p_token": string }; Returns: Json

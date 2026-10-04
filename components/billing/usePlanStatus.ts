@@ -1,6 +1,7 @@
 'use client'
 import useSWR from 'swr'
 import { useAuth } from '@/contexts/AuthContext'
+import { useOptionalParty } from '@/components/app/PartyProvider'
 import { apiFetch } from '@/lib/data/api'
 import { allows, effectivePlan, ownedPlan, planAtLeast, type Capability, type Plan, type PlanState } from '@/lib/entitlements'
 
@@ -9,15 +10,19 @@ export type { Plan }
 type Status = PlanState & { trialActive: boolean; superAdmin?: boolean }
 
 /**
- * Server-derived plan (/api/billing/status) mapped through the product model (lib/entitlements.ts). The browser
- * never decides entitlements: this only chooses what to SHOW. The server enforces every paid capability.
+ * Server-derived plan (/api/billing/status) mapped through the product model (lib/entitlements.ts). Plans are bought
+ * per party, so this is the plan of `partyId` — by default the active party when rendered inside <PartyProvider>
+ * (account-level plan otherwise). The browser never decides entitlements: this only chooses what to SHOW.
  */
-export function usePlanStatus() {
+export function usePlanStatus(partyId?: string | null) {
   const { user } = useAuth()
-  const { data, isLoading } = useSWR(user ? ['billing', user.id] : null, () => apiFetch<Status>('/api/billing/status'))
+  const ctx = useOptionalParty()
+  const pid = partyId !== undefined ? partyId : (ctx?.party?.id ?? null)
+  const { data, isLoading } = useSWR(user ? ['billing', user.id, pid] : null, () => apiFetch<Status>(`/api/billing/status${pid ? `?partyId=${pid}` : ''}`))
   const owned = ownedPlan(data)
   return {
     loaded: !user || !!data,
+    partyId: pid,
     isLoading,
     /** Effective plan for non-AI features (a trial counts as Starter here). */
     currentPlan: effectivePlan(data, { ai: false }),

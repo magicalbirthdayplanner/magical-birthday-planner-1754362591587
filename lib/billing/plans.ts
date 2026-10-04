@@ -1,6 +1,7 @@
 /**
  * Server-side plan catalogue. Product ids and prices come from the server
- * environment — never from the client. One-time purchases: a plan unlocks the account (all its parties) and does not expire.
+ * environment — never from the client. Plans are bought per party: a purchase unlocks its plan for the party it was bought for (legacy
+ * purchases made before 2026-10-04 are account-wide) and does not expire.
  */
 import { PLAN_INFO } from '@/lib/entitlements'
 

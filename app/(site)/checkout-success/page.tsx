@@ -22,9 +22,9 @@ function CheckoutResult() {
       </div>
       <h1 className="font-display text-3xl font-extrabold">Thanks for your order!</h1>
       <div className="mt-4 w-full">
-        <CheckoutStatus providerStatus={params.get('status')} />
+        <CheckoutStatus providerStatus={params.get('status')} checkoutRef={params.get('ref')} />
       </div>
-      <p className="mt-4 text-sm text-muted-foreground">Your plan activates as soon as our payment provider confirms the payment — usually within a minute.</p>
+      <p className="mt-4 text-sm text-muted-foreground">Your plan is for one party and activates as soon as our payment provider confirms the payment — usually within a minute.</p>
       <div className="mt-6 flex w-full flex-col gap-3">
         <Link href={next} className="tap flex min-h-[48px] items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground">
           Continue planning

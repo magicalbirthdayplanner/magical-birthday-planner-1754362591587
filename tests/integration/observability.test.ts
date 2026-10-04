@@ -93,11 +93,11 @@ describe.skipIf(!up)('checkout telemetry', () => {
     expect(sentry.captured).toEqual([])
   })
   it('a Dodo provider failure is an issue with plan + code (no customer data) and records checkout latency', async () => {
-    const res = await checkout.POST(new Request('http://app.test/api/billing/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${U.accessToken}` }, body: JSON.stringify({ plan: 'PLUS' }) }))
+    const res = await checkout.POST(new Request('http://app.test/api/billing/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${U.accessToken}` }, body: JSON.stringify({ plan: 'PRO', partyId }) })) // U has PLUS (override): PRO is a real upgrade
     expect(res.status).toBe(502)
     expect(sentry.names()).toEqual(['CHECKOUT_FAILED'])
     expect(sentry.metrics.some((m) => m.name === 'CHECKOUT_LATENCY' && m.attributes.success === false)).toBe(true)
-    expect(sentry.captured[0]).toMatchObject({ level: 'error', tags: { area: 'billing', plan: 'PLUS', code: 'provider_error', environment: 'test' } })
+    expect(sentry.captured[0]).toMatchObject({ level: 'error', tags: { area: 'billing', plan: 'PRO', code: 'provider_error', environment: 'test' } })
     expect(sentry.dump()).not.toContain(U.email)
   })
 })

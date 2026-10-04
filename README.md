@@ -123,7 +123,7 @@ Details per feature: **[docs/FEATURES.md](docs/FEATURES.md)**.
 | Food / shopping / budget / timeline | "Your party plan" sections fed by AI results and activities |
 | Themes | Curated theme catalogue + AI theme ideas |
 | Party Host | AI speeches and messages for the party day and after |
-| Billing | Free + one-time Starter / Plus / Pro (account-wide) via Dodo hosted checkout; 24 h trial of Starter's guest & RSVP features (no AI) on sign-up |
+| Billing | Free + Starter / Plus / Pro priced per party (each purchase unlocks one party) via Dodo hosted checkout; 24 h trial of Starter's guest & RSVP features (no AI) on sign-up |
 | Super Admin | User search, plan overrides with audit log, stats (server-verified role) |
 | PWA / mobile | Installable, offline shell, 44 px touch targets, tested at 375–430 px |
 

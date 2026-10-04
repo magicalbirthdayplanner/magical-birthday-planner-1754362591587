@@ -81,3 +81,8 @@ export function useParty() {
   if (!v) throw new Error('useParty must be used inside <PartyProvider>')
   return v
 }
+
+/** The party context when rendered inside <PartyProvider> (the app); null on public pages without one. */
+export function useOptionalParty() {
+  return useContext(Ctx)
+}

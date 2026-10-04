@@ -4,7 +4,7 @@
  * actually unlocks in the app (trial = guests & RSVP without AI, Free = upgrade prompts, Starter = AI planning).
  */
 import { expect, test, type Page } from '@playwright/test'
-import { login, makeFree, seedUser, setPlanForE2E } from './helpers'
+import { addParty, login, makeFree, seedUser, setPlanForE2E } from './helpers'
 
 const PLANS = ['FREE', 'STARTER', 'PLUS', 'PRO'] as const
 const overflow = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
@@ -27,7 +27,11 @@ test('anonymous: four plans with prices, comparison by category, 14 FAQs, no fal
   for (const c of ['Plan', 'Manage', 'AI planning', 'AI organization', 'AI party experience']) await expect(cmp.getByRole('heading', { name: c, exact: true })).toBeVisible()
   await expect(page.locator('details')).toHaveCount(14)
   await page.getByText('Is the price per party or per month?').click()
-  await expect(page.getByText(/one-time payment/).first()).toBeVisible()
+  await expect(page.getByText(/Per party\. You pay once for each party/).first()).toBeVisible()
+  await expect(page.getByTestId('per-party-note')).toHaveText('Pay once for each party. No monthly subscription.')
+  for (const p of ['STARTER', 'PLUS', 'PRO']) await expect(page.getByTestId(`plan-card-${p}`)).toContainText('per party')
+  await expect(page.getByTestId('plan-card-PLUS')).toContainText('Most popular')
+  await expect(page.locator('body')).not.toContainText(/one-time|lifetime|\/month|monthly plan|annual plan|billed monthly/i)
   await expect(page.locator('body')).not.toContainText(/10,000|thousands of|subscription renews/i)
 })
 
@@ -87,7 +91,8 @@ test('paid (Plus): pricing marks the current plan, lower plans included, Pro as 
   await fourCards(page)
   await expect(page.getByTestId('owned-note')).toContainText('Plus')
   await expect(page.getByTestId('plan-current-PLUS')).toBeVisible()
-  await expect(page.getByTestId('plan-card-STARTER')).toContainText('Included in your plan')
+  await expect(page.getByTestId('plan-card-STARTER')).toContainText('Included in this party’s plan')
+  await expect(page.getByTestId('pricing-party')).toContainText('Choosing a plan for Mia’s party')
   await expect(page.getByTestId('checkout-PRO')).toContainText('Upgrade to Pro')
   // Plus unlocks its AI tools; Pro-only Party Host stays an upgrade
   await page.goto('/plan')
@@ -122,4 +127,43 @@ test('Plus tools work end-to-end from the Plan tab (food, budget, timeline, shop
   await expect(dialog.getByText('You’re invited to a Royal Ball!')).toBeVisible({ timeout: 20_000 })
   await dialog.getByRole('button', { name: 'Use this wording' }).first().click()
   await expect(page.locator('body')).toContainText('You’re invited to a Royal Ball!')
+})
+
+test('plans are per party: a plan bought for one party does not unlock another; checkout names the party', async ({ page }) => {
+  test.setTimeout(150_000)
+  const s = await seedUser() // Mia's party
+  await makeFree(s.email)
+  const second = await addParty(s.email, s.password, 'Leo')
+  await login(page, s, '/pricing')
+  await expect(page.getByTestId('pricing-party')).toContainText('Choosing a plan for')
+  // choose Mia's party explicitly in the selector, then buy Starter for it
+  await page.getByTestId('pricing-party').locator('select').selectOption(s.partyId!)
+  await expect(page.getByTestId('pricing-party')).toContainText('Mia’s party')
+  await page.getByTestId('checkout-STARTER').click()
+  await expect(page.getByRole('heading', { name: 'Dodo Payments (test mode)' })).toBeVisible()
+  await page.getByRole('button', { name: 'Pay now' }).click()
+  await expect(page.getByTestId('checkout-status')).toHaveAttribute('data-phase', 'active', { timeout: 30_000 })
+  await expect(page.getByTestId('checkout-status')).toContainText('Your STARTER plan is active for Mia’s party')
+  // Mia's party has Starter: guests unlocked
+  await page.goto('/guests')
+  await expect(page.getByTestId('nav-lock-guests')).toHaveCount(0)
+  await page.goto('/more')
+  await expect(page.getByTestId('plan-row')).toContainText('Plan for Mia’s party')
+  await expect(page.getByTestId('plan-row')).toContainText('Starter')
+  // switch to Leo's party: still Free there
+  await page.evaluate((id) => localStorage.setItem('mbp.activePartyId', id), second)
+  await page.goto('/guests')
+  await expect(page.getByTestId('upgrade-guests')).toContainText('Guests & RSVP is part of Starter')
+  await page.goto('/pricing')
+  await expect(page.getByTestId('pricing-party')).toContainText('Leo’s party')
+  await expect(page.getByTestId('plan-current-FREE')).toBeVisible()
+  await expect(page.getByTestId('checkout-STARTER')).toContainText('Choose Starter — $4.99')
+})
+
+test('signed in without a party: plans ask you to create a party first', async ({ page }) => {
+  const s = await seedUser({ withParty: false })
+  await login(page, s, '/more')
+  await page.goto('/pricing')
+  await expect(page.getByTestId('create-party-STARTER')).toHaveText('Create your party first')
+  await expect(page.getByTestId('checkout-STARTER')).toHaveCount(0)
 })

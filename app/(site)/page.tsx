@@ -302,7 +302,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-              One-time payment · No subscriptions
+              Priced per party · No subscriptions
             </Badge>
             <h2 id="home-plans" className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Explore. Plan. Organize. Experience.</h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">Start free. Add AI when you want help with the plan, the details, or the day itself.</p>

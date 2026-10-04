@@ -5,16 +5,22 @@ Dodo Payments is the only payment provider. **Live charging is impossible** unle
 
 ## Flow
 
-1. **`POST /api/billing/checkout {plan}`** (signed-in only, rate limited).
+1. **`POST /api/billing/checkout {plan, partyId}`** (signed-in only, rate limited). Plans are bought **per party**.
    * The server picks the Dodo product and price from config (`lib/billing/plans.ts`) and identifies
-     the user from the session. Clients cannot choose product, price or user.
-   * The checkout is recorded in `billing_checkouts`.
+     the user from the session. Clients cannot choose product, price or user. The party must be the
+     caller's own (RLS) and must not already have this plan or a higher one (409 `already_owned`).
+   * The checkout is recorded in `billing_checkouts` with its `party_id`.
    * The user goes to Dodo's hosted checkout and returns to `/checkout-success?ref=…`.
 2. **`POST /api/webhooks/dodo`** (Standard Webhooks).
    * HMAC-SHA256 over `id.timestamp.body`, constant-time compare, ±5 min window, 512 KB cap.
    * Idempotent on `webhook-id` (`billing_webhook_events`).
    * User mapping: known customer → metadata user → recent pending checkout email. Conflicts are rejected.
    * `billing_purchases` is upserted by provider reference. Older events never overwrite newer ones.
+   * Party: from our own checkout record (only the paying user's party), else `scope = 'account'` for a
+     payment with no checkout at all (legacy/external). A purchase never moves to another party; deleting the
+     party ends its plan. Party plans are resolved by `party_plan(party)` / `getPartyPlan` and
+     `has_paid_access(party)` (RLS); `users.current_plan` covers account-level entitlements only
+     (admin override → legacy account purchase → trial → FREE).
 3. **`recompute_entitlement(user)`** (service role only) sets `users.current_plan`.
    * The plan comes from the **product id**, never from metadata.
    * USD payments below the plan price are held as `review`.

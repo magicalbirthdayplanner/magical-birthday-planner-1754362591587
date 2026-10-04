@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { PlanCards, PlanComparison } from "@/components/billing/PlanCards"
 import { usePlanStatus } from "@/components/billing/usePlanStatus"
+import { PartyProvider, useOptionalParty } from "@/components/app/PartyProvider"
 import { track } from "@/lib/analytics/client"
 import { PLAN_INFO, type Plan } from "@/lib/entitlements"
 
@@ -17,17 +18,18 @@ const FAQS: { q: string; a: string }[] = [
   { q: "What's the difference between Starter and Plus?", a: "Starter helps you build the plan — the big picture, themes, activities and the checklist. Plus takes on the details: food quantities, budget, invitation wording, the party-day timeline and the shopping list. Plus also gives you more AI requests per party (25 instead of 10)." },
   { q: "What's the difference between Plus and Pro?", a: "Plus organizes the party. Pro helps on the day itself: what to say and when, personal thank-you notes, and a complete party experience designed in one go. Pro gives you 50 AI requests per party." },
   { q: "Is AI included?", a: "AI is included in Starter, Plus and Pro. Free doesn't include AI features." },
-  { q: "How does AI usage work?", a: "Each time you ask the AI for something, it uses one request from your party's allowance (10 on Starter, 25 on Plus, 50 on Pro). Reopening something you already generated is free, and a request that fails doesn't use your party's allowance. For fair use, each account can make up to 10 AI requests per hour and per day, and the AI may occasionally be busy at very high demand." },
-  { q: "Is RSVP included?", a: "Guests & RSVP are part of Starter and every plan above it. Your guests never need an account to reply." },
-  { q: "Can I upgrade after creating a party?", a: "Yes. Everything you already planned stays exactly as it is, and the new features are available right away." },
-  { q: "What happens if I upgrade during my trial?", a: "New accounts get a free 24-hour trial of Starter's guest & RSVP features (AI isn't part of the trial). If you buy a plan during the trial, your plan replaces the trial straight away." },
-  { q: "Is the price per party or per month?", a: "Neither is a subscription: it's a one-time payment. Your plan unlocks its features on your account, for the parties you plan with it. Nothing renews or charges you again." },
-  { q: "What happens to my party if I downgrade?", a: "There's no automatic downgrade. If a plan ends (for example after a refund), your parties, guests and saved plans stay. Paid features — like adding guests or using AI — are locked until you upgrade again." },
+  { q: "How does AI usage work?", a: "Each time you ask the AI for something, it uses one request from that party's allowance (10 on Starter, 25 on Plus, 50 on Pro). Reopening something you already generated is free, and a request that fails doesn't use your party's allowance. For fair use, each account can make up to 10 AI requests per hour and per day, and the AI may occasionally be busy at very high demand." },
+  { q: "Is RSVP included?", a: "Guests & RSVP are part of Starter and every plan above it, for the party you bought the plan for. Your guests never need an account to reply." },
+  { q: "Can I upgrade after creating a party?", a: "Yes. Choose a higher plan for that party — it's a separate purchase at that plan's price. Everything you already planned stays exactly as it is, and the new features are available right away." },
+  { q: "What happens if I upgrade during my trial?", a: "New accounts get a free 24-hour trial of Starter's guest & RSVP features (AI isn't part of the trial). If you buy a plan for a party during the trial, that party keeps its plan after the trial ends." },
+  { q: "Is the price per party or per month?", a: "Per party. You pay once for each party you plan — there's no monthly or annual subscription, and nothing renews or charges you again. Planning another party? Its plan is a separate purchase." },
+  { q: "What happens to my party if I downgrade?", a: "There's no automatic downgrade. If a plan ends (for example after a refund), the party, its guests and saved plans stay. Paid features for that party — like adding guests or using AI — are locked until you buy a plan for it again." },
   { q: "Can I continue using my party after the event?", a: "Yes. Your party stays in your account after the big day, with its guests, plan and notes." },
 ]
 
 function PricingContent() {
   const status = usePlanStatus()
+  const party = useOptionalParty()?.party ?? null
   const params = useSearchParams()
   const upgrade = params.get("upgrade")?.toUpperCase()
   const highlight = (["STARTER", "PLUS", "PRO"] as const).find((p) => p === upgrade) ?? null
@@ -41,7 +43,7 @@ function PricingContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-16">
       <header className="mx-auto max-w-3xl px-4 pb-8 pt-16 text-center">
-        <span className="inline-block rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 text-xs font-semibold text-white">One-time payment · No subscriptions</span>
+        <span className="inline-block rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 text-xs font-semibold text-white">Priced per party · No subscriptions</span>
         <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">Explore. Plan. Organize. Experience.</h1>
         <p className="mt-3 text-lg text-gray-600">Start free. Add AI when you want help building the plan, handling the details, or making the day itself magical.</p>
         {status.onTrial ? (
@@ -50,7 +52,7 @@ function PricingContent() {
           </p>
         ) : owned !== "FREE" && status.loaded ? (
           <p className="mx-auto mt-4 max-w-xl rounded-2xl bg-white/80 px-4 py-3 text-sm text-gray-700" data-testid="owned-note">
-            You’re on <strong>{PLAN_INFO[owned as Plan].name}</strong>. Plans above it are shown as upgrades.
+            {party ? <>{party.child_name.split(" ")[0]}’s party is on <strong>{PLAN_INFO[owned as Plan].name}</strong>.</> : <>You’re on <strong>{PLAN_INFO[owned as Plan].name}</strong>.</>} Plans above it are shown as upgrades.
           </p>
         ) : null}
       </header>
@@ -89,7 +91,9 @@ function PricingContent() {
 export default function PricingPage() {
   return (
     <Suspense fallback={<div className="min-h-screen" />}>
-      <PricingContent />
+      <PartyProvider>
+        <PricingContent />
+      </PartyProvider>
     </Suspense>
   )
 }

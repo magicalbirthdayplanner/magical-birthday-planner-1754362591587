@@ -20,7 +20,7 @@ export function upgradeCopy(capability: Capability, plan?: Plan | null) {
     plan: p,
     title: `${info.name} is part of ${pi.name}`,
     body: info.pitch,
-    cta: `See ${pi.name} — ${formatPrice(pi.priceCents)}`,
+    cta: `See ${pi.name} — ${formatPrice(pi.priceCents)} per party`,
     href: `/pricing?upgrade=${p.toLowerCase()}&from=${capability}`,
   }
 }

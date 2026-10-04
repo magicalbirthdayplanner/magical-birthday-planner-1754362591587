@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getAuthedRequest, type AuthedRequest } from '@/lib/server/auth'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
-import { getUserPlan } from '@/lib/billing/server'
+import { getPartyPlan } from '@/lib/billing/server'
 import { logMetric } from '@/lib/analytics/server'
 import { aiLimitReached, aiPostProcessingFailed, observeAICall } from '@/lib/observability/ai'
 import { aiConfig, featureEnabled } from './config'
@@ -22,10 +22,11 @@ import type { AIFeature } from './types'
 
 export interface Entitlement { tier: Tier; plan: string; superAdmin: boolean }
 
-/** Plan via the existing trusted resolver (read/recompute only); Super Admin via the user's own RLS session. */
-export async function resolveEntitlement(auth: AuthedRequest): Promise<Entitlement> {
+/** The PARTY's plan via the trusted resolver (plans are bought per party); Super Admin via the user's own RLS session.
+ *  Callers have already verified (RLS) that the party belongs to the user. */
+export async function resolveEntitlement(auth: AuthedRequest, partyId: string): Promise<Entitlement> {
   const [plan, role] = await Promise.all([
-    hasServiceRole() ? getUserPlan(getSupabaseAdmin(), auth.user.id).catch(() => null) : Promise.resolve(null),
+    hasServiceRole() ? getPartyPlan(getSupabaseAdmin(), auth.user.id, partyId).catch(() => null) : Promise.resolve(null),
     auth.supabase.from('user_roles').select('role').eq('user_id', auth.user.id).maybeSingle(),
   ])
   const p = plan ?? { plan: 'FREE', source: 'free' }
@@ -104,7 +105,7 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     if (!featureEnabled(spec.feature, cfg) || !hasServiceRole()) return aiError('ai_disabled')
     if (spec.precheck && !(await spec.precheck(auth.supabase, partyId, body))) return aiError('not_found')
     // 5. entitlement
-    const ent = await resolveEntitlement(auth)
+    const ent = await resolveEntitlement(auth, partyId)
     if (!planAllows(spec.feature, ent.tier, ent.superAdmin)) {
       return aiError('forbidden_plan', { upgradeTo: capability(spec.feature, { enabled: true, tier: ent.tier, superAdmin: false, used: 0 }).upgradeTo })
     }

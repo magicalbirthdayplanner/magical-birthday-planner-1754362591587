@@ -20,7 +20,7 @@ export async function GET(req: Request) {
   const { data: party } = await auth.supabase.from('parties').select('id').eq('id', partyId!).maybeSingle()
   if (!party) return aiError('not_found')
   const cfg = aiConfig()
-  const [ent, used] = await Promise.all([resolveEntitlement(auth), usedForParty(auth.supabase, partyId!)])
+  const [ent, used] = await Promise.all([resolveEntitlement(auth, partyId!), usedForParty(auth.supabase, partyId!)])
   const features = AI_FEATURES.map((f) => capability(f, { enabled: featureEnabled(f, cfg), tier: ent.tier, superAdmin: ent.superAdmin, used }))
   return NextResponse.json({ enabled: cfg.enabled && cfg.configured, tier: ent.tier, superAdmin: ent.superAdmin, used, features }, { headers: { 'Cache-Control': 'no-store' } })
 }

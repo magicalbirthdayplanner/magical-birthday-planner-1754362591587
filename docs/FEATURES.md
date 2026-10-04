@@ -90,7 +90,7 @@ detailed in [ai/AI_FEATURES.md](ai/AI_FEATURES.md); plan gating in `lib/ai/capab
   sent automatically.
 
 ### Billing
-- **Free · Starter $4.99 · Plus $9.99 · Pro $14.99** (USD, one-time, account-wide), Dodo hosted checkout; model in
+- **Free · Starter $4.99 · Plus $9.99 · Pro $14.99** (USD, priced per party: each purchase unlocks its plan for one party; no subscription), Dodo hosted checkout; model in
   `lib/entitlements.ts`. Guests & RSVP are Starter+ (enforced in the database).
 - Every new account gets a 24-hour trial of Starter's guest & RSVP features (no AI); trial users can buy any plan at
   any time; a purchase replaces the trial. Plans are granted only by verified payment webhooks; refunds revoke. See [BILLING_SECURITY.md](BILLING_SECURITY.md).

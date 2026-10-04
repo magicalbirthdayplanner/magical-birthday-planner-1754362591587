@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'Free, Starter, Plus and Pro — one-time payments for your account, no subscriptions.',
+  description: 'Free, Starter, Plus and Pro — priced per party, no subscriptions.',
   alternates: { canonical: '/pricing' },
 }
 

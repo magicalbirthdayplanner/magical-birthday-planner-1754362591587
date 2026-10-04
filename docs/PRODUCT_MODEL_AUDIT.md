@@ -9,13 +9,15 @@ Single source of truth: [`lib/entitlements.ts`](../lib/entitlements.ts). Legend:
 | Plan | Stage | Price | What it adds | AI allowance |
 |---|---|---|---|---|
 | **Free** | Explore | $0 | Create a party, Discover (Google Places) + map, save/shortlist venues, dated checklist, curated themes, party plan + your own activities, account | none |
-| **Starter** | Plan | $4.99 one-time | Guests & RSVP (link, emailed invites, RSVP collection) · AI Plan My Party · AI theme ideas · AI checklist · AI Activity Studio | 10 / party |
-| **Plus** | Organize | $9.99 one-time | AI Food Planner · AI Budget Assistant · AI Invitation Writer · AI party-day Timeline · AI Shopping List | 25 / party |
-| **Pro** | Experience | $14.99 one-time | AI Party Host (welcome, activity intros, cake, closing) · thank-you & reminder messages · AI Party Experience | 50 / party |
+| **Starter** | Plan | $4.99 per party | Guests & RSVP (link, emailed invites, RSVP collection) · AI Plan My Party · AI theme ideas · AI checklist · AI Activity Studio | 10 / party |
+| **Plus** | Organize | $9.99 per party | AI Food Planner · AI Budget Assistant · AI Invitation Writer · AI party-day Timeline · AI Shopping List | 25 / party |
+| **Pro** | Experience | $14.99 per party | AI Party Host (welcome, activity intros, cake, closing) · thank-you & reminder messages · AI Party Experience | 50 / party |
 
 - **Trial (decision 1):** every new account gets 24 h of Starter's *non-AI* features (guests & RSVP). No AI in the trial.
-- **Scope of a purchase (decision 2):** unchanged billing — a one-time purchase unlocks the plan for the account (all
-  its parties), no expiry. All copy now says exactly that (pricing FAQ, Terms §4, plan cards).
+- **Scope of a purchase (decision 2, revised 2026-10-04):** plans are priced and enforced **per party** — each purchase
+  unlocks its plan for the party it was bought for (migration `20251004001400_per_party_purchases`; legacy purchases
+  stay account-wide). Originally a purchase unlocked the account (all its parties). Pricing page, FAQ, Terms §4,
+  Help and checkout confirmation say "per party".
 - Fair use (unchanged): 10 AI requests per user per hour and per day, global daily breaker; Super Admin bypasses.
 - Dodo prices and the AI provider/model are **unchanged**.
 

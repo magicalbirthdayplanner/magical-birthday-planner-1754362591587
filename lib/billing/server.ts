@@ -25,7 +25,8 @@ export class BillingError extends Error {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 // ------------------------------------------------------------------ checkout
-export async function createCheckout(admin: Admin, user: User, plan: PaidPlan, returnBase: string, fetchImpl: typeof fetch = fetch) {
+/** `partyId` is the party this plan is bought for (ownership verified by the caller with the user's RLS session). */
+export async function createCheckout(admin: Admin, user: User, plan: PaidPlan, partyId: string, returnBase: string, fetchImpl: typeof fetch = fetch) {
   const apiKey = process.env.DODO_PAYMENTS_API_KEY
   const productId = productIdFor(plan)
   if (!apiKey || !productId) throw new BillingError('not_configured', 'Payments are not configured.')
@@ -34,7 +35,7 @@ export async function createCheckout(admin: Admin, user: User, plan: PaidPlan, r
 
   const { data: checkout, error } = await admin
     .from('billing_checkouts')
-    .insert({ user_id: user.id, plan, product_id: productId, customer_email: user.email ?? null })
+    .insert({ user_id: user.id, plan, product_id: productId, customer_email: user.email ?? null, party_id: partyId })
     .select('id')
     .single()
   if (error || !checkout) throw new BillingError('provider_error', 'Could not start checkout.')
@@ -45,9 +46,9 @@ export async function createCheckout(admin: Admin, user: User, plan: PaidPlan, r
     product_cart: [{ product_id: productId, quantity: 1 }],
     customer: known?.provider_customer_id ? { customer_id: known.provider_customer_id } : { email: user.email, name },
     return_url: `${returnBase}/checkout-success?ref=${checkout.id}`,
-    // Informational only: the webhook derives the plan from the PRODUCT, and the user from
-    // the known customer / this checkout record, never from client input.
-    metadata: { mbp_user_id: user.id, mbp_checkout_id: checkout.id, mbp_plan: plan, application: 'magical-birthday-planner', environment: dodoMode() === 'live_mode' ? 'live' : 'test' },
+    // Informational only: the webhook derives the plan from the PRODUCT, the user from the known customer / this
+    // checkout record, and the party from this checkout record — never from client input.
+    metadata: { mbp_user_id: user.id, mbp_checkout_id: checkout.id, mbp_party_id: partyId, mbp_plan: plan, application: 'magical-birthday-planner', environment: dodoMode() === 'live_mode' ? 'live' : 'test' },
   }
 
   const controller = new AbortController()
@@ -129,6 +130,37 @@ async function resolveUser(admin: Admin, e: DodoEvent): Promise<string | null> {
   return null
 }
 
+/**
+ * Which party was this plan bought for? Our own checkout record (written server-side when checkout started, matched
+ * by the metadata reference or — without one — the user's latest pending checkout for this plan), then the metadata
+ * copy; only a party that belongs to the paying user counts.
+ *  - party found                          → scope 'party' (unlocks that party only)
+ *  - checkout found but its party is gone → scope 'party' with no party (deleting a party ends its plan)
+ *  - no checkout at all (external/legacy) → scope 'account', so a paying customer never loses what they paid for
+ */
+async function resolveParty(admin: Admin, e: DodoEvent, userId: string, plan: PaidPlan): Promise<{ partyId: string | null; scope: 'party' | 'account' }> {
+  const meta = e.data.metadata ?? {}
+  const checkoutId = typeof meta.mbp_checkout_id === 'string' && UUID.test(meta.mbp_checkout_id) ? meta.mbp_checkout_id : null
+  let checkout: { party_id: string | null } | null = null
+  if (checkoutId) {
+    const { data: c } = await admin.from('billing_checkouts').select('user_id, party_id').eq('id', checkoutId).maybeSingle()
+    if (c?.user_id === userId) checkout = c
+  }
+  if (!checkout) {
+    const since = new Date(Date.now() - 7 * 86_400_000).toISOString()
+    const { data } = await admin.from('billing_checkouts').select('party_id').eq('user_id', userId).eq('plan', plan).eq('status', 'pending').gte('created_at', since).order('created_at', { ascending: false }).limit(1)
+    checkout = data?.[0] ?? null
+  }
+  let partyId = checkout?.party_id ?? null
+  if (!partyId && !checkout && typeof meta.mbp_party_id === 'string' && UUID.test(meta.mbp_party_id)) partyId = meta.mbp_party_id
+  if (partyId) {
+    const { data: party } = await admin.from('parties').select('id').eq('id', partyId).eq('user_id', userId).maybeSingle()
+    partyId = party?.id ?? null
+  }
+  if (partyId) return { partyId, scope: 'party' }
+  return checkout ? { partyId: null, scope: 'party' } : { partyId: null, scope: 'account' }
+}
+
 async function markEvent(admin: Admin, id: string, status: string, detail?: string, userId?: string | null) {
   await admin
     .from('billing_webhook_events')
@@ -193,7 +225,7 @@ export async function processWebhookEvent(admin: Admin, eventId: string, raw: un
 
     // Out-of-order protection: never let an older event overwrite a newer one.
     const eventAt = event.timestamp && !Number.isNaN(Date.parse(event.timestamp)) ? event.timestamp : new Date().toISOString()
-    const { data: existing } = await admin.from('billing_purchases').select('user_id, last_event_at, status').eq('provider', 'dodo').eq('provider_ref', action.providerRef).maybeSingle()
+    const { data: existing } = await admin.from('billing_purchases').select('user_id, last_event_at, status, party_id, scope').eq('provider', 'dodo').eq('provider_ref', action.providerRef).maybeSingle()
     if (existing && existing.user_id !== userId) {
       await markEvent(admin, eventId, 'rejected', 'owner_mismatch', userId)
       return { status: 'ignored', detail: 'owner_mismatch' }
@@ -208,9 +240,14 @@ export async function processWebhookEvent(admin: Admin, eventId: string, raw: un
       return { status: 'ignored', detail: 'already_active', userId }
     }
 
+    // Per-party plans: the purchase unlocks the party it was bought for. A purchase keeps the party it was first
+    // recorded with (retries and later events never move it).
+    const { partyId, scope } = existing ? { partyId: existing.party_id, scope: existing.scope } : await resolveParty(admin, event, userId, action.plan)
     const { error: upsertErr } = await admin.from('billing_purchases').upsert(
       {
         user_id: userId,
+        party_id: partyId,
+        scope,
         provider: 'dodo',
         provider_ref: action.providerRef,
         kind: action.purchaseKind,
@@ -255,9 +292,9 @@ export interface UserPlan {
 const APP_PLANS = ['FREE', 'STARTER', 'PLUS', 'PRO', 'PROFESSIONAL'] as const
 
 /**
- * THE answer to "what plan does this user have, and why?". users.current_plan is
- * written only by recompute_entitlement (service role): admin override → verified
- * Dodo purchase → one-time trial → FREE. Lapsed overrides and trials are expired here.
+ * The ACCOUNT-level plan and why. users.current_plan is written only by recompute_entitlement
+ * (service role): admin override → legacy account-wide purchase → one-time trial → FREE. Plans
+ * bought for a party are added per party by getPartyPlan. Lapsed overrides and trials are expired here.
  */
 export async function getUserPlan(admin: Admin, userId: string): Promise<UserPlan> {
   const now = new Date()
@@ -285,8 +322,21 @@ export async function getUserPlan(admin: Admin, userId: string): Promise<UserPla
   if (override) source = 'admin_override'
   else if (plan !== 'FREE' && !trialActive) source = 'purchase'
   else if (plan !== 'FREE' && trialActive) {
-    const { count } = await admin.from('billing_purchases').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'active')
+    const { count } = await admin.from('billing_purchases').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('scope', 'account').eq('status', 'active')
     source = count ? 'purchase' : 'trial'
   } else source = 'free'
   return { plan, source, trialActive, override: override ? { plan: override.plan, expiresAt: override.expires_at } : null }
+}
+
+/** The plan a party has: an admin override (account-wide) wins; otherwise the best of the party's own purchase and
+ *  any legacy account-wide purchase; otherwise the account's trial / FREE. Shape matches UserPlan. */
+export interface PartyPlan extends UserPlan { partyId: string; partyPurchase: Exclude<AppPlan, 'FREE' | 'PROFESSIONAL'> | null }
+const RANK: Record<string, number> = { FREE: 0, STARTER: 1, PLUS: 2, PRO: 3, PROFESSIONAL: 3 }
+
+export async function getPartyPlan(admin: Admin, userId: string, partyId: string): Promise<PartyPlan> {
+  const [account, { data: bought }] = await Promise.all([getUserPlan(admin, userId), admin.rpc('party_plan', { p_party: partyId })])
+  const partyPurchase = bought === 'STARTER' || bought === 'PLUS' || bought === 'PRO' ? bought : null
+  if (account.source === 'admin_override' || !partyPurchase) return { ...account, partyId, partyPurchase }
+  if (account.source === 'purchase' && RANK[account.plan] >= RANK[partyPurchase]) return { ...account, partyId, partyPurchase }
+  return { ...account, plan: partyPurchase, source: 'purchase', partyId, partyPurchase }
 }

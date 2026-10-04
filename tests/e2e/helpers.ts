@@ -120,3 +120,14 @@ export async function partyRows(table: string, partyId: string, columns = '*') {
   if (error) throw error
   return (data ?? []) as unknown as Record<string, unknown>[]
 }
+
+/** A second party for an existing seeded user (as that user, through RLS). */
+export async function addParty(email: string, password: string, childName: string): Promise<string> {
+  const user = createClient(URL, ANON, opts)
+  await user.auth.signInWithPassword({ email, password })
+  const { data: { user: u } } = await user.auth.getUser()
+  const date = new Date(Date.now() + 40 * 86_400_000).toISOString().slice(0, 10)
+  const { data, error } = await user.from('parties').insert({ user_id: u!.id, child_name: childName, child_age: 5, party_date: date, zip_code: '48084', guest_count: 10, budget: 300, interests: ['art'] }).select('id').single()
+  if (error) throw error
+  return data!.id
+}

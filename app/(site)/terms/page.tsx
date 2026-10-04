@@ -61,12 +61,12 @@ export default function TermsConditionsPage() {
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
                 <li>Free: create a party, discover and save venues, checklist, curated themes and your party plan</li>
-                <li>Starter ($4.99): adds guests &amp; RSVP and AI planning features</li>
-                <li>Plus ($9.99): adds AI organization features</li>
-                <li>Pro ($14.99): adds AI party-day features</li>
+                <li>Starter ($4.99 per party): adds guests &amp; RSVP and AI planning features</li>
+                <li>Plus ($9.99 per party): adds AI organization features</li>
+                <li>Pro ($14.99 per party): adds AI party-day features</li>
               </ul>
               <p className="text-gray-600 dark:text-gray-300 mt-4">
-                Paid plans are a one-time payment, not a subscription, and unlock the plan&apos;s features on your account. Payments are processed by Dodo Payments. AI features are subject
+                Paid plans are priced per party: each purchase is a single payment, not a subscription, and unlocks the plan&apos;s features for the one party it was bought for. Payments are processed by Dodo Payments. AI features are subject
                 to the per-party and fair-use limits shown on the pricing page. All fees are non-refundable except as required by law.
                 We reserve the right to change our pricing with 30 days' notice.
               </p>

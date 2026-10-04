@@ -2,10 +2,11 @@
  * THE product model: plans and which plan each capability needs. Single source of truth for the server (AI routes,
  * guests/RSVP enforcement), the UI (locks, upgrade prompts) and the pricing page. Isomorphic: no secrets here.
  *
- *   FREE "Explore"  → STARTER "Plan" ($4.99) → PLUS "Organize" ($9.99) → PRO "Experience" ($14.99)
+ *   FREE "Explore"  → STARTER "Plan" ($4.99) → PLUS "Organize" ($9.99) → PRO "Experience" ($14.99), priced PER PARTY
  *
- * Enforcement lives on the server: lib/ai/handler.ts (AI), the guests/party_invitations RLS policies
- * (migration 20251004001300, `public.has_paid_access`), and /api/invitations/send. The UI only displays this.
+ * A paid plan is bought for one party (migration 20251004001400). Enforcement lives on the server, per party:
+ * lib/ai/handler.ts (AI, via getPartyPlan), the guests/party_invitations RLS policies (`public.has_paid_access(party)`)
+ * and /api/invitations/send. Admin overrides and the sign-up trial are account-wide. The UI only displays this.
  */
 
 export const PLANS = ['FREE', 'STARTER', 'PLUS', 'PRO'] as const
