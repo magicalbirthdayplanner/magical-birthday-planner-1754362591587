@@ -96,6 +96,13 @@ const payment = (user: TestUser, over: Record<string, unknown> = {}, type = 'pay
   },
 })
 
+/** A payment for a checkout our server really started for `partyId` (the normal path: metadata carries the checkout). */
+async function linked(u: TestUser, partyId: string, plan: 'STARTER' | 'PLUS' | 'PRO' = 'PLUS', over: Record<string, unknown> = {}, type = 'payment.succeeded') {
+  expect((await post(u.accessToken, { plan, partyId })).status).toBe(200)
+  const meta = (created.at(-1) as { metadata: Record<string, string> }).metadata
+  const amount = { STARTER: 499, PLUS: 999, PRO: 1499 }[plan]
+  return payment(u, { product_cart: [{ product_id: PRODUCTS[plan], quantity: 1 }], total_amount: amount, metadata: { mbp_user_id: u.id, mbp_checkout_id: meta.mbp_checkout_id, mbp_party_id: partyId }, ...over }, type)
+}
 const statusOf = async (u: TestUser) => (await status.GET(new Request('http://app.test/api/billing/status', { headers: { Authorization: `Bearer ${u.accessToken}` } }))).json()
 const partyStatus = async (u: TestUser, partyId: string) => (await status.GET(new Request(`http://app.test/api/billing/status?partyId=${partyId}`, { headers: { Authorization: `Bearer ${u.accessToken}` } }))).json()
 const planOf = async (u: TestUser) => (await adminClient().from('users').select('current_plan').eq('id', u.id).single()).data!.current_plan
@@ -208,18 +215,18 @@ describe('checkout', () => {
 })
 
 describe('webhook → entitlement', () => {
-  it('a verified successful payment grants the plan', async () => {
-    const res = await send(payment(U))
+  it('a verified successful payment grants the plan to the party it was bought for', async () => {
+    const res = await send(await linked(U, PU))
     expect(res.status).toBe(200)
     expect((await res.json()).outcome).toBe('processed')
-    expect(await planOf(U)).toBe('PLUS')
-    const s = await (await status.GET(new Request('http://app.test/api/billing/status', { headers: { Authorization: `Bearer ${U.accessToken}` } }))).json()
-    expect(s.plan).toBe('PLUS')
-    expect(s.purchases[0]).toMatchObject({ plan: 'PLUS', status: 'active', kind: 'payment' })
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PLUS', source: 'purchase' })
+    const s = await statusOf(U)
+    expect(s.plan).toBe('FREE') // the account itself is not upgraded
+    expect(s.purchases[0]).toMatchObject({ plan: 'PLUS', status: 'active', kind: 'payment', scope: 'party', party_id: PU })
   })
 
   it('a duplicate delivery is processed once (idempotent on webhook-id)', async () => {
-    const event = payment(U)
+    const event = await linked(U, PU)
     const id = `msg_dup_${Date.now()}`
     expect((await (await send(event, { id })).json()).outcome).toBe('processed')
     expect((await (await send(event, { id })).json()).outcome).toBe('duplicate')
@@ -228,7 +235,7 @@ describe('webhook → entitlement', () => {
   })
 
   it('the same payment under a new webhook-id does not create a second purchase', async () => {
-    const event = payment(U)
+    const event = await linked(U, PU)
     await send(event)
     await send(event)
     const { count } = await adminClient().from('billing_purchases').select('id', { count: 'exact', head: true }).eq('user_id', U.id)
@@ -262,8 +269,10 @@ describe('webhook → entitlement', () => {
   })
 
   it('tampered plan in metadata cannot upgrade beyond the paid product', async () => {
-    await send(payment(U, { metadata: { mbp_user_id: U.id, mbp_plan: 'PRO' } }))
-    expect(await planOf(U)).toBe('PLUS')
+    const ev = await linked(U, PU)
+    ;(ev.data.metadata as Record<string, string>).mbp_plan = 'PRO'
+    await send(ev)
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PLUS' })
   })
 
   it('tampered/low price is held for review instead of granting', async () => {
@@ -282,45 +291,50 @@ describe('webhook → entitlement', () => {
   })
 
   it('metadata pointing at another user cannot hijack an existing customer', async () => {
-    await send(payment(U)) // binds cus_U → U
+    await send(await linked(U, PU)) // binds cus_U → U
     await send(payment(U, { product_cart: [{ product_id: PRODUCTS.PRO, quantity: 1 }], total_amount: 2999, metadata: { mbp_user_id: V.id } }))
     expect(await planOf(V)).toBe('FREE')
-    expect(await planOf(U)).toBe('PRO')
+    expect(await partyStatus(V, PV)).toMatchObject({ plan: 'FREE' })
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PLUS' }) // the PRO payment had no checkout: unresolved, unlocks nothing
   })
 
-  it('matches by checkout email when metadata is absent — and the plan goes to that checkout’s party', async () => {
+  it('without the checkout reference the payer is found by email, but the party is NOT guessed from a recent checkout', async () => {
     await post(V.accessToken, { plan: 'STARTER', partyId: PV })
     const ev = payment(V, { metadata: {}, customer: { customer_id: 'cus_v_new', email: V.email }, product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: 999 })
-    expect((await (await send(ev)).json()).outcome).toBe('processed')
-    expect(await planOf(V)).toBe('FREE') // the account itself is not upgraded…
-    expect(await partyStatus(V, PV)).toMatchObject({ plan: 'STARTER', source: 'purchase' }) // …the party is
+    expect((await (await send(ev)).json()).outcome).toBe('unmatched')
+    expect(await planOf(V)).toBe('FREE')
+    expect(await partyStatus(V, PV)).toMatchObject({ plan: 'FREE' })
+    const { data } = await adminClient().from('billing_purchases').select('scope, party_id, unresolved_reason, status').eq('user_id', V.id).single()
+    expect(data).toEqual({ scope: 'party', party_id: null, unresolved_reason: 'no_checkout', status: 'active' }) // recorded for reconciliation
   })
 
   it('refund revokes the plan', async () => {
-    const ev = payment(U)
+    const ev = await linked(U, PU)
     await send(ev)
-    expect(await planOf(U)).toBe('PLUS')
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PLUS' })
     await send({ type: 'refund.succeeded', timestamp: new Date().toISOString(), data: { payload_type: 'Refund', payment_id: ev.data.payment_id } })
-    expect(await planOf(U)).toBe('FREE')
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'FREE' })
   })
 
   it('subscription create → update → cancel, with no duplicates and stale events ignored', async () => {
+    const meta = (await linked(U, PU, 'PRO')).data.metadata
     const sub = (type: string, t: string, extra: Record<string, unknown> = {}) => ({
       type,
       timestamp: t,
-      data: { payload_type: 'Subscription', subscription_id: `sub_${U.id.slice(0, 6)}`, product_id: PRODUCTS.PRO, customer: { customer_id: `cus_${U.id.slice(0, 8)}`, email: U.email }, metadata: { mbp_user_id: U.id }, next_billing_date: new Date(Date.now() + 30 * 86_400_000).toISOString(), ...extra },
+      data: { payload_type: 'Subscription', subscription_id: `sub_${U.id.slice(0, 6)}`, product_id: PRODUCTS.PRO, customer: { customer_id: `cus_${U.id.slice(0, 8)}`, email: U.email }, metadata: meta, next_billing_date: new Date(Date.now() + 30 * 86_400_000).toISOString(), ...extra },
     })
+    const proOf = async () => (await partyStatus(U, PU)).plan
     const t0 = new Date(Date.now() - 3000).toISOString()
     const t1 = new Date(Date.now() - 2000).toISOString()
     const t2 = new Date(Date.now() - 1000).toISOString()
     await send(sub('subscription.active', t0))
-    expect(await planOf(U)).toBe('PRO')
+    expect(await proOf()).toBe('PRO')
     await send(sub('subscription.updated', t1, { status: 'active' }))
     await send(sub('subscription.cancelled', t2))
-    expect(await planOf(U)).toBe('FREE')
+    expect(await proOf()).toBe('FREE')
     // an older "active" retry arriving late must not resurrect the subscription
     await send(sub('subscription.renewed', t1))
-    expect(await planOf(U)).toBe('FREE')
+    expect(await proOf()).toBe('FREE')
     const { count } = await adminClient().from('billing_purchases').select('id', { count: 'exact', head: true }).eq('user_id', U.id)
     expect(count).toBe(1)
   })
@@ -395,8 +409,7 @@ describe('trial users can buy (sign-up trial never blocks a purchase)', () => {
     const T = await createTestUser('bill-trial-paid')
     try {
       const TP = await newParty(T)
-      await post(T.accessToken, { plan: 'STARTER', partyId: TP })
-      expect((await (await send(payment(T, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: 499 }))).json()).outcome).toBe('processed')
+      expect((await (await send(await linked(T, TP, 'STARTER'))).json()).outcome).toBe('processed')
       // for that party the purchase beats the trial, and is reported as a purchase, not a trial
       expect(await partyStatus(T, TP)).toMatchObject({ plan: 'STARTER', source: 'purchase' })
       const { tierFor } = await import('@/lib/ai/capabilities')
@@ -420,9 +433,10 @@ describe('trial users can buy (sign-up trial never blocks a purchase)', () => {
     try {
       await adminClient().from('users').update({ trial_expires_at: new Date(Date.now() - 1000).toISOString() }).eq('id', T.id)
       expect(await statusOf(T)).toMatchObject({ plan: 'FREE', source: 'free', trialActive: false })
-      expect((await post(T.accessToken, { plan: 'PLUS', partyId: await newParty(T) })).status).toBe(200) // Free users can buy
-      await send(payment(T, { product_cart: [{ product_id: PRODUCTS.PRO, quantity: 1 }], total_amount: 1499 }))
-      expect(await statusOf(T)).toMatchObject({ plan: 'PRO', source: 'purchase' })
+      const TP = await newParty(T)
+      await send(await linked(T, TP, 'PRO')) // Free users can buy
+      expect(await partyStatus(T, TP)).toMatchObject({ plan: 'PRO', source: 'purchase' })
+      expect(await statusOf(T)).toMatchObject({ plan: 'FREE', source: 'free' }) // the account stays Free
     } finally {
       await deleteTestUser(T)
     }
@@ -431,8 +445,8 @@ describe('trial users can buy (sign-up trial never blocks a purchase)', () => {
 
 // Plans are bought PER PARTY: a purchase unlocks its plan for the party it was bought for, and nothing else.
 const caps = await import('@/app/api/ai/capabilities/route')
+const tierOf = async (u: TestUser, partyId: string) => (await (await caps.GET(new Request(`http://app.test/api/ai/capabilities?partyId=${partyId}`, { headers: { Authorization: `Bearer ${u.accessToken}` } }))).json()).tier
 describe('per-party plans', () => {
-  const tierOf = async (u: TestUser, partyId: string) => (await (await caps.GET(new Request(`http://app.test/api/ai/capabilities?partyId=${partyId}`, { headers: { Authorization: `Bearer ${u.accessToken}` } }))).json()).tier
   const buy = async (u: TestUser, partyId: string, plan: 'STARTER' | 'PLUS' | 'PRO', amount: number) => {
     expect((await post(u.accessToken, { plan, partyId })).status).toBe(200)
     const meta = (created.at(-1) as { metadata: Record<string, string> }).metadata
@@ -521,6 +535,100 @@ describe('per-party plans', () => {
     } finally {
       await adminClient().from('plan_overrides').delete().eq('user_id', U.id)
       await adminClient().rpc('recompute_entitlement', { p_user: U.id })
+    }
+  })
+})
+
+// Invariant: every normal paid entitlement belongs to exactly ONE party. A payment that cannot be verifiably tied to a
+// party unlocks NOTHING (no account-wide fallback) and is flagged for reconciliation.
+const stats = await import('@/app/api/admin/stats/route')
+describe('unresolved payments never become account-wide', () => {
+  const unlockedAnywhere = async (u: TestUser, parties: string[]) => {
+    const plans = await Promise.all(parties.map(async (p) => (await partyStatus(u, p)).plan))
+    return { account: await planOf(u), parties: plans, rpc: (await u.client.rpc('has_paid_access')).data, partyRpc: await Promise.all(parties.map(async (p) => (await u.client.rpc('has_paid_access', { p_party: p })).data)) }
+  }
+  const NOTHING = (n: number) => ({ account: 'FREE', parties: Array(n).fill('FREE'), rpc: false, partyRpc: Array(n).fill(false) })
+
+  it('a payment with no checkout reference, for a user with several parties, unlocks no party and not the account', async () => {
+    const res = await send(payment(U, { metadata: { mbp_user_id: U.id } }))
+    expect((await res.json()).outcome).toBe('unmatched')
+    expect(await unlockedAnywhere(U, [PU, PU2])).toEqual(NOTHING(2))
+    expect(await tierOf(U, PU)).toBe('FREE')
+    expect(await tierOf(U, PU2)).toBe('FREE')
+    expect((await U.client.from('guests').insert({ party_id: PU, user_id: U.id, name: 'Nope' })).error).not.toBeNull()
+    const { data } = await adminClient().from('billing_purchases').select('scope, party_id, unresolved_reason').eq('user_id', U.id).single()
+    expect(data).toEqual({ scope: 'party', party_id: null, unresolved_reason: 'no_checkout' })
+  })
+
+  it('a checkout reference that doesn’t match (other plan, other party in metadata, unknown checkout) is unresolved, not guessed', async () => {
+    expect((await post(U.accessToken, { plan: 'STARTER', partyId: PU })).status).toBe(200)
+    const starterCheckout = (created.at(-1) as { metadata: Record<string, string> }).metadata.mbp_checkout_id
+    // paid for PLUS against a STARTER checkout
+    await send(payment(U, { metadata: { mbp_user_id: U.id, mbp_checkout_id: starterCheckout } }))
+    // right checkout, but the metadata names another party
+    await send(payment(U, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: 499, metadata: { mbp_user_id: U.id, mbp_checkout_id: starterCheckout, mbp_party_id: PU2 } }))
+    // a checkout id that doesn't exist
+    await send(payment(U, { metadata: { mbp_user_id: U.id, mbp_checkout_id: '00000000-0000-4000-8000-000000000000' } }))
+    const { data } = await adminClient().from('billing_purchases').select('party_id, unresolved_reason').eq('user_id', U.id).order('created_at')
+    expect(data).toEqual([{ party_id: null, unresolved_reason: 'checkout_mismatch' }, { party_id: null, unresolved_reason: 'checkout_mismatch' }, { party_id: null, unresolved_reason: 'no_checkout' }])
+    expect(await unlockedAnywhere(U, [PU, PU2])).toEqual(NOTHING(2))
+  })
+
+  it('the party deleted before the payment arrived → unresolved (the plan is not moved to another party)', async () => {
+    const P3 = await newParty(U, 'Dora')
+    const ev = await linked(U, P3)
+    await U.client.from('parties').delete().eq('id', P3)
+    expect((await (await send(ev)).json()).outcome).toBe('unmatched')
+    expect(await unlockedAnywhere(U, [PU, PU2])).toEqual(NOTHING(2))
+    const { data } = await adminClient().from('billing_purchases').select('unresolved_reason').eq('user_id', U.id).single()
+    expect(data!.unresolved_reason).toBe('party_unavailable')
+  })
+
+  it('is surfaced for reconciliation (Sentry warning + Super Admin stats) and can be attached to ONE of the payer’s parties', async () => {
+    const res = await send(payment(U, { metadata: { mbp_user_id: U.id } }))
+    expect((await res.json()).outcome).toBe('unmatched')
+    await adminClient().from('user_roles').insert({ user_id: V.id, role: 'super_admin' })
+    try {
+      const st = await (await stats.GET(new Request('http://app.test/api/admin/stats', { headers: { Authorization: `Bearer ${V.accessToken}` } }))).json()
+      expect(st.unresolvedPayments).toBeGreaterThanOrEqual(1)
+    } finally {
+      await adminClient().from('user_roles').delete().eq('user_id', V.id)
+    }
+    const { data: row } = await adminClient().from('billing_purchases').select('id').eq('user_id', U.id).single()
+    // never to someone else's party
+    expect((await adminClient().rpc('reconcile_purchase', { p_purchase: row!.id, p_party: PV })).error).not.toBeNull()
+    // clients cannot reconcile
+    expect((await U.client.rpc('reconcile_purchase' as never, { p_purchase: row!.id, p_party: PU } as never)).error).not.toBeNull()
+    expect((await adminClient().rpc('reconcile_purchase', { p_purchase: row!.id, p_party: PU })).error).toBeNull()
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PLUS', source: 'purchase' })
+    expect(await partyStatus(U, PU2)).toMatchObject({ plan: 'FREE' })
+    expect(await planOf(U)).toBe('FREE')
+    // once reconciled it cannot be moved again
+    expect((await adminClient().rpc('reconcile_purchase', { p_purchase: row!.id, p_party: PU2 })).error).not.toBeNull()
+  })
+
+  it('the database refuses account-wide purchases and any change of scope or party (even with the service role)', async () => {
+    const base = { user_id: U.id, provider: 'dodo', kind: 'payment', plan: 'PRO', status: 'active' }
+    expect((await adminClient().from('billing_purchases').insert({ ...base, provider_ref: `acct_${Date.now()}`, scope: 'account' })).error?.message).toMatch(/party-scoped/)
+    const ins = await adminClient().from('billing_purchases').insert({ ...base, provider_ref: `pty_${Date.now()}`, party_id: PU }).select('id, scope').single()
+    expect(ins.data!.scope).toBe('party') // the default is party
+    expect((await adminClient().from('billing_purchases').update({ scope: 'account' }).eq('id', ins.data!.id)).error?.message).toMatch(/scope cannot change/)
+    expect((await adminClient().from('billing_purchases').update({ party_id: PU2 }).eq('id', ins.data!.id)).error?.message).toMatch(/cannot move/)
+    expect((await adminClient().from('billing_purchases').update({ unresolved_reason: 'no_checkout', party_id: null }).eq('id', ins.data!.id)).error).toBeNull() // detaching is allowed
+    expect(await planOf(U)).toBe('FREE')
+  })
+
+  it('the 24 h sign-up trial stays account-wide (every party gets guests & RSVP, no AI)', async () => {
+    const T = await createTestUser('bill-trial-acct')
+    try {
+      const [A, B] = [await newParty(T, 'Ava'), await newParty(T, 'Ben')]
+      for (const p of [A, B]) {
+        expect(await partyStatus(T, p)).toMatchObject({ source: 'trial', trialActive: true })
+        expect((await T.client.rpc('has_paid_access', { p_party: p })).data).toBe(true)
+        expect(await tierOf(T, p)).toBe('FREE') // AI is never part of the trial
+      }
+    } finally {
+      await deleteTestUser(T)
     }
   })
 })

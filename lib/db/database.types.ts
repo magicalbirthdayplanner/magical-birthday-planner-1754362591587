@@ -159,13 +159,13 @@ isOneToOne: false
                   ]
                 },"billing_purchases": {
                   Row: {
-                    "amount_minor": number | null,"created_at": string,"currency": string | null,"current_period_end": string | null,"customer_ref": string | null,"id": string,"kind": string,"last_event_at": string | null,"party_id": string | null,"plan": string,"product_id": string | null,"provider": string,"provider_ref": string,"scope": string,"status": string,"updated_at": string,"user_id": string
+                    "amount_minor": number | null,"created_at": string,"currency": string | null,"current_period_end": string | null,"customer_ref": string | null,"id": string,"kind": string,"last_event_at": string | null,"party_id": string | null,"plan": string,"product_id": string | null,"provider": string,"provider_ref": string,"scope": string,"status": string,"unresolved_reason": string | null,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind": string,"last_event_at"?: string | null,"party_id"?: string | null,"plan": string,"product_id"?: string | null,"provider"?: string,"provider_ref": string,"scope"?: string,"status": string,"updated_at"?: string,"user_id": string
+                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind": string,"last_event_at"?: string | null,"party_id"?: string | null,"plan": string,"product_id"?: string | null,"provider"?: string,"provider_ref": string,"scope"?: string,"status": string,"unresolved_reason"?: string | null,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind"?: string,"last_event_at"?: string | null,"party_id"?: string | null,"plan"?: string,"product_id"?: string | null,"provider"?: string,"provider_ref"?: string,"scope"?: string,"status"?: string,"updated_at"?: string,"user_id"?: string
+                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind"?: string,"last_event_at"?: string | null,"party_id"?: string | null,"plan"?: string,"product_id"?: string | null,"provider"?: string,"provider_ref"?: string,"scope"?: string,"status"?: string,"unresolved_reason"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -810,6 +810,9 @@ isOneToOne: false
                            },
 "recompute_entitlement":
 { Args: { "p_user": string }; Returns: string
+                           },
+"reconcile_purchase":
+{ Args: { "p_party": string,"p_purchase": string }; Returns: undefined
                            },
 "remove_party_activity":
 { Args: { "p_activity": string }; Returns: Json

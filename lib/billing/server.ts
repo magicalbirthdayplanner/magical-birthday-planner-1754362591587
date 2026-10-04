@@ -7,6 +7,7 @@ import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/database.types'
 import { decide, parseEvent, type DodoEvent } from './events'
 import { checkoutEnvironmentAllowed, dodoApiBase, dodoMode, liveChargingAllowed, productIdFor, type PaidPlan } from './plans'
+import { paymentUnresolved } from '@/lib/observability/billing'
 
 type Admin = SupabaseClient<Database>
 
@@ -130,35 +131,27 @@ async function resolveUser(admin: Admin, e: DodoEvent): Promise<string | null> {
   return null
 }
 
+/** Why a payment could not be tied to a party (it then unlocks nothing and needs admin reconciliation). */
+export type UnresolvedReason = 'no_checkout' | 'checkout_mismatch' | 'party_unavailable'
+
 /**
- * Which party was this plan bought for? Our own checkout record (written server-side when checkout started, matched
- * by the metadata reference or — without one — the user's latest pending checkout for this plan), then the metadata
- * copy; only a party that belongs to the paying user counts.
- *  - party found                          → scope 'party' (unlocks that party only)
- *  - checkout found but its party is gone → scope 'party' with no party (deleting a party ends its plan)
- *  - no checkout at all (external/legacy) → scope 'account', so a paying customer never loses what they paid for
+ * Which party was this plan bought for? Only a VERIFIED association counts: the checkout reference our server put in
+ * the payment metadata must point to a checkout of this same user, for this same plan, whose party (and any party id
+ * in the metadata) matches and still belongs to the user. Nothing is inferred from the user, their latest/active/only
+ * party, or a recent checkout. Anything else → no party (unlocks nothing) with the reason, for reconciliation.
  */
-async function resolveParty(admin: Admin, e: DodoEvent, userId: string, plan: PaidPlan): Promise<{ partyId: string | null; scope: 'party' | 'account' }> {
+export async function resolveParty(admin: Admin, e: DodoEvent, userId: string, plan: PaidPlan): Promise<{ partyId: string; reason: null } | { partyId: null; reason: UnresolvedReason }> {
   const meta = e.data.metadata ?? {}
   const checkoutId = typeof meta.mbp_checkout_id === 'string' && UUID.test(meta.mbp_checkout_id) ? meta.mbp_checkout_id : null
-  let checkout: { party_id: string | null } | null = null
-  if (checkoutId) {
-    const { data: c } = await admin.from('billing_checkouts').select('user_id, party_id').eq('id', checkoutId).maybeSingle()
-    if (c?.user_id === userId) checkout = c
-  }
-  if (!checkout) {
-    const since = new Date(Date.now() - 7 * 86_400_000).toISOString()
-    const { data } = await admin.from('billing_checkouts').select('party_id').eq('user_id', userId).eq('plan', plan).eq('status', 'pending').gte('created_at', since).order('created_at', { ascending: false }).limit(1)
-    checkout = data?.[0] ?? null
-  }
-  let partyId = checkout?.party_id ?? null
-  if (!partyId && !checkout && typeof meta.mbp_party_id === 'string' && UUID.test(meta.mbp_party_id)) partyId = meta.mbp_party_id
-  if (partyId) {
-    const { data: party } = await admin.from('parties').select('id').eq('id', partyId).eq('user_id', userId).maybeSingle()
-    partyId = party?.id ?? null
-  }
-  if (partyId) return { partyId, scope: 'party' }
-  return checkout ? { partyId: null, scope: 'party' } : { partyId: null, scope: 'account' }
+  if (!checkoutId) return { partyId: null, reason: 'no_checkout' }
+  const { data: c } = await admin.from('billing_checkouts').select('user_id, plan, party_id').eq('id', checkoutId).maybeSingle()
+  if (!c) return { partyId: null, reason: 'no_checkout' }
+  const metaParty = typeof meta.mbp_party_id === 'string' ? meta.mbp_party_id : null
+  if (c.user_id !== userId || c.plan !== plan) return { partyId: null, reason: 'checkout_mismatch' }
+  if (!c.party_id) return { partyId: null, reason: 'party_unavailable' } // the party was deleted before the payment arrived
+  if (metaParty !== null && metaParty !== c.party_id) return { partyId: null, reason: 'checkout_mismatch' }
+  const { data: party } = await admin.from('parties').select('id').eq('id', c.party_id).eq('user_id', userId).maybeSingle()
+  return party ? { partyId: party.id, reason: null } : { partyId: null, reason: 'party_unavailable' }
 }
 
 async function markEvent(admin: Admin, id: string, status: string, detail?: string, userId?: string | null) {
@@ -240,34 +233,56 @@ export async function processWebhookEvent(admin: Admin, eventId: string, raw: un
       return { status: 'ignored', detail: 'already_active', userId }
     }
 
-    // Per-party plans: the purchase unlocks the party it was bought for. A purchase keeps the party it was first
-    // recorded with (retries and later events never move it).
-    const { partyId, scope } = existing ? { partyId: existing.party_id, scope: existing.scope } : await resolveParty(admin, event, userId, action.plan)
-    const { error: upsertErr } = await admin.from('billing_purchases').upsert(
-      {
+    // Per-party plans: every purchase is party-scoped and unlocks only the party it was VERIFIABLY bought for. A purchase
+    // keeps the party it was first recorded with: later events update status/amounts only (never user, party or scope).
+    const fields = {
+      kind: action.purchaseKind,
+      plan: action.plan,
+      product_id: action.productId,
+      status: action.status,
+      amount_minor: action.amountMinor,
+      currency: action.currency,
+      customer_ref: customerId ?? null,
+      current_period_end: action.currentPeriodEnd,
+      last_event_at: eventAt,
+    }
+    let resolved: Awaited<ReturnType<typeof resolveParty>> | null = null
+    if (existing) {
+      const { error } = await admin.from('billing_purchases').update(fields).eq('provider', 'dodo').eq('provider_ref', action.providerRef)
+      if (error) throw error
+    } else {
+      resolved = await resolveParty(admin, event, userId, action.plan)
+      const { error } = await admin.from('billing_purchases').insert({
         user_id: userId,
-        party_id: partyId,
-        scope,
         provider: 'dodo',
         provider_ref: action.providerRef,
-        kind: action.purchaseKind,
-        plan: action.plan,
-        product_id: action.productId,
-        status: action.status,
-        amount_minor: action.amountMinor,
-        currency: action.currency,
-        customer_ref: customerId ?? null,
-        current_period_end: action.currentPeriodEnd,
-        last_event_at: eventAt,
-      },
-      { onConflict: 'provider,provider_ref' },
-    )
-    if (upsertErr) throw upsertErr
+        scope: 'party',
+        party_id: resolved.partyId,
+        unresolved_reason: resolved.reason,
+        ...fields,
+      })
+      if (error?.code === '23505') {
+        // A concurrent delivery of the same payment inserted first: apply this event as an update.
+        const { error: e2 } = await admin.from('billing_purchases').update(fields).eq('provider', 'dodo').eq('provider_ref', action.providerRef).eq('user_id', userId)
+        if (e2) throw e2
+      } else if (error) throw error
+    }
 
-    if (action.status === 'active') {
-      const checkoutId = event.data.metadata?.mbp_checkout_id
-      const q = admin.from('billing_checkouts').update({ status: 'completed', completed_at: new Date().toISOString(), payment_ref: action.providerRef }).eq('user_id', userId).eq('status', 'pending')
-      await (typeof checkoutId === 'string' && UUID.test(checkoutId) ? q.eq('id', checkoutId) : q.eq('plan', action.plan))
+    if (action.status === 'active' && resolved?.partyId) {
+      await admin
+        .from('billing_checkouts')
+        .update({ status: 'completed', completed_at: new Date().toISOString(), payment_ref: action.providerRef })
+        .eq('id', event.data.metadata!.mbp_checkout_id as string)
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+    }
+    if (resolved?.reason && action.status === 'active') {
+      // Paid, but not provably for any party: grant nothing anywhere and flag it for reconciliation.
+      paymentUnresolved(action.plan, resolved.reason)
+      const { error: rpcErr } = await admin.rpc('recompute_entitlement', { p_user: userId })
+      if (rpcErr) throw rpcErr
+      await markEvent(admin, eventId, 'unmatched', `party_unresolved:${resolved.reason}`, userId)
+      return { status: 'unmatched', detail: `party_unresolved:${resolved.reason}`, userId }
     }
     const { error: rpcErr } = await admin.rpc('recompute_entitlement', { p_user: userId })
     if (rpcErr) throw rpcErr

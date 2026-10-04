@@ -107,7 +107,7 @@ export function AdminScreen() {
   const [term, setTerm] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
   const isAdmin = !!session.data?.admin
-  const stats = useSWR(isAdmin ? 'admin-stats' : null, () => apiFetch<{ users: number; paidUsers: number; freeUsers: number; overrides: number }>('/api/admin/stats'))
+  const stats = useSWR(isAdmin ? 'admin-stats' : null, () => apiFetch<{ users: number; paidUsers: number; freeUsers: number; overrides: number; unresolvedPayments: number }>('/api/admin/stats'))
   const me = useSWR(isAdmin && user?.email ? ['admin-me', user.email] : null, () => apiFetch<{ users: AdminUser[] }>(`/api/admin/users?q=${encodeURIComponent(user!.email!)}`).then((r) => r.users.find((u) => u.id === user!.id) ?? null))
   const users = useSWR(isAdmin ? ['admin-users', term] : null, () => apiFetch<{ users: AdminUser[] }>(`/api/admin/users?q=${encodeURIComponent(term)}`).then((r) => r.users))
   const audit = useSWR(isAdmin ? 'admin-audit' : null, () => apiFetch<{ entries: AuditEntry[] }>('/api/admin/audit').then((r) => r.entries))
@@ -150,6 +150,11 @@ export function AdminScreen() {
           <span>Paid users: <strong>{stats.data?.paidUsers ?? '…'}</strong></span>
           <span>Free users: <strong>{stats.data?.freeUsers ?? '…'}</strong></span>
           <span>Overrides: <strong>{stats.data?.overrides ?? '…'}</strong></span>
+          {stats.data?.unresolvedPayments ? (
+            <span className="col-span-2 rounded-xl bg-destructive/10 px-3 py-2 font-semibold text-destructive" role="alert" data-testid="admin-unresolved-payments">
+              {stats.data.unresolvedPayments} paid purchase{stats.data.unresolvedPayments === 1 ? '' : 's'} not matched to a party — reconcile (see BILLING_SECURITY.md)
+            </span>
+          ) : null}
         </Card>
       </Section>
 

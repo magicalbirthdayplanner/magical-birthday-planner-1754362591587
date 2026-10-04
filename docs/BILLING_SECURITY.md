@@ -16,11 +16,19 @@ Dodo Payments is the only payment provider. **Live charging is impossible** unle
    * Idempotent on `webhook-id` (`billing_webhook_events`).
    * User mapping: known customer → metadata user → recent pending checkout email. Conflicts are rejected.
    * `billing_purchases` is upserted by provider reference. Older events never overwrite newer ones.
-   * Party: from our own checkout record (only the paying user's party), else `scope = 'account'` for a
-     payment with no checkout at all (legacy/external). A purchase never moves to another party; deleting the
-     party ends its plan. Party plans are resolved by `party_plan(party)` / `getPartyPlan` and
-     `has_paid_access(party)` (RLS); `users.current_plan` covers account-level entitlements only
-     (admin override → legacy account purchase → trial → FREE).
+   * **Every purchase is party-scoped.** The party comes only from a verified association: the checkout id our
+     server put in the metadata must be a checkout of the same user, for the same plan, whose party (and any
+     party id in the metadata) matches and still belongs to the user. Nothing is inferred from the user or their
+     latest/active/only party. Otherwise the purchase is recorded with no party and `unresolved_reason`
+     (`no_checkout` | `checkout_mismatch` | `party_unavailable`): it unlocks **nothing**, the webhook outcome is
+     `unmatched`, Sentry gets a `PAYMENT_UNRESOLVED` warning issue, and Super Admin stats show the count.
+     Reconcile with `select public.reconcile_purchase('<purchase id>', '<party id>')` (service role; the party
+     must belong to the payer; only once).
+   * A database trigger rejects new `scope = 'account'` rows and any change of scope or move to another party.
+     Deleting the party ends its plan. Party plans are resolved by `party_plan(party)` / `getPartyPlan` and
+     `has_paid_access(party)` (RLS); `users.current_plan` covers account-level entitlements only — the
+     intentionally account-wide admin override and 24 h trial, plus legacy pre-2026-10-04 purchases (none in
+     production).
 3. **`recompute_entitlement(user)`** (service role only) sets `users.current_plan`.
    * The plan comes from the **product id**, never from metadata.
    * USD payments below the plan price are held as `review`.

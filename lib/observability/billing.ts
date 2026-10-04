@@ -82,3 +82,12 @@ function sanitizedError(err: Error): Error {
   e.stack = err.stack
   return e
 }
+
+/**
+ * A verified payment that could not be tied to a party (plans are per party): it unlocks nothing until an admin
+ * reconciles it (billing_purchases.unresolved_reason; Super Admin stats). An issue, so it alerts. No customer data.
+ */
+export function paymentUnresolved(plan: string, reason: string) {
+  track('PAYMENT_UNRESOLVED', { plan, reason, environment: env() }, undefined, 'warn')
+  reportError(`Paid ${plan} purchase could not be matched to a party (${reason}) — needs reconciliation`, { area: 'billing', op: 'reconciliation', level: 'warning', tags: { plan, reason, environment: env() }, fingerprint: ['dodo-payment-unresolved', reason] })
+}

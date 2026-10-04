@@ -45,7 +45,12 @@ const planOf = async (u: TestUser) => (await adminClient().from('users').select(
 const purchasesOf = async (u: TestUser) => (await adminClient().from('billing_purchases').select('id').eq('user_id', u.id)).data!.length
 const auditFor = async (u: TestUser) => (await adminClient().from('admin_audit_log').select('*').eq('target_user_id', u.id).order('id')).data!
 
-function buy(user: TestUser, plan: keyof typeof PRODUCTS) {
+let PU: string // U's party: plans are bought per party
+const partyBilling = async (u: TestUser, partyId: string) => (await status.GET(req(`/api/billing/status?partyId=${partyId}`, u.accessToken))).json()
+
+/** A verified payment for a checkout our server started for `partyId` (the normal, party-linked path). */
+async function buy(user: TestUser, plan: keyof typeof PRODUCTS, partyId = PU) {
+  const { data: checkout } = await adminClient().from('billing_checkouts').insert({ user_id: user.id, plan, product_id: PRODUCTS[plan], party_id: partyId }).select('id').single()
   const id = `msg_admin_${Date.now()}_${++seq}`
   const ts = Math.floor(Date.now() / 1000)
   const raw = JSON.stringify({
@@ -59,7 +64,7 @@ function buy(user: TestUser, plan: keyof typeof PRODUCTS) {
       currency: 'USD',
       product_cart: [{ product_id: PRODUCTS[plan], quantity: 1 }],
       customer: { customer_id: `cus_admin_${user.id.slice(0, 8)}`, email: user.email, name: 'Test' },
-      metadata: { mbp_user_id: user.id },
+      metadata: { mbp_user_id: user.id, mbp_checkout_id: checkout!.id, mbp_party_id: partyId },
     },
   })
   return webhook.POST(new Request('http://app.test/api/webhooks/dodo', { method: 'POST', headers: { 'webhook-id': id, 'webhook-timestamp': String(ts), 'webhook-signature': signWebhook(WEBHOOK_SECRET, id, ts, raw), 'Content-Type': 'application/json' }, body: raw }))
@@ -70,6 +75,7 @@ async function reset(u: TestUser, trial = false) {
   await db.from('plan_overrides').delete().eq('user_id', u.id)
   await db.from('billing_purchases').delete().eq('user_id', u.id)
   await db.from('billing_customers').delete().eq('user_id', u.id)
+  await db.from('billing_checkouts').delete().eq('user_id', u.id)
   await db.from('users').update(trial ? { is_trial_active: true, trial_plan: 'PRO', trial_expires_at: new Date(Date.now() + 86_400_000).toISOString() } : { is_trial_active: false, trial_expires_at: '2020-01-01T00:00:00Z' }).eq('id', u.id)
   await db.rpc('recompute_entitlement', { p_user: u.id })
 }
@@ -77,6 +83,7 @@ async function reset(u: TestUser, trial = false) {
 beforeAll(async () => {
   if (!(await isSupabaseUp())) throw new Error('Local Supabase is not running')
   ;[A, U] = await Promise.all([createTestUser('admin-a'), createTestUser('admin-u')])
+  PU = (await U.client.from('parties').insert({ user_id: U.id, child_name: 'Ava', child_age: 7, party_date: new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10), zip_code: '48084', guest_count: 12, budget: 250 }).select('id').single()).data!.id
   // The role is granted only server-side (service role), exactly like the production seed.
   const { error } = await adminClient().from('user_roles').insert({ user_id: A.id, role: 'super_admin' })
   if (error) throw error
@@ -210,18 +217,19 @@ describe('plan overrides', () => {
     expect((await auditFor(U)).at(-1)).toMatchObject({ action: 'override_removed', old_plan: 'STARTER', new_plan: 'PRO' })
   })
 
-  it('a real purchase still grants, under and after an override', async () => {
+  it('a real (per-party) purchase still grants, under and after an override; the override is account-wide', async () => {
     await setOverride(A.accessToken, { userId: U.id, plan: 'FREE', duration: 'none' })
     expect((await buy(U, 'PLUS')).status).toBe(200)
     expect(await purchasesOf(U)).toBe(1)
-    expect(await billing(U)).toMatchObject({ plan: 'FREE', source: 'admin_override' }) // override wins while active
+    expect(await partyBilling(U, PU)).toMatchObject({ plan: 'FREE', source: 'admin_override' }) // override wins while active
     await removeOverride(A.accessToken, { userId: U.id })
-    expect(await billing(U)).toMatchObject({ plan: 'PLUS', source: 'purchase', override: null })
+    expect(await partyBilling(U, PU)).toMatchObject({ plan: 'PLUS', source: 'purchase', override: null })
+    expect(await billing(U)).toMatchObject({ plan: 'FREE', source: 'free' }) // the purchase is for the party, not the account
     expect(await purchasesOf(U)).toBe(1) // removal didn't touch billing
     // And without any override a purchase grants immediately.
     await reset(U)
     expect((await buy(U, 'STARTER')).status).toBe(200)
-    expect(await billing(U)).toMatchObject({ plan: 'STARTER', source: 'purchase' })
+    expect(await partyBilling(U, PU)).toMatchObject({ plan: 'STARTER', source: 'purchase' })
   })
 
   it('the admin can switch their own plan (quick test) and it persists across sessions', async () => {

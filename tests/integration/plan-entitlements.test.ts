@@ -25,12 +25,14 @@ async function setState(u: TestUser, s: State) {
   if (s === 'override:STARTER' || s === 'override:FREE') await db.from('plan_overrides').insert({ user_id: u.id, plan: s.split(':')[1], expires_at: null })
   if (s === 'expired-override') await db.from('plan_overrides').insert({ user_id: u.id, plan: 'PRO', expires_at: '2020-01-01T00:00:00Z' })
   if (s === 'purchase') {
-    const { error } = await db.from('billing_purchases').insert({ user_id: u.id, provider_ref: `test-${u.id}`, kind: 'payment', plan: 'STARTER', status: 'active' })
+    const { error } = await db.from('billing_purchases').insert({ user_id: u.id, provider_ref: `test-${u.id}`, kind: 'payment', plan: 'STARTER', status: 'active', party_id: partyId }) // bought for this party
     expect(error).toBeNull()
   }
   await db.rpc('recompute_entitlement', { p_user: u.id })
 }
-const paid = async (u: TestUser) => (await u.client.rpc('has_paid_access')).data
+// Paid access FOR THE TEST PARTY (what the guests/invitations RLS policies check: plans are per party).
+const paid = async (u: TestUser) => (await u.client.rpc('has_paid_access', { p_party: partyId })).data
+const paidAccountWide = async (u: TestUser) => (await u.client.rpc('has_paid_access')).data
 const addGuest = (u: TestUser, name: string) => u.client.from('guests').insert({ party_id: partyId, user_id: u.id, name }).select('id')
 const sendInvites = async (u: TestUser) => {
   const route = await import('@/app/api/invitations/send/route')
@@ -55,6 +57,8 @@ describe.skipIf(!up)('guests & RSVP are Starter+ (enforced by the database)', ()
     for (const [s, want] of expected) {
       await setState(U, s)
       expect([s, await paid(U)]).toEqual([s, want])
+      // a party purchase never grants account-wide access; trial and overrides are account-wide by design
+      expect([s, await paidAccountWide(U)]).toEqual([s, s === 'purchase' ? false : want])
     }
     expect((await anonClient().rpc('has_paid_access')).data).not.toBe(true)
   })
