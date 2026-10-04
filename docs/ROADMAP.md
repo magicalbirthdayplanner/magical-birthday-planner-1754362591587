@@ -1,30 +1,40 @@
 # Roadmap
 
-Everything under **Next** and **Future** is not built unless stated. Current functionality: [FEATURES.md](FEATURES.md).
+Nothing here is built unless stated. Current functionality: [../README.md](../README.md) and [FEATURES.md](FEATURES.md).
+The v1.0 baseline is frozen ([LAUNCH_BASELINE.md](LAUNCH_BASELINE.md)); every item below starts on a feature branch.
 
-## Now (in production)
+## Now (v1.0, in production)
 
-Mobile-first party planning: wizard, venue discovery with Google Places and maps, saved venues, guests, invitations,
-idempotent RSVP, checklist, themes, activities, timeline, shopping, budget, menu, Party Host; six live AI features
-(Plan My Party, Theme Ideas, AI Checklist, Activity Studio, Party Host, Party Experience); live billing; Sentry;
-Super Admin.
+Mobile-first party planning (wizard, Google venue discovery and map, saved venues, checklist, themes, activities,
+party plan, budget), Guests & RSVP with duplicate protection, invitations by link and email, 11 AI features across
+Starter/Plus/Pro, per-party Dodo billing (live), Super Admin, Sentry observability.
 
-## Next (identified, high value)
+## Near term (after the first real users)
 
-- Launch copy and trust fixes listed in [LAUNCH_STATUS.md](LAUNCH_STATUS.md) (pricing/terms consistency, social
-  proof, invitation help link, social preview image, privacy policy processors).
+- Watch and confirm the first real live purchases end to end; tune alerts on `PAYMENT_UNRESOLVED`.
+- Individual (per-guest) RSVP links in emailed invitations — exact invitee identity, removes the email-matching
+  trade-off; link host-added guests without an email.
+- RSVP UX polish based on real guest behaviour.
 - Create the party automatically after email confirmation (no wizard repeat).
-- Individual RSVP links in emailed invitations (exact invitee identity; removes email-based matching trade-off).
-- Durable rate limiting and global/per-account email caps.
-- Flush Sentry telemetry at the end of serverless requests; alerts for webhook signature failures and payment-failure rate.
+- Durable (shared) rate limiting and global/per-account email caps; require a confirmed email before bulk invitations.
+- Flush Sentry telemetry at the end of serverless requests; dashboards for funnel → checkout → purchase.
+- Rotate credentials from early Git history; replace the personal Sentry token with an org token; Supabase custom auth
+  domain so Google sign-in shows the product's domain.
+- Homepage copy/design alignment with the app (e.g. the "Try Demo" button).
+
+## Medium term
+
+- Better budget reasoning in the Budget Assistant (respect actual spend, include recommended missing costs in the
+  projection).
+- Improved AI recommendations and personalisation across parties (siblings, repeat guests, preferences).
 - Re-date checklist tasks when the party date changes; manual budget and shopping entry.
-- Decide which implemented-but-disabled AI features to enable (budget assistant, food planner, invitation writer,
-  timeline, shopping list, "why these places") and align plan copy with what each tier unlocks.
+- Upgrade credit/proration between plans for the same party (product decision).
+- Richer first-party analytics and product insight dashboards.
+- Mobile/PWA improvements (party-day mode: live timeline, host prompts and checklist on one screen).
 
-## Future
+## Long term
 
-- Party-day mode: live timeline, host prompts and checklist in one screen.
-- Deeper personalisation across parties (sibling parties, repeat guests, preferences).
-- Richer execution help: vendor booking, reminders to families, post-party thank-yous sent from the app.
-- Product analytics and insight dashboards for the team (beyond Sentry operational telemetry).
-- AI capacity scaling (provider plan, caching of similar requests) as usage grows.
+- Additional AI party-day assistance beyond Party Host / Party Experience.
+- Additional integrations (vendor booking, calendars, messaging) and post-party thank-yous sent from the app.
+- Marketing and referral capabilities.
+- AI capacity scaling (provider plan, caching of similar requests) as usage grows; retire legacy tables.

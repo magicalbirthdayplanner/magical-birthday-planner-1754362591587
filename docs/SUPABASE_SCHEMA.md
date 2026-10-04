@@ -9,9 +9,22 @@ Generated types: `lib/db/database.types.ts` (`npm run db:types`).
 | `20251001000100_mobile_first_core.sql` | PostGIS, party location, venue store, cache, saved venues, checklist, invitations, analytics, AI cache, RPCs | Yes (additive, idempotent) |
 | `20251001000200_rls_hardening.sql` | Replaces every policy on user tables with owner-scoped ones; revokes dangerous functions | Yes (idempotent) |
 | `20251001000300_party_theme_details.sql` | `parties.theme_details` for AI/custom themes | Yes |
+| `20251001000400_entitlements_and_rsvp_hardening.sql` | Plan/trial columns server-only; 24 h trial trigger; RSVP hardening | Yes |
+| `20251001000500_billing.sql` | `billing_checkouts`, `billing_purchases`, `billing_customers`, `billing_webhook_events`; `recompute_entitlement` | Yes |
+| `20251001000600_launch_hardening.sql` | Email-cap indexes on `email_logs`; fixed `search_path` on definer functions; invoker views | Yes |
+| `20251001000700_super_admin.sql` | `user_roles`, `plan_overrides`, `admin_audit_log`; override-first entitlement | Yes |
+| `20251003000800_ai_assistant.sql` | `ai_generations`, AI usage RPCs | Yes |
+| `20251003000900_ai_hardening.sql` | `ai_finalize` service-role only; failures count toward the global breaker; budget actual amounts | Yes |
+| `20251004001000_party_experience.sql` | Plan-section tables (`party_ai_activities`, timeline, food, shopping, budget, host content) | Yes |
+| `20251004001100_rsvp_idempotency.sql` | One invitee = one guest row (`rsvp_respondent`), idempotent `submit_rsvp` | Yes |
+| `20251004001200_ai_usage_hardening.sql` | Server-only `ai_reserve`, atomic global breaker, usage survives deletion | Yes |
+| `20251004001300_plan_entitlements.sql` | `has_paid_access()`; guests/invitations writes need paid access | Yes |
+| `20251004001400_per_party_purchases.sql` | Per-party purchases (`party_id`, `scope`, `unresolved_reason`), `party_plan()`, `has_paid_access(party)`, scope guard trigger, `reconcile_purchase()` | Yes |
 
-Production’s exact schema could not be inspected from this environment. Before pushing, run
-`supabase db diff --linked` (or `pg_dump --schema-only`) and review — see `RELEASE.md`.
+All of the above are applied in production as of the v1.0 baseline (2026-10-04; `supabase db push --dry-run` reports
+"Remote database is up to date"). Before any future push, run the dry run and review — see `RELEASE.md`. The table
+descriptions below date from the mobile-first rebuild; later tables are described in the migrations' headers and in
+[ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Tables used by the mobile app
 

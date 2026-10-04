@@ -1,7 +1,8 @@
 # Launch status
 
-As of 2026-10-04, production runs `master` = `1f96a8b` (Vercel), with database migrations through
-`20251004001200`. Evidence: [LAUNCH_STRESS_TEST_REPORT.md](LAUNCH_STRESS_TEST_REPORT.md) (pre-launch audit,
+As of 2026-10-04 (v1.0 launch baseline, see [LAUNCH_BASELINE.md](LAUNCH_BASELINE.md)), production runs application
+code `7da40bb` (tag `v1.0.0`) with database migrations through `20251004001400`. Earlier sections below are kept as
+history. Evidence: [LAUNCH_STRESS_TEST_REPORT.md](LAUNCH_STRESS_TEST_REPORT.md) (pre-launch audit,
 2026-10-03; several of its findings are fixed — see below), [ai/LAUNCH_LOG.md](ai/LAUNCH_LOG.md),
 [OBSERVABILITY.md](OBSERVABILITY.md), [CHANGELOG.md](../CHANGELOG.md).
 

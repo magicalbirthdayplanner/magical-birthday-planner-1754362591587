@@ -45,14 +45,14 @@ with no client policies and revoked writes.
 | Checklist | `checklist_items` | stable task keys; links to activities |
 | Plan items | `party_ai_activities`, `party_shopping_items`, `party_budget_lines` (`amount` planned, `actual_amount`), `party_timeline_items`, `party_food_items`, `party_host_content` | apply targets for AI and manual edits; dedupe indexes |
 | AI usage & results | `ai_generations` | ledger + stored result; usage survives deletion (FKs set null + scrub trigger) |
-| Billing | `billing_checkouts`, `billing_customers`, `billing_purchases`, `billing_webhook_events` | server-only writes; webhook idempotency ledger |
+| Billing | `billing_checkouts`, `billing_customers`, `billing_purchases`, `billing_webhook_events` | server-only writes; webhook idempotency ledger; checkouts and purchases carry the party (plans are per party) |
 | Email | `email_logs` | daily caps across instances |
 | Analytics | `analytics_events` | first-party events (allow-listed) |
 | Legacy (kept, not used by current code) | `invitations` (per-guest), `activities`, `activity_favorites`, `party_activities`, `theme_preferences` | from the pre-2026 app; covered by RLS hardening |
 | AI cache | `ai_cache` | used only by the legacy, unconfigured `/api/themes/ai` route |
 
 Relationships: `users 1─* parties 1─* (guests, checklist_items, saved_venues, party_* plan items, ai_generations)`,
-`parties 1─1 party_invitations`, `users 1─* billing_purchases`, `ai_generations ─0..1 parties / users`.
+`parties 1─1 party_invitations`, `users 1─* billing_purchases *─0..1 parties`, `ai_generations ─0..1 parties / users`.
 
 ## Migrations
 
@@ -73,6 +73,8 @@ Relationships: `users 1─* parties 1─* (guests, checklist_items, saved_venues
 | `20251004001000_party_experience` | Activities, timeline, host content, food |
 | `…1100_rsvp_idempotency` | Respondent key, per-party serialization, change detection |
 | `…1200_ai_usage_hardening` | Server-only `ai_reserve` with atomic global breaker; usage survives deletion |
+| `…1300_plan_entitlements` | `has_paid_access()`; guests/invitations writes need paid access |
+| `…1400_per_party_purchases` | Purchases tied to one party (`party_id`, `scope`, `unresolved_reason`), `party_plan()`, `has_paid_access(party)`, scope guard trigger, `reconcile_purchase()` |
 
 All migrations are additive and re-runnable. Each header states deployment order constraints.
 

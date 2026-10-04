@@ -3,9 +3,36 @@
 Major milestones, newest first. Dates and commits are from Git history (`git log`). Configuration-only changes
 (no commit) are marked as such.
 
+## v1.0.0 — Launch baseline (2026-10-04)
+
+Production at <https://magicalbirthdayplanner.app>; application code `7da40bb`, tag `v1.0.0`; **frozen** — see
+[docs/LAUNCH_BASELINE.md](docs/LAUNCH_BASELINE.md). Everything below is live:
+
+- **Four-plan model, priced per party:** Free $0 · Starter $4.99 · Plus $9.99 · Pro $14.99 (one-time Dodo products,
+  no subscriptions); each purchase unlocks one party; admin overrides and the 24 h sign-up trial (guests & RSVP, no AI)
+  stay account-wide. Server-side enforcement for AI, guests/invitations (RLS) and checkout.
+- **AI feature expansion:** 11 sold AI features enabled in production — Starter: Plan My Party, Theme Ideas, AI
+  Checklist, Activity Studio · Plus: Food Planner, Budget Assistant, Invitation Writer, Timeline, Shopping List · Pro:
+  Party Host (welcome, activity intros, cake, closing, thank-yous, reminders), Party Experience. Per-party allowances
+  10 / 25 / 50; server-only usage accounting.
+- **RSVP protection:** one invitee = one guest row; idempotent changes, retries and double-taps; notifications once per
+  real change; shared-device "RSVP for someone else"; name pre-filled when changing a reply.
+- **Dodo live billing:** live products, verified webhooks, strictly party-scoped purchases (DB guard), unmatched
+  payments unlock nothing and are flagged for reconciliation.
+- **Sentry observability:** errors, tracing, logs, metrics, AI monitoring, billing/auth/Google telemetry, 12 alert
+  monitors, uptime on `/api/health`.
+- **Security:** RLS on all user tables, AI usage hardening, admin isolation, client-bundle and history secret scans.
+- **Launch polish:** `/help`, privacy processor disclosures, Terms (governing law India), Open Graph image.
+- **Documentation & backup:** README rewrite, launch baseline, AI-agent handoff, known limitations, roadmap, design
+  system, environment variables, 42 product screenshots (`docs/screenshots/`).
+
 ## 2026-10-04
 
-- **Product model: Free · Starter · Plus · Pro** — branch `feat/product-model` (**not deployed**). One source of
+- **Per-party billing** — `f440653`, `7da40bb`. Migration `20251004001400_per_party_purchases`; checkout per party;
+  no account-wide fallback for unmatched payments; `reconcile_purchase()`. Deployed (`dpl_53oRVpqVyfvi4rmZ1RV2HBQqwJyQ`).
+- **Launch polish** — `02659a0`, `bf7d343`: help page, privacy/terms, social preview image, RSVP name pre-fill,
+  governing law India.
+- **Product model: Free · Starter · Plus · Pro** — `0a34b65` (deployed 2026-10-04 13:53 UTC). One source of
   truth `lib/entitlements.ts`; AI gating re-mapped (Free has no AI; trial = Starter's guest & RSVP features without
   AI); guests & RSVP enforced in the database (migration `20251004001300_plan_entitlements`, `has_paid_access()`);
   new pricing page / homepage plans / upgrade prompts / nav lock; funnel analytics events; food-planner text fix,

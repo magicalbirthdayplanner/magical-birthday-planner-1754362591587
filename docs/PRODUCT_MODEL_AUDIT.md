@@ -1,6 +1,6 @@
 # Product model audit and implementation — Free · Starter · Plus · Pro
 
-Status: **implemented on branch `feat/product-model`, NOT deployed.** Date: 2026-10-04.
+Status: **deployed to production 2026-10-04** (`0a34b65`; per-party billing added in `f440653`/`7da40bb`). Date: 2026-10-04.
 Single source of truth: [`lib/entitlements.ts`](../lib/entitlements.ts). Legend: 🟢 works and was verified ·
 🟡 works with a known limitation · 🔴 broken / not sellable · ⚪ not built (not sold).
 

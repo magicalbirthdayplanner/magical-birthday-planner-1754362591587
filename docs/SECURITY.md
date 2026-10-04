@@ -67,8 +67,9 @@ Current security model of the mobile-first app. Evidence and test results:
 
 ## Billing and admin
 
-* Checkout accepts only a plan name; product, price and customer are server-side; the hosted checkout host is
-  validated. Plans change only through Standard-Webhooks-verified Dodo events (timing-safe HMAC, 5-minute tolerance,
+* Checkout accepts only a plan name and one of the caller's parties (plans are per party); product, price and customer
+  are server-side; the hosted checkout host is validated. Purchases are strictly party-scoped (DB trigger) and an
+  unmatched payment unlocks nothing (see `BILLING_SECURITY.md`). Plans change only through Standard-Webhooks-verified Dodo events (timing-safe HMAC, 5-minute tolerance,
   idempotent per webhook id, out-of-order protection, price integrity check). See `BILLING_SECURITY.md`.
 * Super Admin is a server-verified `user_roles` row; admin APIs return 404 to everyone else; there is no endpoint
   that grants roles; every override is written to `admin_audit_log`.

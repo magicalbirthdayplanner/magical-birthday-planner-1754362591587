@@ -37,7 +37,8 @@ in the repository, and tooling never prints values. Variable list: [`.env.exampl
 * Until this is set, confirmation and reset links fall back to the default Site URL, `http://localhost:3000`.
 
 ### Dodo Payments (test mode first)
-1. Test mode → Products: create Starter $9.99, Plus $19.99 and Pro $29.99 (one-time, per party),
+1. Products (one-time, USD; one purchase unlocks one party): Starter $4.99, Plus $9.99, Pro $14.99 (live products exist;
+   test mode needs its own),
    then set `DODO_PRODUCT_STARTER/PLUS/PRO`.
 2. API key (test) → `DODO_PAYMENTS_API_KEY`. Keep `DODO_PAYMENTS_ENVIRONMENT=test_mode`.
 3. Webhooks → endpoint `<origin>/api/webhooks/dodo`. Subscribe to:

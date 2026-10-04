@@ -2,9 +2,9 @@
 
 | Layer | Tool | Location | Needs | Count |
 |---|---|---|---|---|
-| Unit | Vitest | `tests/unit` | nothing | 238 (21 files) |
-| Integration (RLS, security, billing, email, AI, AI usage attacks, RSVP idempotency, observability) | Vitest + supabase-js | `tests/integration` | local Supabase | 254 (17 files) |
-| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google/Resend/Dodo + a production build | 40 runs (29 tests × projects) |
+| Unit | Vitest | `tests/unit` | nothing | 256 (25 files) |
+| Integration (RLS, security, billing, email, AI, AI usage attacks, RSVP idempotency, observability) | Vitest + supabase-js | `tests/integration` | local Supabase | 276 (18 files) |
+| E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google/Resend/Dodo + a production build | 57 runs (13 spec files × phone/viewport projects) |
 
 Counts verified on 2026-10-04. AI tests use a deterministic mock provider; `vitest.live.config.ts` holds opt-in live
 provider checks (`AI_LIVE=1`). Production smoke tests use temporary accounts that are deleted afterwards.
