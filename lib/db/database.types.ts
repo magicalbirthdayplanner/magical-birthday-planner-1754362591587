@@ -235,13 +235,13 @@ isOneToOne: false
                   ]
                 },"guests": {
                   Row: {
-                    "adult_count": number,"age": number | null,"child_count": number,"created_at": string | null,"dietary_restrictions": (string)[] | null,"email": string | null,"id": string,"invite_status": string,"invited_at": string | null,"name": string,"notes": string | null,"party_id": string,"phone": string | null,"responded_at": string | null,"rsvp_status": string | null,"source": string,"type": string | null,"updated_at": string | null,"user_id": string
+                    "adult_count": number,"age": number | null,"child_count": number,"created_at": string | null,"dietary_restrictions": (string)[] | null,"email": string | null,"id": string,"invite_status": string,"invited_at": string | null,"name": string,"notes": string | null,"party_id": string,"phone": string | null,"responded_at": string | null,"rsvp_respondent": string | null,"rsvp_status": string | null,"source": string,"type": string | null,"updated_at": string | null,"user_id": string
                   }
                   Insert: {
-                    "adult_count"?: number,"age"?: number | null,"child_count"?: number,"created_at"?: string | null,"dietary_restrictions"?: (string)[] | null,"email"?: string | null,"id"?: string,"invite_status"?: string,"invited_at"?: string | null,"name": string,"notes"?: string | null,"party_id": string,"phone"?: string | null,"responded_at"?: string | null,"rsvp_status"?: string | null,"source"?: string,"type"?: string | null,"updated_at"?: string | null,"user_id": string
+                    "adult_count"?: number,"age"?: number | null,"child_count"?: number,"created_at"?: string | null,"dietary_restrictions"?: (string)[] | null,"email"?: string | null,"id"?: string,"invite_status"?: string,"invited_at"?: string | null,"name": string,"notes"?: string | null,"party_id": string,"phone"?: string | null,"responded_at"?: string | null,"rsvp_respondent"?: string | null,"rsvp_status"?: string | null,"source"?: string,"type"?: string | null,"updated_at"?: string | null,"user_id": string
                   }
                   Update: {
-                    "adult_count"?: number,"age"?: number | null,"child_count"?: number,"created_at"?: string | null,"dietary_restrictions"?: (string)[] | null,"email"?: string | null,"id"?: string,"invite_status"?: string,"invited_at"?: string | null,"name"?: string,"notes"?: string | null,"party_id"?: string,"phone"?: string | null,"responded_at"?: string | null,"rsvp_status"?: string | null,"source"?: string,"type"?: string | null,"updated_at"?: string | null,"user_id"?: string
+                    "adult_count"?: number,"age"?: number | null,"child_count"?: number,"created_at"?: string | null,"dietary_restrictions"?: (string)[] | null,"email"?: string | null,"id"?: string,"invite_status"?: string,"invited_at"?: string | null,"name"?: string,"notes"?: string | null,"party_id"?: string,"phone"?: string | null,"responded_at"?: string | null,"rsvp_respondent"?: string | null,"rsvp_status"?: string | null,"source"?: string,"type"?: string | null,"updated_at"?: string | null,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -798,7 +798,7 @@ isOneToOne: false
 { Args: { "user_id": string }; Returns: undefined
                            },
 "submit_rsvp":
-{ Args: { "p_adults"?: number,"p_children"?: number,"p_email": string,"p_name": string,"p_note"?: string,"p_status": string,"p_token": string }; Returns: Json
+{ Args: { "p_adults"?: number,"p_children"?: number,"p_email": string,"p_name": string,"p_note"?: string,"p_respondent"?: string,"p_status": string,"p_token": string }; Returns: Json
                            },
 "venues_near":
 { Args: { "p_lat": number,"p_limit"?: number,"p_lng": number,"p_radius_m": number }; Returns: {

@@ -5,7 +5,7 @@ import { apiError, clientIp } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
 import { emailConfigured, hostContact, partyFactsByToken, sendHostRsvpNotification, sendRsvpConfirmation, dailyRsvpEmailCap, emailsSentSince } from '@/lib/server/notifications'
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 
 // Never cache upstream fetches (Supabase, Google, Dodo) in this handler.
 export const fetchCache = "force-no-store";
@@ -21,6 +21,8 @@ const Body = z.object({
   adults: z.number().int().min(0).max(20),
   children: z.number().int().min(0).max(20),
   note: z.string().trim().max(500).optional(),
+  /** Random per-device secret (stored by the RSVP page) that identifies this invitee across changes. */
+  respondent: z.string().regex(/^[A-Za-z0-9_-]{16,128}$/).optional(),
 })
 
 const MESSAGES: Record<string, [number, string]> = {
@@ -50,7 +52,9 @@ export async function POST(req: Request, props: { params: Promise<{ token: strin
   }
   if (!hasServiceRole()) return apiError(503, 'not_configured', 'RSVPs are temporarily unavailable.')
 
-  const { error } = await getSupabaseAdmin().rpc('submit_rsvp', {
+  // Stored hashed: a guest row never holds the raw secret that can edit it.
+  const respondent = body.respondent ? createHash('sha256').update(body.respondent).digest('hex') : undefined
+  const args = {
     p_token: params.token,
     p_name: body.name,
     p_email: body.email || '',
@@ -58,7 +62,10 @@ export async function POST(req: Request, props: { params: Promise<{ token: strin
     p_adults: body.status === 'DECLINED' ? 0 : body.adults,
     p_children: body.status === 'DECLINED' ? 0 : body.children,
     p_note: body.note || undefined,
-  })
+  }
+  let { data: result, error } = await getSupabaseAdmin().rpc('submit_rsvp', { ...args, p_respondent: respondent })
+  // Safety net if this code ever runs before migration 20251004001100: the old function has no p_respondent.
+  if (error?.code === 'PGRST202' && respondent) ({ data: result, error } = await getSupabaseAdmin().rpc('submit_rsvp', args))
   if (error) {
     const key = Object.keys(MESSAGES).find((k) => error.message.includes(k))
     if (key) return apiError(MESSAGES[key][0], 'invalid_request', MESSAGES[key][1])
@@ -66,9 +73,12 @@ export async function POST(req: Request, props: { params: Promise<{ token: strin
     reportDbError('rsvp_submit', error)
     return apiError(500, 'server_error', 'We couldn’t save your RSVP. Please try again.')
   }
-  // Notifications are best-effort: an email problem never fails the RSVP.
+  // Notifications are best-effort: an email problem never fails the RSVP. An exact repeat of the current answer
+  // (double-click, retry, refresh + resubmit) changes nothing, so it sends nothing; a real change notifies again.
+  const outcome = (result ?? {}) as { created?: boolean; changed?: boolean }
+  const notify = outcome.created !== false || outcome.changed !== false
   let emailed = { guest: false, host: false }
-  if (emailConfigured()) {
+  if (notify && emailConfigured()) {
     try {
       const party = await partyFactsByToken(params.token)
       // Per-party daily cap (all instances): an invite link can't be used to mass-mail arbitrary addresses.

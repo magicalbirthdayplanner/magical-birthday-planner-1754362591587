@@ -101,7 +101,8 @@ const faqs = [
 ]
 
 function PricingContent() {
-  const { currentPlan, canUpgradeTo } = usePlanStatus();
+  // Offers are based on the plan the user owns; a sign-up trial never hides a plan from purchase.
+  const { ownedPlan: currentPlan, onTrial, canUpgradeTo } = usePlanStatus();
   const searchParams = useSearchParams();
   const upgradeTarget = searchParams.get('upgrade')?.toUpperCase();
   
@@ -129,6 +130,11 @@ function PricingContent() {
                 : 'Simple, transparent pricing with no hidden fees. Pay per party with no recurring charges - perfect for planning magical birthday celebrations.'
             }
           </p>
+          {onTrial ? (
+            <p className="text-sm text-gray-600 mb-4" data-testid="trial-note">
+              You’re on a free 24-hour Pro trial. You can choose a plan at any time.
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -219,7 +225,7 @@ function PricingContent() {
                         tier.popular 
                           ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' 
                           : tier.ctaVariant === 'outline' 
-                            ? '' 
+                            ? 'border-2 border-purple-500 bg-white text-purple-700 hover:bg-purple-50' 
                             : `bg-gradient-to-r ${tier.gradient} hover:opacity-90`
                       }`}`}
                     >

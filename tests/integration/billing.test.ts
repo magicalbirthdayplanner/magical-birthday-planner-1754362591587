@@ -354,3 +354,63 @@ describe('trial expiry (server-side)', () => {
     }
   })
 })
+
+// Launch audit P0: every sign-up gets a 24 h PRO trial; trial users must still be able to buy a plan, and a
+// purchase must win over the trial (override → purchase → trial → free).
+describe('trial users can buy (sign-up trial never blocks a purchase)', () => {
+  const statusOf = async (u: TestUser) => (await status.GET(new Request('http://app.test/api/billing/status', { headers: { Authorization: `Bearer ${u.accessToken}` } }))).json()
+
+  it('a brand-new user is on the 24 h trial, can start checkout for every plan, and the server picks the product', async () => {
+    const T = await createTestUser('bill-trial-buy')
+    try {
+      expect(await statusOf(T)).toMatchObject({ plan: 'PRO', source: 'trial', trialActive: true })
+      for (const [plan, product] of Object.entries(PRODUCTS)) {
+        const res = await post(T.accessToken, { plan: plan.toLowerCase() })
+        expect(res.status, plan).toBe(200)
+        expect((created.at(-1) as { product_cart: { product_id: string }[] }).product_cart).toEqual([{ product_id: product, quantity: 1 }])
+      }
+      // the client still cannot pick product/price or claim a plan
+      expect((await post(T.accessToken, { plan: 'STARTER', productId: PRODUCTS.PRO, price: 1 })).status).toBe(400)
+      expect((await T.client.from('users').update({ current_plan: 'PRO', is_trial_active: true, trial_expires_at: '2099-01-01T00:00:00Z' }).eq('id', T.id)).error).not.toBeNull()
+    } finally {
+      await deleteTestUser(T)
+    }
+  })
+
+  it('a verified purchase during the trial becomes the plan, survives new sessions and the trial ending', async () => {
+    const T = await createTestUser('bill-trial-paid')
+    try {
+      await post(T.accessToken, { plan: 'STARTER' })
+      expect((await (await send(payment(T, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: 499 }))).json()).outcome).toBe('processed')
+      // purchase beats the trial (existing precedence), and is reported as a purchase, not a trial
+      expect(await statusOf(T)).toMatchObject({ plan: 'STARTER', source: 'purchase' })
+      const { tierFor } = await import('@/lib/ai/capabilities')
+      const { getUserPlan } = await import('@/lib/billing/server')
+      expect(tierFor(await getUserPlan(adminClient(), T.id))).toBe('STARTER')
+      // the plan is stored server-side (users.current_plan), so refresh / sign-out / sign-in can't lose it
+      // (exercised through the UI in tests/e2e/integrations-journey.spec.ts)
+      expect(await planOf(T)).toBe('STARTER')
+      // trial runs out: the paid plan stays
+      await adminClient().from('users').update({ trial_expires_at: new Date(Date.now() - 1000).toISOString() }).eq('id', T.id)
+      expect(await statusOf(T)).toMatchObject({ plan: 'STARTER', source: 'purchase', trialActive: false })
+      // a refund ends the paid plan; with the trial over the account falls back to FREE
+      await send({ business_id: 'bus_test', type: 'refund.succeeded', timestamp: new Date().toISOString(), data: { payment_id: (await adminClient().from('billing_purchases').select('provider_ref').eq('user_id', T.id).single()).data!.provider_ref } })
+      expect(await statusOf(T)).toMatchObject({ plan: 'FREE', source: 'free' })
+    } finally {
+      await deleteTestUser(T)
+    }
+  })
+
+  it('a trial that ends without a purchase falls back to FREE; existing Free and paid users are unchanged', async () => {
+    const T = await createTestUser('bill-trial-lapse')
+    try {
+      await adminClient().from('users').update({ trial_expires_at: new Date(Date.now() - 1000).toISOString() }).eq('id', T.id)
+      expect(await statusOf(T)).toMatchObject({ plan: 'FREE', source: 'free', trialActive: false })
+      expect((await post(T.accessToken, { plan: 'PLUS' })).status).toBe(200) // Free users can buy
+      await send(payment(T, { product_cart: [{ product_id: PRODUCTS.PRO, quantity: 1 }], total_amount: 1499 }))
+      expect(await statusOf(T)).toMatchObject({ plan: 'PRO', source: 'purchase' })
+    } finally {
+      await deleteTestUser(T)
+    }
+  })
+})

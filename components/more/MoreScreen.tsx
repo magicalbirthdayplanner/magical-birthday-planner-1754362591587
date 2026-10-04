@@ -84,7 +84,7 @@ export function MoreScreen() {
         <Link href="/pricing" className="tap flex items-center justify-between rounded-2xl border border-border bg-card p-4" data-testid="plan-row">
           <span>
             <span className="block text-sm text-muted-foreground">Your plan</span>
-            <span className="block font-semibold">{billing.data ? `${billing.data.plan.charAt(0)}${billing.data.plan.slice(1).toLowerCase()}${billing.data.source === 'admin_override' ? '' : billing.data.trialActive ? ' (trial)' : ''}` : '…'}</span>
+            <span className="block font-semibold">{billing.data ? `${billing.data.plan.charAt(0)}${billing.data.plan.slice(1).toLowerCase()}${billing.data.source === 'trial' ? ' (trial)' : ''}` : '…'}</span>
             {billing.data?.source === 'admin_override' || billing.data?.source === 'purchase' ? (
               <span className="block text-xs font-semibold text-muted-foreground" data-testid="plan-source">{billing.data.source === 'admin_override' ? 'Admin override' : 'Purchased'}</span>
             ) : null}

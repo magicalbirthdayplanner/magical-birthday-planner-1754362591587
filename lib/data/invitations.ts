@@ -62,13 +62,40 @@ export async function getPublicInvitation(token: string): Promise<PublicInvitati
   return (data as unknown as PublicInvitation) ?? null
 }
 
+const memoryRespondents = new Map<string, string>()
+
+/**
+ * A random secret per invitation per device: the server uses it (hashed) to recognise the same invitee, so
+ * "Change my RSVP", retries and double-taps update one guest instead of adding another.
+ */
+function rsvpRespondent(token: string): string {
+  const key = `mbp.rsvp.${token.slice(0, 16)}`
+  let stored: string | null = memoryRespondents.get(key) ?? null
+  try {
+    stored = localStorage.getItem(key) ?? stored
+  } catch {
+    /* storage unavailable: keep it for this page session */
+  }
+  if (stored && /^[a-f0-9]{32}$/.test(stored)) return stored
+  const bytes = new Uint8Array(16)
+  crypto.getRandomValues(bytes)
+  const fresh = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+  memoryRespondents.set(key, fresh)
+  try {
+    localStorage.setItem(key, fresh)
+  } catch {
+    /* storage unavailable */
+  }
+  return fresh
+}
+
 export async function submitRsvp(token: string, input: { name: string; email?: string; status: 'CONFIRMED' | 'DECLINED' | 'MAYBE'; adults: number; children: number; note?: string }) {
   let res: Response
   try {
     res = await fetch(`/api/invite/${encodeURIComponent(token)}/rsvp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, respondent: rsvpRespondent(token) }),
     })
   } catch {
     throw new Error('We couldn’t reach our servers. Check your connection and try again.')

@@ -224,10 +224,14 @@ describe('invitation links', () => {
     expect(rows.data?.map((r) => r.rsvp_status).sort()).toEqual(['CONFIRMED', 'DECLINED'])
   })
 
-  it('an RSVP cannot modify host-created guests', async () => {
-    await rsvp(A.token, { name: 'Imposter', email: 'a@guest.test', status: 'DECLINED', adults: 0, children: 0 }, '203.0.113.9')
+  it('an RSVP with a host-added guest’s email answers for that guest, but can never rename it or add a duplicate', async () => {
+    // One invitee = one guest (docs: migration 20251004001100). The exact email is the identity; the name the
+    // responder types never replaces the name the host gave the guest.
+    await rsvp(A.token, { name: 'Imposter', email: 'A@Guest.test', status: 'DECLINED', adults: 0, children: 0 }, '203.0.113.9')
     const host = await adminClient().from('guests').select('name, rsvp_status').eq('id', A.guestId).single()
-    expect(host.data).toEqual({ name: 'A Guest', rsvp_status: 'PENDING' })
+    expect(host.data).toEqual({ name: 'A Guest', rsvp_status: 'DECLINED' })
+    expect((await adminClient().from('guests').select('id').eq('party_id', A.partyId).ilike('email', 'a@guest.test')).data).toHaveLength(1)
+    await adminClient().from('guests').update({ rsvp_status: 'PENDING' }).eq('id', A.guestId)
   })
 
   it('rejects unknown tokens and malformed input; rate-limits', async () => {
