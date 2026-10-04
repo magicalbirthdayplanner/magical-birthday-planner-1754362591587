@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Clock, XCircle } from 'lucide-react'
 import { apiFetch } from '@/lib/data/api'
+import { track } from '@/lib/analytics/client'
 
 type State = { phase: 'checking' | 'active' | 'pending' | 'failed'; plan?: string }
 
@@ -21,7 +22,10 @@ export function CheckoutStatus({ providerStatus }: { providerStatus: string | nu
       try {
         const s = await apiFetch<{ plan: string; purchases: { status: string; plan: string }[] }>('/api/billing/status')
         const paid = s.purchases.find((p) => p.status === 'active')
-        if (paid) return !stopped && setState({ phase: 'active', plan: paid.plan })
+        if (paid) {
+          if (!stopped) track('purchase_completed', { plan: paid.plan })
+          return !stopped && setState({ phase: 'active', plan: paid.plan })
+        }
         if (s.purchases.find((p) => p.status === 'failed')) return !stopped && setState({ phase: 'failed' })
       } catch {
         /* keep polling */

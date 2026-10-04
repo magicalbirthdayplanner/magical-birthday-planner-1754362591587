@@ -18,7 +18,10 @@ import { ApplyControls } from './ApplyControls'
 import { AddAllButton } from './AddAllButton'
 import { AppliedProvider } from './applied'
 import { lastGeneration } from '@/lib/data/partyPlanItems'
+import { partyDetailsChanged, partyNow } from '@/lib/experience/model'
+import { useGuests } from '@/lib/data/hooks'
 import { useAICapabilities, useAIGenerate } from './useAI'
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
 
 type Party = Tables<'parties'>
 
@@ -27,7 +30,8 @@ export function PlanWithAICard({ party, className }: { party: Party; className?:
   const cap = caps.get('party_planner')
   const [open, setOpen] = useState(false)
   if (!cap?.enabled) return null
-  const locked = !cap.allowed || cap.remaining === 0
+  if (!cap.allowed) return <UpgradePrompt compact capability="party_planner" plan={cap.upgradeTo} className={className} />
+  const locked = cap.remaining === 0
   return (
     <div className={className}>
       <button type="button" onClick={() => setOpen(true)} className="tap block w-full text-left" data-testid="plan-with-ai">
@@ -38,7 +42,7 @@ export function PlanWithAICard({ party, className }: { party: Party; className?:
           <span className="min-w-0 flex-1">
             <span className="block font-semibold">Plan My Party</span>
             <span className="block text-sm text-muted-foreground">
-              {locked ? (cap.allowed ? 'See your plan — you’ve used this party’s AI suggestions' : 'Included in paid plans') : 'Tell us about the birthday. We’ll help you plan it — theme, activities, food, budget and a shopping list.'}
+              {locked ? 'See your plan — you’ve used this party’s AI suggestions' : 'Tell us about the birthday. We’ll help you plan it — theme, activities, food, budget and a shopping list.'}
             </span>
           </span>
           <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
@@ -53,6 +57,8 @@ function PlannerSheet({ party, open, onOpenChange, remaining, onUsed }: { party:
   const gen = useAIGenerate<PartyPlanResult>('/api/ai/party-planner')
   const [notes, setNotes] = useState('')
   const [showDetails, setShowDetails] = useState(false)
+  const [restoredSummary, setRestoredSummary] = useState<Record<string, unknown> | null>(null)
+  const guests = useGuests(open ? party.id : null)
   const [d, setD] = useState({
     childAge: party.child_age ? String(party.child_age) : '',
     guestCount: party.guest_count ? String(party.guest_count) : '',
@@ -67,7 +73,10 @@ function PlannerSheet({ party, open, onOpenChange, remaining, onUsed }: { party:
     if (!open || gen.state.phase !== 'idle') return
     let cancelled = false
     void lastGeneration<PartyPlanResult>(party.id, 'party_planner').then((last) => {
-      if (last && !cancelled) gen.restore(last)
+      if (last && !cancelled) {
+        setRestoredSummary(last.inputSummary)
+        gen.restore(last)
+      }
     }).catch(() => undefined)
     return () => {
       cancelled = true
@@ -81,7 +90,9 @@ function PlannerSheet({ party, open, onOpenChange, remaining, onUsed }: { party:
       interests: d.interests.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 8),
       theme: d.theme.trim() || undefined, food: d.food.trim() || undefined,
     }
-    Object.keys(overrides).forEach((k) => overrides[k] === undefined && delete overrides[k])
+    // Only what the parent actually changed is an override; the rest comes from the party (and can be refreshed later).
+    const fromParty: Record<string, unknown> = { childAge: party.child_age ?? undefined, guestCount: party.guest_count || undefined, budget: party.budget != null ? Number(party.budget) : undefined }
+    Object.keys(overrides).forEach((k) => (overrides[k] === undefined || (k in fromParty && overrides[k] === fromParty[k])) && delete overrides[k])
     await gen.run({ partyId: party.id, notes: notes.trim() || undefined, overrides })
     onUsed()
   }
@@ -93,6 +104,7 @@ function PlannerSheet({ party, open, onOpenChange, remaining, onUsed }: { party:
       ) : s.phase === 'done' ? (
         <AppliedProvider key={s.generationId} initial={s.appliedKeys}>
           {s.restoredAt ? <p className="px-4 pb-1 text-xs text-muted-foreground">Your plan from {new Date(s.restoredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}.</p> : null}
+          {s.restoredAt ? <RefreshNotice changed={partyDetailsChanged(restoredSummary, guests.data ? partyNow(party, guests.data) : null)} disabled={remaining === 0} onRefresh={() => void gen.run({ partyId: party.id }).then(onUsed)} /> : null}
           <PlanResultView
             plan={s.result}
             nextSteps
@@ -132,7 +144,7 @@ function PlannerSheet({ party, open, onOpenChange, remaining, onUsed }: { party:
               <TextField label="Food preferences (optional)" placeholder="e.g. nut-free, vegetarian options" value={d.food} maxLength={120} onChange={(e) => setD({ ...d, food: e.target.value })} />
             </div>
           ) : null}
-          {s.phase === 'error' ? <AIError message={s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : create} upgradeTo={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? 'starter' : null} /> : null}
+          {s.phase === 'error' ? <AIError message={s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : create} upgradeTo={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? s.upgradeTo ?? null : null} /> : null}
           <AppButton block size="lg" variant="magic" onClick={create} disabled={remaining === 0}>
             ✨ Plan my party
           </AppButton>
@@ -140,5 +152,16 @@ function PlannerSheet({ party, open, onOpenChange, remaining, onUsed }: { party:
         </div>
       )}
     </BottomSheet>
+  )
+}
+
+/** Shown on a reopened AI result when the party changed since it was made. Refreshing uses one AI suggestion. */
+export function RefreshNotice({ changed, disabled, onRefresh }: { changed: string[]; disabled?: boolean; onRefresh: () => void }) {
+  if (!changed.length) return null
+  return (
+    <div className="mx-4 mb-2 rounded-2xl border border-border bg-secondary/60 p-3 text-sm" data-testid="ai-refresh-notice">
+      <p>Your party’s {changed.join(', ')} changed since this was made.</p>
+      <AppButton variant="outline" block className="mt-2" onClick={onRefresh} disabled={disabled}>Refresh with your new party details</AppButton>
+    </div>
   )
 }

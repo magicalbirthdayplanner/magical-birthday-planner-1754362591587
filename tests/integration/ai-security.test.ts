@@ -17,7 +17,7 @@ const inDays = (n: number) => new Date(Date.now() + n * 864e5).toISOString().sli
 const headers = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${A.accessToken}` })
 const plan = (partyId: string, extra: Record<string, unknown> = {}) => planner.POST(new Request('http://app.test/api/ai/party-planner', { method: 'POST', headers: headers(), body: JSON.stringify({ partyId, ...extra }) }))
 const apply = (body: unknown, method: 'POST' | 'DELETE' = 'POST') => (method === 'POST' ? applyRoute.POST : applyRoute.DELETE)(new Request('http://app.test/api/ai/apply', { method, headers: headers(), body: JSON.stringify(body) }))
-const setPlan = async (plan: 'FREE' | 'PRO') => {
+const setPlan = async (plan: 'FREE' | 'STARTER' | 'PRO') => {
   const db = adminClient()
   await db.from('plan_overrides').delete().eq('user_id', A.id)
   await db.from('users').update({ is_trial_active: false, trial_expires_at: '2020-01-01T00:00:00Z' }).eq('id', A.id)
@@ -47,10 +47,10 @@ beforeEach(async () => {
 
 describe.skipIf(!up)('AI hardening', () => {
   it('a user cannot un-count an in-flight generation by finalizing it themselves', async () => {
-    await setPlan('FREE') // 3 per party
+    await setPlan('STARTER') // 10 per party
     let attempts = 0
     // While the "provider" runs, the user tries to flip their pending row to failed (the S1 attack).
-    scriptMock(...Array.from({ length: 5 }, () => async () => {
+    scriptMock(...Array.from({ length: 12 }, () => async () => {
       attempts++
       const { data } = await A.client.from('ai_generations').select('id').eq('status', 'pending')
       for (const r of data ?? []) {
@@ -61,9 +61,9 @@ describe.skipIf(!up)('AI hardening', () => {
       return JSON.stringify(FIXTURES.party_planner)
     }))
     const codes: number[] = []
-    for (let i = 0; i < 4; i++) codes.push((await plan(parties[0])).status)
-    expect(codes).toEqual([200, 200, 200, 429])
-    expect(attempts).toBe(3)
+    for (let i = 0; i < 11; i++) codes.push((await plan(parties[0])).status)
+    expect(codes).toEqual([...Array(10).fill(200), 429])
+    expect(attempts).toBe(10)
   })
 
   it('failed and cancelled calls count toward the per-user hourly cap (but not the per-party cap)', async () => {

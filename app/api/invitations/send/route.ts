@@ -30,6 +30,9 @@ const MAX_PER_REQUEST = 100
 export async function POST(req: Request) {
   const auth = await getAuthedRequest(req)
   if (!auth) return apiError(401, 'unauthorized', 'Please sign in.')
+  // Product model: invitations & RSVP are Starter+ (lib/entitlements.ts). Same DB check as the guests RLS policies.
+  const { data: paid } = await auth.supabase.rpc('has_paid_access')
+  if (paid !== true) return apiError(403, 'forbidden', 'Guests & RSVP are part of Starter.')
   if (!emailConfigured()) return apiError(503, 'not_configured', 'Email isn’t set up yet — share the link instead.')
   if (!rateLimit(`invite-email:${auth.user.id}`, 5, 3_600_000).ok) {
     return apiError(429, 'rate_limited', 'You’ve sent several batches recently. Please try again later.')

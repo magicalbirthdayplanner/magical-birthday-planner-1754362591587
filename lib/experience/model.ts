@@ -202,3 +202,36 @@ export const costRange = (n: number | string | null) => {
   const lo = Math.max(1, Math.round(v * 0.85)), hi = Math.round(v * 1.15)
   return `$${lo}–${hi}`
 }
+
+/** The party details AI results are built on, computed the same way as the server (lib/ai/context.ts). */
+export interface PartyNow { childAge: number | null; guests: number | null; budget: number | null; theme: string | null }
+export function partyNow(party: { child_age: number | null; guest_count: number | null; budget: number | string | null; theme: string | null; theme_details: unknown }, guests: { rsvp_status: string | null; child_count: number | null; adult_count: number | null }[] = []): PartyNow {
+  const yes = guests.filter((g) => g.rsvp_status === 'CONFIRMED')
+  const rsvp = guests.length ? { kids: yes.reduce((s, g) => s + (g.child_count ?? 0), 0), adults: yes.reduce((s, g) => s + (g.adult_count ?? 0), 0) } : null
+  const details = (party.theme_details ?? null) as { name?: string } | null
+  return {
+    childAge: party.child_age ?? null,
+    guests: effectiveGuests(party.guest_count, rsvp),
+    budget: party.budget != null ? Number(party.budget) : null,
+    theme: details?.name ?? (party.theme && !party.theme.startsWith('ai:') ? party.theme : null),
+  }
+}
+
+/**
+ * What changed in the party since a stored AI result was made (from the generation's structured input summary), so
+ * a reopened result can offer "Refresh with your new party details". One-off values the parent typed into the
+ * planner (overrides) are not party details and are ignored; guest changes count when material (guestDrift).
+ */
+export function partyDetailsChanged(summary: Record<string, unknown> | null | undefined, now: PartyNow | null): string[] {
+  if (!summary || !now) return []
+  const overridden = new Set(Array.isArray(summary.overrides) ? (summary.overrides as string[]) : [])
+  const num = (v: unknown) => (v == null || v === '' ? null : Number(v))
+  const has = (k: string) => k in summary && !overridden.has(k)
+  const out: string[] = []
+  if (has('childAge') && num(summary.childAge) !== now.childAge) out.push('age')
+  const guestsKey = 'guestCount' in summary ? 'guestCount' : 'guests'
+  if (has(guestsKey) && guestDrift(num(summary[guestsKey]), now.guests)) out.push('guest count')
+  if (has('budget') && num(summary.budget) !== now.budget) out.push('budget')
+  if (has('theme') && (summary.theme ?? null) !== now.theme) out.push('theme')
+  return out
+}

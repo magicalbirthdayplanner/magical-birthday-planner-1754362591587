@@ -5,6 +5,11 @@ Major milestones, newest first. Dates and commits are from Git history (`git log
 
 ## 2026-10-04
 
+- **Product model: Free · Starter · Plus · Pro** — branch `feat/product-model` (**not deployed**). One source of
+  truth `lib/entitlements.ts`; AI gating re-mapped (Free has no AI; trial = Starter's guest & RSVP features without
+  AI); guests & RSVP enforced in the database (migration `20251004001300_plan_entitlements`, `has_paid_access()`);
+  new pricing page / homepage plans / upgrade prompts / nav lock; funnel analytics events; food-planner text fix,
+  clock times in the AI timeline, "Refresh with your new party details". See docs/PRODUCT_MODEL_AUDIT.md.
 - **AI usage security hardening** — `1f96a8b`. Migration `20251004001200_ai_usage_hardening`: `ai_reserve` is
   server-only (service role) with the global daily breaker enforced atomically inside the reservation;
   `ai_global_count_today` server-only; `ai_generations` keeps usage when a party or account is deleted

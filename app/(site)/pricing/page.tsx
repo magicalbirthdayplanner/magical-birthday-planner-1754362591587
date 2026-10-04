@@ -1,415 +1,95 @@
-"use client";
+"use client"
 
-import { CheckoutButton } from "@/components/billing/CheckoutButton";
-import { Check, Crown, Star, Zap, Sparkles, Users, PenTool, HeadphonesIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
+import { Suspense, useEffect } from "react"
 import Link from "next/link"
-import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
+import { PlanCards, PlanComparison } from "@/components/billing/PlanCards"
 import { usePlanStatus } from "@/components/billing/usePlanStatus"
+import { track } from "@/lib/analytics/client"
+import { PLAN_INFO, type Plan } from "@/lib/entitlements"
 
-const pricingTiers = [
-  {
-    name: "🎈 Starter",
-    price: 4.99,
-    annualPrice: 4.99,
-    description: "A quick and easy starting point for parents seeking basic help.",
-    icon: Star,
-    gradient: "from-purple-500 to-pink-500",
-    bgGradient: "from-purple-50 to-pink-50",
-    features: [
-      "Theme suggestions based on age",
-      "Smart checklist & timeline",
-      "Simple invitation creator",
-    ],
-    limitations: [],
-    cta: "Choose Plan",
-    ctaVariant: "outline" as const,
-    popular: false,
-    bestFor: "Perfect starting point for basic help",
-    isOneTime: true
-  },
-  {
-    name: "🧁 Plus",
-    price: 9.99,
-    annualPrice: 9.99,
-    description: "Smart and simple AI-powered birthday planning for busy parents.",
-    icon: Zap,
-    gradient: "from-blue-500 to-cyan-500",
-    bgGradient: "from-blue-50 to-cyan-50",
-    features: [
-      "Everything in Starter, plus:",
-      "Personalized activity ideas",
-      "RSVP tracking",
-      "Task reminders",
-      "Basic budget tracker (manual input)",
-    ],
-    limitations: [],
-    cta: "Choose Plan",
-    ctaVariant: "default" as const,
-    popular: true,
-    bestFor: "Smart AI-powered planning for busy parents",
-    isOneTime: true
-  },
-  {
-    name: "✨ Pro",
-    price: 14.99,
-    annualPrice: 14.99,
-    description: "All-in-one planning experience with advanced support and recommendations.",
-    icon: Crown,
-    gradient: "from-emerald-500 to-teal-500",
-    bgGradient: "from-emerald-50 to-teal-50",
-    features: [
-      "Everything in Plus, plus:",
-      "Vendor recommendations (cakes, decor, entertainment)",
-      "Personalized food suggestions by age & theme",
-      "Smart budget tracker with cost insights",
-    ],
-    limitations: [],
-    cta: "Choose Plan",
-    ctaVariant: "default" as const,
-    popular: false,
-    bestFor: "All-in-one planning with advanced features",
-    isOneTime: true
-  }
-]
-
-const faqs = [
-  {
-    question: "How does the per-party pricing work?",
-    answer: "Yes! All our plans (Starter, Plus, and Pro) are per-party payments with no monthly subscriptions. Pay only when you plan a birthday party."
-  },
-  {
-    question: "Can I upgrade between plans?",
-    answer: "Yes! You can upgrade from Starter to Plus or Pro at any time. We'll credit your original purchase toward the upgrade cost."
-  },
-  {
-    question: "What's included in each plan?",
-    answer: "Starter includes basic planning tools. Plus adds personalized features like AI activity suggestions and RSVP tracking. Pro includes everything plus vendor recommendations and priority support."
-  },
-  {
-    question: "Do you offer refunds?",
-    answer: "We offer a 7-day risk-free trial period. If you're not satisfied, contact our support team for a full refund."
-  },
-  {
-    question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards, debit cards, and PayPal through our secure payment processor DoDo Payments."
-  },
+/** Answers reflect actual behaviour (lib/entitlements.ts, lib/billing/*, lib/ai/*) and the Terms. */
+const FAQS: { q: string; a: string }[] = [
+  { q: "What's included in Free?", a: "Create a party, discover and save real local venues on a map, a dated party checklist, our curated themes, and your party plan with your own activities. Free doesn't include guests & RSVP or any AI features." },
+  { q: "What's included in Starter?", a: "Everything in Free, plus guests & RSVP (an invitation link, emailed invitations and RSVPs collected for you) and AI planning: Plan My Party, AI theme ideas, the AI checklist and the AI Activity Studio." },
+  { q: "What's included in Plus?", a: "Everything in Starter, plus AI that handles the details: the Food Planner, Budget Assistant, Invitation Writer, party-day Timeline and Shopping List." },
+  { q: "What's included in Pro?", a: "Everything in Plus, plus the AI Party Host (welcome speech, activity intros, cake moment and closing words, thank-you and reminder messages) and the AI Party Experience, which designs the whole party together." },
+  { q: "What's the difference between Starter and Plus?", a: "Starter helps you build the plan — the big picture, themes, activities and the checklist. Plus takes on the details: food quantities, budget, invitation wording, the party-day timeline and the shopping list. Plus also gives you more AI requests per party (25 instead of 10)." },
+  { q: "What's the difference between Plus and Pro?", a: "Plus organizes the party. Pro helps on the day itself: what to say and when, personal thank-you notes, and a complete party experience designed in one go. Pro gives you 50 AI requests per party." },
+  { q: "Is AI included?", a: "AI is included in Starter, Plus and Pro. Free doesn't include AI features." },
+  { q: "How does AI usage work?", a: "Each time you ask the AI for something, it uses one request from your party's allowance (10 on Starter, 25 on Plus, 50 on Pro). Reopening something you already generated is free, and a request that fails doesn't use your party's allowance. For fair use, each account can make up to 10 AI requests per hour and per day, and the AI may occasionally be busy at very high demand." },
+  { q: "Is RSVP included?", a: "Guests & RSVP are part of Starter and every plan above it. Your guests never need an account to reply." },
+  { q: "Can I upgrade after creating a party?", a: "Yes. Everything you already planned stays exactly as it is, and the new features are available right away." },
+  { q: "What happens if I upgrade during my trial?", a: "New accounts get a free 24-hour trial of Starter's guest & RSVP features (AI isn't part of the trial). If you buy a plan during the trial, your plan replaces the trial straight away." },
+  { q: "Is the price per party or per month?", a: "Neither is a subscription: it's a one-time payment. Your plan unlocks its features on your account, for the parties you plan with it. Nothing renews or charges you again." },
+  { q: "What happens to my party if I downgrade?", a: "There's no automatic downgrade. If a plan ends (for example after a refund), your parties, guests and saved plans stay. Paid features — like adding guests or using AI — are locked until you upgrade again." },
+  { q: "Can I continue using my party after the event?", a: "Yes. Your party stays in your account after the big day, with its guests, plan and notes." },
 ]
 
 function PricingContent() {
-  // Offers are based on the plan the user owns; a sign-up trial never hides a plan from purchase.
-  const { ownedPlan: currentPlan, onTrial, canUpgradeTo } = usePlanStatus();
-  const searchParams = useSearchParams();
-  const upgradeTarget = searchParams.get('upgrade')?.toUpperCase();
-  
+  const status = usePlanStatus()
+  const params = useSearchParams()
+  const upgrade = params.get("upgrade")?.toUpperCase()
+  const highlight = (["STARTER", "PLUS", "PRO"] as const).find((p) => p === upgrade) ?? null
+  const owned = status.ownedPlan
+  const from = params.get("from")
+
+  useEffect(() => {
+    track("pricing_viewed", { highlight: highlight ?? undefined, from: from ?? undefined })
+  }, [highlight, from])
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      {/* Header */}
-      <div className="container mx-auto px-4 pt-20 pb-12">
-        <div className="text-center max-w-3xl mx-auto">
-          <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-            🎂 Pay per party. No monthly subscriptions.
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6">
-            {upgradeTarget && currentPlan !== 'FREE' 
-              ? `Upgrade to ${upgradeTarget === 'STARTER' ? 'Starter' : upgradeTarget === 'PLUS' ? 'Plus' : 'Pro'}`
-              : currentPlan === 'FREE' 
-                ? 'Choose Your First Plan'
-                : 'Choose Your Perfect Plan'
-            }
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            {upgradeTarget && currentPlan !== 'FREE' 
-              ? `You're currently on the ${currentPlan === 'STARTER' ? 'Starter' : currentPlan === 'PLUS' ? 'Plus' : 'Pro'} plan. Upgrade to unlock more powerful features.`
-              : currentPlan === 'FREE' 
-                ? 'Select a plan to unlock party management features and start planning amazing celebrations.'
-                : 'Simple, transparent pricing with no hidden fees. Pay per party with no recurring charges - perfect for planning magical birthday celebrations.'
-            }
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-16">
+      <header className="mx-auto max-w-3xl px-4 pb-8 pt-16 text-center">
+        <span className="inline-block rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 text-xs font-semibold text-white">One-time payment · No subscriptions</span>
+        <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">Explore. Plan. Organize. Experience.</h1>
+        <p className="mt-3 text-lg text-gray-600">Start free. Add AI when you want help building the plan, handling the details, or making the day itself magical.</p>
+        {status.onTrial ? (
+          <p className="mx-auto mt-4 max-w-xl rounded-2xl bg-white/80 px-4 py-3 text-sm text-gray-700" data-testid="trial-note">
+            You’re on a free 24-hour trial with Starter’s guest &amp; RSVP features. You can choose any plan at any time.
           </p>
-          {onTrial ? (
-            <p className="text-sm text-gray-600 mb-4" data-testid="trial-note">
-              You’re on a free 24-hour Pro trial. You can choose a plan at any time.
-            </p>
-          ) : null}
-        </div>
+        ) : owned !== "FREE" && status.loaded ? (
+          <p className="mx-auto mt-4 max-w-xl rounded-2xl bg-white/80 px-4 py-3 text-sm text-gray-700" data-testid="owned-note">
+            You’re on <strong>{PLAN_INFO[owned as Plan].name}</strong>. Plans above it are shown as upgrades.
+          </p>
+        ) : null}
+      </header>
+
+      <div className="px-4">
+        <PlanCards highlight={highlight} />
       </div>
 
-      {/* Pricing Cards */}
-      <div className="container mx-auto px-4 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {pricingTiers.map((tier, index) => {
-            // Skip tiers that user can't upgrade to
-            const tierKey = tier.name.includes('Starter') ? 'STARTER' : 
-                           tier.name.includes('Plus') ? 'PLUS' : 'PRO';
-            
-            // For free users, show all plans. For paid users, only show upgradeable plans
-            if (currentPlan !== 'FREE' && !canUpgradeTo(tierKey)) {
-              return null;
-            }
-            
-            const displayPrice = tier.price
-            const billingPeriod = '(Per Birthday Party)'
-            const isCurrentPlan = currentPlan === tierKey;
-            
-            return (
-              <Card 
-                key={tier.name} 
-                className={`relative overflow-hidden border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-                  isCurrentPlan ? 'border-green-500 shadow-lg scale-105' :
-                  tier.popular ? 'border-blue-500 shadow-lg scale-105' : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                {isCurrentPlan && (
-                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-center py-2 text-sm font-medium">
-                    ✅ Current Plan
-                  </div>
-                )}
-                {!isCurrentPlan && tier.popular && (
-                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-center py-2 text-sm font-medium">
-                    🌟 Most Popular
-                  </div>
-                )}
-                
-                <CardHeader className={`bg-gradient-to-br ${tier.bgGradient} ${(isCurrentPlan || tier.popular) ? 'pt-12' : 'pt-6'}`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`p-3 rounded-full bg-gradient-to-r ${tier.gradient}`}>
-                      <tier.icon className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl font-bold text-gray-900">
-                    {tier.name}
-                  </CardTitle>
-                  <CardDescription className="text-gray-600 text-sm">
-                    {tier.description}
-                  </CardDescription>
-                  <div className="flex items-baseline mt-4">
-                    <span className="text-3xl font-bold text-gray-900">
-                      ${displayPrice}
-                    </span>
-                    <span className="text-gray-600 ml-2 text-sm">
-                      {billingPeriod}
-                    </span>
-                  </div>
-                  <div className="mt-2">
-                    <span className="text-xs text-gray-500 font-medium">
-                      {tier.bestFor}
-                    </span>
-                  </div>
-                </CardHeader>
+      <section className="mt-16 px-4" aria-labelledby="compare">
+        <h2 id="compare" className="text-center font-display text-3xl font-extrabold text-gray-900">Compare plans</h2>
+        <p className="mb-6 mt-2 text-center text-gray-600">What each plan adds, by what it does for you.</p>
+        <PlanComparison />
+      </section>
 
-                <CardContent className="p-4">
-                  <ul className="space-y-2 mb-6">
-                    {tier.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start">
-                        <Check className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700 text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {isCurrentPlan ? (
-                    <Button 
-                      className="w-full text-sm bg-gray-400 cursor-not-allowed"
-                      disabled
-                    >
-                      Current Plan
-                    </Button>
-                  ) : (
-                    <CheckoutButton
-                      plan={tier.name === "🎈 Starter" ? 'STARTER' : tier.name === "🧁 Plus" ? 'PLUS' : 'PRO'}
-                      className={`h-11 ${`w-full text-sm ${
-                        tier.popular 
-                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600' 
-                          : tier.ctaVariant === 'outline' 
-                            ? 'border-2 border-purple-500 bg-white text-purple-700 hover:bg-purple-50' 
-                            : `bg-gradient-to-r ${tier.gradient} hover:opacity-90`
-                      }`}`}
-                    >
-                      {currentPlan === 'FREE' ? tier.cta : `Upgrade to ${tier.name.split(' ')[1]}`}
-                    </CheckoutButton>
-                  )}
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Feature Comparison */}
-      <div className="container mx-auto px-4 pb-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Compare All Plans
-          </h2>
-          <p className="text-gray-600">
-            See what's included in each plan to make the best choice for your needs.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-w-6xl mx-auto">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left p-4 font-semibold text-gray-900">Features</th>
-                   <th className="text-center p-4">
-                     <div className="font-semibold text-gray-900 text-sm">🎈 Starter</div>
-                     <div className="text-xs text-gray-500">$4.99 per party</div>
-                   </th>
-                   <th className="text-center p-4">
-                     <div className="font-semibold text-gray-900 text-sm">🧁 Plus</div>
-                     <div className="text-xs text-gray-500">$9.99 per party</div>
-                   </th>
-                   <th className="text-center p-4">
-                     <div className="font-semibold text-gray-900 text-sm">✨ Pro</div>
-                     <div className="text-xs text-gray-500">$14.99 per party</div>
-                   </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <tr>
-                  <td className="p-4 font-medium text-gray-900">Theme Suggestions</td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900">Smart Checklist & Timeline</td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="p-4 font-medium text-gray-900">Simple Invitation Creator</td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900">Personalized Activity Ideas</td>
-                  <td className="p-4 text-center text-gray-400">—</td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="p-4 font-medium text-gray-900">RSVP Tracking</td>
-                  <td className="p-4 text-center text-gray-400">—</td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900">Task Reminders</td>
-                  <td className="p-4 text-center text-gray-400">—</td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="p-4 font-medium text-gray-900">Budget Tracker</td>
-                  <td className="p-4 text-center text-gray-400">—</td>
-                  <td className="p-4 text-center text-sm">Manual Input</td>
-                  <td className="p-4 text-center text-sm">Smart with Insights</td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900">Vendor Recommendations</td>
-                  <td className="p-4 text-center text-gray-400">—</td>
-                  <td className="p-4 text-center text-gray-400">—</td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="p-4 font-medium text-gray-900">Personalized Food Suggestions</td>
-                  <td className="p-4 text-center text-gray-400">—</td>
-                  <td className="p-4 text-center text-gray-400">—</td>
-                  <td className="p-4 text-center"><Check className="h-4 w-4 text-green-500 mx-auto" /></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* FAQ Section */}
-      <div className="container mx-auto px-4 pb-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-gray-600">
-            Everything you need to know about our simple, per-party pricing plans.
-          </p>
-        </div>
-
-        <div className="max-w-3xl mx-auto space-y-6">
-          {faqs.map((faq, index) => (
-            <Card key={index} className="border border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">
-                  {faq.question}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">{faq.answer}</p>
-              </CardContent>
-            </Card>
+      <section className="mx-auto mt-16 max-w-3xl px-4" aria-labelledby="faq">
+        <h2 id="faq" className="text-center font-display text-3xl font-extrabold text-gray-900">Questions</h2>
+        <div className="mt-6 space-y-3">
+          {FAQS.map((f) => (
+            <details key={f.q} className="group rounded-2xl border border-border bg-white p-4">
+              <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 font-semibold text-gray-900">
+                {f.q}
+                <span className="text-primary transition-transform group-open:rotate-45" aria-hidden>+</span>
+              </summary>
+              <p className="mt-2 text-gray-600">{f.a}</p>
+            </details>
           ))}
         </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white">
-        <div className="container mx-auto px-4 py-20">
-          <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-4xl font-bold mb-6">
-              Ready to Create Amazing Celebrations?
-            </h2>
-            <p className="text-xl mb-6 text-purple-100">
-              Join thousands of happy families who've planned unforgettable parties with our simple, powerful tools.
-            </p>
-            
-            {/* Risk-free guarantee */}
-            <div className="bg-white/10 rounded-lg p-6 mb-8">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Check className="h-5 w-5 text-green-300" />
-                <span className="font-semibold text-green-100">7-Day Risk-Free Guarantee</span>
-              </div>
-              <p className="text-sm text-purple-100">
-                Try any paid plan risk-free. If you're not completely satisfied, we'll refund your money within 7 days. No questions asked.
-              </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
-                asChild
-              >
-                <Link href="/start">Get Started Today</Link>
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-purple-600 px-8 py-4 text-lg font-semibold"
-                asChild
-              >
-                <Link href="/pricing">Compare Plans</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+        <p className="mt-6 text-center text-sm text-gray-500">
+          Payments are processed securely by Dodo Payments. See our <Link href="/terms" className="underline">Terms</Link> and <Link href="/privacy" className="underline">Privacy Policy</Link>.
+        </p>
+      </section>
     </div>
   )
 }
 
 export default function PricingPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-    </div>}>
+    <Suspense fallback={<div className="min-h-screen" />}>
       <PricingContent />
     </Suspense>
-  );
+  )
 }

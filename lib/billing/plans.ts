@@ -1,7 +1,9 @@
 /**
  * Server-side plan catalogue. Product ids and prices come from the server
- * environment — never from the client. One-time "per party" purchases.
+ * environment — never from the client. One-time purchases: a plan unlocks the account (all its parties) and does not expire.
  */
+import { PLAN_INFO } from '@/lib/entitlements'
+
 export const PAID_PLANS = ['STARTER', 'PLUS', 'PRO'] as const
 export type PaidPlan = (typeof PAID_PLANS)[number]
 
@@ -11,7 +13,7 @@ export const isPaidPlan = (x: unknown): x is PaidPlan => typeof x === 'string' &
 export const parsePlan = (x: unknown): PaidPlan | null => (typeof x === 'string' && isPaidPlan(x.trim().toUpperCase()) ? (x.trim().toUpperCase() as PaidPlan) : null)
 
 /** Expected price in USD cents (matches /pricing). Override with DODO_PRICE_<PLAN>_CENTS. */
-const DEFAULT_PRICE_CENTS: Record<PaidPlan, number> = { STARTER: 499, PLUS: 999, PRO: 1499 }
+const DEFAULT_PRICE_CENTS: Record<PaidPlan, number> = { STARTER: PLAN_INFO.STARTER.priceCents, PLUS: PLAN_INFO.PLUS.priceCents, PRO: PLAN_INFO.PRO.priceCents }
 
 type Env = Record<string, string | undefined>
 

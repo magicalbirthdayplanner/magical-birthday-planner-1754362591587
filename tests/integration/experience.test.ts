@@ -183,7 +183,7 @@ describe.skipIf(!up)('guests, food, host content', () => {
     expect(facts().menu).toContain('30 mini pizzas Mini cheese pizzas')
   })
   it('welcome speech: generated with the child’s first name, saved (edited) to the party; thank-yous per confirmed guest by first name', async () => {
-    await setPlan(A, 'STARTER')
+    await setPlan(A, 'PRO')
     const w = await json(call('host', { partyId: P, kind: 'welcome' }))
     expect(w.result.items[0]).toMatchObject({ id: 'host-1', kind: 'welcome', title: 'Welcome, astronauts!' })
     expect(mockCalls().at(-1)!.messages[1].content).toMatch(/"firstName":"Mia"/)
@@ -248,18 +248,23 @@ describe.skipIf(!up)('create my party experience', () => {
 })
 
 describe.skipIf(!up)('entitlements, flags, isolation', () => {
-  it('plans: Free gets none of the new features; Starter gets host content; Plus gets activities + experience', async () => {
+  it('plans: Free gets none; Starter gets the Activity Studio; Party Host and Party Experience are Pro', async () => {
     await setPlan(A, 'FREE')
-    for (const [path, body, up] of [['activity', { partyId: P }, 'PLUS'], ['host', { partyId: P, kind: 'welcome' }, 'STARTER'], ['party-experience', { partyId: P }, 'PLUS']] as const) {
+    for (const [path, body, up] of [['activity', { partyId: P }, 'STARTER'], ['host', { partyId: P, kind: 'welcome' }, 'PRO'], ['party-experience', { partyId: P }, 'PRO']] as const) {
       const r = await call(path, body)
       expect(r.status).toBe(403)
       expect((await r.json()).error.upgradeTo).toBe(up)
     }
     await setPlan(A, 'STARTER')
-    expect((await call('host', { partyId: P, kind: 'cake' })).status).toBe(200)
-    expect((await call('activity', { partyId: P })).status).toBe(403)
-    await setPlan(A, 'PLUS')
     expect((await call('activity', { partyId: P })).status).toBe(200)
+    await setPlan(A, 'PLUS')
+    for (const [path, body] of [['host', { partyId: P, kind: 'cake' }], ['party-experience', { partyId: P }]] as const) {
+      const r = await call(path, body)
+      expect(r.status).toBe(403)
+      expect((await r.json()).error.upgradeTo).toBe('PRO')
+    }
+    await setPlan(A, 'PRO')
+    expect((await call('host', { partyId: P, kind: 'cake' })).status).toBe(200)
     expect((await call('party-experience', { partyId: P })).status).toBe(200)
   })
   it('flags: a feature not in AI_ENABLED_FEATURES is off', async () => {

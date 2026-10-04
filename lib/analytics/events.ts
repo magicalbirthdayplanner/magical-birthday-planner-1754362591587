@@ -23,6 +23,22 @@ export const ANALYTICS_EVENTS = [
   'pwa_installed',
   'sign_up',
   'sign_in',
+  // conversion funnel (soft launch)
+  'landing_page_view',
+  'party_creation_started',
+  'party_creation_completed',
+  'signup_started',
+  'signup_completed',
+  'pricing_viewed',
+  'upgrade_prompt_viewed',
+  'plan_upgrade_clicked',
+  'checkout_started',
+  'purchase_completed',
+  'ai_feature_viewed',
+  'ai_feature_used',
+  'ai_feature_blocked',
+  'rsvp_started',
+  'rsvp_completed',
 ] as const
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number]

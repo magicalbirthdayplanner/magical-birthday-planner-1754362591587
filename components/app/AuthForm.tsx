@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, MailCheck } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -26,6 +26,9 @@ function friendlyAuthError(message: string): string {
 
 export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'signin' | 'signup'; onDone?: () => void; compact?: boolean; next?: string }) {
   const { signIn, signUp, signInWithGoogle } = useAuth()
+  useEffect(() => {
+    if (mode === 'signup') track('signup_started')
+  }, [mode])
   const router = useRouter()
   const params = useSearchParams()
   const next = safeNext(nextProp ?? params?.get('next') ?? null)
@@ -61,6 +64,7 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
         const { error } = await signUp(email.trim(), password, name.trim() || undefined)
         if (error) return setError(friendlyAuthError(error.message ?? ''))
         track('sign_up', { method: 'password' })
+        track('signup_completed', { method: 'password' })
         const { data } = await db.auth.getSession()
         if (data.session) await finish()
         else setCheckEmail(true)

@@ -31,7 +31,7 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
                 <li>Provide and maintain our party planning services</li>
                 <li>Generate personalized AI-powered theme recommendations</li>
-                <li>Process payments and manage subscriptions</li>
+                <li>Process payments and manage your plan</li>
                 <li>Send important service updates and notifications</li>
                 <li>Improve our platform and develop new features</li>
               </ul>

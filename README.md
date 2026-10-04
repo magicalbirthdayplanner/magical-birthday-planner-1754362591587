@@ -66,18 +66,22 @@ Public pages: landing `/`, `/pricing`, `/privacy`, `/terms`, `/checkout-success`
 Status legend: **LIVE** (enabled in production) · **IMPLEMENTED, DISABLED** (code + tests exist, flag off) ·
 **FUTURE** (not built).
 
+Plans and minimum plans come from one place, **[`lib/entitlements.ts`](lib/entitlements.ts)** (product model and
+validation: [docs/PRODUCT_MODEL_AUDIT.md](docs/PRODUCT_MODEL_AUDIT.md)). Free has no AI.
+
 | Feature | Status | Where in the UI | Route | Min plan |
 |---|---|---|---|---|
-| **Plan My Party** | LIVE | Home and Plan → "Plan My Party" card | `POST /api/ai/party-planner` | Free |
-| **AI Theme Ideas** | LIVE | Plan → Theme → "Dream up themes with AI" | `POST /api/ai/theme-ideas` | Free |
+| **Plan My Party** | LIVE | Home and Plan → "Plan My Party" card | `POST /api/ai/party-planner` | Starter |
+| **AI Theme Ideas** | LIVE | Plan → Theme → "Dream up themes with AI" | `POST /api/ai/theme-ideas` | Starter |
 | **AI Checklist** ("What am I forgetting?") | LIVE | Plan → Checklist | `POST /api/ai/checklist` | Starter |
-| **Activity Studio** | LIVE | Activities → "Create an activity"; activity detail → adjust | `POST /api/ai/activity` | Plus |
-| **Party Host** (what to say) | LIVE | Plan → Party Magic → Host / Messages; activity intros | `POST /api/ai/host` | Starter |
-| **Party Experience** ("Create my party experience") | LIVE | Plan → Party Magic | `POST /api/ai/party-experience` | Plus |
-| Budget assistant, Activities planner, Food planner, Invitation writer, Timeline, Shopping list, "Why these places" | IMPLEMENTED, DISABLED | hidden while the flag is off | `/api/ai/{budget,activities,food,invitation,timeline,shopping-list,discover-explain}` | Starter–Pro |
+| **Activity Studio** | LIVE | Activities → "Create an activity"; activity detail → adjust | `POST /api/ai/activity` | Starter |
+| **Food planner, Budget assistant, Invitation writer, Timeline, Shopping list** | IMPLEMENTED — enable with the product-model deploy | Plan → Party Magic / AI tools; Invite → "Write it for me" | `/api/ai/{food,budget,invitation,timeline,shopping-list}` | Plus |
+| **Party Host** (what to say, thank-yous) | LIVE | Plan → Party Magic → Host / Messages; activity intros | `POST /api/ai/host` | Pro |
+| **Party Experience** ("Create my party experience") | LIVE | Plan → Party Magic | `POST /api/ai/party-experience` | Pro |
+| Activities list (legacy), "Why these places" | IMPLEMENTED, NOT SOLD | — | `/api/ai/{activities,discover-explain}` | Starter / Plus |
 
-Production enables exactly the six LIVE features through `AI_ENABLED_FEATURES`. Every feature shares one
-pipeline (`lib/ai/handler.ts`):
+`AI_ENABLED_FEATURES` turns features on; the product-model deploy adds the five Plus features (see
+docs/PRODUCT_MODEL_AUDIT.md §J). Every feature shares one pipeline (`lib/ai/handler.ts`):
 
 ```
 UI ─► POST /api/ai/<feature> ─► authenticate (Bearer JWT) ─► strict body validation (zod, 16 KB cap)
@@ -91,9 +95,9 @@ UI ─► POST /api/ai/<feature> ─► authenticate (Bearer JWT) ─► strict 
 - **Provider:** OpenAI-compatible abstraction (`lib/ai/provider.ts`, `lib/ai/providers/*`); production uses the
   configured provider/model from `AI_PROVIDER` / `AI_MODEL` with reasoning off. Tests use a deterministic mock.
 - **Results persist** in `ai_generations`; reopening a feature restores the last result **without** a new request.
-- **Limits (current production config):** per party Free 3 · Starter 10 · Plus 25 · Pro 50; per user 10/hour and
+- **Limits (current production config):** per party Starter 10 · Plus 25 · Pro 50 (Free 0); per user 10/hour and
   10/day (`AI_USER_DAILY_LIMIT`); global breaker 50/day (`AI_GLOBAL_DAILY_LIMIT`). Failed calls count toward the
-  user and global limits, not the per-party allowance. A sign-up trial counts as Free for AI.
+  user and global limits, not the per-party allowance. The sign-up trial includes no AI.
 
 Full per-feature documentation (context, outputs, apply targets, errors, tables, tests):
 **[docs/ai/AI_FEATURES.md](docs/ai/AI_FEATURES.md)**.
@@ -111,7 +115,7 @@ Details per feature: **[docs/FEATURES.md](docs/FEATURES.md)**.
 | Google Maps | Map view with clustered rating markers and a bottom sheet |
 | Venue details | Photos, rating, address, hours, phone, website, directions, "why we recommend it" |
 | Saved venues | Shortlist with private notes and compare; one venue can be the party venue |
-| Guests | Guest list with RSVP status, kids/adults counts, notes |
+| Guests (Starter+) | Guest list with RSVP status, kids/adults counts, notes; enforced by RLS (`has_paid_access`) |
 | Invitations | Designed invitation card, share link, email to guests (Resend) |
 | RSVP | Public page, no account; idempotent per invitee; host notification + guest confirmation emails |
 | Checklist | Dated tasks generated from the party date; auto-completes milestones; AI additions |
@@ -119,7 +123,7 @@ Details per feature: **[docs/FEATURES.md](docs/FEATURES.md)**.
 | Food / shopping / budget / timeline | "Your party plan" sections fed by AI results and activities |
 | Themes | Curated theme catalogue + AI theme ideas |
 | Party Host | AI speeches and messages for the party day and after |
-| Billing | One-time Starter / Plus / Pro via Dodo hosted checkout; 24 h Pro trial on sign-up |
+| Billing | Free + one-time Starter / Plus / Pro (account-wide) via Dodo hosted checkout; 24 h trial of Starter's guest & RSVP features (no AI) on sign-up |
 | Super Admin | User search, plan overrides with audit log, stats (server-verified role) |
 | PWA / mobile | Installable, offline shell, 44 px touch targets, tested at 375–430 px |
 

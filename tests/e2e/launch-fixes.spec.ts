@@ -1,6 +1,6 @@
 /**
  * Launch-blocker regressions:
- *  - P0-A: a brand-new user on the sign-up Pro trial can see and buy every plan, the purchase wins over the
+ *  - P0-A: a brand-new user on the sign-up trial (Starter's guest & RSVP features, no AI) can see and buy every plan, the purchase wins over the
  *    trial and persists across sign-out/sign-in (Dodo test mode = the local mock).
  *  - P0-B: changing an RSVP from the same phone updates one guest; it never adds a second, conflicting one.
  */
@@ -9,9 +9,9 @@ import { login, seedUser } from './helpers'
 
 test('a trial user can buy Starter; the paid plan replaces the trial and persists', async ({ page }) => {
   test.setTimeout(120_000)
-  const s = await seedUser() // sign-up trigger → 24 h PRO trial (no makeFree)
+  const s = await seedUser() // sign-up trigger → 24 h trial (no makeFree)
   await login(page, s, '/more')
-  await expect(page.getByTestId('plan-row')).toContainText('Pro (trial)')
+  await expect(page.getByTestId('plan-row')).toContainText('Free trial — Starter features for 24 h')
 
   await page.getByTestId('plan-row').click()
   await expect(page).toHaveURL(/\/pricing/)

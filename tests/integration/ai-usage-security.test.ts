@@ -34,7 +34,7 @@ const newUser = async (label: string) => {
 }
 const newParty = async (u: TestUser) =>
   (await u.client.from('parties').insert({ user_id: u.id, child_name: 'Ava Example', child_age: 7, party_date: inDays(20), zip_code: '48084', guest_count: 10, budget: 250 }).select('id').single()).data!.id as string
-const setPlan = async (u: TestUser, plan: 'PLUS' | 'PRO' | null) => {
+const setPlan = async (u: TestUser, plan: 'STARTER' | 'PLUS' | 'PRO' | null) => {
   const db = adminClient()
   await db.from('plan_overrides').delete().eq('user_id', u.id)
   await db.from('users').update({ is_trial_active: false, trial_expires_at: '2020-01-01T00:00:00Z' }).eq('id', u.id)
@@ -101,6 +101,7 @@ describe.skipIf(!up)('Attack B — global denial of service', () => {
     const victim = await newUser('aisec-b-victim')
     const party = await newParty(U)
     const victimParty = await newParty(victim)
+    await setPlan(victim, 'STARTER')
     const before = await globalCount()
     process.env.AI_GLOBAL_DAILY_LIMIT = String(before + 5)
     resetAIConfig()
@@ -116,29 +117,29 @@ describe.skipIf(!up)('Attack B — global denial of service', () => {
 describe.skipIf(!up)('Attack C/E — party deletion and party hopping', () => {
   it('C: deleting a party never reduces usage; earlier usage still counts on the next party', async () => {
     const U = await newUser('aisec-c')
-    await setPlan(U, null) // Free: 3 per party
+    await setPlan(U, 'STARTER') // Starter: 10 per party
     const p1 = await newParty(U)
-    for (let i = 0; i < 3; i++) expect((await ask(U.accessToken, p1)).status).toBe(200)
+    for (let i = 0; i < 10; i++) expect((await ask(U.accessToken, p1)).status).toBe(200)
     expect((await ask(U.accessToken, p1)).status).toBe(429) // per-party cap
     const userCountBefore = counted(await rowsOf(U))
     const globalBefore = await globalCount()
-    expect(userCountBefore).toBe(3)
+    expect(userCountBefore).toBe(10)
 
     expect((await U.client.from('parties').delete().eq('id', p1)).error).toBeNull()
     expect(counted(await rowsOf(U))).toBe(userCountBefore) // usage survived
     expect(await globalCount()).toBe(globalBefore)
     const detached = (await adminClient().from('ai_generations').select('party_id, user_id, result, input_summary, applied, feature, status, model, input_tokens').eq('user_id', U.id)).data!
     expect(detached.every((r) => r.party_id === null && r.result === null && JSON.stringify(r.input_summary) === '{}' && JSON.stringify(r.applied) === '[]')).toBe(true)
-    expect(detached).toHaveLength(4) // 3 successes + the rejected 4th attempt
+    expect(detached).toHaveLength(11) // 10 successes + the rejected 11th attempt
     expect(detached.every((r) => r.user_id === U.id && r.feature === 'party_planner')).toBe(true) // accounting kept
     expect(detached.filter((r) => r.status === 'success').every((r) => r.model && r.input_tokens != null)).toBe(true)
     // the owner can no longer see the content (nothing left to apply)
     expect(JSON.stringify((await U.client.from('ai_generations').select('result').eq('user_id', U.id)).data)).not.toContain('Ava')
   })
 
-  it('E: cycling parties A→B→C (Free) cannot exceed the hourly cap of 10 — and a deleted party id is refused', async () => {
+  it('E: cycling parties A→B→C (Starter) cannot exceed the hourly cap of 10 — and a deleted party id is refused', async () => {
     const U = await newUser('aisec-e')
-    await setPlan(U, null)
+    await setPlan(U, 'STARTER')
     const statuses: number[] = []
     let lastDeleted = ''
     for (let round = 0; round < 4; round++) {
@@ -163,6 +164,7 @@ describe.skipIf(!up)('Attack C/E — party deletion and party hopping', () => {
 describe.skipIf(!up)('Attack D/F — account deletion and account cycling', () => {
   it('D: deleting the account never reduces the global count, and no personal content survives', async () => {
     const X = await newUser('aisec-d')
+    await setPlan(X, 'STARTER')
     const px = await newParty(X)
     expect((await ask(X.accessToken, px, { notes: 'Ava loves unicorns; call me at 248-555-0199' })).status).toBe(200)
     expect((await ask(X.accessToken, px)).status).toBe(200)
@@ -182,6 +184,7 @@ describe.skipIf(!up)('Attack D/F — account deletion and account cycling', () =
 
   it('F: a new account after deleting the old one still faces the same global breaker', async () => {
     const X = await newUser('aisec-f1')
+    await setPlan(X, 'STARTER')
     const px = await newParty(X)
     const base = await globalCount()
     process.env.AI_GLOBAL_DAILY_LIMIT = String(base + 2)
@@ -191,6 +194,7 @@ describe.skipIf(!up)('Attack D/F — account deletion and account cycling', () =
     await deleteTestUser(X)
     users.splice(users.indexOf(X), 1)
     const Y = await newUser('aisec-f2')
+    await setPlan(Y, 'STARTER')
     const py = await newParty(Y)
     const r = await ask(Y.accessToken, py)
     expect(r.status).toBe(503)
@@ -208,13 +212,13 @@ describe.skipIf(!up)('Concurrency', () => {
     expect(counted(await rowsOf(U))).toBe(2)
   })
 
-  it('per-party: 8 simultaneous requests on a Free party → exactly 3 succeed', async () => {
+  it('per-party: 14 simultaneous requests on a Starter party → exactly 10 succeed', async () => {
     const U = await newUser('aisec-cp')
-    await setPlan(U, null)
+    await setPlan(U, 'STARTER')
     const p = await newParty(U)
-    const res = await Promise.all(Array.from({ length: 8 }, () => ask(U.accessToken, p)))
-    expect(res.filter((r) => r.status === 200)).toHaveLength(3)
-    expect(res.filter((r) => r.status === 429)).toHaveLength(5)
+    const res = await Promise.all(Array.from({ length: 14 }, () => ask(U.accessToken, p)))
+    expect(res.filter((r) => r.status === 200)).toHaveLength(10)
+    expect(res.filter((r) => r.status === 429)).toHaveLength(4)
   })
 
   it('per-user: 16 simultaneous requests (Pro, 2 parties) → exactly 10 succeed (hourly cap)', async () => {
@@ -269,24 +273,31 @@ describe.skipIf(!up)('Authorization through the route', () => {
 
   it('limit telemetry: party and user limits are counted (no issue), the global limit raises one', async () => {
     const U = await newUser('aisec-t')
-    await setPlan(U, null)
+    await setPlan(U, 'STARTER')
     const p = await newParty(U)
-    for (let i = 0; i < 4; i++) await ask(U.accessToken, p)
+    for (let i = 0; i < 11; i++) await ask(U.accessToken, p)
     expect(sentry.names()).toContain('ai.limit.party')
     expect(sentry.captured.filter((c) => c.fingerprint?.[0] === 'ai-global-limit')).toHaveLength(0)
   })
 })
 
-// Every AI feature enabled in production (AI_ENABLED_FEATURES on Vercel) still works end-to-end on the new
-// reservation path: auth, party context, entitlement, counting, persistence, reopening, failures, isolation.
-describe.skipIf(!up)('Enabled features regression (production set)', () => {
-  const FEATURES: [string, string, Record<string, unknown>, 'FREE' | 'STARTER' | 'PLUS'][] = [
-    ['party_planner', 'party-planner', {}, 'FREE'],
-    ['theme_ideas', 'theme-ideas', {}, 'FREE'],
+// Every AI feature the product model sells (lib/entitlements.ts) works end-to-end on the reservation path:
+// auth, party context, entitlement at exactly its plan, counting, persistence, reopening, failures, isolation.
+type PaidPlan = 'STARTER' | 'PLUS' | 'PRO'
+const BELOW: Record<PaidPlan, 'STARTER' | 'PLUS' | null> = { STARTER: null, PLUS: 'STARTER', PRO: 'PLUS' }
+describe.skipIf(!up)('Sold features regression (every advertised AI feature, at its plan)', () => {
+  const FEATURES: [string, string, Record<string, unknown>, PaidPlan][] = [
+    ['party_planner', 'party-planner', {}, 'STARTER'],
+    ['theme_ideas', 'theme-ideas', {}, 'STARTER'],
     ['checklist', 'checklist', {}, 'STARTER'],
-    ['activity_studio', 'activity', { mode: 'create', notes: 'A calm craft for 10 kids' }, 'PLUS'],
-    ['host_content', 'host', { kind: 'welcome' }, 'STARTER'],
-    ['party_experience', 'party-experience', {}, 'PLUS'],
+    ['activity_studio', 'activity', { mode: 'create', notes: 'A calm craft for 10 kids' }, 'STARTER'],
+    ['food', 'food', {}, 'PLUS'],
+    ['budget_optimizer', 'budget', {}, 'PLUS'],
+    ['invitation', 'invitation', { tone: 'simple' }, 'PLUS'],
+    ['timeline', 'timeline', {}, 'PLUS'],
+    ['shopping_list', 'shopping-list', {}, 'PLUS'],
+    ['host_content', 'host', { kind: 'welcome' }, 'PRO'],
+    ['party_experience', 'party-experience', {}, 'PRO'],
   ]
   const callFeature = async (path: string, token: string, body: Record<string, unknown>) =>
     (await import(`@/app/api/ai/${path}/route`)).POST(new Request(`http://app.test/api/ai/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body) })) as Promise<Response>
@@ -301,12 +312,15 @@ describe.skipIf(!up)('Enabled features regression (production set)', () => {
       const U = await newUser(`aisec-f-${path}`)
       const V = await newUser(`aisec-g-${path}`)
       const p = await newParty(U)
-      if (minPlan !== 'FREE') {
-        await setPlan(U, null)
-        expect((await callFeature(path, U.accessToken, { partyId: p, ...extra })).status).toBe(403)
-        expect(await rowsOf(U)).toEqual([]) // plan check happens before any reservation
+      // the sign-up trial (fresh account) and the plan just below are both refused before any reservation
+      for (const below of ['trial', BELOW[minPlan]] as const) {
+        if (below !== 'trial') await setPlan(U, below)
+        const denied = await callFeature(path, U.accessToken, { partyId: p, ...extra })
+        expect(denied.status).toBe(403)
+        expect((await denied.json()).error).toMatchObject({ code: 'forbidden_plan', upgradeTo: minPlan })
+        expect(await rowsOf(U)).toEqual([])
       }
-      await setPlan(U, 'PRO')
+      await setPlan(U, minPlan)
       const ok = await callFeature(path, U.accessToken, { partyId: p, ...extra })
       expect(ok.status).toBe(200)
       const { generationId } = await ok.json()

@@ -33,7 +33,8 @@ detailed in [ai/AI_FEATURES.md](ai/AI_FEATURES.md); plan gating in `lib/ai/capab
 
 ### Guests
 - `/guests`: add/edit/remove guests (name, email, phone, kids, adults, notes), RSVP status filters (Going, Waiting,
-  Can't go, Not invited), headcount summary, search.
+  Can't go, Not invited), headcount summary, search. **Starter+** (and the sign-up trial): Free accounts see an
+  upgrade explanation; after a downgrade guests stay readable and removable, and shared links keep collecting RSVPs.
 
 ### Invitations
 - `/plan/invite`: invitation card (headline, times, place, message, host, RSVP-by, three designs), share via the
@@ -52,7 +53,7 @@ detailed in [ai/AI_FEATURES.md](ai/AI_FEATURES.md); plan gating in `lib/ai/capab
 
 ### Activities
 - `/activities`: planned activities and ideas with duration, setting, materials, cost estimate and how-to; totals
-  ("N planned · time of the party · about $X"); add your own; Activity Studio (AI, Plus+); per-activity actions:
+  ("N planned · time of the party · about $X"); add your own (Free); Activity Studio (AI, Starter+); per-activity actions:
   add to timeline, add supplies to shopping, add cost to budget, edit, remove (cleans its prep tasks and
   estimate-only budget lines).
 
@@ -71,23 +72,28 @@ detailed in [ai/AI_FEATURES.md](ai/AI_FEATURES.md); plan gating in `lib/ai/capab
   closing); activity rows follow the activity's duration; move, add and remove steps.
 
 ### AI planning
-- Plan My Party, Theme Ideas, AI Checklist, Activity Studio, Party Host, Party Experience — see [ai/AI_FEATURES.md](ai/AI_FEATURES.md).
+- Starter: Plan My Party, Theme Ideas, AI Checklist, Activity Studio · Plus: Food, Budget, Invitation writer,
+  Timeline, Shopping list · Pro: Party Host, Party Experience. Free has no AI. See [ai/AI_FEATURES.md](ai/AI_FEATURES.md)
+  and the product model in [PRODUCT_MODEL_AUDIT.md](PRODUCT_MODEL_AUDIT.md). A reopened Plan My Party / Party
+  Experience offers "Refresh with your new party details" when the party changed.
 
 ### Themes
 - `/plan/theme`: curated catalogue with search and categories, "Recommended for <child>", AI theme ideas; the chosen
   theme drives the plan, activities and invitation.
 
 ### Party Experience / Party Magic
-- Plan → Party Magic: Party Experience generator (Plus+), Activities, Host and Messages entry points.
+- Plan → Party Magic: Party Experience generator (Pro), Activities, Host and Messages (Pro), Food / Timeline /
+  Shopping / Budget (Plus); locked cards say which plan includes them and open an upgrade explanation.
 
 ### Party Host
 - "What to say": welcome, activity intros, cake, closing, reminders, thank-you notes — saved to the party; nothing is
   sent automatically.
 
 ### Billing
-- One-time plans per the pricing page: **Starter $4.99 · Plus $9.99 · Pro $14.99** (USD), Dodo hosted checkout.
-- Every new account gets a 24-hour Pro trial; trial users can buy any plan at any time; a purchase replaces the
-  trial. Plans are granted only by verified payment webhooks; refunds revoke. See [BILLING_SECURITY.md](BILLING_SECURITY.md).
+- **Free · Starter $4.99 · Plus $9.99 · Pro $14.99** (USD, one-time, account-wide), Dodo hosted checkout; model in
+  `lib/entitlements.ts`. Guests & RSVP are Starter+ (enforced in the database).
+- Every new account gets a 24-hour trial of Starter's guest & RSVP features (no AI); trial users can buy any plan at
+  any time; a purchase replaces the trial. Plans are granted only by verified payment webhooks; refunds revoke. See [BILLING_SECURITY.md](BILLING_SECURITY.md).
 
 ### Super Admin
 - `/admin` (role `super_admin`, server-verified; everyone else gets 404): user search, plan details, timed or

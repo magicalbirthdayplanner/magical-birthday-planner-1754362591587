@@ -47,17 +47,19 @@ export default function TermsConditionsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">4. Subscription and Billing</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">4. Plans and Billing</h2>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Our service offers multiple subscription tiers:
+                Our service offers a free plan and three paid plans:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
-                <li>Starter Plan: $4.99 per party with basic features</li>
-                <li>Plus Plan: Enhanced features with additional capabilities</li>
-                <li>Pro Plan: Full access to all platform features</li>
+                <li>Free: create a party, discover and save venues, checklist, curated themes and your party plan</li>
+                <li>Starter ($4.99): adds guests &amp; RSVP and AI planning features</li>
+                <li>Plus ($9.99): adds AI organization features</li>
+                <li>Pro ($14.99): adds AI party-day features</li>
               </ul>
               <p className="text-gray-600 dark:text-gray-300 mt-4">
-                Billing is processed per party. All fees are non-refundable except as required by law. 
+                Paid plans are a one-time payment, not a subscription, and unlock the plan&apos;s features on your account. AI features are subject
+                to the per-party and fair-use limits shown on the pricing page. All fees are non-refundable except as required by law.
                 We reserve the right to change our pricing with 30 days' notice.
               </p>
             </section>

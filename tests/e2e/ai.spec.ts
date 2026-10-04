@@ -1,9 +1,10 @@
 /** AI planning assistant on phones (deterministic mock provider via .env.e2e). */
 import { expect, test } from '@playwright/test'
-import { login, seedUser } from './helpers'
+import { login, patchParty, seedUser, setPlanForE2E } from './helpers'
 
 test('Plan My Party: describe it → plan → add an activity (undo) → Add all → saved on the Plan tab; reopening restores', async ({ page }) => {
   const s = await seedUser({ withParty: true })
+  await setPlanForE2E(s.email, 'STARTER')
   await login(page, s, '/home')
   await page.getByTestId('plan-with-ai').click()
   await page.getByPlaceholder('My daughter is turning 7, loves art, and we’re expecting 12 kids…').fill('My daughter is turning 7. She loves art and animals. About 12 kids, $250, indoors.')
@@ -34,10 +35,21 @@ test('Plan My Party: describe it → plan → add an activity (undo) → Add all
   await page.getByTestId('plan-with-ai').click()
   await expect(page.getByText(/Your plan from/)).toBeVisible()
   await expect(page.getByRole('dialog').getByText('Added').first()).toBeVisible()
+  await expect(page.getByTestId('ai-refresh-notice')).toHaveCount(0)
+  // the party changes → the reopened plan offers a refresh
+  await page.keyboard.press('Escape')
+  await patchParty(s.partyId!, { guest_count: 30 })
+  await page.reload()
+  await page.getByTestId('plan-with-ai').click()
+  await expect(page.getByTestId('ai-refresh-notice')).toContainText('guest count')
+  await page.getByRole('button', { name: 'Refresh with your new party details' }).click()
+  await expect(page.getByText('Your AI plan')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByTestId('ai-refresh-notice')).toHaveCount(0)
 })
 
 test('Theme ideas: say what they love → 5 ideas → use one → saved as the party theme', async ({ page }) => {
   const s = await seedUser({ withParty: true })
+  await setPlanForE2E(s.email, 'STARTER')
   await login(page, s, '/plan/theme')
   await expect(page.getByText('Dream up original themes')).toHaveCount(0) // one AI theme entry point
   await page.getByTestId('ai-theme-ideas').click()
@@ -56,6 +68,7 @@ for (const width of [375, 390, 393, 430]) {
     const ctx = await browser.newContext({ viewport: { width, height: 844 }, isMobile: true, hasTouch: true })
     const page = await ctx.newPage()
     const s = await seedUser({ withParty: true })
+    await setPlanForE2E(s.email, 'STARTER')
     await login(page, s, '/plan')
     await expect(page.getByTestId('plan-with-ai')).toBeVisible()
     await page.getByTestId('plan-with-ai').click()
@@ -84,14 +97,18 @@ for (const width of [375, 390, 393, 430]) {
   })
 }
 
-test('Party Magic on Plan: Free sees calm locked cards; Plus builds the checklist and adds all', async ({ page }) => {
-  const { setPlanForE2E } = await import('./helpers')
+test('Party Magic on Plan: Free sees calm locked cards that explain the plan; Starter builds the checklist and adds all', async ({ page }) => {
   const s = await seedUser({ withParty: true })
   await setPlanForE2E(s.email, 'FREE')
   await login(page, s, '/plan')
   await expect(page.getByText('✨ Party Magic')).toBeVisible()
-  await expect(page.getByText('Included with Starter').first()).toBeVisible()
-  await setPlanForE2E(s.email, 'PLUS')
+  await expect(page.getByText('Part of Starter').first()).toBeVisible()
+  await expect(page.getByTestId('upgrade-party_planner')).toContainText('Plan My Party is part of Starter')
+  await expect(page.getByTestId('magic-timeline-locked')).toContainText('Part of Plus')
+  await page.getByTestId('magic-timeline-locked').click()
+  await expect(page.getByRole('dialog').getByRole('link', { name: /See Plus — \$9\.99/ })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await setPlanForE2E(s.email, 'STARTER')
   await page.goto('/plan/checklist')
   await page.getByTestId('ai-build-checklist').click()
   await expect(page.getByRole('dialog', { name: 'Your AI checklist' })).toBeVisible()

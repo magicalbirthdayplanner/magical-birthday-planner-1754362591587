@@ -14,6 +14,10 @@ import { AppliedProvider } from '@/components/ai/applied'
 import { useAIGenerate } from '@/components/ai/useAI'
 import type { ExperienceResult } from '@/lib/ai/features/partyExperience.types'
 import { lastGeneration } from '@/lib/data/partyPlanItems'
+import { partyDetailsChanged, partyNow } from '@/lib/experience/model'
+import { useGuests } from '@/lib/data/hooks'
+import { RefreshNotice } from '@/components/ai/PlanWithAICard'
+import { useParty } from '@/components/app/PartyProvider'
 import { costRange, formatMinutes, type TimelineKind } from '@/lib/experience/model'
 import { KIND_EMOJI } from './TimelineSheet'
 
@@ -32,10 +36,18 @@ function Block({ title, sub, action, children }: { title: string; sub?: string; 
 export function ExperienceSheet({ partyId, open, onOpenChange, onUsed, basedOn }: { partyId: string; open: boolean; onOpenChange: (o: boolean) => void; onUsed: () => void; basedOn?: string }) {
   const gen = useAIGenerate<ExperienceResult>('/api/ai/party-experience')
   const [notes, setNotes] = useState('')
+  const { party } = useParty()
+  const [restoredSummary, setRestoredSummary] = useState<Record<string, unknown> | null>(null)
+  const guests = useGuests(open ? partyId : null)
   useEffect(() => {
     if (!open || gen.state.phase !== 'idle') return
     let cancelled = false
-    void lastGeneration<ExperienceResult>(partyId, 'party_experience').then((last) => { if (last && !cancelled) gen.restore(last) }).catch(() => undefined)
+    void lastGeneration<ExperienceResult>(partyId, 'party_experience').then((last) => {
+      if (last && !cancelled) {
+        setRestoredSummary(last.inputSummary)
+        gen.restore(last)
+      }
+    }).catch(() => undefined)
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, partyId])
@@ -54,6 +66,7 @@ export function ExperienceSheet({ partyId, open, onOpenChange, onUsed, basedOn }
         <AppliedProvider key={s.generationId} initial={s.appliedKeys}>
           <div className="space-y-1 pb-2" aria-live="polite">
             {s.restoredAt ? <p className="px-4 text-xs text-muted-foreground">Your experience from {new Date(s.restoredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}.</p> : null}
+            {s.restoredAt && party?.id === partyId ? <RefreshNotice changed={partyDetailsChanged(restoredSummary, party && guests.data ? partyNow(party, guests.data) : null)} onRefresh={() => void run()} /> : null}
             <div className="mx-4 rounded-3xl bg-secondary p-5"><p className="text-sm font-semibold text-secondary-foreground">Your party experience</p><p className="mt-1 text-[15px] leading-relaxed">{s.result.summary}</p></div>
 
             <Block title="Theme">
@@ -134,7 +147,7 @@ export function ExperienceSheet({ partyId, open, onOpenChange, onUsed, basedOn }
         <div className="space-y-3 pb-2">
           <TextArea label="Tell us about the birthday" hideLabel placeholder="“My daughter is turning 7. She loves space and painting, but I don’t want a typical space party. 15 kids, 2 hours, $200, at home.”" rows={5} maxLength={1500} value={notes} onChange={(e) => setNotes(e.target.value)} />
           <p className="-mt-1 text-xs text-muted-foreground">Please avoid full names, addresses or phone numbers. Takes about 30–50 seconds.</p>
-          {s.phase === 'error' ? <AIError message={s.code === 'provider_error' || s.code === 'invalid_response' || s.code === 'timeout' ? 'We couldn’t create that right now. Your party plan is safe.' : s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : run} upgradeTo={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? 'plus' : null} /> : null}
+          {s.phase === 'error' ? <AIError message={s.code === 'provider_error' || s.code === 'invalid_response' || s.code === 'timeout' ? 'We couldn’t create that right now. Your party plan is safe.' : s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : run} upgradeTo={s.code === 'forbidden_plan' || s.code === 'limit_reached' ? s.upgradeTo ?? null : null} /> : null}
           <AppButton block size="lg" variant="magic" onClick={run}>✨ Create my party experience</AppButton>
         </div>
       )}

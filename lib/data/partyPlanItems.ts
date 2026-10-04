@@ -56,7 +56,9 @@ export async function removeBudgetLine(id: string) {
   if (error) throw error
 }
 
-export interface LastGeneration<R> { generationId: string; result: R; appliedKeys: string[]; createdAt: string }
+export interface LastGeneration<R> { generationId: string; result: R; appliedKeys: string[]; createdAt: string; inputSummary: Record<string, unknown> }
+
+
 
 /** "target:itemId" for every item currently applied (an undo cancels the apply before it). */
 export function appliedKeysFrom(applied: unknown): string[] {
@@ -73,7 +75,7 @@ export function appliedKeysFrom(applied: unknown): string[] {
 export async function lastGeneration<R>(partyId: string, feature: AIFeature): Promise<LastGeneration<R> | null> {
   const { data } = await db
     .from('ai_generations')
-    .select('id, result, applied, created_at')
+    .select('id, result, applied, created_at, input_summary')
     .eq('party_id', partyId)
     .eq('feature', feature)
     .eq('status', 'success')
@@ -81,5 +83,5 @@ export async function lastGeneration<R>(partyId: string, feature: AIFeature): Pr
     .limit(1)
     .maybeSingle()
   if (!data?.result) return null
-  return { generationId: data.id, result: data.result as R, appliedKeys: appliedKeysFrom(data.applied), createdAt: data.created_at }
+  return { generationId: data.id, result: data.result as R, appliedKeys: appliedKeysFrom(data.applied), createdAt: data.created_at, inputSummary: (data.input_summary ?? {}) as Record<string, unknown> }
 }

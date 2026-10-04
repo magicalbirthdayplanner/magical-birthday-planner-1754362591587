@@ -2,30 +2,32 @@
 import useSWR from 'swr'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiFetch } from '@/lib/data/api'
+import { allows, effectivePlan, ownedPlan, planAtLeast, type Capability, type Plan, type PlanState } from '@/lib/entitlements'
 
-export type Plan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO'
-const ORDER: Plan[] = ['FREE', 'STARTER', 'PLUS', 'PRO']
+export type { Plan }
 
-type Source = 'admin_override' | 'purchase' | 'trial' | 'free'
+type Status = PlanState & { trialActive: boolean; superAdmin?: boolean }
 
 /**
- * Server-derived plan (/api/billing/status). The browser never decides entitlements: this only chooses which
- * plans to OFFER. Checkout, product and price are decided by the server; a plan is granted only by a verified
- * payment webhook (or a Super Admin override).
+ * Server-derived plan (/api/billing/status) mapped through the product model (lib/entitlements.ts). The browser
+ * never decides entitlements: this only chooses what to SHOW. The server enforces every paid capability.
  */
 export function usePlanStatus() {
   const { user } = useAuth()
-  const { data } = useSWR(user ? ['billing', user.id] : null, () => apiFetch<{ plan: string; source?: Source; trialActive: boolean }>('/api/billing/status'))
-  const currentPlan: Plan = ORDER.includes(data?.plan as Plan) ? (data!.plan as Plan) : 'FREE'
-  // The sign-up trial is temporary: it never hides a plan from purchase. Only a plan the user actually owns
-  // (purchase or admin override) counts when deciding what's an upgrade.
-  const onTrial = data?.source === 'trial'
-  const ownedPlan: Plan = onTrial ? 'FREE' : currentPlan
+  const { data, isLoading } = useSWR(user ? ['billing', user.id] : null, () => apiFetch<Status>('/api/billing/status'))
+  const owned = ownedPlan(data)
   return {
-    currentPlan,
-    ownedPlan,
-    onTrial,
+    loaded: !user || !!data,
+    isLoading,
+    /** Effective plan for non-AI features (a trial counts as Starter here). */
+    currentPlan: effectivePlan(data, { ai: false }),
+    /** The plan the user bought (or was given). A trial owns nothing. */
+    ownedPlan: owned,
+    onTrial: data?.source === 'trial',
     trialActive: !!data?.trialActive,
-    canUpgradeTo: (target: Plan) => ORDER.indexOf(target) > ORDER.indexOf(ownedPlan),
+    superAdmin: !!data?.superAdmin,
+    /** Display-only check; the server enforces. While loading, nothing is reported as locked. */
+    can: (c: Capability) => (!user ? false : !data ? true : allows(data, c, !!data.superAdmin)),
+    canUpgradeTo: (target: Plan) => !planAtLeast(owned, target),
   }
 }

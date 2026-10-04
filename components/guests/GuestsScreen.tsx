@@ -13,6 +13,8 @@ import { addGuest, deleteGuest, guestTotals, updateGuest, validateGuest, type Gu
 import { friendlyError } from '@/lib/data/api'
 import { track } from '@/lib/analytics/client'
 import { cn } from '@/lib/utils'
+import { usePlanStatus } from '@/components/billing/usePlanStatus'
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
 
 type Filter = 'all' | 'CONFIRMED' | 'waiting' | 'DECLINED' | 'not_invited'
 
@@ -96,6 +98,9 @@ export function GuestsScreen() {
   const { user } = useAuth()
   const { party } = useParty()
   const { data, error, isLoading, mutate } = useGuests(party?.id)
+  const planStatus = usePlanStatus()
+  // Guests & RSVP are Starter+ (lib/entitlements.ts); the database refuses writes without it (migration 1300).
+  const canManage = planStatus.can('guests')
   const [filter, setFilter] = useState<Filter>('all')
   const [query, setQuery] = useState('')
   const [adding, setAdding] = useState(false)
@@ -179,12 +184,22 @@ export function GuestsScreen() {
     ['not_invited', 'Not invited', guests.filter((g) => g.invite_status === 'NOT_SENT').length],
   ]
 
+  if (!canManage && !guests.length && !isLoading) {
+    return (
+      <div className="pb-4">
+        <PageHeader title="Guests" subtitle={`Planning for ${party.guest_count ?? '—'} guests`} />
+        <div className="px-4"><UpgradePrompt capability="guests" /></div>
+      </div>
+    )
+  }
+
   return (
     <div className="pb-4">
+      {!canManage ? <div className="px-4 pt-4"><UpgradePrompt compact capability="guests" /></div> : null}
       <PageHeader
         title="Guests"
         subtitle={guests.length ? `${totals.confirmed} going · ${totals.confirmedKids} kids, ${totals.confirmedHeads - totals.confirmedKids} adults` : `Planning for ${party.guest_count ?? '—'} guests`}
-        action={
+        action={!canManage ? undefined :
           <button type="button" onClick={() => setAdding(true)} aria-label="Add guest" className="tap flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <UserPlus className="h-5 w-5" />
           </button>

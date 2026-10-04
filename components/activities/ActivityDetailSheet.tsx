@@ -92,7 +92,7 @@ export function ActivityDetailSheet({ partyId, partyDate, activity, experience, 
                 <AppButton size="sm" variant="secondary" className="min-h-[44px]" onClick={() => revise('theme')}>✨ Update for {facts.theme}</AppButton>
               </Card>
             ) : null}
-            {s.phase === 'error' ? <AIError message={s.code === 'provider_error' || s.code === 'invalid_response' || s.code === 'timeout' ? 'We couldn’t create that right now. Your party plan is safe.' : s.message} upgradeTo={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? 'plus' : null} /> : null}
+            {s.phase === 'error' ? <AIError message={s.code === 'provider_error' || s.code === 'invalid_response' || s.code === 'timeout' ? 'We couldn’t create that right now. Your party plan is safe.' : s.message} upgradeTo={s.code === 'forbidden_plan' || s.code === 'limit_reached' ? s.upgradeTo ?? null : null} /> : null}
 
             <div className="grid grid-cols-2 gap-2">
               {a.status === 'planned' ? (

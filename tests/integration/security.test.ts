@@ -248,12 +248,17 @@ describe('invitation links', () => {
   })
 
   it('a rotated link stops working immediately', async () => {
+    // Rotating is an invitation write: Starter+ (A was made Free above, so give A a plan for this test).
+    await adminClient().from('plan_overrides').upsert({ user_id: A.user.id, plan: 'STARTER', expires_at: null })
+    await adminClient().rpc('recompute_entitlement', { p_user: A.user.id })
     const fresh = 'a'.repeat(48)
     await A.user.client.from('party_invitations').update({ token: fresh }).eq('id', A.invitationId)
     expect((await anonClient().rpc('get_invitation', { p_token: A.token })).data).toBeNull()
     expect((await rsvp(A.token, { name: 'Late', status: 'CONFIRMED', adults: 1, children: 0 }, '203.0.113.10')).status).toBe(404)
     expect((await A.user.client.from('party_invitations').update({ token: 'short' }).eq('id', A.invitationId)).error).not.toBeNull()
     await A.user.client.from('party_invitations').update({ token: A.token }).eq('id', A.invitationId)
+    await adminClient().from('plan_overrides').delete().eq('user_id', A.user.id)
+    await adminClient().rpc('recompute_entitlement', { p_user: A.user.id })
   })
 })
 

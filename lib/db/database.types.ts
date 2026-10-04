@@ -797,6 +797,9 @@ isOneToOne: false
 "start_24_hour_trial":
 { Args: { "user_id": string }; Returns: undefined
                            },
+"has_paid_access":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "submit_rsvp":
 { Args: { "p_adults"?: number,"p_children"?: number,"p_email": string,"p_name": string,"p_note"?: string,"p_respondent"?: string,"p_status": string,"p_token": string }; Returns: Json
                            },

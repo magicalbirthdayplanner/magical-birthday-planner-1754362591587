@@ -7,16 +7,38 @@
 import { expect, test } from '@playwright/test'
 import { login, makeFree, mockEmails, seedUser } from './helpers'
 
-test('invitation email → RSVP emails → Dodo checkout → webhook → plan active → persists', async ({ page, browser }) => {
-  test.setTimeout(120_000)
+test('Free: guests locked → upgrade → Dodo checkout → webhook → plan active → invitation email → RSVP emails → persists', async ({ page, browser }) => {
+  test.setTimeout(150_000)
   const s = await seedUser()
   await makeFree(s.email)
   const stamp = Date.now()
   const guestEmail = `patel-${stamp}@example.test`
   const rsvpEmail = `nguyen-${stamp}@example.test`
 
-  // Guest with an email address
+  // Free: Guests & RSVP are part of Starter — a clear upgrade, no way to add guests
   await login(page, s, '/guests')
+  await expect(page.getByTestId('upgrade-guests')).toContainText('Guests & RSVP is part of Starter')
+  await expect(page.getByRole('button', { name: 'Add a guest' })).toHaveCount(0)
+  await expect(page.getByTestId('nav-lock-guests')).toBeVisible()
+  await page.goto('/more')
+  await expect(page.getByTestId('plan-row')).toContainText('Free')
+
+  // upgrade prompt → pricing → Dodo checkout (test mode) → pay → signed webhook → plan
+  await page.goto('/guests')
+  await page.getByTestId('upgrade-guests').getByRole('link').click()
+  await expect(page).toHaveURL(/\/pricing\?upgrade=starter&from=guests/)
+  await page.getByTestId('checkout-PLUS').click()
+  await expect(page.getByRole('heading', { name: 'Dodo Payments (test mode)' })).toBeVisible()
+  await page.getByRole('button', { name: 'Pay now' }).click()
+  await expect(page).toHaveURL(/\/checkout-success\?ref=.*status=succeeded/)
+  await expect(page.getByTestId('checkout-status')).toHaveAttribute('data-phase', 'active', { timeout: 30_000 })
+  await expect(page.getByTestId('checkout-status')).toContainText('Your PLUS plan is active')
+  await page.goto('/more')
+  await expect(page.getByTestId('plan-row')).toContainText('Plus')
+
+  // Guest with an email address
+  await page.goto('/guests')
+  await expect(page.getByTestId('nav-lock-guests')).toHaveCount(0)
   await page.getByRole('button', { name: 'Add a guest' }).click()
   await page.getByLabel('Name').fill('Patel family')
   await page.getByLabel('Email (optional)').fill(guestEmail)
@@ -51,24 +73,8 @@ test('invitation email → RSVP emails → Dodo checkout → webhook → plan ac
     expect.arrayContaining(['Nguyen family is coming — Mia’s party', 'Your RSVP for Mia’s party']),
   )
 
-  // Plan starts FREE (server-side)
-  await page.goto('/more')
-  await expect(page.getByTestId('plan-row')).toContainText('Free')
-
-  // Dodo checkout (test mode) → pay → signed webhook → plan
-  await page.getByTestId('plan-row').click()
-  await expect(page).toHaveURL(/\/pricing/)
-  await page.getByTestId('checkout-PLUS').click()
-  await expect(page.getByRole('heading', { name: 'Dodo Payments (test mode)' })).toBeVisible()
-  await page.getByRole('button', { name: 'Pay now' }).click()
-  await expect(page).toHaveURL(/\/checkout-success\?ref=.*status=succeeded/)
-  await expect(page.getByTestId('checkout-status')).toHaveAttribute('data-phase', 'active', { timeout: 30_000 })
-  await expect(page.getByTestId('checkout-status')).toContainText('Your PLUS plan is active')
-
-  await page.goto('/more')
-  await expect(page.getByTestId('plan-row')).toContainText('Plus')
-
   // logout → login → persists
+  await page.goto('/more')
   await page.getByRole('button', { name: 'Sign out' }).click()
   await expect(page.getByRole('heading', { name: /Plan your child’s birthday/ })).toBeVisible()
   await login(page, s, '/more')

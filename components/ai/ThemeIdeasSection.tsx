@@ -11,6 +11,7 @@ import type { ThemeIdeasResult } from '@/lib/ai/schemas/themeIdeas'
 import { AIToolSheet } from './AIToolSheet'
 import { ApplyControls } from './ApplyControls'
 import { useAICapabilities } from './useAI'
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
 
 const Line = ({ label, items }: { label: string; items: string[] }) =>
   items.length ? <p className="mt-1.5 text-sm"><span className="font-semibold">{label}: </span>{items.join(', ')}</p> : null
@@ -20,7 +21,8 @@ export function ThemeIdeasSection({ partyId }: { partyId: string }) {
   const cap = caps.get('theme_ideas')
   const [open, setOpen] = useState(false)
   if (!cap?.enabled) return null
-  const usable = cap.allowed && cap.remaining !== 0
+  if (!cap.allowed) return <Section title="✨ Themes made for your child"><UpgradePrompt compact capability="theme_ideas" plan={cap.upgradeTo} /></Section>
+  const usable = cap.remaining !== 0
   return (
     <Section title="✨ Themes made for your child">
       <button type="button" onClick={() => setOpen(true)} className="tap flex min-h-[64px] w-full items-center gap-3 rounded-3xl border border-border bg-card p-4 text-left" data-testid="ai-theme-ideas">
@@ -29,7 +31,7 @@ export function ThemeIdeasSection({ partyId }: { partyId: string }) {
         </span>
         <span>
           <span className="block font-semibold">Dream up themes with AI</span>
-          <span className="block text-sm text-muted-foreground">{usable ? 'Tell us what they love (and what you’d rather avoid) — get 5 original ideas' : cap.allowed ? 'See your last ideas' : 'Included in paid plans'}</span>
+          <span className="block text-sm text-muted-foreground">{usable ? 'Tell us what they love (and what you’d rather avoid) — get 5 original ideas' : 'See your last ideas'}</span>
         </span>
       </button>
       {open ? (

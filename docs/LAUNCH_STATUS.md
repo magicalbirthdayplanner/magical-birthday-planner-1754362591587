@@ -25,14 +25,20 @@ As of 2026-10-04, production runs `master` = `1f96a8b` (Vercel), with database m
 - Super Admin with audited plan overrides.
 - Automated suite: Vitest 492/492, Playwright 40/40, lint, typecheck, build, client-bundle secret scan.
 
+## Ready, not deployed: product model (branch `feat/product-model`)
+
+Free · Starter · Plus · Pro with one source of truth (`lib/entitlements.ts`), server enforcement (AI routes + RLS for
+guests/RSVP), new pricing page and homepage plans, upgrade prompts, funnel analytics, Plus AI features validated live.
+Needs: prod migration `20251004001300`, `AI_ENABLED_FEATURES` + the five Plus features, merge to `master`. Full
+audit, risks and rollback: [PRODUCT_MODEL_AUDIT.md](PRODUCT_MODEL_AUDIT.md). It resolves the social-proof and
+billing-copy items that used to be listed here (except the Terms jurisdiction placeholder).
+
 ## Remaining (genuinely outstanding)
 
 Copy and trust (code changes, small):
-1. Remove unverifiable social proof ("Trusted by 10,000+ parents", "Join thousands…") on `/` and `/pricing`.
-2. Make billing copy consistent and true: refund policy (pricing FAQ "7-day risk-free" vs Terms "non-refundable"),
-   the Terms jurisdiction placeholder, the "credit toward upgrade" claim, and tier bullets that list features that are
-   not live (task reminders, Pro food suggestions / budget insights, Starter invitation creator); FAQ answer "Yes!" to
-   a "how" question; the white-on-white "Compare Plans" button; "per party" wording vs account-wide plans.
+1. (Fixed on `feat/product-model`.) Unverifiable social proof on `/` and `/pricing`.
+2. Terms: the jurisdiction placeholder "[Your Jurisdiction]" (owner decision). The other billing-copy issues are fixed
+   on `feat/product-model`.
 3. Invitation email links to `/help`, which does not exist.
 4. Social sharing: no `og:image`; the same `<title>` on every public page.
 5. Privacy policy: name the processors (AI provider, Google, Dodo, Resend, Sentry, Vercel, Supabase) and AI

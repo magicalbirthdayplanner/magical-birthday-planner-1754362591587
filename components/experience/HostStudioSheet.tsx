@@ -75,7 +75,7 @@ export function HostStudioSheet({ partyId, open, onOpenChange, activities, saved
           {TONES.map((t) => <Chip key={t} role="radio" aria-checked={tone === t} active={tone === t} onClick={() => setTone(t)}>{t.charAt(0).toUpperCase() + t.slice(1)}</Chip>)}
         </div>
         {s.phase === 'loading' ? <AIProgress steps={['✨ Writing something special for your party…', 'Making it easy to read aloud…']} onCancel={gen.cancel} /> : null}
-        {s.phase === 'error' ? <AIError message={s.code === 'provider_error' || s.code === 'invalid_response' || s.code === 'timeout' ? 'We couldn’t create that right now. Your party plan is safe.' : s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : run} upgradeTo={s.code === 'forbidden_plan' || s.code === 'limit_reached' ? 'starter' : null} /> : null}
+        {s.phase === 'error' ? <AIError message={s.code === 'provider_error' || s.code === 'invalid_response' || s.code === 'timeout' ? 'We couldn’t create that right now. Your party plan is safe.' : s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : run} upgradeTo={s.code === 'forbidden_plan' || s.code === 'limit_reached' ? s.upgradeTo ?? null : null} /> : null}
         {s.phase === 'done' ? (
           s.result.items.length ? (
             <div className="space-y-3" aria-live="polite">

@@ -9,7 +9,17 @@ import { ALLERGY_NOTE, FoodAISchema, type FoodModelOutput, type FoodResult } fro
 export const FoodBody = BaseBody.extend({ preferences: z.string().max(500).optional() }).strict()
 /** Never let model text claim medical/allergen safety. */
 const SAFETY_CLAIM = /\b(allergen[- ]free|nut[- ]free|gluten[- ]free|safe for (all|everyone|allergies|kids with allergies)|allergy[- ]safe)\b/gi
-const unclaim = (s: string) => s.replace(SAFETY_CLAIM, 'check-with-families')
+const SAFE_CLAIM = /\b(allergen[- ]free|safe for (all|everyone|allergies|kids with allergies)|allergy[- ]safe)\b/gi
+/** Free text: a blanket safety promise becomes "allergy-aware"; dietary words ("the gluten-free child") stay, so the
+ *  advice keeps its meaning — the allergy note below always applies. */
+const unclaim = (s: string) => s.replace(SAFE_CLAIM, 'allergy-aware')
+/** Dish names: "Nut-free trail mix" → "Trail mix (nut-free option)" — an option to check, not a promise. */
+const unclaimName = (s: string) => {
+  const claims = [...s.matchAll(new RegExp(SAFETY_CLAIM.source, 'gi'))].map((m) => m[0].toLowerCase().replace(' ', '-'))
+  if (!claims.length) return s
+  const base = s.replace(SAFETY_CLAIM, '').replace(/\s{2,}/g, ' ').trim() || 'Menu item'
+  return `${base[0].toUpperCase()}${base.slice(1)} (${claims.filter((c) => /-free$/.test(c)).map((c) => `${c} option`).join(', ') || 'check with families'})`
+}
 /** A dietary tag is a label, not a promise: "nut-free" → "nut-free option" (the allergy note always applies). */
 const CLAIM_TAG = new RegExp(SAFETY_CLAIM.source, 'i')
 const tag = (t: string) => (CLAIM_TAG.test(t) ? `${t.toLowerCase()} option`.slice(0, 40) : t)
@@ -17,7 +27,7 @@ const tag = (t: string) => (CLAIM_TAG.test(t) ? `${t.toLowerCase()} option`.slic
 /** Claims are stripped from every model string; quantities, totals and the headcount are server-side facts. */
 export function postProcessFood(out: FoodModelOutput, headcount: { guests: number | null; kids: number | null; adults: number | null } = { guests: null, kids: null, adults: null }): FoodResult {
   const r2 = (n: number) => Math.round(n * 100) / 100
-  const items = out.items.map((d, i) => ({ ...d, name: unclaim(d.name), notes: unclaim(d.notes), dietary_tags: d.dietary_tags.map(tag), quantity: r2(d.quantity), estimated_cost: r2(d.estimated_cost), id: itemId('dish', i) }))
+  const items = out.items.map((d, i) => ({ ...d, name: unclaimName(d.name), notes: unclaim(d.notes), dietary_tags: d.dietary_tags.map(tag), quantity: r2(d.quantity), estimated_cost: r2(d.estimated_cost), id: itemId('dish', i) }))
   const shoppingList = out.shoppingList.map((s, i) => ({ ...s, item: unclaim(s.item), category: s.category, estimatedCost: r2(s.estimatedCost), id: itemId('food', i) }))
   const menuTotal = r2(items.reduce((s, x) => s + x.estimated_cost, 0))
   const listTotal = r2(shoppingList.reduce((s, x) => s + x.estimatedCost, 0))

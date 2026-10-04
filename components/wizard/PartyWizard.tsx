@@ -86,6 +86,7 @@ export function PartyWizard() {
     if (!started.current) {
       started.current = true
       track('onboarding_started')
+      track('party_creation_started')
     }
   }, [params])
 
@@ -188,6 +189,7 @@ export function PartyWizard() {
         theme: draft.theme,
         location: draft.zipPlace ? { lat: draft.zipPlace.lat, lng: draft.zipPlace.lng, city: draft.zipPlace.city, state: draft.zipPlace.state } : null,
       })
+      track('party_creation_completed')
       track('party_created', {
         age: draft.childAge ?? 0,
         guests: draft.guestCount,

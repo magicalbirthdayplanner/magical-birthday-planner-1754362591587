@@ -6,6 +6,7 @@ import { AppButton, Card, Chip } from '@/components/app/ui'
 import type { InvitationResult } from '@/lib/ai/schemas/invitation'
 import { AIToolSheet } from './AIToolSheet'
 import { useAICapabilities } from './useAI'
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
 
 const TONES = ['playful', 'elegant', 'funny', 'simple', 'adventurous'] as const
 
@@ -15,8 +16,7 @@ export function InvitationWriter({ partyId, onUse }: { partyId: string; onUse: (
   const [tone, setTone] = useState<(typeof TONES)[number]>('playful')
   const [open, setOpen] = useState(false)
   if (!cap?.enabled) return null
-  if (!cap.allowed)
-    return <a href={`/pricing?upgrade=${(cap.upgradeTo ?? 'starter').toLowerCase()}`} className="tap flex min-h-[44px] items-center gap-2 text-sm font-semibold text-primary"><PenLine className="h-4 w-4" /> Write it for me — included with Starter</a>
+  if (!cap.allowed) return <UpgradePrompt compact capability="invitation" plan={cap.upgradeTo} />
   return (
     <div className="space-y-2" data-testid="ai-invitation-writer">
       <p className="text-sm font-semibold">Need wording? Pick a tone</p>

@@ -18,6 +18,7 @@ import { ActivityCreatorSheet } from './ActivityCreatorSheet'
 import { ActivityDetailSheet } from './ActivityDetailSheet'
 import { ActivityFormSheet } from './ActivityFormSheet'
 import { usePartyFacts } from './usePartyFacts'
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
 
 export function ActivitiesScreen() {
   const { party, isLoading } = useParty()
@@ -71,13 +72,15 @@ export function ActivitiesScreen() {
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
               </Card>
             </button>
+          ) : !studio!.allowed ? (
+            <UpgradePrompt compact capability="activity_studio" plan={studio!.upgradeTo} />
           ) : (
-            <a href={`/pricing?upgrade=${(studio!.upgradeTo ?? 'plus').toLowerCase()}`} className="tap block">
+            <a href="/pricing" className="tap block">
               <Card className="flex items-center gap-3 p-4">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-muted text-xl" aria-hidden>✨</span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-bold">Create an activity</span>
-                  <span className="block text-sm text-muted-foreground">{studio!.allowed ? 'You’ve used this party’s AI suggestions' : `Included with ${studio!.upgradeTo ? studio!.upgradeTo.charAt(0) + studio!.upgradeTo.slice(1).toLowerCase() : 'a paid plan'}`}</span>
+                  <span className="block text-sm text-muted-foreground">You’ve used this party’s AI suggestions</span>
                 </span>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
               </Card>

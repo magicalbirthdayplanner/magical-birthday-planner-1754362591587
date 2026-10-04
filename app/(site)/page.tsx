@@ -3,41 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PartyPopper, Sparkles, Users, Calendar, CheckCircle2, Star, Calendar as CalendarIcon, User, Crown, Zap, ArrowRight } from "lucide-react";
+import { PartyPopper, Sparkles, Users, Calendar, CheckCircle2, Calendar as CalendarIcon, User, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRef } from "react";
+import { useEffect } from "react";
+import { PlanCards } from "@/components/billing/PlanCards";
+import { track } from "@/lib/analytics/client";
 
 export default function Home() {
   const { user, loading } = useAuth();
 
-  // Refs for pricing card hover effects
-  const starterCardRef = useRef<HTMLDivElement>(null);
-  const plusCardRef = useRef<HTMLDivElement>(null);
-  const proCardRef = useRef<HTMLDivElement>(null);
-
-  // Animated border effect handler
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, cardRef: React.RefObject<HTMLDivElement | null>) => {
-    if (!cardRef.current) return;
-    
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    cardRef.current.style.setProperty('--mouse-x', `${x}px`);
-    cardRef.current.style.setProperty('--mouse-y', `${y}px`);
-  };
-
-  const handleMouseEnter = (cardRef: React.RefObject<HTMLDivElement | null>) => {
-    if (!cardRef.current) return;
-    cardRef.current.style.setProperty('--opacity', '1');
-  };
-
-  const handleMouseLeave = (cardRef: React.RefObject<HTMLDivElement | null>) => {
-    if (!cardRef.current) return;
-    cardRef.current.style.setProperty('--opacity', '0');
-  };
-
+  useEffect(() => {
+    track("landing_page_view", { signedIn: !!user })
+  }, [user]);
 
   const themes = [
     { name: "Superhero", color: "bg-gradient-to-r from-red-500 to-blue-600", emoji: "🦸‍♂️" },
@@ -61,13 +39,13 @@ export default function Home() {
     },
     {
       icon: <Users className="h-6 w-6" />,
-      title: "Guest Management",
-      description: "Easily manage invitations and track RSVPs in one place"
+      title: "Guests & RSVP",
+      description: "Share one invitation link and see who's coming at a glance"
     },
     {
       icon: <Calendar className="h-6 w-6" />,
-      title: "Timeline & Reminders",
-      description: "Stay organized with automated reminders and timeline planning"
+      title: "Party-Day Timeline",
+      description: "Turn your plan into a simple schedule for the big day"
     }
   ];
 
@@ -320,185 +298,20 @@ export default function Home() {
       </section>
 
       {/* Pricing Preview Section */}
-      <section className="py-16 bg-white dark:bg-slate-900">
+      <section className="py-16 bg-white dark:bg-slate-900" aria-labelledby="home-plans">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10">
             <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-              🎂 Pay per party. No monthly subscriptions.
+              One-time payment · No subscriptions
             </Badge>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Choose Your Perfect Package
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              From single birthday celebrations to multi-child families, find the perfect package that makes every birthday magical
-            </p>
+            <h2 id="home-plans" className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Explore. Plan. Organize. Experience.</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">Start free. Add AI when you want help with the plan, the details, or the day itself.</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Essential Party (Free) */}
-            <div
-              ref={starterCardRef}
-              className="pricing-card"
-              onMouseMove={(e) => handleMouseMove(e, starterCardRef)}
-              onMouseEnter={() => handleMouseEnter(starterCardRef)}
-              onMouseLeave={() => handleMouseLeave(starterCardRef)}
-            >
-            <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105 bg-white dark:bg-slate-900 z-10">
-              <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
-                    <Star className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  🎈 Starter
-                </CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-300">
-                  A quick and easy starting point for parents seeking basic help.
-                </CardDescription>
-                 <div className="flex items-baseline mt-4">
-                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$4.99</span>
-                   <span className="text-gray-600 dark:text-gray-400 ml-2">per party</span>
-                 </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Theme suggestions based on age</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Smart checklist & timeline</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Simple invitation creator</span>
-                  </li>
-                </ul>
-                <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90" asChild>
-                  <Link href="/pricing">Choose Starter</Link>
-                </Button>
-              </CardContent>
-            </Card>
-            </div>
-
-            {/* Magical Party - Most Popular */}
-            <div
-              ref={plusCardRef}
-              className="pricing-card pricing-card-plus"
-              onMouseMove={(e) => handleMouseMove(e, plusCardRef)}
-              onMouseEnter={() => handleMouseEnter(plusCardRef)}
-              onMouseLeave={() => handleMouseLeave(plusCardRef)}
-            >
-            <Card className="relative border-2 border-blue-500 shadow-lg scale-105 bg-white dark:bg-slate-900 z-10">
-              <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-center py-2 text-sm font-medium">
-                🌟 Most Popular
-              </div>
-              <CardHeader className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 pt-12">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500">
-                    <Zap className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  🧁 Plus
-                </CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Smart and simple AI-powered birthday planning for busy parents.
-                </CardDescription>
-                 <div className="flex items-baseline mt-4">
-                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$9.99</span>
-                   <span className="text-gray-600 dark:text-gray-400 ml-2">per party</span>
-                 </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">Includes everything in Starter, plus:</div>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Personalized activity ideas</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">RSVP tracking</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Task reminders</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Basic budget tracker (manual input)</span>
-                  </li>
-                </ul>
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600" asChild>
-                  <Link href="/pricing">Choose Plus</Link>
-                </Button>
-              </CardContent>
-            </Card>
-            </div>
-
-            {/* Ultimate Party */}
-            <div
-              ref={proCardRef}
-              className="pricing-card pricing-card-pro"
-              onMouseMove={(e) => handleMouseMove(e, proCardRef)}
-              onMouseEnter={() => handleMouseEnter(proCardRef)}
-              onMouseLeave={() => handleMouseLeave(proCardRef)}
-            >
-            <Card className="relative border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:scale-105 bg-white dark:bg-slate-900 z-10">
-              <CardHeader className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500">
-                    <Crown className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  ✨ Pro
-                </CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-300">
-                  All-in-one planning experience with advanced support and recommendations.
-                </CardDescription>
-                 <div className="flex items-baseline mt-4">
-                   <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">$14.99</span>
-                   <span className="text-gray-600 dark:text-gray-400 ml-2">per party</span>
-                 </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">Includes everything in Plus, plus:</div>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Vendor recommendations (cakes, decor, entertainment)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Personalized food suggestions by age & theme</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">Smart budget tracker with cost insights</span>
-                  </li>
-                </ul>
-                <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" asChild>
-                  <Link href="/pricing">Choose Pro</Link>
-                </Button>
-              </CardContent>
-            </Card>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Ready to plan your perfect celebration? Choose the package that fits your event needs.
-            </p>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="/pricing" className="inline-flex items-center">
-                View All Packages & Features
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+          <PlanCards />
+          <div className="mt-8 text-center">
+            <Link href="/pricing" className="inline-flex min-h-[44px] items-center gap-2 font-semibold text-purple-700 hover:underline">
+              Compare plans and FAQ <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
@@ -535,7 +348,7 @@ export default function Home() {
                 Ready to Create Magic?
               </h2>
               <p className="text-base sm:text-lg lg:text-xl text-purple-100 mb-6 sm:mb-8">
-                Join thousands of parents who trust us to make their children's birthdays unforgettable
+                Find the place, plan the day and keep every detail in one spot — free to start.
               </p>
               <div className="flex flex-col gap-4 justify-center items-center">
                 <Link href="/start" className="w-full sm:w-auto">
@@ -543,14 +356,6 @@ export default function Home() {
                     Create Your Account
                   </Button>
                 </Link>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-white">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
-                    ))}
-                  </div>
-                  <span className="text-purple-100 text-sm sm:text-base text-center">Trusted by 10,000+ parents</span>
-                </div>
               </div>
             </>
           )}

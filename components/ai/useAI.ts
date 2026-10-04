@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react'
 import useSWR from 'swr'
 import { apiFetch, ApiError } from '@/lib/data/api'
 import type { AIFeature, FeatureCapability } from '@/lib/ai/types'
+import { track } from '@/lib/analytics/client'
 
 export interface Capabilities { enabled: boolean; tier: string; superAdmin: boolean; used: number; features: FeatureCapability[] }
 
@@ -25,11 +26,14 @@ export function useAIGenerate<R>(path: string) {
     setState({ phase: 'loading' })
     try {
       const r = await apiFetch<{ generationId: string; result: R; remaining: number | null }>(path, { method: 'POST', body: JSON.stringify(body), signal: ac.signal })
-      if (!ac.signal.aborted) setState({ phase: 'done', ...r })
+      if (!ac.signal.aborted) {
+        track('ai_feature_used', { feature: path.split('/').filter(Boolean).pop() ?? path })
+        setState({ phase: 'done', ...r })
+      }
     } catch (e) {
       if (ac.signal.aborted) return setState({ phase: 'idle' })
       const err = e instanceof ApiError ? e : null
-      setState({ phase: 'error', code: err?.code ?? 'provider_error', message: err?.message ?? 'We couldn’t generate your ideas right now. Your party data is safe. Try again.' })
+      setState({ phase: 'error', code: err?.code ?? 'provider_error', message: err?.message ?? 'We couldn’t generate your ideas right now. Your party data is safe. Try again.', upgradeTo: err?.upgradeTo ?? null })
     }
   }, [path])
   const cancel = useCallback(() => {

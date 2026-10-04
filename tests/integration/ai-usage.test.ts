@@ -59,16 +59,18 @@ describe.skipIf(!up)('usage controls', () => {
     expect(codes.slice(0, 10).every((c) => c === 200)).toBe(true)
     expect(codes[10]).toBe(429)
   })
-  it('a sign-up trial counts as Free for AI (Pro-only food stays locked)', async () => {
+  it('a sign-up trial has no AI (all AI stays paid); the cheapest plan with each feature is suggested', async () => {
     await override(null)
     await adminClient().from('users').update({ is_trial_active: true, trial_plan: 'PRO', trial_expires_at: new Date(Date.now() + 864e5).toISOString() }).eq('id', A.id)
     await adminClient().rpc('recompute_entitlement', { p_user: A.id })
     const j = await capsFor(parties[0])
     expect(j.tier).toBe('FREE')
     const f = Object.fromEntries(j.features.map((x: { feature: string }) => [x.feature, x]))
-    expect(f.party_planner).toMatchObject({ allowed: true, limit: 3 })
-    expect(f.food).toMatchObject({ allowed: false, upgradeTo: 'PRO' })
+    expect(f.party_planner).toMatchObject({ allowed: false, limit: 0, upgradeTo: 'STARTER' })
+    expect(f.food).toMatchObject({ allowed: false, upgradeTo: 'PLUS' })
     expect(f.checklist).toMatchObject({ allowed: false, upgradeTo: 'STARTER' })
+    expect(f.host_content).toMatchObject({ allowed: false, upgradeTo: 'PRO' })
+    expect((await post(parties[0])).status).toBe(403)
     await adminClient().from('users').update({ is_trial_active: false, trial_expires_at: '2020-01-01T00:00:00Z' }).eq('id', A.id)
   })
   it('Super Admin plan switching changes AI access immediately; expired override falls back', async () => {

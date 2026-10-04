@@ -13,6 +13,7 @@ import type { AIFeature } from '@/lib/ai/types'
 import { AIError, AIProgress } from './AIProgress'
 import { AppliedProvider } from './applied'
 import { useAIGenerate } from './useAI'
+import { track } from '@/lib/analytics/client'
 
 export interface AskConfig { label: string; placeholder: string; cta: string }
 
@@ -49,6 +50,9 @@ export function AIToolSheet<R>({ open, onOpenChange, title, description, path, b
     } else void run({ regenerate: true })
   }
   useEffect(() => {
+    if (open) track('ai_feature_viewed', { feature: feature ?? path.split('/').filter(Boolean).pop() ?? path })
+  }, [open, feature, path])
+  useEffect(() => {
     if (!open || gen.state.phase !== 'idle' || asking) return
     let cancelled = false
     void (async () => {
@@ -70,7 +74,7 @@ export function AIToolSheet<R>({ open, onOpenChange, title, description, path, b
         <div className="space-y-3 pb-2">
           <TextArea label={ask!.label} placeholder={ask!.placeholder} rows={3} maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} />
           <p className="-mt-1 text-xs text-muted-foreground">Optional. We already know the party details. Please avoid full names, addresses or phone numbers.</p>
-          {s.phase === 'error' ? <AIError message={s.message} upgradeTo={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? 'starter' : null} /> : null}
+          {s.phase === 'error' ? <AIError message={s.message} upgradeTo={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? s.upgradeTo ?? null : null} /> : null}
           <AppButton block size="lg" variant="magic" onClick={() => run({ regenerate: true })}>
             {ask!.cta}
           </AppButton>
@@ -79,7 +83,7 @@ export function AIToolSheet<R>({ open, onOpenChange, title, description, path, b
         <AIProgress steps={steps} onCancel={() => { gen.cancel(); onOpenChange(false) }} />
       ) : null}
       {s.phase === 'error' && !asking ? (
-        <AIError message={s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : () => run()} upgradeTo={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? 'starter' : null} />
+        <AIError message={s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : () => run()} upgradeTo={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? s.upgradeTo ?? null : null} />
       ) : null}
       {s.phase === 'done' ? (
         <AppliedProvider key={s.generationId} initial={s.appliedKeys}>

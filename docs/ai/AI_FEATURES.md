@@ -14,26 +14,26 @@ taps *Add / Use / Save*.
 
 | Feature id | Name | Status | Min plan | Route | UI |
 |---|---|---|---|---|---|
-| `party_planner` | Plan My Party | **LIVE** | Free | `/api/ai/party-planner` | `components/ai/PlanWithAICard.tsx` (Home, Plan) |
-| `theme_ideas` | AI Theme Ideas | **LIVE** | Free | `/api/ai/theme-ideas` | `components/ai/ThemeIdeasSection.tsx` (Plan → Theme) |
+| `party_planner` | Plan My Party | **LIVE** | Starter | `/api/ai/party-planner` | `components/ai/PlanWithAICard.tsx` (Home, Plan) |
+| `theme_ideas` | AI Theme Ideas | **LIVE** | Starter | `/api/ai/theme-ideas` | `components/ai/ThemeIdeasSection.tsx` (Plan → Theme) |
 | `checklist` | AI Checklist ("What am I forgetting?") | **LIVE** | Starter | `/api/ai/checklist` | `components/ai/ChecklistAIButton.tsx` (Plan → Checklist) |
-| `activity_studio` | Activity Studio | **LIVE** | Plus | `/api/ai/activity` | `components/activities/ActivityCreatorSheet.tsx`, `ActivityDetailSheet.tsx` |
-| `host_content` | Party Host | **LIVE** | Starter | `/api/ai/host` | `components/experience/HostStudioSheet.tsx` (Plan → Party Magic, activity intros) |
-| `party_experience` | Party Experience | **LIVE** | Plus | `/api/ai/party-experience` | `components/experience/ExperienceSheet.tsx` (Plan → Party Magic) |
-| `budget_optimizer` | Budget assistant | IMPLEMENTED, DISABLED | Pro | `/api/ai/budget` | hidden |
-| `activities` | Activity planner (list) | IMPLEMENTED, DISABLED | Plus | `/api/ai/activities` | hidden (superseded by Activity Studio) |
-| `food` | Food planner | IMPLEMENTED, DISABLED | Pro | `/api/ai/food` | hidden |
-| `invitation` | Invitation writer | IMPLEMENTED, DISABLED | Starter | `/api/ai/invitation` | hidden |
-| `timeline` | Party-day timeline | IMPLEMENTED, DISABLED | Starter | `/api/ai/timeline` | hidden |
-| `shopping_list` | Shopping list | IMPLEMENTED, DISABLED | Plus | `/api/ai/shopping-list` | hidden |
-| `discover_explain` | "Why these places might work" | IMPLEMENTED, DISABLED | Plus | `/api/ai/discover-explain` | hidden |
+| `activity_studio` | Activity Studio | **LIVE** | Starter | `/api/ai/activity` | `components/activities/ActivityCreatorSheet.tsx`, `ActivityDetailSheet.tsx` |
+| `host_content` | Party Host | **LIVE** | Pro | `/api/ai/host` | `components/experience/HostStudioSheet.tsx` (Plan → Party Magic, activity intros) |
+| `party_experience` | Party Experience | **LIVE** | Pro | `/api/ai/party-experience` | `components/experience/ExperienceSheet.tsx` (Plan → Party Magic) |
+| `budget_optimizer` | Budget assistant | IMPLEMENTED — enabled with the product-model deploy | Plus | `/api/ai/budget` | Plan → Party Magic → Budget; AI tools |
+| `activities` | Activity planner (list) | IMPLEMENTED, NOT SOLD | Starter | `/api/ai/activities` | hidden (superseded by Activity Studio) |
+| `food` | Food planner | IMPLEMENTED — enabled with the product-model deploy | Plus | `/api/ai/food` | Plan → Party Magic → Food; AI tools |
+| `invitation` | Invitation writer | IMPLEMENTED — enabled with the product-model deploy | Plus | `/api/ai/invitation` | Invite → "Write it for me" |
+| `timeline` | Party-day timeline | IMPLEMENTED — enabled with the product-model deploy | Plus | `/api/ai/timeline` | Plan → Party Magic → Timeline; AI tools |
+| `shopping_list` | Shopping list | IMPLEMENTED — enabled with the product-model deploy | Plus | `/api/ai/shopping-list` | Plan → Party Magic → Shopping; AI tools |
+| `discover_explain` | "Why these places might work" | IMPLEMENTED, NOT SOLD (flag off) | Plus | `/api/ai/discover-explain` | hidden |
 
 LIVE = listed in production `AI_ENABLED_FEATURES` (with `AI_ENABLED=true`, and `NEXT_PUBLIC_EXPERIENCE_ENABLED=true`
 for the Party Experience surfaces). A disabled feature returns `503 ai_disabled` **before** any reservation or model
 call, so it cannot spend credits (covered by tests).
 
-Plan gating lives in one place: `lib/ai/capabilities.ts` (`FEATURE_MIN_TIER`, `PARTY_CAP`). A sign-up trial counts
-as **Free** for AI. Super Admins bypass plan gates and per-party/user caps (not the global breaker).
+Plan gating comes from the product model, `lib/entitlements.ts` (`lib/ai/capabilities.ts` derives `FEATURE_MIN_TIER`
+and holds `PARTY_CAP`). Free has **no AI**, and the sign-up trial includes no AI (it unlocks guests & RSVP only). Super Admins bypass plan gates and per-party/user caps (not the global breaker).
 
 ## Shared behaviour (all features)
 
@@ -44,7 +44,7 @@ as **Free** for AI. Super Admins bypass plan gates and per-party/user caps (not 
 | Ownership | the party is read with the **user's RLS session**; someone else's or a deleted party → `404 not_found` |
 | Context | `lib/ai/context.ts` `buildPartyAIContext` (see below) |
 | Reservation | server-only `ai_reserve(p_user, …)` via the service role; enforces the global daily breaker atomically |
-| Caps | rank-after-reserve (race-safe): per party (Free 3 · Starter 10 · Plus 25 · Pro 50), per user 10/hour and `AI_USER_DAILY_LIMIT`/24 h (10 in production) |
+| Caps | rank-after-reserve (race-safe): per party (Free 0 · Starter 10 · Plus 25 · Pro 50), per user 10/hour and `AI_USER_DAILY_LIMIT`/24 h (10 in production) |
 | Model call | `lib/ai/client.ts`: timeout 45 s (55 s for "long" features), JSON repair, **at most one retry** and only for invalid/truncated/leaking output (never for timeouts or 5xx) |
 | Validation | zod result schema; prompt-leak check; URLs/HTML/franchise names stripped (`lib/ai/safety.ts`) |
 | Post-processing | server recomputes ids, totals, dates and durations — model arithmetic is never trusted |
@@ -68,7 +68,7 @@ speeches and thank-you messages (`includeInvitationFields`). Parent notes are wr
 
 ## Feature details
 
-### 1. Plan My Party — `party_planner` (LIVE, Free)
+### 1. Plan My Party — `party_planner` (LIVE, Starter)
 - **Does:** a complete party plan from the party facts and optional notes.
 - **UI:** "Plan My Party" card on Home and Plan; optional "Details" text; progress copy (15–40 s).
 - **Generates:** summary, concept, theme (name, why, palette), 3–5 activities (materials, difficulty, timing),
@@ -81,7 +81,7 @@ speeches and thank-you messages (`includeInvitationFields`). Parent notes are wr
 - **Code/tests:** `lib/ai/features/partyPlanner.ts`, `lib/ai/prompts/partyPlanner.ts`;
   `tests/integration/ai-planner.test.ts`, `ai-quality.test.ts`, `ai-usage*.test.ts`, `tests/e2e/ai.spec.ts`.
 
-### 2. AI Theme Ideas — `theme_ideas` (LIVE, Free)
+### 2. AI Theme Ideas — `theme_ideas` (LIVE, Starter)
 - **Does:** five original themes from the child's interests and the parent's likes/dislikes.
 - **UI:** Plan → Theme → "Dream up themes with AI" (alongside the curated catalogue).
 - **Generates:** name, emoji, description, why it fits, palette, decorations, activities, food idea, invitation idea.
@@ -96,7 +96,7 @@ speeches and thank-you messages (`includeInvitationFields`). Parent notes are wr
 - **Applies to:** `checklist_items` (deduped by task key). Timeout 45 s, 1,500 tokens.
 - **Code/tests:** `lib/ai/features/checklist.ts`; `tests/integration/ai-features.test.ts`.
 
-### 4. Activity Studio — `activity_studio` (LIVE, Plus)
+### 4. Activity Studio — `activity_studio` (LIVE, Starter)
 - **Does:** creates one detailed activity from the parent's words, or revises an existing one (cheaper, easier,
   shorter/longer, indoor/outdoor, less messy, younger/older, more guests, theme, free text). The target activity is
   checked server-side (`precheck`).
@@ -106,7 +106,7 @@ speeches and thank-you messages (`includeInvitationFields`). Parent notes are wr
   (`party_shopping_items`), cost (`party_budget_lines`) and a timeline slot (`party_timeline_items`).
 - Timeout 45 s, 1,800 tokens. **Code/tests:** `lib/ai/features/activityStudio.ts`; `tests/integration/experience.test.ts`, `tests/e2e/experience.spec.ts`.
 
-### 5. Party Host — `host_content` (LIVE, Starter)
+### 5. Party Host — `host_content` (LIVE, Pro)
 - **Does:** what to say: welcome speech, activity intro, cake announcement, closing speech, reminder message,
   thank-you to all families or per confirmed guest; tones warm / playful / short and sweet / excited.
 - **Context:** standard context plus the child's first name, venue and (for per-guest thank-yous) confirmed
@@ -114,7 +114,7 @@ speeches and thank-you messages (`includeInvitationFields`). Parent notes are wr
 - **Applies to:** `party_host_content` (saved drafts). Timeout 45 s, 1,400 tokens.
 - **Code/tests:** `lib/ai/features/hostContent.ts`, `lib/ai/prompts/experience.ts`; `tests/integration/experience.test.ts`.
 
-### 6. Party Experience — `party_experience` (LIVE, Plus)
+### 6. Party Experience — `party_experience` (LIVE, Pro)
 - **Does:** the multi-section plan: theme, activities, timeline, food, shopping, host lines, checklist, budget —
   each section applied independently.
 - **Applies to:** `parties.theme`, `party_ai_activities`, `party_timeline_items`, `party_food_items`,

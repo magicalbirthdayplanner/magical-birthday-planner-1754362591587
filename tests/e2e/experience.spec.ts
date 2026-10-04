@@ -106,7 +106,7 @@ test('Free plan: AI creation is locked (calm), parents can still add their own a
   const s = await seedUser({ withParty: true })
   await setPlanForE2E(s.email, 'FREE')
   await login(page, s, '/activities')
-  await expect(page.getByText('Included with Plus')).toBeVisible()
+  await expect(page.getByTestId('upgrade-activity_studio')).toContainText('AI Activity Studio is part of Starter')
   await page.getByRole('button', { name: 'Add your own' }).click()
   await page.getByLabel('Name').fill('Freeze dance')
   await page.getByRole('button', { name: 'Add to party' }).click()

@@ -5,6 +5,8 @@ export class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
+    /** Cheapest plan that unlocks the feature (403 forbidden_plan / 429 limit_reached from AI routes). */
+    public upgradeTo: string | null = null,
   ) {
     super(message)
     this.name = 'ApiError'
@@ -34,15 +36,17 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   if (!res.ok) {
     let code = 'server_error'
     let message = 'Something went wrong. Please try again.'
+    let upgradeTo: string | null = null
     try {
-      const body = (await res.json()) as { error?: { code?: string; message?: string } }
+      const body = (await res.json()) as { error?: { code?: string; message?: string; upgradeTo?: string | null } }
       code = body.error?.code ?? code
       message = body.error?.message ?? message
+      upgradeTo = typeof body.error?.upgradeTo === 'string' ? body.error.upgradeTo : null
     } catch {
       /* non-JSON error */
     }
     if (res.status === 401) code = 'unauthorized'
-    throw new ApiError(res.status, code, message)
+    throw new ApiError(res.status, code, message, upgradeTo)
   }
   return (await res.json()) as T
 }

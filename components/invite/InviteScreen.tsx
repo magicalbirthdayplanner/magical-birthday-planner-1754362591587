@@ -14,11 +14,14 @@ import { track } from '@/lib/analytics/client'
 import { cn } from '@/lib/utils'
 import { INVITE_DESIGNS, InvitationCard } from './InvitationCard'
 import { InvitationWriter } from '@/components/ai/InvitationWriter'
+import { usePlanStatus } from '@/components/billing/usePlanStatus'
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
 
 export function InviteScreen() {
   const { party } = useParty()
   const { mutate } = useSWRConfig()
   const invitation = useInvitation(party?.id)
+  const planStatus = usePlanStatus()
   const chosen = useChosenVenue(party?.id)
   const guests = useGuests(party?.id)
   const [emailing, setEmailing] = useState(false)
@@ -43,6 +46,14 @@ export function InviteScreen() {
   }, [invitation.data, invitation.isLoading, chosen.data, dirty])
 
   if (!party) return <EmptyState icon="💌" title="No party yet" action={<LinkButton href="/start" block>Plan a party</LinkButton>} />
+  if (planStatus.loaded && !planStatus.can('rsvp') && !invitation.isLoading && !invitation.data) {
+    return (
+      <div className="pb-4">
+        <PageHeader back="/plan" title="Invitation" />
+        <div className="px-4"><UpgradePrompt capability="rsvp" /></div>
+      </div>
+    )
+  }
   const set = (patch: Partial<InvitationInput>) => {
     setDirty(true)
     setForm((f) => ({ ...f, ...patch }))

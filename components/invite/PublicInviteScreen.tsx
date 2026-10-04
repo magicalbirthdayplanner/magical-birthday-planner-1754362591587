@@ -7,6 +7,7 @@ import { TextField } from '@/components/app/fields'
 import { Logo } from '@/components/app/Logo'
 import { forgetRsvpRespondent, getPublicInvitation, lastRsvpName, submitRsvp, type PublicInvitation } from '@/lib/data/invitations'
 import { InvitationCard } from './InvitationCard'
+import { track } from '@/lib/analytics/client'
 
 function icsFor(inv: PublicInvitation): string {
   const d = inv.party_date.replace(/-/g, '')
@@ -63,6 +64,11 @@ export function PublicInviteScreen({ token }: { token: string }) {
   const [answeredAs, setAnsweredAs] = useState<string | null>(null)
   useEffect(() => setAnsweredAs(lastRsvpName(token)), [token])
 
+  function startRsvp(s: 'CONFIRMED' | 'MAYBE' | 'DECLINED') {
+    if (!status) track('rsvp_started')
+    setStatus(s)
+  }
+
   function someoneElse() {
     forgetRsvpRespondent(token)
     setAnsweredAs(null)
@@ -94,6 +100,7 @@ export function PublicInviteScreen({ token }: { token: string }) {
     try {
       await submitRsvp(token, { name: name.trim(), email: email.trim() || undefined, status, adults: status === 'DECLINED' ? 0 : adults, children: status === 'DECLINED' ? 0 : kids, note: note.trim() || undefined })
       setAnsweredAs(name.trim())
+      track('rsvp_completed', { status })
       setDone(true)
     } catch (err) {
       setFormError((err as Error).message)
@@ -153,7 +160,7 @@ export function PublicInviteScreen({ token }: { token: string }) {
                 ['DECLINED', 'Can’t go'],
               ] as const
             ).map(([s, label]) => (
-              <Chip key={s} role="radio" aria-checked={status === s} active={status === s} onClick={() => setStatus(s)} className="h-12 justify-center">
+              <Chip key={s} role="radio" aria-checked={status === s} active={status === s} onClick={() => startRsvp(s)} className="h-12 justify-center">
                 {label}
               </Chip>
             ))}

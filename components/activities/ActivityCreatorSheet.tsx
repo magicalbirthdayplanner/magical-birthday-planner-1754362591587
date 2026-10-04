@@ -50,7 +50,7 @@ export function ActivityCreatorSheet({ partyId, open, onOpenChange, basedOn, onU
         <div className="space-y-3 pb-2">
           <TextArea label="What do you have in mind?" placeholder="“I want a fun space game for 15 kids that takes about 20 minutes and doesn’t make a mess.”" rows={4} maxLength={1500} value={notes} onChange={(e) => setNotes(e.target.value)} />
           <p className="-mt-1 text-xs text-muted-foreground">Leave it blank and we’ll pick something that fits. Please avoid full names, addresses or phone numbers.</p>
-          {s.phase === 'error' ? <AIError message={s.code === 'provider_error' || s.code === 'invalid_response' || s.code === 'timeout' ? 'We couldn’t create that right now. Your party plan is safe.' : s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : run} upgradeTo={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? 'plus' : null} /> : null}
+          {s.phase === 'error' ? <AIError message={s.code === 'provider_error' || s.code === 'invalid_response' || s.code === 'timeout' ? 'We couldn’t create that right now. Your party plan is safe.' : s.message} onRetry={s.code === 'limit_reached' || s.code === 'forbidden_plan' ? undefined : run} upgradeTo={s.code === 'forbidden_plan' || s.code === 'limit_reached' ? s.upgradeTo ?? null : null} /> : null}
           <AppButton block size="lg" variant="magic" onClick={run}>✨ Create it</AppButton>
         </div>
       )}

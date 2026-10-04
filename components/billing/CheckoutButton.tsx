@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { ApiError, apiFetch, friendlyError } from '@/lib/data/api'
 import { cn } from '@/lib/utils'
+import { track } from '@/lib/analytics/client'
 
 /**
  * Starts a server-created Dodo checkout for the signed-in user. The browser only
@@ -22,9 +23,11 @@ export function CheckoutButton({ plan, className, children }: { plan: 'STARTER' 
       router.push(`/login?next=${encodeURIComponent(window.location.pathname)}`)
       return
     }
+    track('plan_upgrade_clicked', { plan, from: typeof window !== 'undefined' ? window.location.pathname : '' })
     setBusy(true)
     try {
       const { checkoutUrl } = await apiFetch<{ checkoutUrl: string }>('/api/billing/checkout', { method: 'POST', body: JSON.stringify({ plan }) })
+      track('checkout_started', { plan })
       window.location.assign(checkoutUrl)
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) router.push(`/login?next=${encodeURIComponent(window.location.pathname)}&expired=1`)

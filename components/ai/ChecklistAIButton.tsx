@@ -6,18 +6,14 @@ import type { ChecklistResult } from '@/lib/ai/schemas/checklist'
 import { AIToolSheet } from './AIToolSheet'
 import { ChecklistResultView } from './results/ChecklistResultView'
 import { useAICapabilities } from './useAI'
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
 
 export function ChecklistAIButton({ partyId }: { partyId: string }) {
   const caps = useAICapabilities(partyId)
   const cap = caps.get('checklist')
   const [open, setOpen] = useState(false)
   if (!cap?.enabled) return null
-  if (!cap.allowed)
-    return (
-      <a href={`/pricing?upgrade=${(cap.upgradeTo ?? 'starter').toLowerCase()}`} className="tap mx-4 mt-3 flex min-h-[48px] items-center gap-2 rounded-2xl border border-dashed border-primary/40 bg-secondary/50 px-4 text-sm font-semibold text-primary">
-        <ListChecks className="h-4 w-4" /> ✨ What am I forgetting? — included with Starter
-      </a>
-    )
+  if (!cap.allowed) return <UpgradePrompt compact capability="checklist" plan={cap.upgradeTo} className="mx-4 mt-3" />
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className="tap mx-4 mt-3 flex min-h-[48px] w-[calc(100%-2rem)] items-center gap-2 rounded-2xl border border-border bg-card px-4 text-sm font-semibold text-primary" data-testid="ai-build-checklist">
