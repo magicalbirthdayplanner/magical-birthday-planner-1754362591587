@@ -5,7 +5,7 @@
  *  - P0-B: changing an RSVP from the same phone updates one guest; it never adds a second, conflicting one.
  */
 import { expect, test } from '@playwright/test'
-import { login, seedUser } from './helpers'
+import { login, mockEmails, seedUser } from './helpers'
 
 test('a trial user can buy Starter; the paid plan replaces the trial and persists', async ({ page }) => {
   test.setTimeout(120_000)
@@ -69,21 +69,23 @@ test('changing an RSVP on the same phone updates one guest instead of adding ano
 
   // change of heart, no email given
   await guest.getByRole('button', { name: 'Change my RSVP' }).click()
+  await expect(guest.getByLabel('Your name')).toHaveValue('The Nguyen family')
   await guest.getByRole('radio', { name: /Can’t go/ }).click()
   await guest.getByRole('button', { name: 'Send RSVP' }).click()
   await expect(guest.getByText('Thanks for letting us know')).toBeVisible()
 
-  // refresh: the page says who already answered from this phone; answering again updates that reply
+  // refresh: the page says who already answered from this phone, with the name pre-filled; answering again updates that reply
   await guest.reload()
   await expect(guest.getByTestId('rsvp-answered-as')).toContainText('The Nguyen family')
+  await expect(guest.getByLabel('Your name')).toHaveValue('The Nguyen family')
   await guest.getByRole('radio', { name: 'Maybe' }).click()
-  await guest.getByLabel('Your name').fill('The Nguyen family')
   await guest.getByRole('button', { name: 'Send RSVP' }).click()
   await expect(guest.getByText('You’re on the list!')).toBeVisible()
 
   // a second family on the same (shared) phone is a different invitee
   await guest.getByRole('button', { name: 'RSVP for someone else' }).click()
   await expect(guest.getByTestId('rsvp-answered-as')).toHaveCount(0)
+  await expect(guest.getByLabel('Your name')).toHaveValue('') // a fresh response, nothing carried over
   await guest.getByRole('radio', { name: /Yes!/ }).click()
   await guest.getByLabel('Your name').fill('The Garcia family')
   await guest.getByRole('button', { name: 'Send RSVP' }).click()
@@ -95,4 +97,8 @@ test('changing an RSVP on the same phone updates one guest instead of adding ano
   await expect(list.getByText('The Nguyen family')).toHaveCount(1)
   await expect(list.getByText('The Garcia family')).toHaveCount(1)
   await expect(page.getByText(/^1 going/)).toBeVisible() // Garcia going; Nguyen = Maybe (one current state)
+  // host notifications: one per real change, never duplicated by the double-tap or the re-sends
+  const hostMails = (await mockEmails()).filter((e) => e.to.includes(s.email)).map((e) => e.subject)
+  await expect.poll(async () => (await mockEmails()).filter((e) => e.to.includes(s.email) && /Nguyen family/.test(e.subject)).length).toBe(3) // yes → can’t go → maybe
+  expect(hostMails.filter((x) => /Nguyen family is coming/.test(x))).toHaveLength(1)
 })

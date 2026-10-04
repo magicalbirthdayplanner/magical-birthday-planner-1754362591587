@@ -18,10 +18,10 @@ describe('robots / sitemap', () => {
     vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://example.app/')
     const r = robots()
     const rules = Array.isArray(r.rules) ? r.rules[0] : r.rules
-    expect(rules.allow).toEqual(['/', '/pricing', '/privacy', '/terms'])
+    expect(rules.allow).toEqual(['/', '/pricing', '/privacy', '/terms', '/help'])
     for (const p of ['/api/', '/invite/', '/home', '/plan', '/guests', '/venue/', '/checkout-success']) expect(rules.disallow).toContain(p)
     expect(r.sitemap).toBe('https://example.app/sitemap.xml')
-    expect(sitemap().map((e) => e.url)).toEqual(['https://example.app', 'https://example.app/pricing', 'https://example.app/privacy', 'https://example.app/terms'])
+    expect(sitemap().map((e) => e.url)).toEqual(['https://example.app', 'https://example.app/pricing', 'https://example.app/privacy', 'https://example.app/terms', 'https://example.app/help'])
   })
   it('site URL falls back to the deployment host', () => {
     expect(siteUrl({ VERCEL_URL: 'x-git-y.vercel.app' })).toBe('https://x-git-y.vercel.app')

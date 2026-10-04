@@ -25,24 +25,22 @@ As of 2026-10-04, production runs `master` = `1f96a8b` (Vercel), with database m
 - Super Admin with audited plan overrides.
 - Automated suite: Vitest 492/492, Playwright 40/40, lint, typecheck, build, client-bundle secret scan.
 
-## Ready, not deployed: product model (branch `feat/product-model`)
+## Product model (deployed 2026-10-04, `0a34b65`, Vercel `dpl_3JziktLVhM5RmvYUf2nCH692py9N`)
 
 Free · Starter · Plus · Pro with one source of truth (`lib/entitlements.ts`), server enforcement (AI routes + RLS for
-guests/RSVP), new pricing page and homepage plans, upgrade prompts, funnel analytics, Plus AI features validated live.
-Needs: prod migration `20251004001300`, `AI_ENABLED_FEATURES` + the five Plus features, merge to `master`. Full
-audit, risks and rollback: [PRODUCT_MODEL_AUDIT.md](PRODUCT_MODEL_AUDIT.md). It resolves the social-proof and
-billing-copy items that used to be listed here (except the Terms jurisdiction placeholder).
+guests/RSVP, migration `20251004001300`), the five Plus AI features enabled in production, new pricing page.
+Audit, risks and rollback: [PRODUCT_MODEL_AUDIT.md](PRODUCT_MODEL_AUDIT.md).
+
+Launch polish (2026-10-04): `/help` page (linked from invitation emails and the footer), privacy policy lists the
+service providers that process data and how to make data requests, Terms list Dodo Payments and only real features,
+1200×630 social preview image with Open Graph / X metadata and per-page canonical URLs, the RSVP name is pre-filled
+when a guest changes their reply.
 
 ## Remaining (genuinely outstanding)
 
-Copy and trust (code changes, small):
-1. (Fixed on `feat/product-model`.) Unverifiable social proof on `/` and `/pricing`.
-2. Terms: the jurisdiction placeholder "[Your Jurisdiction]" (owner decision). The other billing-copy issues are fixed
-   on `feat/product-model`.
-3. Invitation email links to `/help`, which does not exist.
-4. Social sharing: no `og:image`; the same `<title>` on every public page.
-5. Privacy policy: name the processors (AI provider, Google, Dodo, Resend, Sentry, Vercel, Supabase) and AI
-   processing; provide an account-deletion request path.
+Copy and trust:
+1. **Terms: governing-law jurisdiction** — still "[Your Jurisdiction]". No jurisdiction is recorded anywhere in the
+   project; the owner must provide it (not guessed).
 
 Operations / owner actions:
 6. One real live purchase + refund to confirm the live webhook secret and plan activation end to end

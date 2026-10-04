@@ -25,7 +25,7 @@ const AI_ROUTES = ['/api/ai/capabilities', '/api/ai/party-planner', '/api/ai/the
 
 const EXPECTED = [
   // public marketing + legal
-  '/ [page]', '/pricing [page]', '/checkout-success [page]', '/privacy [page]', '/terms [page]',
+  '/ [page]', '/pricing [page]', '/checkout-success [page]', '/privacy [page]', '/terms [page]', '/help [page]',
   // full-screen flows (public: auth, guest invitation, offline; wizard needs sign-in)
   '/login [page]', '/join [page]', '/reset-password [page]', '/offline [page]', '/invite/[token] [page]', '/start [page]', '/venue/[placeId] [page]',
   // signed-in app (bottom navigation)

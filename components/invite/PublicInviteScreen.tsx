@@ -61,8 +61,13 @@ export function PublicInviteScreen({ token }: { token: string }) {
   const [formError, setFormError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   // Someone already answered from this device: submitting again updates THAT answer (one invitee, one RSVP).
+  // The name is pre-filled for convenience only — the identity is the device respondent key (and email), never the name.
   const [answeredAs, setAnsweredAs] = useState<string | null>(null)
-  useEffect(() => setAnsweredAs(lastRsvpName(token)), [token])
+  useEffect(() => {
+    const previous = lastRsvpName(token)
+    setAnsweredAs(previous)
+    if (previous) setName((current) => current || previous)
+  }, [token])
 
   function startRsvp(s: 'CONFIRMED' | 'MAYBE' | 'DECLINED') {
     if (!status) track('rsvp_started')

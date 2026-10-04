@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: '%s · Magical Birthday Planner',
   },
   description:
-    'Plan your child’s birthday without spending hours searching. Find party venues, vendors and ideas near you, then build the whole party from your phone.',
+    'Plan your child’s birthday without spending hours searching. Find party venues and ideas near you, then build the whole party from your phone.',
   applicationName: 'Magical Birthday Planner',
   appleWebApp: { capable: true, title: 'Party Planner', statusBarStyle: 'default' },
   formatDetection: { telephone: false },
@@ -27,11 +27,19 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
   },
+  // Social previews (Facebook, LinkedIn, X, messaging apps). Static image in /public — no runtime rendering.
   openGraph: {
     type: 'website',
     siteName: 'Magical Birthday Planner',
     title: 'Plan your child’s birthday in minutes',
-    description: 'Local party venues, vendors and ideas — matched to your child, your budget and your ZIP code.',
+    description: 'Local party venues and ideas, a party plan and RSVPs — matched to your child, your budget and your ZIP code.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Magical Birthday Planner — plan your child’s birthday party in minutes' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Plan your child’s birthday in minutes',
+    description: 'Local party venues and ideas, a party plan and RSVPs — matched to your child, your budget and your ZIP code.',
+    images: ['/og-image.png'],
   },
 };
 

@@ -54,6 +54,9 @@ test('Free: guests locked → upgrade → Dodo checkout → webhook → plan act
   expect(invite?.subject).toBe('You’re invited to Mia’s birthday party!')
   expect(invite?.from).toBe('Magical Birthday Planner <onboarding@resend.dev>')
   const link = invite!.html.match(/https?:\/\/[^"'\s]+\/invite\/[0-9a-f]{48}/)![0]
+  // the email's help-center link is a real page
+  const help = invite!.html.match(/href="(https?:\/\/[^"]+\/help)"/)![1]
+  expect((await page.request.get(help.replace(/^https?:\/\/[^/]+/, 'http://localhost:3101'))).status()).toBe(200)
   await page.goto('/guests')
   await expect(page.getByRole('list', { name: 'Guest list' }).getByText('Patel family')).toBeVisible()
   await expect(page.getByText(/not invited/)).toHaveCount(0)

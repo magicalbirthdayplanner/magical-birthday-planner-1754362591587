@@ -1,3 +1,11 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms & Conditions',
+  description: 'The terms for using Magical Birthday Planner: plans, payments, AI suggestions and your account.',
+  alternates: { canonical: '/terms' },
+}
+
 export default function TermsConditionsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
@@ -7,7 +15,7 @@ export default function TermsConditionsPage() {
           
           <div className="prose prose-gray dark:prose-invert max-w-none">
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              <strong>Last updated:</strong> {new Date().toLocaleDateString()}
+              <strong>Last updated:</strong> October 4, 2026
             </p>
 
             <section className="mb-8">
@@ -28,7 +36,7 @@ export default function TermsConditionsPage() {
                 <li>AI-generated theme recommendations and party planning suggestions</li>
                 <li>Guest management and invitation systems</li>
                 <li>Activity planning and timeline management</li>
-                <li>Shopping recommendations and vendor suggestions</li>
+                <li>Local venue discovery and shopping lists</li>
                 <li>Budget tracking and planning tools</li>
               </ul>
             </section>
@@ -58,7 +66,7 @@ export default function TermsConditionsPage() {
                 <li>Pro ($14.99): adds AI party-day features</li>
               </ul>
               <p className="text-gray-600 dark:text-gray-300 mt-4">
-                Paid plans are a one-time payment, not a subscription, and unlock the plan&apos;s features on your account. AI features are subject
+                Paid plans are a one-time payment, not a subscription, and unlock the plan&apos;s features on your account. Payments are processed by Dodo Payments. AI features are subject
                 to the per-party and fair-use limits shown on the pricing page. All fees are non-refundable except as required by law.
                 We reserve the right to change our pricing with 30 days' notice.
               </p>

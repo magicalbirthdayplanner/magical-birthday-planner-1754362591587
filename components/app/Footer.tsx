@@ -19,6 +19,8 @@ export function Footer({ className }: { className?: string }) {
         <span aria-hidden>·</span>
         <Link href="/terms" className={link}>Terms</Link>
         <span aria-hidden>·</span>
+        <Link href="/help" className={link}>Help</Link>
+        <span aria-hidden>·</span>
         <a href={`mailto:${CONTACT_EMAIL}`} className={link}>Contact</a>
       </nav>
     </footer>
