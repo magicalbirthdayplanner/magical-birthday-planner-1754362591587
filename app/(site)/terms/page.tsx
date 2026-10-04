@@ -140,7 +140,7 @@ export default function TermsConditionsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">12. Governing Law</h2>
               <p className="text-gray-600 dark:text-gray-300">
-                These Terms shall be interpreted and governed by the laws of [Your Jurisdiction], without regard to its 
+                These Terms shall be interpreted and governed by the laws of India, without regard to its 
                 conflict of law provisions.
               </p>
             </section>

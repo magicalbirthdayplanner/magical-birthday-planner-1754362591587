@@ -41,3 +41,11 @@ describe('social preview', () => {
     expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1200, 630])
   })
 })
+
+describe('legal pages', () => {
+  it('Terms name the governing law (India) and contain no unfinished placeholders', () => {
+    const terms = readFileSync(path.join(ROOT, 'app/(site)/terms/page.tsx'), 'utf8')
+    expect(terms).toContain('governed by the laws of India')
+    for (const page of ['terms', 'privacy', 'help']) expect(readFileSync(path.join(ROOT, `app/(site)/${page}/page.tsx`), 'utf8')).not.toMatch(/\[Your [A-Z]/)
+  })
+})

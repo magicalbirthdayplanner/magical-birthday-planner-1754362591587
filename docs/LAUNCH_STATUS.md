@@ -38,9 +38,7 @@ when a guest changes their reply.
 
 ## Remaining (genuinely outstanding)
 
-Copy and trust:
-1. **Terms: governing-law jurisdiction** — still "[Your Jurisdiction]". No jurisdiction is recorded anywhere in the
-   project; the owner must provide it (not guessed).
+Copy and trust: none open (Terms governing law set to India by the owner, 2026-10-04).
 
 Operations / owner actions:
 6. One real live purchase + refund to confirm the live webhook secret and plan activation end to end
