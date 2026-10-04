@@ -50,6 +50,24 @@ const ctx = (m: AIRequestMeta): Dims => ({ request_id: m.requestId, party: safeI
 
 export function aiLimitReached(m: Pick<AIRequestMeta, 'feature' | 'plan' | 'superAdmin' | 'requestId' | 'partyId'>, limit: 'party' | 'hourly' | 'daily' | 'global') {
   track('AI_REQUEST_LIMIT_REACHED', { feature: m.feature, plan: m.plan, limit }, { request_id: m.requestId, party: safeId(m.partyId) })
+  // Scoped counters for dashboards: ai.limit.party / ai.limit.user (hourly or daily) / ai.limit.global.
+  const scope = limit === 'party' ? 'party' : limit === 'global' ? 'global' : 'user'
+  track(`ai.limit.${scope}`, { feature: m.feature, plan: m.plan, window: scope === 'user' ? limit : undefined })
+  // A parent reaching their own limit is normal; the platform-wide breaker tripping means AI is unavailable to
+  // everyone (or someone is abusing it), so it is also an issue (one per day-ish, grouped by fingerprint).
+  if (limit === 'global') {
+    reportError('AI global daily limit reached', { area: 'ai', op: 'ai_reserve', level: 'warning', tags: { feature: m.feature }, fingerprint: ['ai-global-limit'] })
+  }
+}
+
+/**
+ * The server asked to reserve usage for a party the user doesn't own. The route checks ownership first, so this
+ * should never happen — if it does, something is probing or broken. (Direct client calls to the RPC are refused
+ * by Postgres before any app code runs; they show up as 401/403 on the database API, not here.)
+ */
+export function aiReserveRejected(feature: string, reason: 'party_not_owned') {
+  track('ai.reserve.unauthorized', { feature, reason }, undefined, 'warn')
+  reportError('AI reservation rejected', { area: 'ai', op: 'ai_reserve', level: 'warning', tags: { feature, reason }, fingerprint: ['ai-reserve-unauthorized', reason] })
 }
 
 /** Called by the client loop when it re-asks the model (invalid JSON / schema / truncated / leak). */

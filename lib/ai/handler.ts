@@ -17,7 +17,7 @@ import { callStructured } from './client'
 import { buildPartyAIContext, type PartyAIContext } from './context'
 import { aiError } from './errors'
 import { sanitizeFreeText } from './safety'
-import { finalizeGeneration, globalCountToday, reserveGeneration, usedForParty, limitExceeded } from './usage'
+import { finalizeGeneration, reserveGeneration, usedForParty, limitExceeded } from './usage'
 import type { AIFeature } from './types'
 
 export interface Entitlement { tier: Tier; plan: string; superAdmin: boolean }
@@ -108,16 +108,19 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     if (!planAllows(spec.feature, ent.tier, ent.superAdmin)) {
       return aiError('forbidden_plan', { upgradeTo: capability(spec.feature, { enabled: true, tier: ent.tier, superAdmin: false, used: 0 }).upgradeTo })
     }
-    // 6. limits: global breaker, then reserve + rank (race-safe)
-    if (cfg.globalDailyLimit > 0 && (await globalCountToday(auth.supabase)) >= cfg.globalDailyLimit) {
-      aiLimitReached({ feature: spec.feature, plan: ent.tier, superAdmin: ent.superAdmin, partyId }, 'global')
-      return aiError('high_demand')
-    }
+    // 6. limits: reserve (server-only; the global breaker is enforced atomically inside), then rank (race-safe)
     const notes = sanitizeFreeText((body as { notes?: string }).notes)
     const ctx = await buildPartyAIContext(auth.supabase, partyId, { plan: ent.tier, includeInvitationFields: spec.includeInvitationFields })
     if (!ctx) return aiError('not_found')
-    const genId = await reserveGeneration(auth.supabase, partyId, spec.feature, { ...(spec.summary?.(body, ctx) ?? {}), hasNotes: notes.length > 0 })
-    if (!genId) return aiError('provider_error')
+    const reserved = await reserveGeneration(auth.user.id, partyId, spec.feature, { ...(spec.summary?.(body, ctx) ?? {}), hasNotes: notes.length > 0 }, cfg.globalDailyLimit)
+    if ('error' in reserved) {
+      if (reserved.error === 'global_limit') {
+        aiLimitReached({ feature: spec.feature, plan: ent.tier, superAdmin: ent.superAdmin, partyId }, 'global')
+        return aiError('high_demand')
+      }
+      return aiError(reserved.error === 'not_found' ? 'not_found' : 'provider_error')
+    }
+    const genId = reserved.id
     const over = await limitExceeded(auth.supabase, genId, {
       partyId, userId: auth.user.id,
       partyCap: ent.superAdmin ? null : PARTY_CAP[ent.tier],

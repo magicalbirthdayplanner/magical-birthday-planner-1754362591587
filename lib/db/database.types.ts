@@ -95,7 +95,7 @@ isOneToOne: false
                   ]
                 },"ai_generations": {
                   Row: {
-                    "applied": NonNullable<Json>,"created_at": string,"duration_ms": number | null,"error_code": string | null,"feature": string,"id": string,"input_summary": NonNullable<Json>,"input_tokens": number | null,"model": string | null,"output_tokens": number | null,"party_id": string,"provider": string | null,"result": Json | null,"status": string,"updated_at": string,"user_id": string
+                    "applied": NonNullable<Json>,"created_at": string,"duration_ms": number | null,"error_code": string | null,"feature": string,"id": string,"input_summary": NonNullable<Json>,"input_tokens": number | null,"model": string | null,"output_tokens": number | null,"party_id": string | null,"provider": string | null,"result": Json | null,"status": string,"updated_at": string,"user_id": string | null
                   }
                   Insert: {
                     "applied"?: NonNullable<Json>,"created_at"?: string,"duration_ms"?: number | null,"error_code"?: string | null,"feature": string,"id"?: string,"input_summary"?: NonNullable<Json>,"input_tokens"?: number | null,"model"?: string | null,"output_tokens"?: number | null,"party_id": string,"provider"?: string | null,"result"?: Json | null,"status"?: string,"updated_at"?: string,"user_id"?: string
@@ -768,7 +768,7 @@ isOneToOne: false
 { Args: { "p_entry": Json,"p_id": string }; Returns: undefined
                            },
 "ai_reserve":
-{ Args: { "p_feature": string,"p_input_summary"?: Json,"p_party": string }; Returns: string
+{ Args: { "p_feature": string,"p_global_limit"?: number,"p_input_summary"?: Json,"p_party": string,"p_user": string }; Returns: string
                            },
 "check_and_expire_trial":
 { Args: { "user_id": string }; Returns: boolean

@@ -85,13 +85,14 @@ const isUnique = (e: { code?: string } | null) => e?.code === '23505'
 
 export async function applyItem(db: DB, userId: string, req: ApplyRequest): Promise<ApplyOutcome> {
   const { data: gen } = await db.from('ai_generations').select('id, party_id, feature, status, result, applied').eq('id', req.generationId).maybeSingle()
-  if (!gen || gen.status !== 'success' || !gen.result) return { status: 'error', code: 'not_found', message: 'That suggestion is no longer available.' }
+  // (party_id is null once the party was deleted: the row is only a usage record then)
+  if (!gen || !gen.party_id || gen.status !== 'success' || !gen.result) return { status: 'error', code: 'not_found', message: 'That suggestion is no longer available.' }
   const applied = (Array.isArray(gen.applied) ? gen.applied : []) as { itemId?: string; target?: string }[]
   const last = applied.filter((a) => a.itemId === req.itemId && (a.target === req.target || a.target === `undo:${req.target}`)).at(-1)
   if (last?.target === req.target) return { status: 'already', message: 'Already added.' } // undone items can be added again
   const item = findItem(gen.feature, gen.result as Record<string, unknown>, req.target, req.itemId)
   if (!item) return { status: 'error', code: 'not_found', message: 'That suggestion is no longer available.' }
-  const partyId = gen.party_id
+  const partyId: string = gen.party_id
   const e = req.edits ?? {}
   let rowId: string | null = null
   let undo: Record<string, unknown> = {}
@@ -255,7 +256,7 @@ function pickDetails(item: Item): NonNullable<Json> {
 /** Undo the most recent apply of this item (cheap targets only). */
 export async function undoItem(db: DB, req: { generationId: string; itemId: string; target: ApplyTarget }): Promise<boolean> {
   const { data: gen } = await db.from('ai_generations').select('id, party_id, applied').eq('id', req.generationId).maybeSingle()
-  if (!gen) return false
+  if (!gen || !gen.party_id) return false
   const entry = ((Array.isArray(gen.applied) ? gen.applied : []) as { itemId: string; target: string; rowId: string | null; undo?: Record<string, unknown> }[])
     .filter((a) => a.itemId === req.itemId && (a.target === req.target || a.target === `undo:${req.target}`))
     .at(-1)

@@ -1,14 +1,15 @@
 /**
  * Reserve → rank → finalize. A pending row is inserted before the provider call (closing double-click races);
- * its rank among the party's/user's counted rows decides whether it may proceed. Reserve and ranking run on the
- * user's RLS session (ai_reserve is scoped to auth.uid()); finalize is service-role only so a user can never
- * flip their own in-flight generation to failed and "un-count" it.
+ * its rank among the party's/user's counted rows decides whether it may proceed. Reserve and finalize are
+ * service-role only (migration 1200): the server names the user it authenticated, so no client can create or
+ * un-count a reservation. Ranking reads run on the user's RLS session. Usage rows survive party and account
+ * deletion (FKs set null), so deleting things never gives limits back.
  */
 import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, Json } from '@/lib/db/database.types'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
-import { aiUsageRecordingFailed } from '@/lib/observability/ai'
+import { aiReserveRejected, aiUsageRecordingFailed } from '@/lib/observability/ai'
 import type { AIFeature } from './types'
 
 type DB = SupabaseClient<Database>
@@ -17,10 +18,24 @@ const PARTY_COUNTED = ['pending', 'success']
 /** Per-user hourly/daily caps: anything that reached the provider costs tokens, including failures and cancels. */
 const USER_COUNTED = ['pending', 'success', 'failed']
 
-export async function reserveGeneration(db: DB, partyId: string, feature: AIFeature, inputSummary: Record<string, unknown>): Promise<string | null> {
-  const { data, error } = await db.rpc('ai_reserve', { p_party: partyId, p_feature: feature, p_input_summary: inputSummary as Json })
-  if (error) aiUsageRecordingFailed('reserve', feature, error.code)
-  return error ? null : (data as string)
+export type ReserveResult = { id: string } | { error: 'global_limit' | 'not_found' | 'failed' }
+
+/**
+ * Server-only reservation for `userId` (already authenticated by the caller, who also checked party ownership
+ * with the user's RLS session). The global daily breaker is enforced atomically inside the database call.
+ */
+export async function reserveGeneration(userId: string, partyId: string, feature: AIFeature, inputSummary: Record<string, unknown>, globalLimit: number): Promise<ReserveResult> {
+  const { data, error } = await getSupabaseAdmin().rpc('ai_reserve', {
+    p_user: userId, p_party: partyId, p_feature: feature, p_input_summary: inputSummary as Json, p_global_limit: Math.max(0, globalLimit),
+  })
+  if (!error && typeof data === 'string') return { id: data }
+  if (error?.message?.includes('global_limit')) return { error: 'global_limit' }
+  if (error?.code === 'P0002') {
+    aiReserveRejected(feature, 'party_not_owned')
+    return { error: 'not_found' }
+  }
+  aiUsageRecordingFailed('reserve', feature, error?.code)
+  return { error: 'failed' }
 }
 
 /** 1-based position of `id` among counted rows (ordered by created_at, id); Infinity if it can't be found. */
@@ -47,8 +62,9 @@ export async function usedForParty(db: DB, partyId: string): Promise<number> {
   return count ?? 0
 }
 
-export async function globalCountToday(db: DB): Promise<number> {
-  const { data } = await db.rpc('ai_global_count_today')
+/** Today's (UTC) counted generations across all users. Service role only. */
+export async function globalCountToday(): Promise<number> {
+  const { data } = await getSupabaseAdmin().rpc('ai_global_count_today')
   return typeof data === 'number' ? data : 0
 }
 

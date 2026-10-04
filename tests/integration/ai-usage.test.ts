@@ -43,13 +43,14 @@ describe.skipIf(!up)('usage controls', () => {
     await override('PRO')
     process.env.AI_GLOBAL_DAILY_LIMIT = '1'
     resetAIConfig()
-    const { data: before } = await A.client.rpc('ai_global_count_today')
+    const { data: before } = await adminClient().rpc('ai_global_count_today') // server-only since migration 1200
     process.env.AI_GLOBAL_DAILY_LIMIT = String((before as number) + 1)
     resetAIConfig()
     expect((await post(parties[0])).status).toBe(200)
     const r = await post(parties[0])
     expect(r.status).toBe(503)
     expect((await r.json()).error.code).toBe('high_demand')
+    expect((await adminClient().rpc('ai_global_count_today')).data).toBe((before as number) + 1) // rejected call not reserved
   })
   it('per-user hourly cap (10) applies across parties even on Pro', async () => {
     await override('PRO')

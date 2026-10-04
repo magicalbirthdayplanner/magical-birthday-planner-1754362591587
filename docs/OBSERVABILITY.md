@@ -51,7 +51,9 @@ email, expired links, offline clients, client aborts, a single invalid AI answer
 Counters carry low-cardinality attributes only (feature, plan, provider, model, status…). Request ids and a hashed
 party id appear only on logs/spans.
 
-- **AI:** `AI_REQUEST_STARTED|SUCCEEDED|FAILED|TIMEOUT|RETRIED|VALIDATION_FAILED|LIMIT_REACHED`, `AI_POST_PROCESSING_FAILED`;
+- **AI:** `AI_REQUEST_STARTED|SUCCEEDED|FAILED|TIMEOUT|RETRIED|VALIDATION_FAILED|LIMIT_REACHED`, `AI_POST_PROCESSING_FAILED`,
+  `ai.limit.party|user|global` (the global breaker also raises a warning issue `ai-global-limit`), `ai.reserve.unauthorized`
+  (server-side reservation refused for a party the user doesn't own; also a warning issue);
   distributions `ai.latency`, `PLAN_MY_PARTY_LATENCY`, `THEME_IDEAS_LATENCY`, `AI_CHECKLIST_LATENCY`, `ai.tokens.input`,
   `ai.tokens.output`, `ai.estimated_cost_usd`. Each model call is a `gen_ai.chat` span (Sentry AI monitoring) with
   model, usage, attempts, retry count, failure category and `mbp.ai.estimated_cost_usd`. Token counts the provider

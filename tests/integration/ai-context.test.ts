@@ -43,8 +43,10 @@ describe.skipIf(!up)('buildPartyAIContext', () => {
 })
 
 describe.skipIf(!up)('ai_generations RLS', () => {
-  it('owners reserve via RPC; others cannot read; nobody writes directly or un-counts rows', async () => {
-    const { data: id, error } = await A.client.rpc('ai_reserve', { p_party: partyA, p_feature: 'party_planner', p_input_summary: { childAge: 7 } })
+  it('only the server reserves (migration 1200); owners read their rows; others cannot; nobody writes directly or un-counts rows', async () => {
+    // end users can no longer call the reservation RPC themselves
+    expect((await A.client.rpc('ai_reserve', { p_user: A.id, p_party: partyA, p_feature: 'party_planner' })).error).not.toBeNull()
+    const { data: id, error } = await adminClient().rpc('ai_reserve', { p_user: A.id, p_party: partyA, p_feature: 'party_planner', p_input_summary: { childAge: 7 } })
     expect(error).toBeNull()
     expect((await A.client.from('ai_generations').select('id, status').eq('id', id!)).data).toEqual([{ id, status: 'pending' }])
     expect((await B.client.from('ai_generations').select('id').eq('id', id!)).data).toEqual([])
@@ -67,13 +69,14 @@ describe.skipIf(!up)('ai_generations RLS', () => {
     await adminClient().rpc('ai_finalize', fin(A.id, 'failed'))
     expect((await adminClient().from('ai_generations').select('status, result').eq('id', id!).single()).data).toEqual({ status: 'success', result: { ok: true } })
   })
-  it("cannot reserve against someone else's party; anon cannot call the RPCs", async () => {
-    expect((await A.client.rpc('ai_reserve', { p_party: partyB, p_feature: 'party_planner' })).error).not.toBeNull()
+  it("even the server cannot reserve against someone else's party; anon/users cannot call the RPCs", async () => {
+    expect((await adminClient().rpc('ai_reserve', { p_user: A.id, p_party: partyB, p_feature: 'party_planner' })).error?.code).toBe('P0002')
     const { anonClient } = await import('./helpers/supabase')
-    expect((await anonClient().rpc('ai_reserve', { p_party: partyA, p_feature: 'party_planner' })).error).not.toBeNull()
+    expect((await anonClient().rpc('ai_reserve', { p_user: A.id, p_party: partyA, p_feature: 'party_planner' })).error).not.toBeNull()
   })
-  it('global breaker returns a count only', async () => {
-    const { data } = await A.client.rpc('ai_global_count_today')
+  it('global breaker count is server-only and returns a number', async () => {
+    expect((await A.client.rpc('ai_global_count_today')).error).not.toBeNull()
+    const { data } = await adminClient().rpc('ai_global_count_today')
     expect(typeof data).toBe('number')
   })
   it('apply-target tables are owner-only', async () => {
