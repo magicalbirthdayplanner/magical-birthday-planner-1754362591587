@@ -64,7 +64,7 @@ test('changing an RSVP on the same phone updates one guest instead of adding ano
   await guest.goto(link)
   await guest.getByRole('radio', { name: /Yes!/ }).click()
   await guest.getByLabel('Your name').fill('The Nguyen family')
-  await guest.getByRole('button', { name: 'Send RSVP' }).click()
+  await guest.getByRole('button', { name: 'Send RSVP' }).dblclick() // accidental double-tap
   await expect(guest.getByText('You’re on the list!')).toBeVisible()
 
   // change of heart, no email given
@@ -73,10 +73,19 @@ test('changing an RSVP on the same phone updates one guest instead of adding ano
   await guest.getByRole('button', { name: 'Send RSVP' }).click()
   await expect(guest.getByText('Thanks for letting us know')).toBeVisible()
 
-  // reload the invitation (refresh) and answer again — still the same guest
+  // refresh: the page says who already answered from this phone; answering again updates that reply
   await guest.reload()
-  await guest.getByRole('radio', { name: /Yes!/ }).click()
+  await expect(guest.getByTestId('rsvp-answered-as')).toContainText('The Nguyen family')
+  await guest.getByRole('radio', { name: 'Maybe' }).click()
   await guest.getByLabel('Your name').fill('The Nguyen family')
+  await guest.getByRole('button', { name: 'Send RSVP' }).click()
+  await expect(guest.getByText('You’re on the list!')).toBeVisible()
+
+  // a second family on the same (shared) phone is a different invitee
+  await guest.getByRole('button', { name: 'RSVP for someone else' }).click()
+  await expect(guest.getByTestId('rsvp-answered-as')).toHaveCount(0)
+  await guest.getByRole('radio', { name: /Yes!/ }).click()
+  await guest.getByLabel('Your name').fill('The Garcia family')
   await guest.getByRole('button', { name: 'Send RSVP' }).click()
   await expect(guest.getByText('You’re on the list!')).toBeVisible()
   await guestCtx.close()
@@ -84,5 +93,6 @@ test('changing an RSVP on the same phone updates one guest instead of adding ano
   await page.goto('/guests')
   const list = page.getByRole('list', { name: 'Guest list' })
   await expect(list.getByText('The Nguyen family')).toHaveCount(1)
-  await expect(page.getByText(/^1 going/)).toBeVisible()
+  await expect(list.getByText('The Garcia family')).toHaveCount(1)
+  await expect(page.getByText(/^1 going/)).toBeVisible() // Garcia going; Nguyen = Maybe (one current state)
 })

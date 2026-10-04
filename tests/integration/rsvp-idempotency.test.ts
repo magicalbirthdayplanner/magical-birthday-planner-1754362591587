@@ -146,6 +146,156 @@ describe.skipIf(!up)('RSVP idempotency', () => {
     expect(await guests()).toHaveLength(0)
   })
 
+  // ------------------------------------------------------------------ required matrix (explicit)
+  it('matrix: every state transition updates the same guest (Going/Can’t go/Maybe in all directions)', async () => {
+    const steps: Body['status'][] = ['CONFIRMED', 'DECLINED', 'CONFIRMED', 'MAYBE', 'CONFIRMED', 'MAYBE', 'DECLINED', 'MAYBE']
+    for (const st of steps) {
+      expect((await rsvp(tokenA, going({ status: st, adults: st === 'DECLINED' ? 0 : 2, children: st === 'DECLINED' ? 0 : 1 }))).status).toBe(200)
+      const rows = await guests()
+      expect(rows, st).toHaveLength(1)
+      expect(rows[0].rsvp_status).toBe(st)
+    }
+  })
+
+  it('matrix: double-click (two identical requests in flight together) → one guest, one set of emails', async () => {
+    await Promise.all([rsvp(tokenA, going({ email: 'dbl@example.test' })), rsvp(tokenA, going({ email: 'dbl@example.test' }))])
+    expect(await guests()).toHaveLength(1)
+    expect(await emails('RSVP_HOST_NOTIFICATION')).toBe(1)
+    expect(await emails('RSVP_CONFIRMATION')).toBe(1)
+  })
+
+  it('matrix: network retry (response lost, identical request re-sent) → one guest, no extra emails', async () => {
+    const first = await rsvp(tokenA, going({ email: 'retry@example.test' }))
+    expect(first.status).toBe(200) // pretend the client never saw this response and retries
+    const retry = await rsvp(tokenA, going({ email: 'retry@example.test' }))
+    expect(retry.status).toBe(200)
+    expect(await guests()).toHaveLength(1)
+    expect(await emails('RSVP_HOST_NOTIFICATION')).toBe(1)
+  })
+
+  it('matrix: concurrent requests A=Going and B=Going for the same invitee → one guest, CONFIRMED', async () => {
+    const [a, b] = await Promise.all([rsvp(tokenA, going()), rsvp(tokenA, going())])
+    expect([a.status, b.status]).toEqual([200, 200])
+    const rows = await guests()
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ rsvp_status: 'CONFIRMED', adult_count: 2, child_count: 1 })
+  })
+
+  it('matrix: concurrent first RSVPs of two different invitees → two guests (no false merge)', async () => {
+    await Promise.all([rsvp(tokenA, going()), rsvp(tokenA, going({ respondent: KEY2, name: 'The Garcia family' }))])
+    expect((await guests()).map((g) => g.name).sort()).toEqual(['The Garcia family', 'The Nguyen family'])
+  })
+
+  it('matrix: RSVP without email → one guest, identified by the device key alone', async () => {
+    await rsvp(tokenA, going())
+    await rsvp(tokenA, going({ status: 'MAYBE' }))
+    const rows = await guests()
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ email: null, rsvp_status: 'MAYBE' })
+  })
+
+  it('matrix: RSVP with email → email is party-scoped (the same address at another party is a different guest)', async () => {
+    await A.client.from('guests').insert({ party_id: partyA, user_id: A.id, name: 'Aviana', email: 'aviana@example.test' })
+    await rsvp(tokenB, going({ name: 'Aviana', email: 'aviana@example.test' }))
+    expect((await guests(partyA))[0]).toMatchObject({ name: 'Aviana', rsvp_status: 'PENDING' })
+    expect(await guests(partyB)).toEqual([expect.objectContaining({ name: 'Aviana', source: 'rsvp_link', rsvp_status: 'CONFIRMED' })])
+  })
+
+  it('matrix: host-created guest WITH email + RSVP → that guest is updated (no duplicate), host name kept', async () => {
+    await A.client.from('guests').insert({ party_id: partyA, user_id: A.id, name: 'Aviana', email: 'Aviana@Example.test' })
+    await rsvp(tokenA, going({ name: 'Aviana R.', email: 'aviana@example.test', status: 'MAYBE' }))
+    expect(await guests()).toEqual([expect.objectContaining({ name: 'Aviana', source: 'host', rsvp_status: 'MAYBE' })])
+    // a later change from another device with the same email still lands on that guest
+    await rsvp(tokenA, going({ respondent: KEY2, name: 'Aviana', email: 'AVIANA@example.test', status: 'DECLINED', adults: 0, children: 0 }))
+    expect(await guests()).toEqual([expect.objectContaining({ name: 'Aviana', rsvp_status: 'DECLINED' })])
+  })
+
+  it('matrix (documented limitation): host-created guest WITHOUT email is never matched by name', async () => {
+    await A.client.from('guests').insert({ party_id: partyA, user_id: A.id, name: 'Aviana' })
+    await rsvp(tokenA, going({ name: 'Aviana' }))
+    const rows = await guests()
+    // There is no safe identity to link these: a fuzzy name match would let anyone with the link answer for
+    // someone else. The RSVP becomes its own guest; the host's entry is left untouched.
+    expect(rows).toHaveLength(2)
+    expect(rows.find((g) => g.source === 'host')).toMatchObject({ name: 'Aviana', rsvp_status: 'PENDING' })
+    expect(rows.find((g) => g.source === 'rsvp_link')).toMatchObject({ name: 'Aviana', rsvp_status: 'CONFIRMED' })
+  })
+
+  it('matrix: expired link (host reset the link) → old token rejected, nothing written', async () => {
+    const { data: inv } = await A.client.from('party_invitations').select('id, token').eq('party_id', partyA).single()
+    const fresh = Array.from({ length: 48 }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('')
+    await A.client.from('party_invitations').update({ token: fresh }).eq('id', inv!.id)
+    try {
+      expect((await rsvp(inv!.token, going())).status).toBe(404)
+      expect(await guests()).toHaveLength(0)
+      expect((await rsvp(fresh, going())).status).toBe(200)
+    } finally {
+      await A.client.from('party_invitations').update({ token: inv!.token }).eq('id', inv!.id)
+    }
+  })
+
+  it('matrix: cross-party — another host cannot read or change party A’s RSVPs through the API or REST', async () => {
+    await rsvp(tokenA, going())
+    const id = (await guests())[0].id
+    expect((await B.client.from('guests').update({ rsvp_status: 'DECLINED' }).eq('id', id).select('id')).data ?? []).toEqual([])
+    expect((await B.client.from('guests').delete().eq('id', id).select('id')).data ?? []).toEqual([])
+    expect((await anonClient().from('guests').update({ rsvp_status: 'DECLINED' }).eq('id', id).select('id')).data ?? []).toEqual([])
+    expect((await guests())[0].rsvp_status).toBe('CONFIRMED')
+    // the per-device key can't be "borrowed" across parties either (keys are per party)
+    await rsvp(tokenB, going({ status: 'DECLINED', adults: 0, children: 0 }))
+    expect((await guests())[0].rsvp_status).toBe('CONFIRMED')
+  })
+
+  it('matrix: genuine changes keep notifying (each real change → host + guest email), repeats never do', async () => {
+    const seq: [Body['status'], number][] = [['CONFIRMED', 1], ['CONFIRMED', 1], ['DECLINED', 2], ['DECLINED', 2], ['MAYBE', 3], ['CONFIRMED', 4], ['CONFIRMED', 4]]
+    for (const [st, expected] of seq) {
+      await rsvp(tokenA, going({ email: 'notify@example.test', status: st, adults: st === 'DECLINED' ? 0 : 2, children: st === 'DECLINED' ? 0 : 1 }))
+      expect(await emails('RSVP_HOST_NOTIFICATION'), st).toBe(expected)
+      expect(await emails('RSVP_CONFIRMATION'), st).toBe(expected)
+    }
+    // a headcount change on the same status is a real change too
+    await rsvp(tokenA, going({ email: 'notify@example.test', status: 'CONFIRMED', adults: 3 }))
+    expect(await emails('RSVP_HOST_NOTIFICATION')).toBe(5)
+  })
+
+  it('stress: 5 rounds × 20 concurrent submissions mixing key+email and email-only for one invitee → exactly one guest', async () => {
+    for (let round = 0; round < 5; round++) {
+      await adminClient().from('guests').delete().eq('party_id', partyA)
+      // the same person: some requests carry the device key + email, some only the email (an old client)
+      const reqs = Array.from({ length: 20 }, (_, i) =>
+        rsvp(tokenA, going({ respondent: i % 3 === 0 ? undefined : KEY1, email: i % 2 ? 'STRESS@example.test' : 'stress@example.test', status: (['CONFIRMED', 'DECLINED', 'MAYBE'] as const)[i % 3] })),
+      )
+      const statuses = (await Promise.all(reqs)).map((r) => r.status)
+      expect(statuses.every((st) => st === 200), `round ${round}`).toBe(true)
+      const rows = await guests()
+      expect(rows, `round ${round}`).toHaveLength(1)
+      expect(rows[0].rsvp_respondent, `round ${round}: the key is attached to the one guest`).toMatch(/^[0-9a-f]{64}$/)
+    }
+  })
+
+  it('stress: 5 rounds × 20 concurrent submissions with the same key → exactly one guest', async () => {
+    for (let round = 0; round < 5; round++) {
+      await adminClient().from('guests').delete().eq('party_id', partyA)
+      await Promise.all(Array.from({ length: 20 }, (_, i) => rsvp(tokenA, going({ status: (['CONFIRMED', 'DECLINED', 'MAYBE'] as const)[i % 3] }))))
+      expect(await guests(), `round ${round}`).toHaveLength(1)
+    }
+  })
+
+  it('stress: 5 rounds × 20 concurrent email-only submissions (no key) → exactly one guest', async () => {
+    for (let round = 0; round < 5; round++) {
+      await adminClient().from('guests').delete().eq('party_id', partyA)
+      await Promise.all(Array.from({ length: 20 }, () => rsvp(tokenA, going({ respondent: undefined, email: 'only-email@example.test' }))))
+      expect(await guests(), `round ${round}`).toHaveLength(1)
+    }
+  })
+
+  it('DB guard: two rows can never share a respondent key within a party (unique index)', async () => {
+    await rsvp(tokenA, going())
+    const { rsvp_respondent } = (await guests())[0]
+    const { error } = await adminClient().from('guests').insert({ party_id: partyA, user_id: A.id, name: 'Dup', rsvp_respondent, source: 'rsvp_link' })
+    expect(error?.code).toBe('23505')
+  })
+
   it('malformed respondent keys are rejected without side effects', async () => {
     expect((await rsvp(tokenA, going({ respondent: 'short' }))).status).toBe(400)
     expect((await rsvp(tokenA, going({ respondent: "x'; drop table guests; --" + 'a'.repeat(20) }))).status).toBe(400)

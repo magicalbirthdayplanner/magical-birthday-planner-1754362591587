@@ -62,31 +62,58 @@ export async function getPublicInvitation(token: string): Promise<PublicInvitati
   return (data as unknown as PublicInvitation) ?? null
 }
 
-const memoryRespondents = new Map<string, string>()
+const memoryStore = new Map<string, string>()
+const store = {
+  get(key: string): string | null {
+    try {
+      return localStorage.getItem(key) ?? memoryStore.get(key) ?? null
+    } catch {
+      return memoryStore.get(key) ?? null // storage unavailable: keep it for this page session
+    }
+  },
+  set(key: string, value: string) {
+    memoryStore.set(key, value)
+    try {
+      localStorage.setItem(key, value)
+    } catch {
+      /* storage unavailable */
+    }
+  },
+  remove(key: string) {
+    memoryStore.delete(key)
+    try {
+      localStorage.removeItem(key)
+    } catch {
+      /* storage unavailable */
+    }
+  },
+}
+const respondentKey = (token: string) => `mbp.rsvp.${token.slice(0, 16)}`
+const nameKey = (token: string) => `mbp.rsvp.${token.slice(0, 16)}.name`
 
 /**
  * A random secret per invitation per device: the server uses it (hashed) to recognise the same invitee, so
- * "Change my RSVP", retries and double-taps update one guest instead of adding another.
+ * "Change my RSVP", refreshes, retries and double-taps update one guest instead of adding another.
  */
-function rsvpRespondent(token: string): string {
-  const key = `mbp.rsvp.${token.slice(0, 16)}`
-  let stored: string | null = memoryRespondents.get(key) ?? null
-  try {
-    stored = localStorage.getItem(key) ?? stored
-  } catch {
-    /* storage unavailable: keep it for this page session */
-  }
+export function rsvpRespondent(token: string): string {
+  const stored = store.get(respondentKey(token))
   if (stored && /^[a-f0-9]{32}$/.test(stored)) return stored
   const bytes = new Uint8Array(16)
   crypto.getRandomValues(bytes)
   const fresh = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
-  memoryRespondents.set(key, fresh)
-  try {
-    localStorage.setItem(key, fresh)
-  } catch {
-    /* storage unavailable */
-  }
+  store.set(respondentKey(token), fresh)
   return fresh
+}
+
+/** Who already answered from this device (shown so a second family on a shared phone doesn't overwrite it). */
+export function lastRsvpName(token: string): string | null {
+  return store.get(respondentKey(token)) ? store.get(nameKey(token)) : null
+}
+
+/** "RSVP for someone else": the next answer from this device is a new invitee. */
+export function forgetRsvpRespondent(token: string) {
+  store.remove(respondentKey(token))
+  store.remove(nameKey(token))
 }
 
 export async function submitRsvp(token: string, input: { name: string; email?: string; status: 'CONFIRMED' | 'DECLINED' | 'MAYBE'; adults: number; children: number; note?: string }) {
@@ -104,6 +131,7 @@ export async function submitRsvp(token: string, input: { name: string; email?: s
     const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
     throw new Error(body.error?.message ?? 'We couldn’t save your RSVP. Please try again.')
   }
+  store.set(nameKey(token), input.name)
 }
 
 /** New 192-bit link token; the old link stops working immediately. */

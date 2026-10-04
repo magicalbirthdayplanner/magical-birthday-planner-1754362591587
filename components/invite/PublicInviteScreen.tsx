@@ -1,11 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import { CalendarPlus, Minus, PartyPopper, Plus } from 'lucide-react'
 import { AppButton, Chip, ErrorState, IconButton, Skeleton } from '@/components/app/ui'
 import { TextField } from '@/components/app/fields'
 import { Logo } from '@/components/app/Logo'
-import { getPublicInvitation, submitRsvp, type PublicInvitation } from '@/lib/data/invitations'
+import { forgetRsvpRespondent, getPublicInvitation, lastRsvpName, submitRsvp, type PublicInvitation } from '@/lib/data/invitations'
 import { InvitationCard } from './InvitationCard'
 
 function icsFor(inv: PublicInvitation): string {
@@ -59,6 +59,19 @@ export function PublicInviteScreen({ token }: { token: string }) {
   const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  // Someone already answered from this device: submitting again updates THAT answer (one invitee, one RSVP).
+  const [answeredAs, setAnsweredAs] = useState<string | null>(null)
+  useEffect(() => setAnsweredAs(lastRsvpName(token)), [token])
+
+  function someoneElse() {
+    forgetRsvpRespondent(token)
+    setAnsweredAs(null)
+    setName('')
+    setEmail('')
+    setNote('')
+    setStatus(null)
+    setDone(false)
+  }
 
   if (isLoading) {
     return (
@@ -80,6 +93,7 @@ export function PublicInviteScreen({ token }: { token: string }) {
     setBusy(true)
     try {
       await submitRsvp(token, { name: name.trim(), email: email.trim() || undefined, status, adults: status === 'DECLINED' ? 0 : adults, children: status === 'DECLINED' ? 0 : kids, note: note.trim() || undefined })
+      setAnsweredAs(name.trim())
       setDone(true)
     } catch (err) {
       setFormError((err as Error).message)
@@ -111,13 +125,26 @@ export function PublicInviteScreen({ token }: { token: string }) {
           <PartyPopper className="mx-auto h-10 w-10 text-primary" />
           <h2 className="mt-3 font-display text-2xl font-extrabold">{status === 'DECLINED' ? 'Thanks for letting us know' : 'You’re on the list!'}</h2>
           <p className="mt-1 text-muted-foreground">{status === 'DECLINED' ? `We’ll miss you at ${first}’s party.` : `${first} can’t wait to celebrate with you.`}</p>
-          <button type="button" className="mt-4 text-sm font-semibold text-primary" onClick={() => setDone(false)}>
-            Change my RSVP
-          </button>
+          <div className="mt-4 flex flex-col items-center gap-1">
+            <button type="button" className="tap min-h-[44px] text-sm font-semibold text-primary" onClick={() => setDone(false)}>
+              Change my RSVP
+            </button>
+            <button type="button" className="tap min-h-[44px] text-sm text-muted-foreground underline" onClick={someoneElse}>
+              RSVP for someone else
+            </button>
+          </div>
         </div>
       ) : (
         <form onSubmit={submit} className="mt-6 space-y-4 rounded-3xl bg-card p-5 shadow-sm" noValidate>
           <h2 className="font-display text-2xl font-extrabold">Can you make it?</h2>
+          {answeredAs ? (
+            <p className="rounded-xl bg-secondary px-4 py-3 text-sm" data-testid="rsvp-answered-as">
+              You already replied as <strong>{answeredAs}</strong> — sending again updates that reply.{' '}
+              <button type="button" className="font-semibold text-primary underline" onClick={someoneElse}>
+                Not {answeredAs}?
+              </button>
+            </p>
+          ) : null}
           <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="RSVP">
             {(
               [
