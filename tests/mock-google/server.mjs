@@ -163,7 +163,9 @@ async function deliverWebhook(event) {
   return r.status
 }
 
-const PRICES = { STARTER: 999, PLUS: 1999, PRO: 2999 }
+// Like Dodo, the price lives on the PRODUCT (USD cents), mirroring the live products: $9.99 / $19.99 / $29.99.
+const PRICES = { [process.env.DODO_PRODUCT_STARTER]: 999, [process.env.DODO_PRODUCT_PLUS]: 1999, [process.env.DODO_PRODUCT_PRO]: 2999 }
+const priceOf = (session) => PRICES[session.product_cart?.[0]?.product_id] ?? 0
 
 async function handleServices(req, res, url) {
   const path = url.pathname
@@ -191,11 +193,10 @@ async function handleServices(req, res, url) {
     if (!session) return send(res, 404, { message: 'unknown session' }), true
     if (!pay[3]) {
       res.writeHead(200, { 'Content-Type': 'text/html' })
-      res.end(`<!doctype html><meta name=viewport content="width=device-width"><title>Dodo test checkout</title><body style="font-family:sans-serif;padding:24px"><h1>Dodo Payments (test mode)</h1><p>Product ${session.product_cart?.[0]?.product_id}</p><form method=post action="/__dodo/pay/${pay[1]}/complete"><button style="font-size:20px;padding:12px 24px">Pay now</button></form><form method=post action="/__dodo/pay/${pay[1]}/decline"><button>Decline card</button></form></body>`)
+      res.end(`<!doctype html><meta name=viewport content="width=device-width"><title>Dodo test checkout</title><body style="font-family:sans-serif;padding:24px"><h1>Dodo Payments (test mode)</h1><p>Product ${session.product_cart?.[0]?.product_id}</p><p data-testid=dodo-price>Total $${(priceOf(session) / 100).toFixed(2)} USD</p><form method=post action="/__dodo/pay/${pay[1]}/complete"><button style="font-size:20px;padding:12px 24px">Pay now</button></form><form method=post action="/__dodo/pay/${pay[1]}/decline"><button>Decline card</button></form></body>`)
       return true
     }
     const ok = pay[3] === 'complete'
-    const plan = session.metadata?.mbp_plan
     const paymentId = `pay_${randomUUID().slice(0, 12)}`
     const event = {
       business_id: 'bus_mock',
@@ -205,7 +206,7 @@ async function handleServices(req, res, url) {
         payload_type: 'Payment',
         payment_id: paymentId,
         status: ok ? 'succeeded' : 'failed',
-        total_amount: PRICES[plan] ?? 0,
+        total_amount: priceOf(session),
         currency: 'USD',
         product_cart: session.product_cart,
         customer: { customer_id: `cus_${createHash('sha1').update(String(session.customer?.email || session.customer?.customer_id)).digest('hex').slice(0, 10)}`, email: session.customer?.email, name: session.customer?.name },

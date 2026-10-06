@@ -62,6 +62,9 @@ describe('event decisions', () => {
     expect(a).toMatchObject({ kind: 'upsert', plan: 'PLUS', status: 'active', providerRef: 'pay_1' })
   })
   it('a payment below the plan price is held for review (tampered price)', () => {
+    // a product still priced at an old amount ($4.99 / $9.99 / $14.99) never grants; the new price does
+    expect(decide(pay('payment.succeeded', { total_amount: 999 }), env)).toMatchObject({ status: 'review', reason: 'amount_below_price' })
+    expect(decide(pay('payment.succeeded', { total_amount: 1999 }), env)).toMatchObject({ status: 'active' })
     expect(decide(pay('payment.succeeded', { total_amount: 1 }), env)).toMatchObject({ status: 'review', reason: 'amount_below_price' })
     expect(decide(pay('payment.succeeded', { total_amount: 1 }), { ...env, DODO_ALLOW_DISCOUNTS: 'true' })).toMatchObject({ status: 'active' })
   })
@@ -91,9 +94,9 @@ describe('event decisions', () => {
 })
 
 describe('sandbox plan catalogue and environment guard', () => {
-  it('prices are $4.99 / $9.99 / $14.99 and plan names are case-insensitive', async () => {
+  it('prices are $9.99 / $19.99 / $29.99 per party and plan names are case-insensitive', async () => {
     const { expectedPriceCents, parsePlan } = await import('@/lib/billing/plans')
-    expect([expectedPriceCents('STARTER', {}), expectedPriceCents('PLUS', {}), expectedPriceCents('PRO', {})]).toEqual([499, 999, 1499])
+    expect([expectedPriceCents('STARTER', {}), expectedPriceCents('PLUS', {}), expectedPriceCents('PRO', {})]).toEqual([999, 1999, 2999])
     expect([parsePlan('starter'), parsePlan('Plus'), parsePlan(' PRO ')]).toEqual(['STARTER', 'PLUS', 'PRO'])
     expect([parsePlan('enterprise'), parsePlan('pdt_x'), parsePlan(5), parsePlan(null)]).toEqual([null, null, null, null])
   })

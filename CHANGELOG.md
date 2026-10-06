@@ -3,6 +3,17 @@
 Major milestones, newest first. Dates and commits are from Git history (`git log`). Configuration-only changes
 (no commit) are marked as such.
 
+## Unreleased — per-party price update (branch `feat/update-per-party-pricing`)
+
+- **New prices, still per party:** Starter $4.99 → **$9.99**, Plus $9.99 → **$19.99**, Pro $14.99 → **$29.99**; Free
+  stays $0. Plan names, features, AI allowances, trial and per-party billing rules are unchanged.
+- Prices live in `lib/entitlements.ts` (`PLAN_INFO.priceCents`), which feeds the pricing page, homepage plans, upgrade
+  prompts, checkout buttons and the webhook price-integrity check; Terms updated to match.
+- Dodo: the existing live and sandbox products were re-priced in place on 2026-10-06 (same product ids, so no
+  environment change). `npm run check:dodo-prices` verifies a Dodo environment against `/pricing` (read-only).
+- Payments at the old prices are held for review (never granted), so a product left at an old price cannot
+  undercharge.
+
 ## v1.0.0 — Launch baseline (2026-10-04)
 
 Production at <https://magicalbirthdayplanner.app>; application code `7da40bb`, tag `v1.0.0`; **frozen** — see

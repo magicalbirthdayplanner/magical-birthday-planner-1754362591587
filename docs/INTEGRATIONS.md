@@ -37,7 +37,7 @@ in the repository, and tooling never prints values. Variable list: [`.env.exampl
 * Until this is set, confirmation and reset links fall back to the default Site URL, `http://localhost:3000`.
 
 ### Dodo Payments (test mode first)
-1. Products (one-time, USD; one purchase unlocks one party): Starter $4.99, Plus $9.99, Pro $14.99 (live products exist;
+1. Products (non-recurring, USD; one purchase unlocks one party): Starter $9.99, Plus $19.99, Pro $29.99 (live products exist;
    test mode needs its own),
    then set `DODO_PRODUCT_STARTER/PLUS/PRO`.
 2. API key (test) → `DODO_PAYMENTS_API_KEY`. Keep `DODO_PAYMENTS_ENVIRONMENT=test_mode`.
@@ -52,8 +52,9 @@ in the repository, and tooling never prints values. Variable list: [`.env.exampl
    `<preview>/api/webhooks/dodo?x-vercel-protection-bypass=<secret>`. Revoke it afterwards.
 5. Live mode: separate live keys, products and webhook endpoint (and its own signing secret), plus
    `DODO_PAYMENTS_ENVIRONMENT=live_mode` **and** `DODO_LIVE_PAYMENTS_ENABLED=true`. Without both, checkout
-   refuses to charge. Live product prices must match `/pricing` (499 / 999 / 1499 USD cents): a USD payment
-   below the expected price is held for review instead of granting. Saved customer ids are tagged per mode
+   refuses to charge. Live product prices must match `/pricing` (999 / 1999 / 2999 USD cents): a USD payment
+   below the expected price is held for review instead of granting (check with `npm run check:dodo-prices`;
+   change a price by re-pricing the product in Dodo and `PLAN_INFO` together, then deploy). Saved customer ids are tagged per mode
    (`billing_customers.provider` = `dodo` sandbox / `dodo_live`), so a sandbox customer is never sent to live.
    Production went live 2026-10-03; rollback = the sandbox values (test key, products, webhook secret) +
    `DODO_PAYMENTS_ENVIRONMENT=test_mode`, `DODO_LIVE_PAYMENTS_ENABLED=false`, then redeploy.

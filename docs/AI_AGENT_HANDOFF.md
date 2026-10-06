@@ -38,7 +38,7 @@ Playwright 1.55, Node 22.
 
 ## 5. Pricing model (as implemented — per party)
 `lib/entitlements.ts` is the single source of truth (plans, capability → minimum plan, prices).
-Free $0 · Starter **$4.99 per party** · Plus **$9.99 per party** · Pro **$14.99 per party**; one-time Dodo products,
+Free $0 · Starter **$9.99 per party** · Plus **$19.99 per party** · Pro **$29.99 per party**; non-recurring Dodo products,
 no subscriptions. Each purchase unlocks its plan for **one party** (`billing_purchases.party_id`, `scope='party'`).
 Account-wide by design: admin overrides (`plan_overrides`) and the 24 h sign-up trial (guests & RSVP only, never AI).
 Legacy account-scope purchases are still honoured in code; production has none and the DB forbids new ones.

@@ -44,6 +44,9 @@ Account-wide by design: admin overrides and the 24 h sign-up trial (guests & RSV
 Dodo live products (one-time, USD): Starter `pdt_Jw4ObhU8ojSaq87wELhsm` 499, Plus `pdt_rSGRT2hBbKsoln84yQgHC` 999,
 Pro `pdt_v3NFp5Zq587xbPoPLd29x` 1499 (product ids are not secrets).
 
+> **Superseded 2026-10-06:** prices are now Starter $9.99 / Plus $19.99 / Pro $29.99 per party; the same Dodo
+> products were re-priced in place (999 / 1999 / 2999). The table above records the v1.0 baseline. See CHANGELOG.md.
+
 ## AI feature matrix (production)
 
 | Feature id | Name | Plan | `AI_ENABLED_FEATURES` |

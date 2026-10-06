@@ -47,7 +47,7 @@ Preview environment (scoped to the `mobile-first` branch) at the v1.0 baseline (
 | `DODO_PAYMENTS_ENVIRONMENT` | `test_mode` / `live_mode` (production: `live_mode`) | no | no | ✓ | ✓ |
 | `DODO_LIVE_PAYMENTS_ENABLED` | Second switch required for live charging (production: `true`) | no | no | ✓ | ✓ |
 | `DODO_PRODUCT_STARTER`, `DODO_PRODUCT_PLUS`, `DODO_PRODUCT_PRO` | Dodo product id per plan (not secret) | no | no | ✓ | — |
-| `DODO_PRICE_STARTER_CENTS`, `DODO_PRICE_PLUS_CENTS`, `DODO_PRICE_PRO_CENTS` | Optional expected prices for the price-integrity check (defaults 499 / 999 / 1499 from `lib/entitlements.ts`) | no | no | — | — |
+| `DODO_PRICE_STARTER_CENTS`, `DODO_PRICE_PLUS_CENTS`, `DODO_PRICE_PRO_CENTS` | Optional expected prices for the price-integrity check (defaults 999 / 1999 / 2999 from `lib/entitlements.ts`) | no | no | — | — |
 | `DODO_ALLOW_DISCOUNTS` | Accept payments below the plan price (default off → held for review) | no | no | — | — |
 | `DODO_API_BASE_URL` | Test-only override (mock server) | no | no | never | never |
 

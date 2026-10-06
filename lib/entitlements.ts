@@ -2,7 +2,7 @@
  * THE product model: plans and which plan each capability needs. Single source of truth for the server (AI routes,
  * guests/RSVP enforcement), the UI (locks, upgrade prompts) and the pricing page. Isomorphic: no secrets here.
  *
- *   FREE "Explore"  → STARTER "Plan" ($4.99) → PLUS "Organize" ($9.99) → PRO "Experience" ($14.99), priced PER PARTY
+ *   FREE "Explore"  → STARTER "Plan" ($9.99) → PLUS "Organize" ($19.99) → PRO "Experience" ($29.99), priced PER PARTY
  *
  * A paid plan is bought for one party (migration 20251004001400). Enforcement lives on the server, per party:
  * lib/ai/handler.ts (AI, via getPartyPlan), the guests/party_invitations RLS policies (`public.has_paid_access(party)`)
@@ -17,9 +17,9 @@ export const planAtLeast = (have: Plan, need: Plan) => RANK[have] >= RANK[need]
 
 export const PLAN_INFO: Record<Plan, { name: string; stage: string; tagline: string; priceCents: number }> = {
   FREE: { name: 'Free', stage: 'Explore', tagline: 'Find venues, browse ideas and start planning.', priceCents: 0 },
-  STARTER: { name: 'Starter', stage: 'Plan', tagline: 'Let AI help you build your party plan.', priceCents: 499 },
-  PLUS: { name: 'Plus', stage: 'Organize', tagline: 'Let AI handle the details.', priceCents: 999 },
-  PRO: { name: 'Pro', stage: 'Experience', tagline: 'Let AI help make the birthday itself magical.', priceCents: 1499 },
+  STARTER: { name: 'Starter', stage: 'Plan', tagline: 'Let AI help you build your party plan.', priceCents: 999 },
+  PLUS: { name: 'Plus', stage: 'Organize', tagline: 'Let AI handle the details.', priceCents: 1999 },
+  PRO: { name: 'Pro', stage: 'Experience', tagline: 'Let AI help make the birthday itself magical.', priceCents: 2999 },
 }
 
 /** Capability ids. AI ids are the AI feature ids used by /api/ai/* (lib/ai/types.ts AI_FEATURES). */

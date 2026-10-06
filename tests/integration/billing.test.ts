@@ -10,6 +10,8 @@ import { signWebhook } from '@/lib/billing/webhook-signature'
 
 const WEBHOOK_SECRET = 'whsec_' + Buffer.from('integration-test-signing-key-xyz').toString('base64')
 const PRODUCTS = { STARTER: 'pdt_itStarter001', PLUS: 'pdt_itPlus000002', PRO: 'pdt_itPro0000003' }
+/** What the Dodo products charge, in USD cents — must equal /pricing ($9.99 / $19.99 / $29.99 per party). */
+const PRICE = { STARTER: 999, PLUS: 1999, PRO: 2999 } as const
 
 // ---- mock Dodo API: POST /checkouts
 const created: Record<string, unknown>[] = []
@@ -87,7 +89,7 @@ const payment = (user: TestUser, over: Record<string, unknown> = {}, type = 'pay
   data: {
     payload_type: 'Payment',
     payment_id: `pay_${user.id.slice(0, 8)}_${++seq}`,
-    total_amount: 1999,
+    total_amount: PRICE.PLUS,
     currency: 'USD',
     product_cart: [{ product_id: PRODUCTS.PLUS, quantity: 1 }],
     customer: { customer_id: `cus_${user.id.slice(0, 8)}`, email: user.email, name: 'Test' },
@@ -100,8 +102,7 @@ const payment = (user: TestUser, over: Record<string, unknown> = {}, type = 'pay
 async function linked(u: TestUser, partyId: string, plan: 'STARTER' | 'PLUS' | 'PRO' = 'PLUS', over: Record<string, unknown> = {}, type = 'payment.succeeded') {
   expect((await post(u.accessToken, { plan, partyId })).status).toBe(200)
   const meta = (created.at(-1) as { metadata: Record<string, string> }).metadata
-  const amount = { STARTER: 499, PLUS: 999, PRO: 1499 }[plan]
-  return payment(u, { product_cart: [{ product_id: PRODUCTS[plan], quantity: 1 }], total_amount: amount, metadata: { mbp_user_id: u.id, mbp_checkout_id: meta.mbp_checkout_id, mbp_party_id: partyId }, ...over }, type)
+  return payment(u, { product_cart: [{ product_id: PRODUCTS[plan], quantity: 1 }], total_amount: PRICE[plan], metadata: { mbp_user_id: u.id, mbp_checkout_id: meta.mbp_checkout_id, mbp_party_id: partyId }, ...over }, type)
 }
 const statusOf = async (u: TestUser) => (await status.GET(new Request('http://app.test/api/billing/status', { headers: { Authorization: `Bearer ${u.accessToken}` } }))).json()
 const partyStatus = async (u: TestUser, partyId: string) => (await status.GET(new Request(`http://app.test/api/billing/status?partyId=${partyId}`, { headers: { Authorization: `Bearer ${u.accessToken}` } }))).json()
@@ -194,7 +195,7 @@ describe('checkout', () => {
   })
 
   it('never reuses a sandbox customer id in live mode (separate Dodo accounts)', async () => {
-    await send(payment(U, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: 499 })) // sandbox webhook binds cus_U → U
+    await send(payment(U, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: PRICE.STARTER })) // sandbox webhook binds cus_U → U
     await post(U.accessToken, { plan: 'PLUS', partyId: PU })
     expect((created.at(-1) as { customer: { customer_id?: string } }).customer.customer_id).toBe(`cus_${U.id.slice(0, 8)}`)
     Object.assign(process.env, { DODO_PAYMENTS_ENVIRONMENT: 'live_mode', DODO_LIVE_PAYMENTS_ENABLED: 'true' })
@@ -243,7 +244,7 @@ describe('webhook → entitlement', () => {
   })
 
   it('invalid, tampered or stale signatures are rejected and change nothing', async () => {
-    const event = payment(U, { product_cart: [{ product_id: PRODUCTS.PRO, quantity: 1 }], total_amount: 2999 })
+    const event = payment(U, { product_cart: [{ product_id: PRODUCTS.PRO, quantity: 1 }], total_amount: PRICE.PRO })
     expect((await send(event, { secret: 'whsec_' + Buffer.from('wrong').toString('base64') })).status).toBe(401)
     expect((await send(event, { ts: Math.floor(Date.now() / 1000) - 3600 })).status).toBe(401)
     const raw = JSON.stringify(event)
@@ -292,7 +293,7 @@ describe('webhook → entitlement', () => {
 
   it('metadata pointing at another user cannot hijack an existing customer', async () => {
     await send(await linked(U, PU)) // binds cus_U → U
-    await send(payment(U, { product_cart: [{ product_id: PRODUCTS.PRO, quantity: 1 }], total_amount: 2999, metadata: { mbp_user_id: V.id } }))
+    await send(payment(U, { product_cart: [{ product_id: PRODUCTS.PRO, quantity: 1 }], total_amount: PRICE.PRO, metadata: { mbp_user_id: V.id } }))
     expect(await planOf(V)).toBe('FREE')
     expect(await partyStatus(V, PV)).toMatchObject({ plan: 'FREE' })
     expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PLUS' }) // the PRO payment had no checkout: unresolved, unlocks nothing
@@ -300,7 +301,7 @@ describe('webhook → entitlement', () => {
 
   it('without the checkout reference the payer is found by email, but the party is NOT guessed from a recent checkout', async () => {
     await post(V.accessToken, { plan: 'STARTER', partyId: PV })
-    const ev = payment(V, { metadata: {}, customer: { customer_id: 'cus_v_new', email: V.email }, product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: 999 })
+    const ev = payment(V, { metadata: {}, customer: { customer_id: 'cus_v_new', email: V.email }, product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: PRICE.STARTER })
     expect((await (await send(ev)).json()).outcome).toBe('unmatched')
     expect(await planOf(V)).toBe('FREE')
     expect(await partyStatus(V, PV)).toMatchObject({ plan: 'FREE' })
@@ -352,7 +353,7 @@ describe('clients cannot touch billing data', () => {
     expect((await U.client.from('billing_customers').insert({ user_id: U.id, provider_customer_id: 'cus_x' })).error).not.toBeNull()
     expect((await U.client.from('billing_webhook_events').select('event_id')).data ?? []).toEqual([])
     expect((await U.client.rpc('recompute_entitlement' as never, { p_user: U.id } as never)).error).not.toBeNull()
-    await send(payment(V, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: 999 }))
+    await send(payment(V, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: PRICE.STARTER }))
     expect((await U.client.from('billing_purchases').select('id').eq('user_id', V.id)).data).toEqual([])
     expect((await U.client.from('billing_purchases').update({ status: 'active' }).eq('user_id', U.id).select('id')).data ?? []).toEqual([])
   })
@@ -447,7 +448,7 @@ describe('trial users can buy (sign-up trial never blocks a purchase)', () => {
 const caps = await import('@/app/api/ai/capabilities/route')
 const tierOf = async (u: TestUser, partyId: string) => (await (await caps.GET(new Request(`http://app.test/api/ai/capabilities?partyId=${partyId}`, { headers: { Authorization: `Bearer ${u.accessToken}` } }))).json()).tier
 describe('per-party plans', () => {
-  const buy = async (u: TestUser, partyId: string, plan: 'STARTER' | 'PLUS' | 'PRO', amount: number) => {
+  const buy = async (u: TestUser, partyId: string, plan: 'STARTER' | 'PLUS' | 'PRO', amount: number = PRICE[plan]) => {
     expect((await post(u.accessToken, { plan, partyId })).status).toBe(200)
     const meta = (created.at(-1) as { metadata: Record<string, string> }).metadata
     expect(meta).toMatchObject({ mbp_party_id: partyId })
@@ -457,7 +458,7 @@ describe('per-party plans', () => {
   }
 
   it('unlocks the plan for that party only — status, AI tier, guests/invitations RLS; the account stays Free', async () => {
-    await buy(U, PU, 'PLUS', 999)
+    await buy(U, PU, 'PLUS')
     const { data: row } = await adminClient().from('billing_purchases').select('party_id, scope, plan, status').eq('user_id', U.id).single()
     expect(row).toEqual({ party_id: PU, scope: 'party', plan: 'PLUS', status: 'active' })
     expect(await planOf(U)).toBe('FREE')
@@ -476,7 +477,7 @@ describe('per-party plans', () => {
   })
 
   it('the checkout-success status reports that checkout and its party', async () => {
-    const { checkoutId } = await buy(U, PU, 'STARTER', 499)
+    const { checkoutId } = await buy(U, PU, 'STARTER')
     const s = await (await status.GET(new Request(`http://app.test/api/billing/status?checkout=${checkoutId}`, { headers: { Authorization: `Bearer ${U.accessToken}` } }))).json()
     expect(s.checkout).toEqual({ plan: 'STARTER', status: 'completed', partyId: PU, childName: 'Ava' })
     // another user cannot read it
@@ -486,22 +487,52 @@ describe('per-party plans', () => {
   })
 
   it('a party cannot buy a plan it already has; a higher plan is an upgrade for that party; other parties can buy', async () => {
-    await buy(U, PU, 'STARTER', 499)
+    await buy(U, PU, 'STARTER')
     const again = await post(U.accessToken, { plan: 'STARTER', partyId: PU })
     expect(again.status).toBe(409)
     expect((await again.json()).error.code).toBe('already_owned')
-    await buy(U, PU, 'PRO', 1499)
+    await buy(U, PU, 'PRO')
     expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PRO' })
     expect((await post(U.accessToken, { plan: 'PLUS', partyId: PU })).status).toBe(409) // below what it has
     expect((await post(U.accessToken, { plan: 'STARTER', partyId: PU2 })).status).toBe(200) // a different party
   })
 
+  it('Starter → Plus → Pro is an upgrade path for one party; another party stays Free and can buy Starter on its own', async () => {
+    await buy(U, PU, 'STARTER')
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'STARTER', source: 'purchase' })
+    expect(await partyStatus(U, PU2)).toMatchObject({ plan: 'FREE', source: 'free' })
+    await buy(U, PU, 'PLUS')
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PLUS' })
+    await buy(U, PU, 'PRO')
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PRO' })
+    expect(await tierOf(U, PU)).toBe('PRO')
+    expect(await partyStatus(U, PU2)).toMatchObject({ plan: 'FREE' }) // upgrades never spill over to another party
+    await buy(U, PU2, 'STARTER')
+    expect(await partyStatus(U, PU2)).toMatchObject({ plan: 'STARTER', partyId: PU2 })
+    expect(await partyStatus(U, PU)).toMatchObject({ plan: 'PRO' })
+    expect(await planOf(U)).toBe('FREE')
+  })
+
+  it('each plan checks out with its own Dodo product, and a payment at the old price ($4.99 / $9.99 / $14.99) unlocks nothing', async () => {
+    const OLD = { STARTER: 499, PLUS: 999, PRO: 1499 } as const
+    for (const plan of ['STARTER', 'PLUS', 'PRO'] as const) {
+      expect((await post(U.accessToken, { plan, partyId: PU })).status).toBe(200)
+      const sent = created.at(-1) as { product_cart: { product_id: string; quantity: number }[]; metadata: Record<string, string> }
+      expect(sent.product_cart, plan).toEqual([{ product_id: PRODUCTS[plan], quantity: 1 }])
+      const ev = payment(U, { product_cart: sent.product_cart, total_amount: OLD[plan], metadata: { mbp_user_id: U.id, mbp_checkout_id: sent.metadata.mbp_checkout_id } })
+      expect((await (await send(ev)).json()).outcome).toBe('processed')
+      const { data } = await adminClient().from('billing_purchases').select('status').eq('provider_ref', ev.data.payment_id as string).single()
+      expect(data!.status, plan).toBe('review') // a product still priced at the old amount is held, never granted
+      expect(await partyStatus(U, PU)).toMatchObject({ plan: 'FREE' })
+    }
+  })
+
   it('a refund ends that party’s plan; deleting the party ends it too (and never moves it to another party)', async () => {
-    const { ev } = await buy(U, PU, 'PLUS', 999)
+    const { ev } = await buy(U, PU, 'PLUS')
     await send({ type: 'refund.succeeded', timestamp: new Date().toISOString(), data: { payload_type: 'Refund', payment_id: ev.data.payment_id } })
     expect(await partyStatus(U, PU)).toMatchObject({ plan: 'FREE' })
     const P3 = await newParty(U, 'Cleo')
-    await buy(U, P3, 'PLUS', 999)
+    await buy(U, P3, 'PLUS')
     expect(await partyStatus(U, P3)).toMatchObject({ plan: 'PLUS' })
     await U.client.from('parties').delete().eq('id', P3)
     const { data: rows } = await adminClient().from('billing_purchases').select('party_id, scope, status').eq('user_id', U.id).eq('status', 'active')
@@ -518,7 +549,7 @@ describe('per-party plans', () => {
     expect((await res.json()).outcome).toBe('unmatched') // inconsistent metadata: nothing is granted to anyone
     expect((await adminClient().from('billing_purchases').select('id').eq('user_id', U.id)).data).toEqual([])
     // a known customer with a foreign party in the metadata: the purchase is never attached to that party
-    await send(payment(U, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: 499 })) // binds cus_U → U
+    await send(payment(U, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: PRICE.STARTER })) // binds cus_U → U
     await send(payment(U, { metadata: { mbp_user_id: U.id, mbp_party_id: PV } }))
     const { data: rows } = await adminClient().from('billing_purchases').select('party_id').eq('user_id', U.id)
     expect(rows!.every((r) => r.party_id !== PV)).toBe(true)
@@ -566,7 +597,7 @@ describe('unresolved payments never become account-wide', () => {
     // paid for PLUS against a STARTER checkout
     await send(payment(U, { metadata: { mbp_user_id: U.id, mbp_checkout_id: starterCheckout } }))
     // right checkout, but the metadata names another party
-    await send(payment(U, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: 499, metadata: { mbp_user_id: U.id, mbp_checkout_id: starterCheckout, mbp_party_id: PU2 } }))
+    await send(payment(U, { product_cart: [{ product_id: PRODUCTS.STARTER, quantity: 1 }], total_amount: PRICE.STARTER, metadata: { mbp_user_id: U.id, mbp_checkout_id: starterCheckout, mbp_party_id: PU2 } }))
     // a checkout id that doesn't exist
     await send(payment(U, { metadata: { mbp_user_id: U.id, mbp_checkout_id: '00000000-0000-4000-8000-000000000000' } }))
     const { data } = await adminClient().from('billing_purchases').select('party_id, unresolved_reason').eq('user_id', U.id).order('created_at')

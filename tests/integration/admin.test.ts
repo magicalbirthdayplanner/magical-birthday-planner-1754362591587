@@ -8,6 +8,7 @@ import { signWebhook } from '@/lib/billing/webhook-signature'
 
 const WEBHOOK_SECRET = 'whsec_' + Buffer.from('integration-admin-signing-key-01').toString('base64')
 const PRODUCTS = { STARTER: 'pdt_adStarter001', PLUS: 'pdt_adPlus000002', PRO: 'pdt_adPro0000003' }
+const PRICE = { STARTER: 999, PLUS: 1999, PRO: 2999 } as const // what each Dodo product charges (USD cents)
 
 Object.assign(process.env, {
   NEXT_PUBLIC_SUPABASE_URL: SUPABASE_URL,
@@ -60,7 +61,7 @@ async function buy(user: TestUser, plan: keyof typeof PRODUCTS, partyId = PU) {
     data: {
       payload_type: 'Payment',
       payment_id: `pay_admin_${user.id.slice(0, 8)}_${seq}`,
-      total_amount: 999,
+      total_amount: PRICE[plan],
       currency: 'USD',
       product_cart: [{ product_id: PRODUCTS[plan], quantity: 1 }],
       customer: { customer_id: `cus_admin_${user.id.slice(0, 8)}`, email: user.email, name: 'Test' },

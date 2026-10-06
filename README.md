@@ -153,9 +153,9 @@ Dodo product ids and prices are unchanged since launch.
 | Plan | Price | What it adds |
 |---|---|---|
 | **Free** — "Explore" | $0 forever | Create parties, venue discovery + map + details, saved venues, dated checklist, curated themes, party plan, your own activities. No guests/RSVP, no AI. |
-| **Starter** — "Plan" | **$4.99 per party** | + Guests & RSVP (link, emailed invitations, RSVP collection) · Plan My Party · AI Theme Ideas · AI Checklist · Activity Studio · 10 AI requests per party |
-| **Plus** — "Organize" | **$9.99 per party** | + Food Planner · Budget Assistant · Invitation Writer · Timeline · Shopping List · 25 AI requests per party |
-| **Pro** — "Experience" | **$14.99 per party** | + Party Host (welcome, activity intros, cake, closing, thank-you & reminder messages) · Party Experience · 50 AI requests per party |
+| **Starter** — "Plan" | **$9.99 per party** | + Guests & RSVP (link, emailed invitations, RSVP collection) · Plan My Party · AI Theme Ideas · AI Checklist · Activity Studio · 10 AI requests per party |
+| **Plus** — "Organize" | **$19.99 per party** | + Food Planner · Budget Assistant · Invitation Writer · Timeline · Shopping List · 25 AI requests per party |
+| **Pro** — "Experience" | **$29.99 per party** | + Party Host (welcome, activity intros, cake, closing, thank-you & reminder messages) · Party Experience · 50 AI requests per party |
 
 | Feature | Free | Starter | Plus | Pro |
 |---|:-:|:-:|:-:|:-:|
@@ -229,7 +229,7 @@ User (browser, Bearer JWT)
 |---|---|---|
 | **Supabase** | Auth (email/password, Google), PostgreSQL, RLS, RPCs, migrations, persistence | anon key public; service role server-only |
 | **Google Places API (New) / Maps JS / Geocoding** | Venue discovery, details, photos, map, ZIP fallback | server key (Places) vs. separate referrer-restricted browser key (Maps); cost guards ([GOOGLE_PLACES_COST_CONTROL](docs/GOOGLE_PLACES_COST_CONTROL.md)) |
-| **Dodo Payments** (live mode) | Hosted checkout for Starter $4.99 / Plus $9.99 / Pro $14.99 **per party** (one-time products), signed webhooks → `billing_purchases` → party entitlement | server picks product + price; Standard Webhooks HMAC; product ids in env |
+| **Dodo Payments** (live mode) | Hosted checkout for Starter $9.99 / Plus $19.99 / Pro $29.99 **per party** (non-recurring products), signed webhooks → `billing_purchases` → party entitlement | server picks product + price; Standard Webhooks HMAC; product ids in env |
 | **Sentry** | Errors, tracing, logs, metrics, AI monitoring, billing/auth/Google telemetry, uptime on `/api/health`, alerts | DSN public; auth token build-only |
 | **Resend** | Invitation emails, RSVP confirmations, host notifications | sender `noreply@magicalbirthdayplanner.app` |
 | **OpenCode (AI provider)** | All AI features | `AI_API_KEY` server-only |

@@ -15,7 +15,7 @@ export default function TermsConditionsPage() {
           
           <div className="prose prose-gray dark:prose-invert max-w-none">
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              <strong>Last updated:</strong> October 4, 2026
+              <strong>Last updated:</strong> October 6, 2026
             </p>
 
             <section className="mb-8">
@@ -61,9 +61,9 @@ export default function TermsConditionsPage() {
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
                 <li>Free: create a party, discover and save venues, checklist, curated themes and your party plan</li>
-                <li>Starter ($4.99 per party): adds guests &amp; RSVP and AI planning features</li>
-                <li>Plus ($9.99 per party): adds AI organization features</li>
-                <li>Pro ($14.99 per party): adds AI party-day features</li>
+                <li>Starter ($9.99 per party): adds guests &amp; RSVP and AI planning features</li>
+                <li>Plus ($19.99 per party): adds AI organization features</li>
+                <li>Pro ($29.99 per party): adds AI party-day features</li>
               </ul>
               <p className="text-gray-600 dark:text-gray-300 mt-4">
                 Paid plans are priced per party: each purchase is a single payment, not a subscription, and unlocks the plan&apos;s features for the one party it was bought for. Payments are processed by Dodo Payments. AI features are subject

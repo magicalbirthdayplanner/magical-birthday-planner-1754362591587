@@ -11,10 +11,11 @@ const overflow = (page: Page) => page.evaluate(() => document.documentElement.sc
 
 async function fourCards(page: Page) {
   for (const p of PLANS) await expect(page.getByTestId(`plan-card-${p}`)).toBeVisible()
-  await expect(page.getByTestId('plan-card-STARTER')).toContainText('$4.99')
-  await expect(page.getByTestId('plan-card-PLUS')).toContainText('$9.99')
-  await expect(page.getByTestId('plan-card-PRO')).toContainText('$14.99')
-  await expect(page.getByTestId('plan-card-FREE')).toContainText('$0')
+  await expect(page.getByTestId('plan-card-STARTER')).toContainText('$9.99per party')
+  await expect(page.getByTestId('plan-card-PLUS')).toContainText('$19.99per party')
+  await expect(page.getByTestId('plan-card-PRO')).toContainText('$29.99per party')
+  await expect(page.getByTestId('plan-card-FREE')).toContainText('$0forever')
+  await expect(page.getByTestId('plan-cards')).not.toContainText(/\$4\.99|\$14\.99/) // no stale prices
 }
 
 test('anonymous: four plans with prices, comparison by category, 14 FAQs, no false claims', async ({ page }) => {
@@ -35,9 +36,9 @@ test('anonymous: four plans with prices, comparison by category, 14 FAQs, no fal
   await expect(page.locator('body')).not.toContainText(/10,000|thousands of|subscription renews/i)
 })
 
-for (const width of [375, 390, 393, 430]) {
+for (const width of [375, 390, 393, 430, 768, 1280]) {
   test(`pricing at ${width}px: every plan reachable, no horizontal scroll, 44px CTAs`, async ({ browser }) => {
-    const ctx = await browser.newContext({ viewport: { width, height: 844 }, isMobile: true, hasTouch: true })
+    const ctx = await browser.newContext({ viewport: { width, height: 844 }, isMobile: width < 600, hasTouch: width < 1024 })
     const page = await ctx.newPage()
     await page.goto('/pricing')
     await fourCards(page)
@@ -50,7 +51,8 @@ for (const width of [375, 390, 393, 430]) {
     await page.getByTestId('plan-comparison').scrollIntoViewIfNeeded()
     expect(await overflow(page)).toBeLessThanOrEqual(1)
     await page.goto('/')
-    await expect(page.getByTestId('plan-cards')).toBeVisible()
+    await expect(page.getByText('Priced per party · No subscriptions')).toBeVisible()
+    await fourCards(page) // the homepage pricing section shows the same prices
     expect(await overflow(page)).toBeLessThanOrEqual(1)
     await ctx.close()
   })
@@ -74,7 +76,7 @@ test('Free: guests locked with a Starter upgrade; RSVP page too; AI locked; manu
   const s = await seedUser({ withParty: true })
   await makeFree(s.email)
   await login(page, s, '/guests')
-  await expect(page.getByTestId('upgrade-guests')).toContainText('See Starter — $4.99')
+  await expect(page.getByTestId('upgrade-guests')).toContainText('See Starter — $9.99 per party')
   await expect(page.getByTestId('nav-lock-guests')).toBeVisible()
   await page.goto('/plan/invite')
   await expect(page.getByTestId('upgrade-rsvp')).toBeVisible()
@@ -157,7 +159,7 @@ test('plans are per party: a plan bought for one party does not unlock another; 
   await page.goto('/pricing')
   await expect(page.getByTestId('pricing-party')).toContainText('Leo’s party')
   await expect(page.getByTestId('plan-current-FREE')).toBeVisible()
-  await expect(page.getByTestId('checkout-STARTER')).toContainText('Choose Starter — $4.99')
+  await expect(page.getByTestId('checkout-STARTER')).toContainText('Choose Starter — $9.99')
 })
 
 test('signed in without a party: plans ask you to create a party first', async ({ page }) => {
@@ -166,4 +168,24 @@ test('signed in without a party: plans ask you to create a party first', async (
   await page.goto('/pricing')
   await expect(page.getByTestId('create-party-STARTER')).toHaveText('Create your party first')
   await expect(page.getByTestId('checkout-STARTER')).toHaveCount(0)
+})
+
+test('each plan opens the Dodo checkout for its own product at its own price, for the chosen party', async ({ page }) => {
+  test.setTimeout(120_000)
+  const s = await seedUser({ withParty: true })
+  await makeFree(s.email)
+  await login(page, s, '/pricing')
+  const expected = [['STARTER', 'pdt_e2eStarter01', '$9.99'], ['PLUS', 'pdt_e2ePlus00002', '$19.99'], ['PRO', 'pdt_e2ePro000003', '$29.99']] as const
+  for (const [plan, product, price] of expected) {
+    await page.goto('/pricing')
+    await expect(page.getByTestId('pricing-party')).toContainText('Choosing a plan for Mia’s party')
+    await expect(page.getByTestId(`checkout-${plan}`)).toContainText(price)
+    await page.getByTestId(`checkout-${plan}`).click()
+    await expect(page.getByRole('heading', { name: 'Dodo Payments (test mode)' })).toBeVisible()
+    await expect(page.getByText(`Product ${product}`)).toBeVisible()
+    await expect(page.getByTestId('dodo-price')).toHaveText(`Total ${price} USD`)
+  }
+  // nothing was paid: the party is still on Free
+  await page.goto('/pricing')
+  await expect(page.getByTestId('plan-current-FREE')).toBeVisible()
 })

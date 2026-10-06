@@ -106,7 +106,7 @@ test('Party Magic on Plan: Free sees calm locked cards that explain the plan; St
   await expect(page.getByTestId('upgrade-party_planner')).toContainText('Plan My Party is part of Starter')
   await expect(page.getByTestId('magic-timeline-locked')).toContainText('Part of Plus')
   await page.getByTestId('magic-timeline-locked').click()
-  await expect(page.getByRole('dialog').getByRole('link', { name: /See Plus — \$9\.99/ })).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('link', { name: /See Plus — \$19\.99 per party/ })).toBeVisible()
   await page.keyboard.press('Escape')
   await setPlanForE2E(s.email, 'STARTER')
   await page.goto('/plan/checklist')

@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { allows, CAPABILITIES, effectivePlan, minPlanFor, ownedPlan, PLAN_INFO, PLANS, planAtLeast, type Capability, type Plan } from '@/lib/entitlements'
+import { allows, CAPABILITIES, effectivePlan, formatPrice, minPlanFor, ownedPlan, PLAN_INFO, PLANS, planAtLeast, type Capability, type Plan } from '@/lib/entitlements'
 import { capability, FEATURE_MIN_TIER, PARTY_CAP, planAllows, tierFor } from '@/lib/ai/capabilities'
 import { AI_FEATURES } from '@/lib/ai/types'
 import { COMPARISON, PLAN_HIGHLIGHTS } from '@/components/billing/planContent'
 import { expectedPriceCents } from '@/lib/billing/plans'
+import { EXPECTED_CENTS, productProblems } from '../../scripts/check-dodo-prices.mjs'
 
 const free = { plan: 'FREE', source: 'free' }
 const trial = { plan: 'PRO', source: 'trial' }
@@ -54,8 +55,20 @@ describe('product model (lib/entitlements.ts)', () => {
   })
 
   it('prices match Dodo’s configured prices and are increasing', () => {
-    expect([PLAN_INFO.FREE.priceCents, PLAN_INFO.STARTER.priceCents, PLAN_INFO.PLUS.priceCents, PLAN_INFO.PRO.priceCents]).toEqual([0, 499, 999, 1499])
+    expect([PLAN_INFO.FREE.priceCents, PLAN_INFO.STARTER.priceCents, PLAN_INFO.PLUS.priceCents, PLAN_INFO.PRO.priceCents]).toEqual([0, 999, 1999, 2999])
     for (const p of ['STARTER', 'PLUS', 'PRO'] as const) expect(expectedPriceCents(p, {})).toBe(PLAN_INFO[p].priceCents)
+  })
+
+  it('displays Free $0 · Starter $9.99 · Plus $19.99 · Pro $29.99', () => {
+    expect(PLANS.map((p) => formatPrice(PLAN_INFO[p].priceCents))).toEqual(['$0', '$9.99', '$19.99', '$29.99'])
+  })
+
+  it('the Dodo price check expects exactly the displayed prices and flags an old-priced product', () => {
+    for (const p of ['STARTER', 'PLUS', 'PRO'] as const) expect(EXPECTED_CENTS[p]).toBe(PLAN_INFO[p].priceCents)
+    const product = (price: number, extra = {}) => ({ price: { type: 'one_time_price', currency: 'USD', price, discount: 0, pay_what_you_want: false, ...extra } })
+    expect(productProblems(product(1999), EXPECTED_CENTS.PLUS)).toEqual([])
+    expect(productProblems(product(999), EXPECTED_CENTS.PLUS)).toEqual(['price is 999 cents, expected 1999'])
+    expect(productProblems(product(2999, { type: 'recurring_price' }), EXPECTED_CENTS.PRO)).toHaveLength(1)
   })
 })
 
