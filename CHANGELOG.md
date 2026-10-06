@@ -3,7 +3,12 @@
 Major milestones, newest first. Dates and commits are from Git history (`git log`). Configuration-only changes
 (no commit) are marked as such.
 
-## Unreleased — per-party price update (branch `feat/update-per-party-pricing`)
+## Unreleased — temporary pre-launch waitlist (branch `feat/prelaunch-waitlist`, not deployed)
+
+- Oct 6–12, 2026 (America/New_York) the public site is a waitlist page; Oct 13 00:00 ET the normal site returns
+  automatically. See [docs/PRELAUNCH.md](docs/PRELAUNCH.md). Needs migration `20251006001500_launch_waitlist.sql`.
+
+## 2026-10-06 — per-party price update (`a5ab79e`, deployed)
 
 - **New prices, still per party:** Starter $4.99 → **$9.99**, Plus $9.99 → **$19.99**, Pro $14.99 → **$29.99**; Free
   stays $0. Plan names, features, AI allowances, trial and per-party billing rules are unchanged.

@@ -16,6 +16,7 @@ const SERVER_ONLY = [
   'DODO_PAYMENTS_API_KEY',
   'DODO_PAYMENTS_WEBHOOK_SECRET',
   'AI_API_KEY',
+  'PRELAUNCH_PREVIEW_TOKEN',
   'SENTRY_AUTH_TOKEN',
   // deployment tooling tokens, if present in the environment
   'GITHUB_TOKEN',

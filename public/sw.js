@@ -49,7 +49,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          if (res.ok && APP_ROUTES.test(url.pathname)) {
+          // Never cache a redirect (e.g. the pre-launch routing layer sending /home to the waitlist) as the app shell.
+          if (res.ok && !res.redirected && APP_ROUTES.test(url.pathname)) {
             const copy = res.clone()
             caches.open(PAGES).then((c) => c.put(url.pathname, copy))
           }

@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
           
           <div className="prose prose-gray dark:prose-invert max-w-none">
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              <strong>Last updated:</strong> October 4, 2026
+              <strong>Last updated:</strong> October 6, 2026
             </p>
 
             <section className="mb-8">
@@ -29,6 +29,7 @@ export default function PrivacyPolicyPage() {
                 <li>Guest information you add (names and, if you choose, email addresses or phone numbers) and the RSVP replies guests send through your invitation link</li>
                 <li>Payment information (processed securely through our payment providers)</li>
                 <li>Usage data and preferences to improve our service</li>
+                <li>Launch waitlist sign-ups: your email address, an optional first name, and the link or campaign that brought you to us</li>
               </ul>
             </section>
 
@@ -44,6 +45,7 @@ export default function PrivacyPolicyPage() {
                 <li>Send invitations, RSVP confirmations and notifications you or your guests ask for</li>
                 <li>Process payments and manage your plan</li>
                 <li>Send important service updates and notifications</li>
+                <li>Tell you when Magical Birthday Planner launches, if you joined the waitlist (you can ask us to remove your email at any time)</li>
                 <li>Improve our platform and develop new features</li>
               </ul>
             </section>

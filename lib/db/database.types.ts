@@ -313,6 +313,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"launch_waitlist": {
+                  Row: {
+                    "created_at": string,"email": string,"first_name": string | null,"id": string,"signup_count": number,"source": string | null,"status": string,"updated_at": string,"utm_campaign": string | null,"utm_content": string | null,"utm_medium": string | null,"utm_source": string | null
+                  }
+                  Insert: {
+                    "created_at"?: string,"email": string,"first_name"?: string | null,"id"?: string,"signup_count"?: number,"source"?: string | null,"status"?: string,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"email"?: string,"first_name"?: string | null,"id"?: string,"signup_count"?: number,"source"?: string | null,"status"?: string,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"parties": {
                   Row: {
                     "budget": number | null,"checklist_data": Json | null,"child_age": number,"child_gender": string | null,"child_name": string,"city": string | null,"colors": (string)[] | null,"created_at": string | null,"guest_count": number | null,"id": string,"interests": (string)[],"is_shared": boolean | null,"latitude": number | null,"location": unknown,"longitude": number | null,"party_date": string,"party_location": string | null,"party_time": string | null,"search_radius_miles": number,"selected_theme": string | null,"share_token": string | null,"shared_at": string | null,"state": string | null,"status": string | null,"theme": string | null,"theme_details": Json | null,"updated_at": string | null,"user_id": string,"venue_type": string | null,"zip_code": string | null
@@ -798,6 +811,12 @@ isOneToOne: false
                            },
 "is_end_user_request":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"join_launch_waitlist":
+{ Args: { "p_email": string,"p_first_name"?: string,"p_source"?: string,"p_utm_campaign"?: string,"p_utm_content"?: string,"p_utm_medium"?: string,"p_utm_source"?: string }; Returns: string
+                           },
+"launch_waitlist_stats":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "owns_party":
 { Args: { "p_party_id": string }; Returns: boolean

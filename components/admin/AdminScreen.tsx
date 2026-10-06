@@ -100,6 +100,31 @@ function PlanControls({ user, onChanged, testId }: { user: AdminUser; onChanged:
   )
 }
 
+interface WaitlistStats {
+  total: number
+  today: number
+  bySource: Record<string, number>
+  byCampaign: Record<string, number>
+}
+
+function CountList({ title, counts }: { title: string; counts: Record<string, number> }) {
+  const rows = Object.entries(counts).sort((a, b) => b[1] - a[1])
+  return (
+    <div>
+      <p className="font-semibold text-foreground">{title}</p>
+      {rows.length ? (
+        <ul className="mt-1 space-y-0.5">
+          {rows.map(([k, n]) => (
+            <li key={k} className="flex justify-between gap-2"><span className="truncate">{k}</span><span>{n}</span></li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-1">None yet</p>
+      )}
+    </div>
+  )
+}
+
 export function AdminScreen() {
   const { user } = useAuth()
   const session = useSWR(user ? ['admin-session', user.id] : null, () => apiFetch<{ admin: boolean; userId: string }>('/api/admin/session'), { shouldRetryOnError: false })
@@ -108,6 +133,7 @@ export function AdminScreen() {
   const [selected, setSelected] = useState<string | null>(null)
   const isAdmin = !!session.data?.admin
   const stats = useSWR(isAdmin ? 'admin-stats' : null, () => apiFetch<{ users: number; paidUsers: number; freeUsers: number; overrides: number; unresolvedPayments: number }>('/api/admin/stats'))
+  const waitlist = useSWR(isAdmin ? 'admin-waitlist' : null, () => apiFetch<WaitlistStats>('/api/admin/waitlist'))
   const me = useSWR(isAdmin && user?.email ? ['admin-me', user.email] : null, () => apiFetch<{ users: AdminUser[] }>(`/api/admin/users?q=${encodeURIComponent(user!.email!)}`).then((r) => r.users.find((u) => u.id === user!.id) ?? null))
   const users = useSWR(isAdmin ? ['admin-users', term] : null, () => apiFetch<{ users: AdminUser[] }>(`/api/admin/users?q=${encodeURIComponent(term)}`).then((r) => r.users))
   const audit = useSWR(isAdmin ? 'admin-audit' : null, () => apiFetch<{ entries: AuditEntry[] }>('/api/admin/audit').then((r) => r.entries))
@@ -116,6 +142,7 @@ export function AdminScreen() {
     void users.mutate()
     void audit.mutate()
     void stats.mutate()
+    void waitlist.mutate()
   }
 
   if (session.isLoading || (!session.data && !session.error && user)) {
@@ -154,6 +181,21 @@ export function AdminScreen() {
             <span className="col-span-2 rounded-xl bg-destructive/10 px-3 py-2 font-semibold text-destructive" role="alert" data-testid="admin-unresolved-payments">
               {stats.data.unresolvedPayments} paid purchase{stats.data.unresolvedPayments === 1 ? '' : 's'} not matched to a party — reconcile (see BILLING_SECURITY.md)
             </span>
+          ) : null}
+        </Card>
+      </Section>
+
+      <Section title="Launch waitlist">
+        <Card className="space-y-3 p-4 text-sm" data-testid="admin-waitlist">
+          <div className="grid grid-cols-2 gap-3">
+            <span>Signups: <strong>{waitlist.data?.total ?? '…'}</strong></span>
+            <span>Today (ET): <strong>{waitlist.data?.today ?? '…'}</strong></span>
+          </div>
+          {waitlist.data ? (
+            <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+              <CountList title="By source" counts={waitlist.data.bySource} />
+              <CountList title="By campaign" counts={waitlist.data.byCampaign} />
+            </div>
           ) : null}
         </Card>
       </Section>
