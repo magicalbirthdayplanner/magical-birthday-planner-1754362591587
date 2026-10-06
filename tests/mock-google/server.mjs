@@ -175,6 +175,13 @@ async function handleServices(req, res, url) {
     send(res, 200, { id: `email_${emails.length}` })
     return true
   }
+  if (path === '/emails/batch' && req.method === 'POST') {
+    const body = await readBody(req)
+    const key = req.headers['idempotency-key'] || null
+    for (const e of body) emails.push({ ...e, idempotencyKey: key, at: Date.now() })
+    send(res, 200, { data: body.map((_, i) => ({ id: `email_${emails.length - body.length + i + 1}` })) })
+    return true
+  }
   if (path === '/__mock/emails') {
     send(res, 200, emails.map((e) => ({ to: e.to, subject: e.subject, from: e.from, html: e.html })))
     return true

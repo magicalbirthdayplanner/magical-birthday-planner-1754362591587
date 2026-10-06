@@ -6,7 +6,9 @@ Major milestones, newest first. Dates and commits are from Git history (`git log
 ## Unreleased — temporary pre-launch waitlist (branch `feat/prelaunch-waitlist`, not deployed)
 
 - Oct 6–12, 2026 (America/New_York) the public site is a waitlist page; Oct 13 00:00 ET the normal site returns
-  automatically. See [docs/PRELAUNCH.md](docs/PRELAUNCH.md). Needs migration `20251006001500_launch_waitlist.sql`.
+  automatically. See [docs/PRELAUNCH.md](docs/PRELAUNCH.md). Needs migrations `20251006001500` + `20251006001600`.
+- Waitlist confirmation email (once per sign-up) and an Oct 12 launch reminder (Vercel Cron, idempotent), both via
+  the existing Resend setup, with one-click unsubscribe. `/terms` redirects to the waitlist until launch.
 
 ## 2026-10-06 — per-party price update (`a5ab79e`, deployed)
 

@@ -3,7 +3,7 @@
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { NextRequest } from 'next/server'
-import { LAUNCH_AT, PRELAUNCH_STARTS_AT, launchState, routeFor, zonedTimeToInstant } from '@/lib/launch'
+import { LAUNCH_AT, PRELAUNCH_STARTS_AT, REMINDER_AT, launchState, routeFor, zonedTimeToInstant } from '@/lib/launch'
 import { countdownLabel } from '@/components/prelaunch/Countdown'
 
 const ET = (d: number, h = 0, mi = 0, s = 0) => zonedTimeToInstant(2026, 10, d, h, mi, s)
@@ -13,6 +13,7 @@ describe('launch window (America/New_York)', () => {
   it('starts Oct 6 00:00 EDT and launches Oct 13 00:00 EDT (UTC−4)', () => {
     expect(PRELAUNCH_STARTS_AT.toISOString()).toBe('2026-10-06T04:00:00.000Z')
     expect(LAUNCH_AT.toISOString()).toBe('2026-10-13T04:00:00.000Z')
+    expect(REMINDER_AT.toISOString()).toBe('2026-10-12T04:00:00.000Z') // the cron in vercel.json: 0 4 12 10 *
   })
 
   it('October 6 → October 12 is PRE_LAUNCH; October 13 12:00:00 AM ET is LIVE', () => {
@@ -66,11 +67,16 @@ describe('routing during PRE_LAUNCH', () => {
   it('serves the waitlist and legal pages from the pre-launch shell', () => {
     expect(pre('/')).toEqual({ action: 'rewrite', to: '/prelaunch' })
     expect(pre('/privacy')).toEqual({ action: 'rewrite', to: '/prelaunch/privacy' })
-    expect(pre('/terms/')).toEqual({ action: 'rewrite', to: '/prelaunch/terms' })
+  })
+
+  it('the Terms (they list plan prices) redirect to the waitlist until launch', () => {
+    expect(pre('/terms')).toEqual({ action: 'redirect', to: '/' })
+    expect(pre('/terms/')).toEqual({ action: 'redirect', to: '/' })
+    expect(routeFor('/terms', 'LIVE')).toEqual({ action: 'next' })
   })
 
   it('sends pricing, sign-in, sign-up, party creation, checkout pages and the app to the waitlist', () => {
-    for (const p of ['/pricing', '/login', '/join', '/start', '/home', '/plan', '/plan/theme', '/discover', '/guests', '/activities', '/more', '/admin', '/help', '/checkout-success', '/venue/abc', '/anything-new']) {
+    for (const p of ['/pricing', '/signin', '/signup', '/login', '/join', '/start', '/home', '/plan', '/plan/theme', '/discover', '/guests', '/activities', '/more', '/admin', '/help', '/checkout-success', '/venue/abc', '/anything-new']) {
       expect(pre(p), p).toEqual({ action: 'redirect', to: '/' })
     }
     expect(pre('/prelaunch')).toEqual({ action: 'redirect', to: '/' })
@@ -79,7 +85,7 @@ describe('routing during PRE_LAUNCH', () => {
 
   it('refuses checkout but leaves other APIs (webhooks, RSVP, waitlist, health) alone', () => {
     expect(pre('/api/billing/checkout')).toEqual({ action: 'block' })
-    for (const p of ['/api/webhooks/dodo', '/api/waitlist', '/api/health', '/api/invite/abc/rsvp', '/api/billing/status']) expect(pre(p), p).toEqual({ action: 'next' })
+    for (const p of ['/api/webhooks/dodo', '/api/waitlist', '/api/waitlist/unsubscribe', '/api/cron/launch-reminder', '/api/health', '/api/invite/abc/rsvp', '/api/billing/status']) expect(pre(p), p).toEqual({ action: 'next' })
   })
 
   it('keeps guests’ RSVP links and auth callbacks working for parties that already exist', () => {
@@ -95,7 +101,7 @@ describe('routing when LIVE', () => {
   it('passes everything through and retires the pre-launch pages', () => {
     for (const p of ['/', '/pricing', '/login', '/start', '/home', '/admin', '/help', '/api/billing/checkout']) expect(routeFor(p, 'LIVE'), p).toEqual({ action: 'next' })
     expect(routeFor('/prelaunch', 'LIVE')).toEqual({ action: 'redirect', to: '/' })
-    expect(routeFor('/prelaunch/terms', 'LIVE')).toEqual({ action: 'redirect', to: '/terms' })
+    expect(routeFor('/prelaunch/privacy', 'LIVE')).toEqual({ action: 'redirect', to: '/privacy' })
   })
 })
 
@@ -139,6 +145,15 @@ describe('middleware', () => {
     expect(cookie.value).not.toContain('a-long-owner') // a digest, not the token
     expect((await run('https://mbp.test/home', `mbp_preview=${cookie.value}`)).headers.get('x-middleware-next')).toBe('1')
     expect((await run('https://mbp.test/home', 'mbp_preview=forged')).status).toBe(307)
+  })
+})
+
+describe('launch reminder schedule', () => {
+  it('vercel.json runs the reminder cron at REMINDER_AT (Oct 12, 04:00 UTC = 00:00 EDT)', async () => {
+    const { readFileSync } = await import('node:fs')
+    const cfg = JSON.parse(readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8')) as { crons: { path: string; schedule: string }[] }
+    const [min, hour, day, month] = cfg.crons.find((c) => c.path === '/api/cron/launch-reminder')!.schedule.split(' ').map(Number)
+    expect(new Date(Date.UTC(2026, month - 1, day, hour, min)).getTime()).toBe(REMINDER_AT.getTime())
   })
 })
 

@@ -315,13 +315,13 @@ isOneToOne: false
                   ]
                 },"launch_waitlist": {
                   Row: {
-                    "created_at": string,"email": string,"first_name": string | null,"id": string,"signup_count": number,"source": string | null,"status": string,"updated_at": string,"utm_campaign": string | null,"utm_content": string | null,"utm_medium": string | null,"utm_source": string | null
+                    "confirmation_sent_at": string | null,"created_at": string,"email": string,"first_name": string | null,"id": string,"launch_reminder_sent_at": string | null,"signup_count": number,"source": string | null,"status": string,"unsubscribe_token": string,"updated_at": string,"utm_campaign": string | null,"utm_content": string | null,"utm_medium": string | null,"utm_source": string | null
                   }
                   Insert: {
-                    "created_at"?: string,"email": string,"first_name"?: string | null,"id"?: string,"signup_count"?: number,"source"?: string | null,"status"?: string,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null
+                    "confirmation_sent_at"?: string | null,"created_at"?: string,"email": string,"first_name"?: string | null,"id"?: string,"launch_reminder_sent_at"?: string | null,"signup_count"?: number,"source"?: string | null,"status"?: string,"unsubscribe_token"?: string,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string,"first_name"?: string | null,"id"?: string,"signup_count"?: number,"source"?: string | null,"status"?: string,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null
+                    "confirmation_sent_at"?: string | null,"created_at"?: string,"email"?: string,"first_name"?: string | null,"id"?: string,"launch_reminder_sent_at"?: string | null,"signup_count"?: number,"source"?: string | null,"status"?: string,"unsubscribe_token"?: string,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null
                   }
                   Relationships: [
                     
@@ -841,6 +841,9 @@ isOneToOne: false
                            },
 "submit_rsvp":
 { Args: { "p_adults"?: number,"p_children"?: number,"p_email": string,"p_name": string,"p_note"?: string,"p_respondent"?: string,"p_status": string,"p_token": string }; Returns: Json
+                           },
+"unsubscribe_launch_waitlist":
+{ Args: { "p_token": string }; Returns: boolean
                            },
 "venues_near":
 { Args: { "p_lat": number,"p_limit"?: number,"p_lng": number,"p_radius_m": number }; Returns: {

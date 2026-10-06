@@ -58,6 +58,8 @@ interface SendInput {
   html: string
   text?: string
   idempotencyKey: string
+  /** Extra headers (e.g. List-Unsubscribe on waitlist emails). */
+  headers?: Record<string, string>
   log: { type: string; userId?: string | null; partyId?: string | null }
 }
 
@@ -74,6 +76,7 @@ export async function sendTransactional(input: SendInput): Promise<SendResult> {
         html: input.html,
         text: input.text,
         replyTo: emailReplyTo(),
+        headers: input.headers,
       },
       { idempotencyKey: createHash('sha256').update(input.idempotencyKey).digest('hex').slice(0, 64) },
     )

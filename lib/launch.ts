@@ -35,6 +35,8 @@ export function zonedTimeToInstant(y: number, m: number, d: number, h = 0, mi = 
 export const PRELAUNCH_STARTS_AT = zonedTimeToInstant(2026, 10, 6)
 /** Launch: Oct 13, 2026, 12:00:00 AM Eastern. Pre-launch ends the instant before. */
 export const LAUNCH_AT = zonedTimeToInstant(2026, 10, 13)
+/** The waitlist's "opens tomorrow" reminder may go out from Oct 12, 2026, 12:00:00 AM Eastern until launch. */
+export const REMINDER_AT = zonedTimeToInstant(2026, 10, 12)
 
 type Env = Record<string, string | undefined>
 
@@ -51,8 +53,11 @@ export const isPreLaunch = (now?: Date | number, env?: Env) => launchState(now, 
 /** The pre-launch page's own path. `/` is rewritten to it during PRE_LAUNCH; it redirects to `/` when LIVE. */
 export const PRELAUNCH_PATH = '/prelaunch'
 
-/** Public pages shown inside the pre-launch shell during PRE_LAUNCH (rewritten to `/prelaunch<path>`). */
-const SHELL_PAGES = ['/', '/privacy', '/terms']
+/**
+ * Public pages shown inside the pre-launch shell during PRE_LAUNCH (rewritten to `/prelaunch<path>`). `/terms` is
+ * deliberately not one of them: it lists plan prices, so it redirects to the waitlist until launch.
+ */
+const SHELL_PAGES = ['/', '/privacy']
 
 /**
  * Other pages a visitor may still open during PRE_LAUNCH; everything else redirects to the waitlist at `/`.

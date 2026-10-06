@@ -1,8 +1,9 @@
 /**
  * Launch-state routing layer (temporary pre-launch / waitlist mode, see lib/launch.ts).
  *
- * PRE_LAUNCH: `/`, `/privacy` and `/terms` are served from the pre-launch shell (app/(prelaunch)); product pages
- * (sign-in, sign-up, party creation, pricing, the app itself) redirect to the waitlist at `/`; checkout is refused.
+ * PRE_LAUNCH: `/` and `/privacy` are served from the pre-launch shell (app/(prelaunch)); product pages (sign-in,
+ * sign-up, party creation, pricing, terms — which lists prices — and the app itself) redirect to the waitlist at `/`;
+ * checkout is refused.
  * LIVE: everything passes through untouched and the pre-launch pages redirect to their public paths.
  *
  * Owner preview: with PRELAUNCH_PREVIEW_TOKEN set, opening any page with `?preview=<token>` sets an httpOnly cookie

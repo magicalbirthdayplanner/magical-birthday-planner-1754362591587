@@ -37,21 +37,20 @@ test('the waitlist page explains the product, shows real screens and has one act
 })
 
 test('product pages, sign-in, sign-up, pricing and checkout are closed until launch', async ({ page, request }) => {
-  for (const p of ['/pricing', '/login', '/join', '/start', '/home', '/plan', '/discover', '/guests', '/more', '/admin', '/help', '/checkout-success', '/prelaunch']) {
+  for (const p of ['/pricing', '/signin', '/signup', '/terms', '/login', '/join', '/start', '/home', '/plan', '/discover', '/guests', '/more', '/admin', '/help', '/checkout-success', '/prelaunch']) {
     await page.goto(`${p}?utm_source=x`)
     await expect(page, p).toHaveURL(/\/\?utm_source=x$/)
     await expect(page.getByTestId('prelaunch-page'), p).toBeVisible()
   }
   const checkout = await request.post('/api/billing/checkout', { data: { plan: 'STARTER', partyId: '00000000-0000-4000-8000-000000000000' } })
   expect(checkout.status()).toBe(403)
-  // still open: legal pages (in the pre-launch shell), existing guests' RSVP links, health
+  // still open: the privacy policy (in the pre-launch shell), existing guests' RSVP links, password reset, health
   await page.goto('/privacy')
   await expect(page.getByRole('heading', { name: 'Privacy Policy' })).toBeVisible()
   await expect(page.getByTestId('prelaunch-header')).toBeVisible()
   await expect(page.locator('body')).toContainText('Launch waitlist sign-ups')
-  await page.goto('/terms')
-  await expect(page.getByRole('heading', { name: 'Terms & Conditions' })).toBeVisible()
-  await expect(page.getByTestId('prelaunch-header')).not.toContainText(/Sign in|Get started/)
+  await page.goto('/reset-password')
+  await expect(page).toHaveURL(/\/reset-password$/)
   await page.goto(`/invite/${'0'.repeat(48)}`)
   await expect(page).toHaveURL(new RegExp(`/invite/${'0'.repeat(48)}$`))
   expect((await request.get('/api/health')).status()).toBe(200)
@@ -72,6 +71,14 @@ test('join the waitlist: validation, success, campaign attribution and a duplica
   await expect(page.getByTestId('waitlist-success-footer')).toBeAttached() // every form on the page switches together
   await expect.poll(async () => (await waitlistRow(email)).length).toBe(1)
   expect((await waitlistRow(email))[0]).toMatchObject({ email, first_name: 'Sam', utm_source: 'instagram', utm_medium: 'story', utm_campaign: 'prelaunch_oct13', utm_content: 'd07_story' })
+  // the confirmation email went out once (mock Resend), with no pricing in it
+  const confirmations = async () => (await (await fetch('http://127.0.0.1:4010/__mock/emails')).json() as { to: string[]; subject: string; html: string }[]).filter((m) => m.to.includes(email))
+  await expect.poll(async () => (await confirmations()).length).toBe(1)
+  const [mail] = await confirmations()
+  expect(mail.subject).toBe('You’re on the list 🎂 Magical Birthday Planner launches October 13')
+  expect(mail.html).toContain('October 13')
+  expect(mail.html).not.toMatch(/\$\d|\bStarter\b|\bPlus\b|\bPro\b|pricing/)
+  await expect.poll(async () => (await waitlistRow(email))[0].confirmation_sent_at).not.toBeNull()
 
   // same person again from another device and another link: same friendly answer, still one row
   const ctx = await browser.newContext()
@@ -85,6 +92,7 @@ test('join the waitlist: validation, success, campaign attribution and a duplica
   const rows = await waitlistRow(email)
   expect(rows).toHaveLength(1)
   expect(rows[0]).toMatchObject({ utm_source: 'instagram', signup_count: 2 })
+  expect(await confirmations()).toHaveLength(1) // no second confirmation for a repeat sign-up
 })
 
 test('a server error shows a friendly retry message, not a success', async ({ page }) => {

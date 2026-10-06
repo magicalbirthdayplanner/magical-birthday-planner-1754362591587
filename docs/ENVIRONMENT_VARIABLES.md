@@ -18,6 +18,7 @@ Preview environment (scoped to the `mobile-first` branch) at the v1.0 baseline (
 | `VERCEL`, `VERCEL_ENV`, `VERCEL_URL`, `NODE_ENV`, `NEXT_RUNTIME`, `CI` | Set by the platform/tooling | no | — | auto | auto |
 | `NEXT_DIST_DIR` | Test-only build directory (`.next-e2e`) | no | no | — | — |
 | `PRELAUNCH_MODE` | Temporary pre-launch (waitlist) mode, [docs/PRELAUNCH.md](PRELAUNCH.md): `auto` (default — on Oct 6–12, 2026, America/New_York) · `on` · `off`. Read at request time | no | no | — | — |
+| `CRON_SECRET` | Bearer secret Vercel Cron sends to `/api/cron/*` (launch reminder). Unset → cron endpoints refuse (503) | yes | no | ✓ | — |
 | `PRELAUNCH_PREVIEW_TOKEN` | Optional (≥ 24 chars): `/?preview=<token>` lets the owner use the full product during pre-launch (httpOnly cookie, 7 days; `?preview=off` clears). Unset → no bypass | yes | no | — | — |
 
 ## Supabase

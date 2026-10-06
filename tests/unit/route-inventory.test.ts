@@ -27,7 +27,9 @@ const EXPECTED = [
   // public marketing + legal
   '/ [page]', '/pricing [page]', '/checkout-success [page]', '/privacy [page]', '/terms [page]', '/help [page]',
   // temporary pre-launch shell (Oct 6–12, 2026; served at /, /privacy, /terms by middleware.ts — lib/launch.ts)
-  '/prelaunch [page]', '/prelaunch/privacy [page]', '/prelaunch/terms [page]', '/api/waitlist [api]',
+  '/prelaunch [page]', '/prelaunch/privacy [page]', '/api/waitlist [api]', '/api/waitlist/unsubscribe [api]',
+  // scheduled jobs (Vercel Cron; CRON_SECRET bearer required)
+  '/api/cron/launch-reminder [api]',
   // full-screen flows (public: auth, guest invitation, offline; wizard needs sign-in)
   '/login [page]', '/join [page]', '/reset-password [page]', '/offline [page]', '/invite/[token] [page]', '/start [page]', '/venue/[placeId] [page]',
   // signed-in app (bottom navigation)

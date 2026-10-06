@@ -1,9 +1,19 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { apiError, clientIp } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'
 import { WaitlistRequest } from '@/lib/waitlist'
 import { waitlistEvent, waitlistFailed } from '@/lib/observability/waitlist'
+import { sendWaitlistConfirmation } from '@/lib/server/waitlist-email'
+
+/** Run after the response is sent (Vercel keeps the function alive for it); outside a request scope, run inline. */
+async function afterResponse(task: () => Promise<unknown>) {
+  try {
+    after(task)
+  } catch {
+    await task()
+  }
+}
 
 export const fetchCache = 'force-no-store'
 export const dynamic = 'force-dynamic'
@@ -12,6 +22,8 @@ export const dynamic = 'force-dynamic'
  * POST /api/waitlist — anonymous launch-waitlist sign-up { email, firstName?, utm_*?, source? }.
  * The email is validated and normalized here and stored by the service-role-only join_launch_waitlist().
  * A new and an already-listed email get the same answer, so the endpoint can't be used to test who signed up.
+ * The confirmation email goes out after the response; it is sent at most once per row (lib/server/waitlist-email.ts),
+ * so a repeat sign-up only sends one if the first attempt never got through. Email problems never fail the sign-up.
  */
 export async function POST(req: Request) {
   const ip = clientIp(req)
@@ -61,6 +73,7 @@ export async function POST(req: Request) {
       return apiError(500, 'server_error', 'We couldn’t add you just now. Please try again.')
     }
     waitlistEvent(data === 'duplicate' ? 'waitlist_signup_duplicate' : 'waitlist_signup_success', dims)
+    await afterResponse(() => sendWaitlistConfirmation(body.email))
     return NextResponse.json({ ok: true })
   } catch {
     waitlistFailed('unreachable', dims)

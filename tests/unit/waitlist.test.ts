@@ -63,6 +63,9 @@ vi.mock('@/lib/server/supabase-admin', () => ({
   }),
 }))
 
+const confirm = vi.hoisted(() => vi.fn(async () => 'sent'))
+vi.mock('@/lib/server/waitlist-email', () => ({ sendWaitlistConfirmation: confirm }))
+
 const EMAIL = 'Secret.Parent@Example.test'
 const post = async (body: unknown, ip = '203.0.113.1') => {
   const { POST } = await import('@/app/api/waitlist/route')
@@ -78,6 +81,7 @@ describe('POST /api/waitlist', () => {
     sentry.calls.length = 0
     db.calls.length = 0
     db.rpc.mockReset()
+    confirm.mockClear()
     logs = []
     for (const k of ['log', 'info', 'warn', 'error'] as const) vi.spyOn(console, k).mockImplementation((...a: unknown[]) => void logs.push(a.map(String).join(' ')))
   })
@@ -92,6 +96,8 @@ describe('POST /api/waitlist', () => {
     expect(JSON.stringify(sentry.calls)).toContain('waitlist_signup_success')
     expect(db.calls).toEqual([expect.objectContaining({ event: 'waitlist_signup_success', properties: { form: 'hero', source: 'instagram', campaign: 'prelaunch_oct13' } })])
     expect(leaked()).toBe(false)
+    expect(confirm).toHaveBeenCalledTimes(1)
+    expect(confirm).toHaveBeenCalledWith('secret.parent@example.test') // after the response; at most once per row (see waitlist-email)
   })
 
   it('a duplicate gets the same answer (no way to test who signed up) and is recorded as a duplicate', async () => {
@@ -99,6 +105,7 @@ describe('POST /api/waitlist', () => {
     const res = await post({ email: EMAIL })
     expect([res.status, await res.json()]).toEqual([200, { ok: true }])
     expect(JSON.stringify(sentry.calls)).toContain('waitlist_signup_duplicate')
+    expect(confirm).toHaveBeenCalledTimes(1) // only sends if no confirmation was delivered for that row yet
   })
 
   it('rejects an invalid email without touching the database', async () => {
@@ -107,12 +114,14 @@ describe('POST /api/waitlist', () => {
     expect(db.rpc).not.toHaveBeenCalled()
     expect(JSON.stringify(sentry.calls)).toContain('waitlist_signup_validation_error')
     expect((await post('not json')).status).toBe(400)
+    expect(confirm).not.toHaveBeenCalled()
   })
 
   it('a filled honeypot looks like success but stores nothing', async () => {
     const res = await post({ email: EMAIL, website: 'http://spam.example' })
     expect(res.status).toBe(200)
     expect(db.rpc).not.toHaveBeenCalled()
+    expect(confirm).not.toHaveBeenCalled()
   })
 
   it('rate-limits a single device', async () => {
@@ -133,6 +142,7 @@ describe('POST /api/waitlist', () => {
     expect(s).toContain('23514')
     expect(leaked()).toBe(false)
     expect(logs.join('\n').toLowerCase()).not.toContain('secret.parent')
+    expect(confirm).not.toHaveBeenCalled()
   })
 
   it('an unreachable database is handled the same way', async () => {

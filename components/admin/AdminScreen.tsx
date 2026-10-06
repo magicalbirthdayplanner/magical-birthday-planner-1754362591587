@@ -105,6 +105,10 @@ interface WaitlistStats {
   today: number
   bySource: Record<string, number>
   byCampaign: Record<string, number>
+  confirmationsSent?: number
+  confirmationsPending?: number
+  remindersSent?: number
+  unsubscribed?: number
 }
 
 function CountList({ title, counts }: { title: string; counts: Record<string, number> }) {
@@ -190,6 +194,10 @@ export function AdminScreen() {
           <div className="grid grid-cols-2 gap-3">
             <span>Signups: <strong>{waitlist.data?.total ?? '…'}</strong></span>
             <span>Today (ET): <strong>{waitlist.data?.today ?? '…'}</strong></span>
+            <span>Confirmations sent: <strong>{waitlist.data?.confirmationsSent ?? '…'}</strong></span>
+            <span>Confirmations pending: <strong>{waitlist.data?.confirmationsPending ?? '…'}</strong></span>
+            <span>Launch reminders sent: <strong>{waitlist.data?.remindersSent ?? '…'}</strong></span>
+            <span>Unsubscribed: <strong>{waitlist.data?.unsubscribed ?? '…'}</strong></span>
           </div>
           {waitlist.data ? (
             <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">

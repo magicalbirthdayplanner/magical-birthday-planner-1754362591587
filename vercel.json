@@ -9,5 +9,11 @@
   },
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/launch-reminder",
+      "schedule": "0 4 12 10 *"
+    }
+  ]
 }
