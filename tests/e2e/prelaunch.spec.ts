@@ -126,3 +126,30 @@ for (const width of [375, 390, 393, 430, 768, 1280]) {
     await ctx.close()
   })
 }
+
+test('phones: large swipeable screens, sticky CTA on short screens, hidden while typing', async ({ browser }) => {
+  // iPhone SE-sized visible area: the hero button starts below the fold, so the sticky CTA is there from the start
+  const ctx = await browser.newContext({ viewport: { width: 375, height: 548 }, isMobile: true, hasTouch: true })
+  const page = await ctx.newPage()
+  await page.goto('/')
+  const sticky = page.getByTestId('sticky-join')
+  await expect(sticky).toBeInViewport()
+  await sticky.click()
+  await expect(page.getByTestId('waitlist-submit-hero')).toBeInViewport()
+  await expect(sticky).not.toBeInViewport()
+  // typing: the sticky bar never covers the keyboard area
+  await page.locator('#ai').scrollIntoViewIfNeeded()
+  await expect(sticky).toBeInViewport()
+  await page.getByTestId('waitlist-form-footer').getByLabel('Parent email').focus()
+  await expect(sticky).not.toBeInViewport()
+  // screens: one large phone per swipe, inside the rail (the page itself never scrolls sideways)
+  const rail = page.getByTestId('phone-rail').nth(3)
+  await rail.scrollIntoViewIfNeeded()
+  const item = (await rail.locator('li').first().boundingBox())!
+  expect(item.width).toBeGreaterThanOrEqual(270)
+  expect(await rail.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true)
+  await rail.evaluate((el) => el.scrollBy({ left: el.clientWidth }))
+  await expect.poll(() => rail.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
+  await ctx.close()
+})

@@ -4,7 +4,7 @@
  * First-touch campaign attribution (utm_*, source/ref, referrer host) is captured on landing and sent along.
  * Every form on the page switches to the success state together once one of them succeeds.
  */
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { AppButton } from '@/components/app/ui'
 import { TextField } from '@/components/app/fields'
@@ -38,6 +38,7 @@ export function WaitlistForm({ placement, className, tone = 'light' }: { placeme
   const [firstName, setFirstName] = useState('')
   const [website, setWebsite] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     try {
@@ -56,6 +57,7 @@ export function WaitlistForm({ placement, className, tone = 'light' }: { placeme
     const value = email.trim()
     if (!EMAIL.test(value)) {
       setError('Please enter a valid email address.')
+      emailRef.current?.focus()
       return
     }
     setError(null)
@@ -78,6 +80,7 @@ export function WaitlistForm({ placement, className, tone = 'light' }: { placeme
       }
       const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null
       setError(res.status === 400 || res.status === 429 ? (body?.error?.message ?? 'Please check your email address.') : 'We couldn’t add you just now. Please try again.')
+      if (res.status === 400) emailRef.current?.focus()
     } catch {
       setError('We couldn’t reach the waitlist. Check your connection and try again.')
     }
@@ -89,7 +92,7 @@ export function WaitlistForm({ placement, className, tone = 'light' }: { placeme
     return (
       <div role="status" aria-live="polite" data-testid={`waitlist-success-${placement}`} className={cn('rounded-3xl p-5 text-center', dark ? 'bg-white/10 text-white' : 'bg-secondary/60', className)}>
         <p className="font-display text-2xl font-extrabold">You’re on the list! 🎂</p>
-        <p className={cn('mt-1.5 text-[15px] leading-relaxed', dark ? 'text-white/85' : 'text-muted-foreground')}>
+        <p className={cn('mt-1.5 text-base leading-relaxed', dark ? 'text-white/90' : 'text-muted-foreground')}>
           We’ll let you know when Magical Birthday Planner opens on October 13.
         </p>
         <button
@@ -119,6 +122,8 @@ export function WaitlistForm({ placement, className, tone = 'light' }: { placeme
         label="Parent email"
         type="email"
         inputMode="email"
+        enterKeyHint="go"
+        ref={emailRef}
         autoComplete="email"
         autoCapitalize="none"
         spellCheck={false}
@@ -137,6 +142,7 @@ export function WaitlistForm({ placement, className, tone = 'light' }: { placeme
         id={`${uid}-name`}
         label="First name (optional)"
         autoComplete="given-name"
+        enterKeyHint="go"
         maxLength={60}
         value={firstName}
         onChange={(e) => setFirstName(e.target.value)}
@@ -150,7 +156,7 @@ export function WaitlistForm({ placement, className, tone = 'light' }: { placeme
       <AppButton type="submit" size="lg" variant={dark ? 'secondary' : 'primary'} block loading={phase === 'sending'} data-testid={`waitlist-submit-${placement}`}>
         Join the waitlist
       </AppButton>
-      <p className={cn('text-center text-[13px] leading-snug', dark ? 'text-white/75' : 'text-muted-foreground')}>
+      <p className={cn('text-center text-sm leading-snug', dark ? 'text-white/75' : 'text-muted-foreground')}>
         No account or password — just your email. We’ll only use it for launch news.{' '}
         <Link href="/privacy" className="underline underline-offset-2">Privacy</Link>
       </p>
