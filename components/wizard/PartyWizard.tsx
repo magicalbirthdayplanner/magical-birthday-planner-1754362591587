@@ -73,10 +73,12 @@ export function PartyWizard() {
   const step = WIZARD_STEPS[stepIdx]
 
   // Restore draft (survives refresh and the Google sign-in round trip).
+  const restoredLocal = useRef(false)
   useEffect(() => {
     try {
       const saved = parseDraft(localStorage.getItem(DRAFT_KEY))
       if (saved) {
+        restoredLocal.current = true
         setDraft(saved)
         if (params?.get('resume') === '1') setFinale(true)
       }
@@ -89,6 +91,20 @@ export function PartyWizard() {
       track('party_creation_started')
     }
   }, [params])
+
+  // Email confirmed in another browser (e.g. the ad opened in Instagram, the link in Safari): the draft travelled
+  // with the sign-up (user metadata), so the parent lands on the finished wizard instead of starting over.
+  useEffect(() => {
+    if (restoredLocal.current || params?.get('resume') !== '1') return
+    const meta = user?.user_metadata?.party_draft
+    if (!meta) return
+    const saved = parseDraft(JSON.stringify(meta))
+    if (saved) {
+      restoredLocal.current = true
+      setDraft(saved)
+      setFinale(true)
+    }
+  }, [user, params])
 
   useEffect(() => {
     try {
@@ -215,6 +231,7 @@ export function PartyWizard() {
       } catch {
         /* ignore */
       }
+      if (currentUser.user_metadata?.party_draft) void db.auth.updateUser({ data: { party_draft: null } }).catch(() => undefined)
       router.replace('/discover?fresh=1')
     } catch (e) {
       setError(friendlyError(e, 'We couldn’t save your party. Please try again.'))
@@ -609,7 +626,7 @@ function Finale({
         <div className="mt-8 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <h2 className="text-lg font-semibold">{authMode === 'signup' ? 'Save your party' : 'Sign in to save your party'}</h2>
           <p className="mb-4 text-sm text-muted-foreground">So you can come back to it from any device.</p>
-          <AuthForm mode={authMode} compact onDone={onCreate} next="/start?resume=1" />
+          <AuthForm mode={authMode} compact onDone={onCreate} next="/start?resume=1" signupData={{ party_draft: draft }} />
           <p className="mt-4 text-center text-sm text-muted-foreground">
             {authMode === 'signup' ? 'Already have an account? ' : 'New here? '}
             <button type="button" className="font-semibold text-primary" onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}>

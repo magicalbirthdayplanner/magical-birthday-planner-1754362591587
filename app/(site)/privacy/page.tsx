@@ -75,6 +75,7 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Resend</strong> — delivers the emails we send, such as invitations, RSVP confirmations and notifications.</li>
                 <li><strong>Google Maps Platform</strong> — finds party venues near the ZIP code or area you search and shows them on a map. The map is loaded from Google in your browser.</li>
                 <li><strong>Our AI provider (OpenCode)</strong> — when you use an AI feature, generates suggestions from party details such as age, interests, area, guest count, budget and anything you type for the AI. Wording features such as invitations and party-host messages may include your child&apos;s and guests&apos; first names. We never send passwords, payment details, email addresses or phone numbers.</li>
+                <li><strong>Meta (Facebook and Instagram)</strong> — measures our Facebook and Instagram ads with the Meta Pixel. It receives which pages are visited and steps such as “account created”, “party created” or “purchase” (with the plan price), together with Meta’s own cookie and device information. We never send your name, email address or anything about your child or party.</li>
                 <li><strong>Sentry</strong> — monitors errors and performance so we can fix problems. Reports carry only an anonymous account ID; we strip email addresses, phone numbers, sign-in tokens and form contents before anything is sent.</li>
               </ul>
             </section>
@@ -109,6 +110,13 @@ export default function PrivacyPolicyPage() {
               <p className="text-gray-600 dark:text-gray-300">
                 We use cookies and similar technologies to improve your experience, analyze usage patterns, and provide 
                 personalized content. You can control cookie settings through your browser preferences.
+              </p>
+              <p className="text-gray-600 dark:text-gray-300 mt-4">
+                Advertising measurement: when you arrive from one of our ads we remember the ad campaign on your device, and the
+                Meta Pixel (see section 4) lets Meta tell us — and its ad delivery — which ads lead to sign-ups and purchases.
+                This may count as “sharing” for cross-context behavioral advertising under some US state laws. To opt out, turn on
+                Global Privacy Control in your browser: we then don’t load the Meta Pixel at all. The pixel never runs on guests’
+                invitation pages.
               </p>
             </section>
 

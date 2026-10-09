@@ -2,11 +2,12 @@
 /**
  * Product analytics, client side. One call site for the whole app:
  *   track('venue_saved', { category: 'art-studio' })
- * Events are batched and sent to /api/analytics (stored in Supabase). Add more
- * sinks (PostHog, GA4, …) in `sinks` without touching call sites.
+ * Events are batched and sent to /api/analytics (stored in Supabase) with the ad attribution of this device
+ * (lib/analytics/attribution.ts). Other sinks (the Meta Pixel) register with addAnalyticsSink.
  */
 import { db } from '@/lib/db/browser'
 import { sanitizeProps, type AnalyticsEvent, type AnalyticsProps } from './events'
+import { attributionProps, captureAttribution } from './attribution'
 
 interface QueuedEvent {
   event: AnalyticsEvent
@@ -58,7 +59,8 @@ export function track(event: AnalyticsEvent, props: AnalyticsProps = {}) {
   if (typeof window === 'undefined') return
   const e: QueuedEvent = {
     event,
-    properties: sanitizeProps(props),
+    // Campaign tags first: an event's own properties win on a name clash.
+    properties: sanitizeProps({ ...attributionProps(), ...props }),
     partyId: currentPartyId,
     path: window.location.pathname,
     ts: new Date().toISOString(),
@@ -95,6 +97,7 @@ export async function flush() {
 }
 
 if (typeof window !== 'undefined') {
+  captureAttribution()
   window.addEventListener('pagehide', () => void flush())
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') void flush()

@@ -5,6 +5,7 @@ import { Nunito } from 'next/font/google';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ServiceWorkerRegistrar } from '@/components/app/ServiceWorkerRegistrar';
+import { MetaPixel } from '@/components/analytics/MetaPixel';
 
 // One typeface for the whole product. Display headings use the same family (heavier weights), see tailwind.config.ts.
 const nunito = Nunito({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-sans', display: 'swap' });
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </AuthProvider>
         </ErrorBoundary>
         <ServiceWorkerRegistrar />
+        <MetaPixel />
       </body>
     </html>
   );

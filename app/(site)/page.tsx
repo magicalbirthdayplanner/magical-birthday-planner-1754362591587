@@ -127,9 +127,13 @@ export default function Home() {
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight">
                   Magical Birthday Planner
                 </h1>
-                <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
-                  Create unforgettable birthday celebrations for kids aged 0-12 with AI-powered suggestions, beautiful themes, and stress-free planning tools designed for busy parents.
+                <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 mb-3 max-w-3xl mx-auto px-2">
+                  AI-powered birthday planning for busy parents. Venue, theme, food, guests and budget — planned together, on your phone, without the chaos.
                 </p>
+                <p className="text-sm font-semibold text-purple-700 dark:text-purple-300 mb-5 sm:mb-6" data-testid="hero-steps">
+                  Discover → Plan → Organize → Celebrate
+                </p>
+                <FoundingOffer compact className="mb-5" />
               </>
             )}
             {loading ? (
@@ -156,14 +160,9 @@ export default function Home() {
               // Unauthenticated user CTAs
               <>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
-                  <Link href="/start" className="w-full sm:w-auto">
+                  <Link href="/start" className="w-full sm:w-auto" data-testid="hero-cta">
                     <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 sm:px-8 py-3 text-base sm:text-lg">
-                      Get Started Free
-                    </Button>
-                  </Link>
-                  <Link href="/start" className="w-full sm:w-auto">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20 px-6 sm:px-8 py-3 text-base sm:text-lg">
-                      Try Demo
+                      Plan your party — free
                     </Button>
                   </Link>
                 </div>
@@ -172,7 +171,6 @@ export default function Home() {
                 </p>
               </>
             )}
-            <FoundingOffer className="mt-8" />
           </div>
         </div>
       </section>

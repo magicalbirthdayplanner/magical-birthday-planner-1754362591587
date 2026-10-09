@@ -33,9 +33,10 @@
     "**/*.ts",
     "**/*.tsx",
     ".next-e2e/types/**/*.ts",
+    ".next-flagoff/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-flagoff/types/**/*.ts"
+    ".next-pixel/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

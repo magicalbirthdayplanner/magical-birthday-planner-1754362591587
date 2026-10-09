@@ -17,6 +17,7 @@ Preview environment (scoped to the `mobile-first` branch) at the v1.0 baseline (
 | `NEXT_PUBLIC_SITE_URL` | Not read by the code (stale preview variable) | no | yes | — | ✓ |
 | `VERCEL`, `VERCEL_ENV`, `VERCEL_URL`, `NODE_ENV`, `NEXT_RUNTIME`, `CI` | Set by the platform/tooling | no | — | auto | auto |
 | `NEXT_DIST_DIR` | Test-only build directory (`.next-e2e`) | no | no | — | — |
+| `NEXT_PUBLIC_META_PIXEL_ID` | Meta Pixel (dataset) ID for Facebook/Instagram ads measurement (components/analytics/MetaPixel.tsx). Unset → no pixel. Public value (it appears in page source); build-time, redeploy after changing | no | no | — | — |
 | `CRON_SECRET` | Bearer secret for Vercel Cron `/api/cron/*`. No cron jobs exist since the waitlist was retired (2026-10-09); safe to delete | yes | no | ✓ | — |
 
 ## Supabase

@@ -13,7 +13,8 @@ import { cn } from '@/lib/utils'
 
 const fetchSeats = (url: string) => fetch(url).then((r) => (r.ok ? (r.json() as Promise<{ seats: number; left: number }>) : null))
 
-export function FoundingOffer({ className }: { className?: string }) {
+/** `compact`: one line for the landing hero, above the main button (no button of its own). */
+export function FoundingOffer({ className, compact }: { className?: string; compact?: boolean }) {
   const { user, loading } = useAuth()
   const status = usePlanStatus()
   const { data } = useSWR(user ? null : '/api/founding', fetchSeats, { revalidateOnFocus: false })
@@ -29,6 +30,16 @@ export function FoundingOffer({ className }: { className?: string }) {
     )
   }
   if (!data || data.left <= 0) return null
+  if (compact) {
+    return (
+      <p className={cn('mx-auto inline-flex items-center gap-2 rounded-full border border-purple-300 bg-white/90 px-4 py-2 text-sm text-gray-800', className)} data-testid="founding-offer">
+        <Gift className="h-4 w-4 shrink-0 text-purple-600" aria-hidden />
+        <span>
+          <strong>First {data.seats} families get Pro free</strong> · <span className="font-semibold text-purple-700" data-testid="founding-left">{data.left} of {data.seats} spots left</span>
+        </span>
+      </p>
+    )
+  }
   return (
     <div className={cn('mx-auto max-w-xl rounded-2xl border-2 border-purple-300 bg-white/90 px-4 py-4 text-center shadow-sm', className)} data-testid="founding-offer">
       <p className="flex items-center justify-center gap-2 font-display text-lg font-extrabold text-gray-900">

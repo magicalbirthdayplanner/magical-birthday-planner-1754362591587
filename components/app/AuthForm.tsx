@@ -11,6 +11,7 @@ import { AppButton, IconButton, PageHeader } from './ui'
 import { GoogleIcon, TextField } from './fields'
 import { safeNext } from '@/lib/security/redirect'
 import { authFailed } from '@/lib/observability/auth'
+import { isInAppBrowser } from '@/lib/analytics/attribution'
 
 export { safeNext }
 
@@ -24,7 +25,7 @@ function friendlyAuthError(message: string): string {
   return 'Something went wrong. Please try again.'
 }
 
-export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'signin' | 'signup'; onDone?: () => void; compact?: boolean; next?: string }) {
+export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: { mode: 'signin' | 'signup'; onDone?: () => void; compact?: boolean; next?: string; signupData?: Record<string, unknown> }) {
   const { signIn, signUp, signInWithGoogle } = useAuth()
   useEffect(() => {
     if (mode === 'signup') track('signup_started')
@@ -40,6 +41,9 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
   const [error, setError] = useState<string | null>(null)
   const [checkEmail, setCheckEmail] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  // Google refuses sign-in inside the Facebook / Instagram in-app browsers (where ad clicks open): email only there.
+  const [inApp, setInApp] = useState(false)
+  useEffect(() => setInApp(isInAppBrowser(navigator.userAgent)), [])
 
   async function finish() {
     const { data } = await db.auth.getUser()
@@ -61,7 +65,7 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
         track('sign_in', { method: 'password' })
         await finish()
       } else {
-        const { error } = await signUp(email.trim(), password, name.trim() || undefined)
+        const { error } = await signUp(email.trim(), password, name.trim() || undefined, { next, data: signupData })
         if (error) return setError(friendlyAuthError(error.message ?? ''))
         track('sign_up', { method: 'password' })
         track('signup_completed', { method: 'password' })
@@ -99,12 +103,16 @@ export function AuthForm({ mode, onDone, compact, next: nextProp }: { mode: 'sig
 
   return (
     <div className={compact ? '' : 'px-4'}>
-      <AppButton type="button" variant="outline" size="lg" block onClick={google} className="font-medium">
-        <GoogleIcon /> Continue with Google
-      </AppButton>
-      <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
-        <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
-      </div>
+      {inApp ? null : (
+        <>
+          <AppButton type="button" variant="outline" size="lg" block onClick={google} className="font-medium">
+            <GoogleIcon /> Continue with Google
+          </AppButton>
+          <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+            <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+          </div>
+        </>
+      )}
       <form onSubmit={submit} noValidate className="space-y-4">
         {mode === 'signup' ? (
           <TextField label="Your first name" name="name" autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sam" />
