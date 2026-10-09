@@ -18,7 +18,7 @@ async function fourCards(page: Page) {
   await expect(page.getByTestId('plan-cards')).not.toContainText(/\$4\.99|\$14\.99/) // no stale prices
 }
 
-test('anonymous: four plans with prices, comparison by category, 14 FAQs, no false claims', async ({ page }) => {
+test('anonymous: four plans with prices, founding offer, comparison by category, 15 FAQs, no false claims', async ({ page }) => {
   await page.goto('/pricing')
   await expect(page.getByRole('heading', { name: 'Explore. Plan. Organize. Experience.' })).toBeVisible()
   await fourCards(page)
@@ -26,7 +26,10 @@ test('anonymous: four plans with prices, comparison by category, 14 FAQs, no fal
   for (const p of ['STARTER', 'PLUS', 'PRO']) await expect(page.getByTestId(`checkout-${p}`)).toBeEnabled()
   const cmp = page.getByTestId('plan-comparison')
   for (const c of ['Plan', 'Manage', 'AI planning', 'AI organization', 'AI party experience']) await expect(cmp.getByRole('heading', { name: c, exact: true })).toBeVisible()
-  await expect(page.locator('details')).toHaveCount(14)
+  await expect(page.locator('details')).toHaveCount(15)
+  await expect(page.getByTestId('founding-offer')).toContainText('Free for our first 25 families')
+  await expect(page.getByTestId('founding-left')).toHaveText(/^\d+ of 25 spots left$/)
+  await expect(page.getByTestId('founding-offer').getByRole('link', { name: 'Claim your free spot' })).toHaveAttribute('href', '/start')
   await page.getByText('Is the price per party or per month?').click()
   await expect(page.getByText(/Per party\. You pay once for each party/).first()).toBeVisible()
   await expect(page.getByTestId('per-party-note')).toHaveText('Pay once for each party. No monthly subscription.')

@@ -29,6 +29,8 @@ export function usePlanStatus(partyId?: string | null) {
     /** The plan the user bought (or was given). A trial owns nothing. */
     ownedPlan: owned,
     onTrial: data?.source === 'trial',
+    /** One of the first 25 accounts: Pro free on every party (an account-wide gift, not a purchase). */
+    founding: data?.source === 'founding',
     trialActive: !!data?.trialActive,
     superAdmin: !!data?.superAdmin,
     /** Display-only check; the server enforces. While loading, nothing is reported as locked. */

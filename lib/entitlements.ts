@@ -6,7 +6,8 @@
  *
  * A paid plan is bought for one party (migration 20251004001400). Enforcement lives on the server, per party:
  * lib/ai/handler.ts (AI, via getPartyPlan), the guests/party_invitations RLS policies (`public.has_paid_access(party)`)
- * and /api/invitations/send. Admin overrides and the sign-up trial are account-wide. The UI only displays this.
+ * and /api/invitations/send. Admin overrides, the founding-family gift (first 25 accounts: Pro, free) and the sign-up
+ * trial are account-wide. The UI only displays this.
  */
 
 export const PLANS = ['FREE', 'STARTER', 'PLUS', 'PRO'] as const
@@ -78,7 +79,7 @@ export const minPlanFor = (c: Capability): Plan => CAPABILITIES[c].minPlan
 /** Server-derived plan state (lib/billing/server getUserPlan → /api/billing/status). */
 export interface PlanState {
   plan: string
-  source: 'admin_override' | 'purchase' | 'trial' | 'free' | string
+  source: 'founding' | 'admin_override' | 'purchase' | 'trial' | 'free' | string
 }
 
 const asPlan = (p: string): Plan => (p === 'PRO' || p === 'PROFESSIONAL' ? 'PRO' : p === 'PLUS' ? 'PLUS' : p === 'STARTER' ? 'STARTER' : 'FREE')

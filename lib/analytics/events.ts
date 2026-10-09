@@ -39,16 +39,6 @@ export const ANALYTICS_EVENTS = [
   'ai_feature_blocked',
   'rsvp_started',
   'rsvp_completed',
-  // launch waitlist (pre-launch mode; server-side, no PII)
-  'waitlist_signup_success',
-  'waitlist_signup_duplicate',
-  'waitlist_signup_validation_error',
-  'waitlist_signup_server_error',
-  'waitlist_confirmation_sent',
-  'waitlist_confirmation_failed',
-  'launch_reminder_sent',
-  'launch_reminder_failed',
-  'launch_reminder_run',
 ] as const
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number]

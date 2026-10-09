@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
                 <li>Guest information you add (names and, if you choose, email addresses or phone numbers) and the RSVP replies guests send through your invitation link</li>
                 <li>Payment information (processed securely through our payment providers)</li>
                 <li>Usage data and preferences to improve our service</li>
-                <li>Launch waitlist sign-ups: your email address, an optional first name, and the link or campaign that brought you to us</li>
+                <li>If you joined our pre-launch waitlist (now closed): your email address, an optional first name, and the link or campaign that brought you to us</li>
               </ul>
             </section>
 
@@ -45,7 +45,7 @@ export default function PrivacyPolicyPage() {
                 <li>Send invitations, RSVP confirmations and notifications you or your guests ask for</li>
                 <li>Process payments and manage your plan</li>
                 <li>Send important service updates and notifications</li>
-                <li>Tell you when Magical Birthday Planner launches, if you joined the waitlist (you can ask us to remove your email at any time)</li>
+                <li>Tell you that Magical Birthday Planner is open, if you joined the pre-launch waitlist (you can ask us to remove your email at any time)</li>
                 <li>Improve our platform and develop new features</li>
               </ul>
             </section>

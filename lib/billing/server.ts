@@ -296,12 +296,14 @@ export async function processWebhookEvent(admin: Admin, eventId: string, raw: un
 
 // ------------------------------------------------------------------ entitlement (read)
 export type AppPlan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO' | 'PROFESSIONAL'
-export type PlanSource = 'admin_override' | 'purchase' | 'trial' | 'free'
+export type PlanSource = 'founding' | 'admin_override' | 'purchase' | 'trial' | 'free'
 export interface UserPlan {
   plan: AppPlan
   source: PlanSource
   trialActive: boolean
   override: { plan: string; expiresAt: string | null } | null
+  /** Founding-family seat (1..25), when the account has one (migration 20251009001700). */
+  foundingSeat: number | null
 }
 
 const APP_PLANS = ['FREE', 'STARTER', 'PLUS', 'PRO', 'PROFESSIONAL'] as const
@@ -318,7 +320,8 @@ export async function getUserPlan(admin: Admin, userId: string): Promise<UserPla
       admin.from('users').select('email, current_plan, is_trial_active, trial_expires_at').eq('id', userId).maybeSingle(),
       admin.from('plan_overrides').select('plan, expires_at').eq('user_id', userId).maybeSingle(),
     ])
-  let [{ data: profile }, { data: override }] = await read()
+  const [first, { data: founding }] = await Promise.all([read(), admin.from('founding_members').select('seat').eq('user_id', userId).maybeSingle()])
+  let [{ data: profile }, { data: override }] = first
   let recompute = false
   if (override?.expires_at && new Date(override.expires_at) <= now) {
     // Conditional delete: only the request that actually removes it records the expiry.
@@ -333,17 +336,20 @@ export async function getUserPlan(admin: Admin, userId: string): Promise<UserPla
   }
   const plan = APP_PLANS.find((p) => p === profile?.current_plan) ?? 'FREE'
   const trialActive = !!profile?.is_trial_active && !!profile.trial_expires_at && new Date(profile.trial_expires_at) > now
+  const foundingSeat = founding?.seat ?? null
   let source: PlanSource
-  if (override) source = 'admin_override'
+  // The founding-family gift is an override; it reads as "founding" until an admin changes it to another plan.
+  if (override && foundingSeat && override.plan === 'PRO' && !override.expires_at) source = 'founding'
+  else if (override) source = 'admin_override'
   else if (plan !== 'FREE' && !trialActive) source = 'purchase'
   else if (plan !== 'FREE' && trialActive) {
     const { count } = await admin.from('billing_purchases').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('scope', 'account').eq('status', 'active')
     source = count ? 'purchase' : 'trial'
   } else source = 'free'
-  return { plan, source, trialActive, override: override ? { plan: override.plan, expiresAt: override.expires_at } : null }
+  return { plan, source, trialActive, override: override ? { plan: override.plan, expiresAt: override.expires_at } : null, foundingSeat }
 }
 
-/** The plan a party has: an admin override (account-wide) wins; otherwise the best of the party's own purchase and
+/** The plan a party has: an admin override or founding-family gift (account-wide) wins; otherwise the best of the party's own purchase and
  *  any legacy account-wide purchase; otherwise the account's trial / FREE. Shape matches UserPlan. */
 export interface PartyPlan extends UserPlan { partyId: string; partyPurchase: Exclude<AppPlan, 'FREE' | 'PROFESSIONAL'> | null }
 const RANK: Record<string, number> = { FREE: 0, STARTER: 1, PLUS: 2, PRO: 3, PROFESSIONAL: 3 }
@@ -351,7 +357,7 @@ const RANK: Record<string, number> = { FREE: 0, STARTER: 1, PLUS: 2, PRO: 3, PRO
 export async function getPartyPlan(admin: Admin, userId: string, partyId: string): Promise<PartyPlan> {
   const [account, { data: bought }] = await Promise.all([getUserPlan(admin, userId), admin.rpc('party_plan', { p_party: partyId })])
   const partyPurchase = bought === 'STARTER' || bought === 'PLUS' || bought === 'PRO' ? bought : null
-  if (account.source === 'admin_override' || !partyPurchase) return { ...account, partyId, partyPurchase }
+  if (account.source === 'admin_override' || account.source === 'founding' || !partyPurchase) return { ...account, partyId, partyPurchase }
   if (account.source === 'purchase' && RANK[account.plan] >= RANK[partyPurchase]) return { ...account, partyId, partyPurchase }
   return { ...account, plan: partyPurchase, source: 'purchase', partyId, partyPurchase }
 }

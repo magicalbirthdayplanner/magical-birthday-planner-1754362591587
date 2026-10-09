@@ -7,8 +7,6 @@ import { defineConfig, devices } from '@playwright/test'
 const PORT = Number(process.env.E2E_PORT ?? 3101)
 export const BASE_URL = `http://localhost:${PORT}`
 export const MOCK_GOOGLE = 'http://127.0.0.1:4010'
-/** Same build, second server forced into the temporary pre-launch mode (lib/launch.ts). */
-export const PRELAUNCH_PORT = Number(process.env.E2E_PRELAUNCH_PORT ?? 3102)
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -27,11 +25,9 @@ export default defineConfig({
   },
   projects: [
     // Primary: the required end-to-end flow on a 390px iPhone viewport.
-    { name: 'iphone-390', use: { ...devices['iPhone 13'], browserName: 'chromium' }, testIgnore: /viewports|mobile-regression|prelaunch/ },
+    { name: 'iphone-390', use: { ...devices['iPhone 13'], browserName: 'chromium' }, testIgnore: /viewports|mobile-regression/ },
     // Layout checks at every target width.
     { name: 'viewports', use: { browserName: 'chromium' }, testMatch: /viewports|mobile-regression/ },
-    // Pre-launch waitlist mode (PRELAUNCH_MODE=on server).
-    { name: 'prelaunch', use: { ...devices['iPhone 13'], browserName: 'chromium', baseURL: `http://localhost:${PRELAUNCH_PORT}` }, testMatch: /prelaunch/ },
   ],
   webServer: [
     {
@@ -46,15 +42,6 @@ export default defineConfig({
       url: `${BASE_URL}/manifest.webmanifest`,
       reuseExistingServer: !process.env.CI,
       timeout: 600_000,
-      stdout: 'ignore',
-      stderr: 'pipe',
-    },
-    {
-      // Started after the app server above, so it reuses that build (same NEXT_DIST_DIR).
-      command: `npx dotenv -e .env.e2e -v NEXT_DIST_DIR=.next-e2e -v NEXT_PUBLIC_BASE_URL=${BASE_URL} -v PRELAUNCH_MODE=on -- next start -p ${PRELAUNCH_PORT}`,
-      url: `http://localhost:${PRELAUNCH_PORT}/manifest.webmanifest`,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
       stdout: 'ignore',
       stderr: 'pipe',
     },

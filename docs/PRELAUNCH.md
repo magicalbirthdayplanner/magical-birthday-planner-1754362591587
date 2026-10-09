@@ -1,3 +1,10 @@
+> **RETIRED 2026-10-09.** The waitlist was removed early (zero external sign-ups; builder-community feedback: it was
+> friction). The site is open for sign-ups and the first 25 accounts get Pro free — see
+> [FOUNDING_FAMILIES.md](FOUNDING_FAMILIES.md). Removed: the routing middleware, `lib/launch.ts`, the pre-launch
+> pages and components, `POST /api/waitlist`, the Oct 12 reminder cron and the admin waitlist card. Kept: the
+> `launch_waitlist` table (existing rows) and `/api/waitlist/unsubscribe` so links in emails already sent keep
+> working. The rest of this page describes the retired feature.
+
 # Temporary pre-launch (waitlist) mode — Oct 6–12, 2026
 
 From **Oct 6, 2026 12:00:00 AM** to **Oct 12, 2026 11:59:59 PM America/New_York** the public site is a single

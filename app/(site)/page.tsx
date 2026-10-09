@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import { PlanCards } from "@/components/billing/PlanCards";
+import { FoundingOffer } from "@/components/billing/FoundingOffer";
 import { track } from "@/lib/analytics/client";
 
 export default function Home() {
@@ -171,6 +172,7 @@ export default function Home() {
                 </p>
               </>
             )}
+            <FoundingOffer className="mt-8" />
           </div>
         </div>
       </section>

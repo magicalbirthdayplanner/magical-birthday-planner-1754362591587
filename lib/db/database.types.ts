@@ -245,6 +245,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"founding_members": {
+                  Row: {
+                    "granted_at": string,"seat": number,"user_id": string
+                  }
+                  Insert: {
+                    "granted_at"?: string,"seat": number,"user_id": string
+                  }
+                  Update: {
+                    "granted_at"?: string,"seat"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"guests": {
                   Row: {
                     "adult_count": number,"age": number | null,"child_count": number,"created_at": string | null,"dietary_restrictions": (string)[] | null,"email": string | null,"id": string,"invite_status": string,"invited_at": string | null,"name": string,"notes": string | null,"party_id": string,"phone": string | null,"responded_at": string | null,"rsvp_respondent": string | null,"rsvp_status": string | null,"source": string,"type": string | null,"updated_at": string | null,"user_id": string
@@ -797,6 +810,15 @@ isOneToOne: false
                            },
 "check_and_expire_trial":
 { Args: { "user_id": string }; Returns: boolean
+                           },
+"claim_founding_seat":
+{ Args: { "p_user": string }; Returns: number
+                           },
+"founding_seats_left":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"founding_seats_total":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "get_invitation":
 { Args: { "p_token": string }; Returns: Json

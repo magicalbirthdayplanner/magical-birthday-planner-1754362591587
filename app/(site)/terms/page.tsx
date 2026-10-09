@@ -70,6 +70,11 @@ export default function TermsConditionsPage() {
                 to the per-party and fair-use limits shown on the pricing page. All fees are non-refundable except as required by law.
                 We reserve the right to change our pricing with 30 days' notice.
               </p>
+              <p className="text-gray-600 dark:text-gray-300 mt-4">
+                Founding families: the first 25 accounts whose email address is confirmed (or that sign in with Google) receive Pro
+                free of charge on every party they plan, with no time limit. This is a gift, not a purchase: AI fair-use limits still
+                apply, and it ends if the account is deleted or used in breach of these Terms. Test, duplicate and staff accounts are not eligible.
+              </p>
             </section>
 
             <section className="mb-8">

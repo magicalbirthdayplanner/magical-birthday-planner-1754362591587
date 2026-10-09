@@ -1,21 +1,20 @@
 /**
- * After launch (LIVE — this suite's server runs with PRELAUNCH_MODE=off): the normal site is back and the
- * temporary pre-launch pages are gone. The pre-launch behaviour itself is in prelaunch.spec.ts.
+ * The site is open: no waitlist. Homepage, pricing and sign-up are public, and the retired pre-launch pages are gone.
  */
 import { expect, test } from '@playwright/test'
 
-test('LIVE: homepage, pricing and sign-in are back; the waitlist page is retired', async ({ page }) => {
+test('open for sign-ups: homepage, pricing and sign-up are public; the waitlist is gone', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByTestId('prelaunch-page')).toHaveCount(0)
   await expect(page.locator('header').getByRole('link', { name: 'Sign in' })).toBeVisible()
+  await expect(page.locator('header').getByRole('link', { name: 'Get started' })).toBeVisible()
   await expect(page.getByTestId('plan-cards')).toBeVisible()
+  await expect(page.getByText(/waitlist/i)).toHaveCount(0)
   await page.goto('/pricing')
   await expect(page.getByTestId('plan-card-STARTER')).toContainText('$9.99')
-  await page.goto('/login')
-  await expect(page).toHaveURL(/\/login$/)
-  await page.goto('/prelaunch?utm_source=x')
-  await expect(page).toHaveURL(/\/\?utm_source=x$/)
-  await expect(page.getByTestId('prelaunch-page')).toHaveCount(0)
-  await page.goto('/prelaunch/privacy')
-  await expect(page).toHaveURL(/\/privacy$/)
+  await page.goto('/join')
+  await expect(page).toHaveURL(/\/join$/)
+  await page.goto('/terms')
+  await expect(page).toHaveURL(/\/terms$/)
+  for (const p of ['/prelaunch', '/prelaunch/privacy']) expect((await page.request.get(p)).status(), p).toBe(404)
+  expect((await page.request.post('/api/waitlist', { data: { email: 'x@example.test' }, failOnStatusCode: false })).status()).toBe(404)
 })

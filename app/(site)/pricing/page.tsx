@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { FoundingOffer } from "@/components/billing/FoundingOffer"
 import { PlanCards, PlanComparison } from "@/components/billing/PlanCards"
 import { usePlanStatus } from "@/components/billing/usePlanStatus"
 import { PartyProvider, useOptionalParty } from "@/components/app/PartyProvider"
@@ -22,6 +23,7 @@ const FAQS: { q: string; a: string }[] = [
   { q: "Is RSVP included?", a: "Guests & RSVP are part of Starter and every plan above it, for the party you bought the plan for. Your guests never need an account to reply." },
   { q: "Can I upgrade after creating a party?", a: "Yes. Choose a higher plan for that party — it's a separate purchase at that plan's price. Everything you already planned stays exactly as it is, and the new features are available right away." },
   { q: "What happens if I upgrade during my trial?", a: "New accounts get a free 24-hour trial of Starter's guest & RSVP features (AI isn't part of the trial). If you buy a plan for a party during the trial, that party keeps its plan after the trial ends." },
+  { q: "Is it really free for the first 25 families?", a: "Yes. Our first 25 families get Pro free on every party they plan — every AI feature plus guests & RSVP — with no card and no time limit. Your spot is saved when you confirm your email (or sign in with Google). AI fair-use limits still apply. Once the 25 spots are taken, the regular per-party prices apply to new accounts." },
   { q: "Is the price per party or per month?", a: "Per party. You pay once for each party you plan — there's no monthly or annual subscription, and nothing renews or charges you again. Planning another party? Its plan is a separate purchase." },
   { q: "What happens to my party if I downgrade?", a: "There's no automatic downgrade. If a plan ends (for example after a refund), the party, its guests and saved plans stay. Paid features for that party — like adding guests or using AI — are locked until you buy a plan for it again." },
   { q: "Can I continue using my party after the event?", a: "Yes. Your party stays in your account after the big day, with its guests, plan and notes." },
@@ -46,7 +48,8 @@ function PricingContent() {
         <span className="inline-block rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 text-xs font-semibold text-white">Priced per party · No subscriptions</span>
         <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">Explore. Plan. Organize. Experience.</h1>
         <p className="mt-3 text-lg text-gray-600">Start free. Add AI when you want help building the plan, handling the details, or making the day itself magical.</p>
-        {status.onTrial ? (
+        <FoundingOffer className="mt-6" />
+        {status.founding ? null : status.onTrial ? (
           <p className="mx-auto mt-4 max-w-xl rounded-2xl bg-white/80 px-4 py-3 text-sm text-gray-700" data-testid="trial-note">
             You’re on a free 24-hour trial with Starter’s guest &amp; RSVP features. You can choose any plan at any time.
           </p>

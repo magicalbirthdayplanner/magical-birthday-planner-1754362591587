@@ -26,10 +26,10 @@ const AI_ROUTES = ['/api/ai/capabilities', '/api/ai/party-planner', '/api/ai/the
 const EXPECTED = [
   // public marketing + legal
   '/ [page]', '/pricing [page]', '/checkout-success [page]', '/privacy [page]', '/terms [page]', '/help [page]',
-  // temporary pre-launch shell (Oct 6–12, 2026; served at /, /privacy, /terms by middleware.ts — lib/launch.ts)
-  '/prelaunch [page]', '/prelaunch/privacy [page]', '/api/waitlist [api]', '/api/waitlist/unsubscribe [api]',
-  // scheduled jobs (Vercel Cron; CRON_SECRET bearer required)
-  '/api/cron/launch-reminder [api]',
+  // retired pre-launch waitlist: only the unsubscribe link in emails already sent stays working
+  '/api/waitlist/unsubscribe [api]',
+  // founding-families offer: public seat count
+  '/api/founding [api]',
   // full-screen flows (public: auth, guest invitation, offline; wizard needs sign-in)
   '/login [page]', '/join [page]', '/reset-password [page]', '/offline [page]', '/invite/[token] [page]', '/start [page]', '/venue/[placeId] [page]',
   // signed-in app (bottom navigation)
@@ -43,12 +43,12 @@ const EXPECTED = [
   '/api/discovery/search [api]', '/api/discovery/places/[placeId] [api]', '/api/discovery/photo [api]', '/api/discovery/zip [api]',
   '/api/themes/ai [api]', '/api/invitations/send [api]', '/api/invite/[token]/rsvp [api]',
   '/api/billing/checkout [api]', '/api/billing/status [api]', '/api/webhooks/dodo [api]',
-  '/api/admin/session [api]', '/api/admin/users [api]', '/api/admin/stats [api]', '/api/admin/override [api]', '/api/admin/audit [api]', '/api/admin/waitlist [api]',
+  '/api/admin/session [api]', '/api/admin/users [api]', '/api/admin/stats [api]', '/api/admin/override [api]', '/api/admin/audit [api]',
   // AI planning assistant (every route authenticates; behind AI_ENABLED + per-feature flags)
   ...AI_ROUTES.map((r) => `${r} [api]`),
 ].sort()
 // The only routes allowed to carry "admin": each verifies the super_admin role server-side.
-const SUPER_ADMIN_ROUTES = new Set(['/admin', '/api/admin/session', '/api/admin/users', '/api/admin/stats', '/api/admin/override', '/api/admin/audit', '/api/admin/waitlist'])
+const SUPER_ADMIN_ROUTES = new Set(['/admin', '/api/admin/session', '/api/admin/users', '/api/admin/stats', '/api/admin/override', '/api/admin/audit'])
 
 describe('route inventory', () => {
   const actual = routes().sort()

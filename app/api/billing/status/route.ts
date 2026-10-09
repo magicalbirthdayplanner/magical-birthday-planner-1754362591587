@@ -29,7 +29,7 @@ export async function GET(req: Request) {
     const { data: party } = await auth.supabase.from('parties').select('id').eq('id', partyParam).maybeSingle()
     partyId = party?.id ?? null
   }
-  const none = { plan: 'FREE' as const, source: 'free' as const, trialActive: false, override: null }
+  const none = { plan: 'FREE' as const, source: 'free' as const, trialActive: false, override: null, foundingSeat: null }
   const [{ plan, source, trialActive, override }, { data: purchases }, { data: role }, checkout] = await Promise.all([
     !hasServiceRole() ? Promise.resolve(none) : partyId ? getPartyPlan(getSupabaseAdmin(), auth.user.id, partyId) : getUserPlan(getSupabaseAdmin(), auth.user.id),
     auth.supabase.from('billing_purchases').select('plan, status, kind, scope, party_id, created_at, current_period_end').order('created_at', { ascending: false }).limit(20),
