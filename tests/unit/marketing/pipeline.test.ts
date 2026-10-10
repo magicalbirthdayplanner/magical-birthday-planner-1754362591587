@@ -333,6 +333,17 @@ describe('scheduler (runPrepare / runPublish)', () => {
     expect(x.posted).toHaveLength(1)
   })
 
+  it('turning autonomy on queues the bank’s validated drafts as their slots come due', async () => {
+    batchDrafts()
+    const c = cfg({ AUTONOMOUS_PUBLISHING: 'true' })
+    await runPrepare({ store, provider: x, cfg: c, now: NOW, attribution: null, countCampaign: null, sendEmail: null })
+    expect([...store.rows.values()].filter((p) => p.status === 'draft')).toHaveLength(2)
+    await store.setAutonomous(true)
+    const r = await runPublish({ store, provider: x, cfg: c, now: at('2026-10-20T14:05:00Z') })
+    expect(r.publish).toEqual([expect.objectContaining({ ok: true, status: 'dry_run' })])
+    expect([...store.rows.values()].filter((p) => p.status === 'draft')).toHaveLength(1) // tomorrow's waits for its slot
+  })
+
   it('posts are never published before their slot (minus the early window)', async () => {
     const p = await approvedPost(0, { scheduled_at: '2026-10-21T14:00:00Z' })
     await store.setAutonomous(true)

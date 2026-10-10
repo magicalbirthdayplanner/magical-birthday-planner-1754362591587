@@ -173,6 +173,11 @@ export async function runPublish(d: AgentDeps = {}): Promise<Record<string, unkn
     return out
   }
   const horizon = now.getTime() + cfg.publishEarlyMinutes * 60_000
+  // Autonomous mode needs no approval: the bank's validated drafts (written while the switch was off) go to the queue.
+  for (const d of await store.listPosts({ platform: PLATFORM, statuses: ['draft'], limit: 200 })) {
+    if (d.origin !== 'agent' || !d.planId || !d.scheduledAt || new Date(d.scheduledAt).getTime() > horizon) continue
+    if (await store.updatePost(d.id, { status: 'scheduled', autonomous: true, approved_at: now.toISOString() }, ['draft'])) await store.audit(d.id, null, 'auto_approved', {})
+  }
   const dueNow = async () =>
     (await store.listPosts({ platform: PLATFORM, statuses: ['scheduled'] })).filter((p) => p.scheduledAt && new Date(p.scheduledAt).getTime() <= horizon).sort((a, b) => a.scheduledAt!.localeCompare(b.scheduledAt!))
   let due = await dueNow()
