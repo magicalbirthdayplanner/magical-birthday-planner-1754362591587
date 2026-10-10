@@ -16,6 +16,13 @@ const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   poweredByHeader: false,
   images: { unoptimized: true },
+  // The founder-marketing brand card reads its fonts and logo from disk at runtime (lib/marketing/images/brand-card.tsx).
+  outputFileTracingIncludes: {
+    '/api/cron/marketing': ['./lib/marketing/assets/**'],
+    '/api/admin/marketing': ['./lib/marketing/assets/**'],
+    '/api/admin/marketing/posts/[id]': ['./lib/marketing/assets/**'],
+    '/api/admin/marketing/x': ['./lib/marketing/assets/**'],
+  },
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },

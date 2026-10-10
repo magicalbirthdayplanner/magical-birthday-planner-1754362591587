@@ -1,0 +1,831 @@
+{
+ "_comment": "Curated, privacy-reviewed campaign media for the X growth engine. Files live in the film workspace (MARKETING_MEDIA_SOURCE_DIR, default ~/magical-birthday-planner-film/videos/post-launch-30-day); scripts/marketing-seed-media.mjs uploads them to the private marketing-media bucket. Only privacy=approved items can ever be attached to a post.",
+ "items": [
+  {
+   "key": "v-saved-ideas",
+   "kind": "video",
+   "file": "day-01/video/final/d01-4x5.mp4",
+   "title": "Saved 63 ideas. Planned 0 parties.",
+   "description": "Humorous pain-point reel: a board of 63 saved party ideas vs zero planned parties, then the app turns ideas into one plan (theme, activities, food, timeline).",
+   "category": "parent_pain",
+   "tags": [
+    "pain",
+    "tabs",
+    "ideas-to-plan"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "durationS": 24.04,
+   "alt": "Saved 63 ideas. Planned 0 parties.",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims. Music: Mixkit Stock Music Free License (no attribution required)."
+  },
+  {
+   "key": "v-dino",
+   "kind": "video",
+   "file": "day-03/video/final/d03-4x5.mp4",
+   "title": "Your kid wants a dinosaur birthday",
+   "description": "POV reel: a parent describes a dinosaur party; the app’s real AI builds the theme, activities (fossil dig), a two-hour timeline and nut-free food options within a $150 budget for ten 5-year-olds.",
+   "category": "product_features",
+   "tags": [
+    "ai",
+    "idea-to-party",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "durationS": 31.36,
+   "alt": "Your kid wants a dinosaur birthday",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims. Music: Mixkit Stock Music Free License (no attribution required)."
+  },
+  {
+   "key": "v-ai-can",
+   "kind": "video",
+   "file": "day-05/video/final/d05-4x5.mp4",
+   "title": "AI can. AI can’t.",
+   "description": "Text-led emotional reel: AI can suggest the theme, plan the games and draft the welcome speech — it can’t see their face when they walk in. Let it do the planning; you do the birthday.",
+   "category": "ai_content",
+   "tags": [
+    "ai",
+    "founder",
+    "emotional"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "durationS": 30.91,
+   "alt": "AI can. AI can’t.",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims. Music: Mixkit Stock Music Free License (no attribution required)."
+  },
+  {
+   "key": "v-countdown",
+   "kind": "video",
+   "file": "day-06/video/final/d06-4x5.mp4",
+   "title": "The 4-week birthday countdown",
+   "description": "Educational checklist reel: what to do 4, 3, 2 and 1 weeks out and the day before, ending with the app’s dated checklist.",
+   "category": "planning_tips",
+   "tags": [
+    "checklist",
+    "tips",
+    "educational"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "durationS": 35.75,
+   "alt": "The 4-week birthday countdown",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims. Music: Mixkit Stock Music Free License (no attribution required)."
+  },
+  {
+   "key": "v-before-after",
+   "kind": "video",
+   "file": "day-10/video/final/d10-4x5.mp4",
+   "title": "Birthday planning: before / after",
+   "description": "Swipe reel: guest list, budget, place, food and party day — scattered “before” vs organised “after” in the app. Same party, one plan.",
+   "category": "product_features",
+   "tags": [
+    "meet-mbp",
+    "product",
+    "before-after"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "durationS": 19.41,
+   "alt": "Birthday planning: before / after",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims. Music: Mixkit Stock Music Free License (no attribution required)."
+  },
+  {
+   "key": "v-venues",
+   "kind": "video",
+   "file": "day-14/video/final/d14-4x5.mp4",
+   "title": "Search found 40 places. Which one fits?",
+   "description": "Venue discovery reel: a generic search lists 40 places; the app ranks real local places for the child with the reasons each one fits.",
+   "category": "venue_content",
+   "tags": [
+    "venue",
+    "discovery",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "durationS": 30.76,
+   "alt": "Search found 40 places. Which one fits?",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims. Music: Mixkit Stock Music Free License (no attribution required)."
+  },
+  {
+   "key": "v-seven-decisions",
+   "kind": "video",
+   "file": "day-22/video/final/d22-4x5.mp4",
+   "title": "One kid’s birthday. Seven decisions before breakfast.",
+   "description": "Fast montage: where, how many kids, theme, food, activities, budget, who is coming — decided in one place.",
+   "category": "parent_pain",
+   "tags": [
+    "pain",
+    "decisions",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "durationS": 26.3,
+   "alt": "One kid’s birthday. Seven decisions before breakfast.",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims. Music: Mixkit Stock Music Free License (no attribution required)."
+  },
+  {
+   "key": "v-rsvp-group-chat",
+   "kind": "video",
+   "file": "day-04/video/final/d04-4x5.mp4",
+   "title": "The RSVP group chat",
+   "description": "Group-chat RSVP chaos vs one RSVP link.",
+   "category": "product_features",
+   "tags": [
+    "rsvp"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "durationS": 27.48,
+   "alt": "The RSVP group chat",
+   "privacy": "rejected",
+   "privacyNotes": "Rejected 2026-10-10: the mock group chat shows children’s first names (“Ava’s mom”, “Noor’s mom”, “Leo’s dad”…). Fictional, but the rule is no child names in published media."
+  },
+  {
+   "key": "c-first-15-1",
+   "set": "c-first-15",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-02/slide-1.png",
+   "title": "The first 15 minutes decide everything",
+   "description": "Mini guide: six arrival activities so kids aren’t standing around while parents arrive.",
+   "category": "planning_tips",
+   "tags": [
+    "tips",
+    "activities"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "The first 15 minutes decide everything — slide 1 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-first-15-2",
+   "set": "c-first-15",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-02/slide-2.png",
+   "title": "The first 15 minutes decide everything",
+   "description": "Mini guide: six arrival activities so kids aren’t standing around while parents arrive.",
+   "category": "planning_tips",
+   "tags": [
+    "tips",
+    "activities"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "The first 15 minutes decide everything — slide 2 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-first-15-3",
+   "set": "c-first-15",
+   "position": 3,
+   "kind": "image",
+   "file": "instagram-posts/post-02/slide-3.png",
+   "title": "The first 15 minutes decide everything",
+   "description": "Mini guide: six arrival activities so kids aren’t standing around while parents arrive.",
+   "category": "planning_tips",
+   "tags": [
+    "tips",
+    "activities"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "The first 15 minutes decide everything — slide 3 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-dino-plan-1",
+   "set": "c-dino-plan",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-03/slide-1.png",
+   "title": "A dinosaur birthday, fully planned",
+   "description": "Real AI example: dinosaur theme, games (fossil dig), the two-hour timeline — turning 5, 10 kids, at home.",
+   "category": "product_features",
+   "tags": [
+    "ai",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "A dinosaur birthday, fully planned — slide 1 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-dino-plan-2",
+   "set": "c-dino-plan",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-03/slide-2.png",
+   "title": "A dinosaur birthday, fully planned",
+   "description": "Real AI example: dinosaur theme, games (fossil dig), the two-hour timeline — turning 5, 10 kids, at home.",
+   "category": "product_features",
+   "tags": [
+    "ai",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "A dinosaur birthday, fully planned — slide 2 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-dino-plan-3",
+   "set": "c-dino-plan",
+   "position": 3,
+   "kind": "image",
+   "file": "instagram-posts/post-03/slide-3.png",
+   "title": "A dinosaur birthday, fully planned",
+   "description": "Real AI example: dinosaur theme, games (fossil dig), the two-hour timeline — turning 5, 10 kids, at home.",
+   "category": "product_features",
+   "tags": [
+    "ai",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "A dinosaur birthday, fully planned — slide 3 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-dino-plan-4",
+   "set": "c-dino-plan",
+   "position": 4,
+   "kind": "image",
+   "file": "instagram-posts/post-03/slide-4.png",
+   "title": "A dinosaur birthday, fully planned",
+   "description": "Real AI example: dinosaur theme, games (fossil dig), the two-hour timeline — turning 5, 10 kids, at home.",
+   "category": "product_features",
+   "tags": [
+    "ai",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "A dinosaur birthday, fully planned — slide 4 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-four-weeks-1",
+   "set": "c-four-weeks",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-06/slide-2.png",
+   "title": "The 4-week birthday checklist",
+   "description": "Checklist slides: 4 weeks out, 3 weeks out, 2 weeks out, 1 week out.",
+   "category": "planning_tips",
+   "tags": [
+    "checklist",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "The 4-week birthday checklist — slide 1 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-four-weeks-2",
+   "set": "c-four-weeks",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-06/slide-3.png",
+   "title": "The 4-week birthday checklist",
+   "description": "Checklist slides: 4 weeks out, 3 weeks out, 2 weeks out, 1 week out.",
+   "category": "planning_tips",
+   "tags": [
+    "checklist",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "The 4-week birthday checklist — slide 2 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-four-weeks-3",
+   "set": "c-four-weeks",
+   "position": 3,
+   "kind": "image",
+   "file": "instagram-posts/post-06/slide-4.png",
+   "title": "The 4-week birthday checklist",
+   "description": "Checklist slides: 4 weeks out, 3 weeks out, 2 weeks out, 1 week out.",
+   "category": "planning_tips",
+   "tags": [
+    "checklist",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "The 4-week birthday checklist — slide 3 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-four-weeks-4",
+   "set": "c-four-weeks",
+   "position": 4,
+   "kind": "image",
+   "file": "instagram-posts/post-06/slide-5.png",
+   "title": "The 4-week birthday checklist",
+   "description": "Checklist slides: 4 weeks out, 3 weeks out, 2 weeks out, 1 week out.",
+   "category": "planning_tips",
+   "tags": [
+    "checklist",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "The 4-week birthday checklist — slide 4 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-timeline-1",
+   "set": "c-timeline",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-08/slide-1.png",
+   "title": "2-hour kids’ party timeline",
+   "description": "Template: a copyable 2-hour schedule plus three pacing tips.",
+   "category": "planning_tips",
+   "tags": [
+    "timeline",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "2-hour kids’ party timeline — slide 1 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-timeline-2",
+   "set": "c-timeline",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-08/slide-2.png",
+   "title": "2-hour kids’ party timeline",
+   "description": "Template: a copyable 2-hour schedule plus three pacing tips.",
+   "category": "planning_tips",
+   "tags": [
+    "timeline",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "2-hour kids’ party timeline — slide 2 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-timeline-3",
+   "set": "c-timeline",
+   "position": 3,
+   "kind": "image",
+   "file": "instagram-posts/post-08/slide-3.png",
+   "title": "2-hour kids’ party timeline",
+   "description": "Template: a copyable 2-hour schedule plus three pacing tips.",
+   "category": "planning_tips",
+   "tags": [
+    "timeline",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "2-hour kids’ party timeline — slide 3 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-before-after-1",
+   "set": "c-before-after",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-10/slide-1.png",
+   "title": "Birthday planning: before / after",
+   "description": "Before/after slides for the guest list, the budget and the checklist.",
+   "category": "product_features",
+   "tags": [
+    "before-after",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Birthday planning: before / after — slide 1 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-before-after-2",
+   "set": "c-before-after",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-10/slide-2.png",
+   "title": "Birthday planning: before / after",
+   "description": "Before/after slides for the guest list, the budget and the checklist.",
+   "category": "product_features",
+   "tags": [
+    "before-after",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Birthday planning: before / after — slide 2 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-before-after-3",
+   "set": "c-before-after",
+   "position": 3,
+   "kind": "image",
+   "file": "instagram-posts/post-10/slide-3.png",
+   "title": "Birthday planning: before / after",
+   "description": "Before/after slides for the guest list, the budget and the checklist.",
+   "category": "product_features",
+   "tags": [
+    "before-after",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Birthday planning: before / after — slide 3 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-before-after-4",
+   "set": "c-before-after",
+   "position": 4,
+   "kind": "image",
+   "file": "instagram-posts/post-10/slide-4.png",
+   "title": "Birthday planning: before / after",
+   "description": "Before/after slides for the guest list, the budget and the checklist.",
+   "category": "product_features",
+   "tags": [
+    "before-after",
+    "product"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Birthday planning: before / after — slide 4 of 4",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-budget-200-1",
+   "set": "c-budget-200",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-11/slide-1.png",
+   "title": "Where a $200 kids’ party budget can go",
+   "description": "Budget tips: one plan estimated by category (AI estimates for 15 kids) and five ways to stretch it.",
+   "category": "planning_tips",
+   "tags": [
+    "budget",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Where a $200 kids’ party budget can go — slide 1 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-budget-200-2",
+   "set": "c-budget-200",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-11/slide-2.png",
+   "title": "Where a $200 kids’ party budget can go",
+   "description": "Budget tips: one plan estimated by category (AI estimates for 15 kids) and five ways to stretch it.",
+   "category": "planning_tips",
+   "tags": [
+    "budget",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Where a $200 kids’ party budget can go — slide 2 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-budget-200-3",
+   "set": "c-budget-200",
+   "position": 3,
+   "kind": "image",
+   "file": "instagram-posts/post-11/slide-3.png",
+   "title": "Where a $200 kids’ party budget can go",
+   "description": "Budget tips: one plan estimated by category (AI estimates for 15 kids) and five ways to stretch it.",
+   "category": "planning_tips",
+   "tags": [
+    "budget",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Where a $200 kids’ party budget can go — slide 3 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-venue-questions-1",
+   "set": "c-venue-questions",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-14/slide-1.png",
+   "title": "7 questions to ask before you book a party venue",
+   "description": "Venue tips: seven questions to ask, then places that fit your kid.",
+   "category": "venue_content",
+   "tags": [
+    "venue",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "7 questions to ask before you book a party venue — slide 1 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-venue-questions-2",
+   "set": "c-venue-questions",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-14/slide-2.png",
+   "title": "7 questions to ask before you book a party venue",
+   "description": "Venue tips: seven questions to ask, then places that fit your kid.",
+   "category": "venue_content",
+   "tags": [
+    "venue",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "7 questions to ask before you book a party venue — slide 2 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-venue-questions-3",
+   "set": "c-venue-questions",
+   "position": 3,
+   "kind": "image",
+   "file": "instagram-posts/post-14/slide-3.png",
+   "title": "7 questions to ask before you book a party venue",
+   "description": "Venue tips: seven questions to ask, then places that fit your kid.",
+   "category": "venue_content",
+   "tags": [
+    "venue",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "7 questions to ask before you book a party venue — slide 3 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-rsvp-etiquette-1",
+   "set": "c-rsvp-etiquette",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-17/slide-1.png",
+   "title": "RSVP etiquette for busy parents",
+   "description": "Six tips: what to do when hosting and when invited.",
+   "category": "planning_tips",
+   "tags": [
+    "rsvp",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "RSVP etiquette for busy parents — slide 1 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-rsvp-etiquette-2",
+   "set": "c-rsvp-etiquette",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-17/slide-2.png",
+   "title": "RSVP etiquette for busy parents",
+   "description": "Six tips: what to do when hosting and when invited.",
+   "category": "planning_tips",
+   "tags": [
+    "rsvp",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "RSVP etiquette for busy parents — slide 2 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-rsvp-etiquette-3",
+   "set": "c-rsvp-etiquette",
+   "position": 3,
+   "kind": "image",
+   "file": "instagram-posts/post-17/slide-3.png",
+   "title": "RSVP etiquette for busy parents",
+   "description": "Six tips: what to do when hosting and when invited.",
+   "category": "planning_tips",
+   "tags": [
+    "rsvp",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "RSVP etiquette for busy parents — slide 3 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-small-party-1",
+   "set": "c-small-party",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-19/slide-1.png",
+   "title": "Small party, big fun",
+   "description": "Six small-party ideas for six kids at home.",
+   "category": "planning_tips",
+   "tags": [
+    "home",
+    "ideas"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Small party, big fun — slide 1 of 2",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-small-party-2",
+   "set": "c-small-party",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-19/slide-2.png",
+   "title": "Small party, big fun",
+   "description": "Six small-party ideas for six kids at home.",
+   "category": "planning_tips",
+   "tags": [
+    "home",
+    "ideas"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Small party, big fun — slide 2 of 2",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-food-1",
+   "set": "c-food",
+   "position": 1,
+   "kind": "image",
+   "file": "instagram-posts/post-20/slide-1.png",
+   "title": "Party food for 12 kids",
+   "description": "Cheat sheet: rough food quantities and what to ask every family.",
+   "category": "planning_tips",
+   "tags": [
+    "food",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Party food for 12 kids — slide 1 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-food-2",
+   "set": "c-food",
+   "position": 2,
+   "kind": "image",
+   "file": "instagram-posts/post-20/slide-2.png",
+   "title": "Party food for 12 kids",
+   "description": "Cheat sheet: rough food quantities and what to ask every family.",
+   "category": "planning_tips",
+   "tags": [
+    "food",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Party food for 12 kids — slide 2 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "c-food-3",
+   "set": "c-food",
+   "position": 3,
+   "kind": "image",
+   "file": "instagram-posts/post-20/slide-3.png",
+   "title": "Party food for 12 kids",
+   "description": "Cheat sheet: rough food quantities and what to ask every family.",
+   "category": "planning_tips",
+   "tags": [
+    "food",
+    "tips"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Party food for 12 kids — slide 3 of 3",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "i-group-vs-link",
+   "kind": "image",
+   "file": "instagram-posts/post-04/slide-1.png",
+   "title": "Group chat vs an RSVP link",
+   "description": "Comparison graphic: what a group chat can and can’t do for RSVPs vs one RSVP link.",
+   "category": "product_features",
+   "tags": [
+    "rsvp",
+    "comparison"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Group chat vs an RSVP link",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "i-quote-ai",
+   "kind": "image",
+   "file": "instagram-posts/post-05/slide-1.png",
+   "title": "AI can plan the party. Only you can be there for it.",
+   "description": "Quote card.",
+   "category": "ai_content",
+   "tags": [
+    "ai",
+    "quote"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "AI can plan the party. Only you can be there for it.",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "i-quote-spreadsheet",
+   "kind": "image",
+   "file": "instagram-posts/post-12/slide-1.png",
+   "title": "They won’t remember the spreadsheet",
+   "description": "Quote card: they’ll remember the cake moment.",
+   "category": "parent_pain",
+   "tags": [
+    "quote",
+    "pain"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "They won’t remember the spreadsheet",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  },
+  {
+   "key": "i-difficulty",
+   "kind": "image",
+   "file": "instagram-posts/post-16/slide-1.png",
+   "title": "Birthday planning difficulty levels",
+   "description": "Humorous list: easy (cake flavour) to impossible (a surprise party for a 6-year-old).",
+   "category": "parent_pain",
+   "tags": [
+    "humor",
+    "pain"
+   ],
+   "width": 1080,
+   "height": 1350,
+   "alt": "Birthday planning difficulty levels",
+   "privacy": "approved",
+   "privacyNotes": "Reviewed 2026-10-10 (frame contact sheet every 2 s): fictional test party only; child names blurred or absent; no real people, addresses, phone numbers or schools; no prices shown as claims."
+  }
+ ]
+}

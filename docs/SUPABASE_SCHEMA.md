@@ -72,6 +72,13 @@ The old per-guest `invitations` table is no longer used by the app (kept; see `L
 ### `analytics_events`, `ai_cache` (new)
 Server-written only (RLS on, no policies).
 
+### `marketing_*` (new, server-only) — founder marketing agent
+
+`marketing_posts`, `marketing_post_metrics`, `marketing_settings`, `marketing_insights`, `marketing_briefs`,
+`marketing_audit_log`, RPC `marketing_claim_post`, private storage bucket `marketing-images`
+(migration `20251010001800`). RLS on with no policies; no client access. See
+[marketing/FOUNDER_MARKETING_AGENT.md](marketing/FOUNDER_MARKETING_AGENT.md).
+
 ## Functions
 
 | Function | Security | Purpose |

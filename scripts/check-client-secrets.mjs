@@ -19,6 +19,12 @@ const SERVER_ONLY = [
   'PRELAUNCH_PREVIEW_TOKEN',
   'CRON_SECRET',
   'SENTRY_AUTH_TOKEN',
+  // founder marketing agent (X API OAuth 1.0a user context, optional image provider)
+  'X_API_KEY',
+  'X_API_SECRET',
+  'X_ACCESS_TOKEN',
+  'X_ACCESS_TOKEN_SECRET',
+  'OPENAI_API_KEY',
   // deployment tooling tokens, if present in the environment
   'GITHUB_TOKEN',
   'VERCEL_TOKEN',

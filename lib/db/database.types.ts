@@ -339,6 +339,153 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"marketing_audit_log": {
+                  Row: {
+                    "action": string,"actor_user_id": string | null,"created_at": string,"detail": NonNullable<Json>,"id": number,"post_id": string | null
+                  }
+                  Insert: {
+                    "action": string,"actor_user_id"?: string | null,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: never,"post_id"?: string | null
+                  }
+                  Update: {
+                    "action"?: string,"actor_user_id"?: string | null,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: never,"post_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "marketing_audit_log_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "marketing_posts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"marketing_briefs": {
+                  Row: {
+                    "brief_date": string,"created_at": string,"data": NonNullable<Json>,"emailed_at": string | null,"text": string,"timezone": string
+                  }
+                  Insert: {
+                    "brief_date": string,"created_at"?: string,"data": NonNullable<Json>,"emailed_at"?: string | null,"text": string,"timezone": string
+                  }
+                  Update: {
+                    "brief_date"?: string,"created_at"?: string,"data"?: NonNullable<Json>,"emailed_at"?: string | null,"text"?: string,"timezone"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"marketing_insights": {
+                  Row: {
+                    "computed_at": string,"data": NonNullable<Json>,"id": number,"pillar_multipliers": NonNullable<Json>,"recommendations": NonNullable<Json>,"sample_size": number,"window_days": number
+                  }
+                  Insert: {
+                    "computed_at"?: string,"data": NonNullable<Json>,"id"?: never,"pillar_multipliers"?: NonNullable<Json>,"recommendations"?: NonNullable<Json>,"sample_size": number,"window_days": number
+                  }
+                  Update: {
+                    "computed_at"?: string,"data"?: NonNullable<Json>,"id"?: never,"pillar_multipliers"?: NonNullable<Json>,"recommendations"?: NonNullable<Json>,"sample_size"?: number,"window_days"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"marketing_media": {
+                  Row: {
+                    "alt_text": string | null,"bytes": number | null,"caption_suffix": string | null,"category": string | null,"created_at": string,"description": string | null,"duration_s": number | null,"height": number | null,"id": string,"kind": string,"last_used_at": string | null,"library_key": string | null,"mime_type": string | null,"performance_score": number | null,"position": number,"privacy_notes": string | null,"privacy_status": string,"set_key": string | null,"source": string,"storage_path": string | null,"tags": (string)[],"template_key": string | null,"title": string,"updated_at": string,"used_count": number,"width": number | null
+                  }
+                  Insert: {
+                    "alt_text"?: string | null,"bytes"?: number | null,"caption_suffix"?: string | null,"category"?: string | null,"created_at"?: string,"description"?: string | null,"duration_s"?: number | null,"height"?: number | null,"id"?: string,"kind": string,"last_used_at"?: string | null,"library_key"?: string | null,"mime_type"?: string | null,"performance_score"?: number | null,"position"?: number,"privacy_notes"?: string | null,"privacy_status"?: string,"set_key"?: string | null,"source": string,"storage_path"?: string | null,"tags"?: (string)[],"template_key"?: string | null,"title": string,"updated_at"?: string,"used_count"?: number,"width"?: number | null
+                  }
+                  Update: {
+                    "alt_text"?: string | null,"bytes"?: number | null,"caption_suffix"?: string | null,"category"?: string | null,"created_at"?: string,"description"?: string | null,"duration_s"?: number | null,"height"?: number | null,"id"?: string,"kind"?: string,"last_used_at"?: string | null,"library_key"?: string | null,"mime_type"?: string | null,"performance_score"?: number | null,"position"?: number,"privacy_notes"?: string | null,"privacy_status"?: string,"set_key"?: string | null,"source"?: string,"storage_path"?: string | null,"tags"?: (string)[],"template_key"?: string | null,"title"?: string,"updated_at"?: string,"used_count"?: number,"width"?: number | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"marketing_plans": {
+                  Row: {
+                    "created_at": string,"id": string,"notes": NonNullable<Json>,"platform": string,"slots": NonNullable<Json>,"status": string,"updated_at": string,"week_start": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"notes"?: NonNullable<Json>,"platform"?: string,"slots": NonNullable<Json>,"status"?: string,"updated_at"?: string,"week_start": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"notes"?: NonNullable<Json>,"platform"?: string,"slots"?: NonNullable<Json>,"status"?: string,"updated_at"?: string,"week_start"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"marketing_post_metrics": {
+                  Row: {
+                    "collected_at": string,"id": number,"metrics": NonNullable<Json>,"post_id": string,"source": string
+                  }
+                  Insert: {
+                    "collected_at"?: string,"id"?: never,"metrics": NonNullable<Json>,"post_id": string,"source": string
+                  }
+                  Update: {
+                    "collected_at"?: string,"id"?: never,"metrics"?: NonNullable<Json>,"post_id"?: string,"source"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "marketing_post_metrics_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "marketing_posts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"marketing_posts": {
+                  Row: {
+                    "approved_at": string | null,"approved_by": string | null,"attribution_updated_at": string | null,"autonomous": boolean,"bookmarks": number | null,"business_score": number | null,"category": string | null,"checkouts_attributed": number,"content_pillar": string,"content_type": string,"created_at": string,"created_by": string | null,"cta": string | null,"dry_run_at": string | null,"dry_run_payload": Json | null,"est_cost_usd": number | null,"external_media_id": string | null,"external_post_id": string | null,"external_post_url": string | null,"external_thread_ids": (string)[],"format": string,"generation": NonNullable<Json>,"hook": string | null,"id": string,"image_alt": string | null,"image_path": string | null,"image_prompt": string | null,"image_provider": string | null,"image_status": string,"impressions": number | null,"landing_visits_attributed": number,"likes": number | null,"link_clicks": number | null,"link_url": string | null,"media_ids": (string)[],"metrics_updated_at": string | null,"origin": string,"parties_created_attributed": number,"plan_id": string | null,"platform": string,"poll": Json | null,"profile_visits": number | null,"publish_attempt_id": string | null,"publish_attempts": number,"publish_error": string | null,"publish_error_code": string | null,"published_at": string | null,"publishing_started_at": string | null,"purchases_attributed": number,"quotes": number | null,"replies": number | null,"reposts": number | null,"revenue_attributed_minor": number,"revenue_currency": string | null,"scheduled_at": string | null,"signups_attributed": number,"similar_post_id": string | null,"similarity_score": number | null,"slot_index": number | null,"slot_role": string | null,"source": string,"status": string,"text": string,"thread_parts": Json | null,"topic": string,"topic_key": string | null,"updated_at": string,"validation": NonNullable<Json>
+                  }
+                  Insert: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"attribution_updated_at"?: string | null,"autonomous"?: boolean,"bookmarks"?: number | null,"business_score"?: number | null,"category"?: string | null,"checkouts_attributed"?: number,"content_pillar": string,"content_type"?: string,"created_at"?: string,"created_by"?: string | null,"cta"?: string | null,"dry_run_at"?: string | null,"dry_run_payload"?: Json | null,"est_cost_usd"?: number | null,"external_media_id"?: string | null,"external_post_id"?: string | null,"external_post_url"?: string | null,"external_thread_ids"?: (string)[],"format"?: string,"generation"?: NonNullable<Json>,"hook"?: string | null,"id"?: string,"image_alt"?: string | null,"image_path"?: string | null,"image_prompt"?: string | null,"image_provider"?: string | null,"image_status"?: string,"impressions"?: number | null,"landing_visits_attributed"?: number,"likes"?: number | null,"link_clicks"?: number | null,"link_url"?: string | null,"media_ids"?: (string)[],"metrics_updated_at"?: string | null,"origin"?: string,"parties_created_attributed"?: number,"plan_id"?: string | null,"platform"?: string,"poll"?: Json | null,"profile_visits"?: number | null,"publish_attempt_id"?: string | null,"publish_attempts"?: number,"publish_error"?: string | null,"publish_error_code"?: string | null,"published_at"?: string | null,"publishing_started_at"?: string | null,"purchases_attributed"?: number,"quotes"?: number | null,"replies"?: number | null,"reposts"?: number | null,"revenue_attributed_minor"?: number,"revenue_currency"?: string | null,"scheduled_at"?: string | null,"signups_attributed"?: number,"similar_post_id"?: string | null,"similarity_score"?: number | null,"slot_index"?: number | null,"slot_role"?: string | null,"source"?: string,"status"?: string,"text": string,"thread_parts"?: Json | null,"topic": string,"topic_key"?: string | null,"updated_at"?: string,"validation"?: NonNullable<Json>
+                  }
+                  Update: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"attribution_updated_at"?: string | null,"autonomous"?: boolean,"bookmarks"?: number | null,"business_score"?: number | null,"category"?: string | null,"checkouts_attributed"?: number,"content_pillar"?: string,"content_type"?: string,"created_at"?: string,"created_by"?: string | null,"cta"?: string | null,"dry_run_at"?: string | null,"dry_run_payload"?: Json | null,"est_cost_usd"?: number | null,"external_media_id"?: string | null,"external_post_id"?: string | null,"external_post_url"?: string | null,"external_thread_ids"?: (string)[],"format"?: string,"generation"?: NonNullable<Json>,"hook"?: string | null,"id"?: string,"image_alt"?: string | null,"image_path"?: string | null,"image_prompt"?: string | null,"image_provider"?: string | null,"image_status"?: string,"impressions"?: number | null,"landing_visits_attributed"?: number,"likes"?: number | null,"link_clicks"?: number | null,"link_url"?: string | null,"media_ids"?: (string)[],"metrics_updated_at"?: string | null,"origin"?: string,"parties_created_attributed"?: number,"plan_id"?: string | null,"platform"?: string,"poll"?: Json | null,"profile_visits"?: number | null,"publish_attempt_id"?: string | null,"publish_attempts"?: number,"publish_error"?: string | null,"publish_error_code"?: string | null,"published_at"?: string | null,"publishing_started_at"?: string | null,"purchases_attributed"?: number,"quotes"?: number | null,"replies"?: number | null,"reposts"?: number | null,"revenue_attributed_minor"?: number,"revenue_currency"?: string | null,"scheduled_at"?: string | null,"signups_attributed"?: number,"similar_post_id"?: string | null,"similarity_score"?: number | null,"slot_index"?: number | null,"slot_role"?: string | null,"source"?: string,"status"?: string,"text"?: string,"thread_parts"?: Json | null,"topic"?: string,"topic_key"?: string | null,"updated_at"?: string,"validation"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "marketing_posts_plan_fk"
+      columns: ["plan_id"]
+isOneToOne: false
+      referencedRelation: "marketing_plans"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "marketing_posts_similar_post_id_fkey"
+      columns: ["similar_post_id"]
+isOneToOne: false
+      referencedRelation: "marketing_posts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"marketing_settings": {
+                  Row: {
+                    "autonomous_enabled": boolean,"id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  Insert: {
+                    "autonomous_enabled"?: boolean,"id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "autonomous_enabled"?: boolean,"id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"marketing_usage": {
+                  Row: {
+                    "at": string,"cost_usd": number,"detail": NonNullable<Json>,"id": number,"month": string,"ok": boolean,"operation": string,"post_id": string | null,"provider": string,"units": number
+                  }
+                  Insert: {
+                    "at"?: string,"cost_usd"?: number,"detail"?: NonNullable<Json>,"id"?: never,"month": string,"ok"?: boolean,"operation": string,"post_id"?: string | null,"provider": string,"units"?: number
+                  }
+                  Update: {
+                    "at"?: string,"cost_usd"?: number,"detail"?: NonNullable<Json>,"id"?: never,"month"?: string,"ok"?: boolean,"operation"?: string,"post_id"?: string | null,"provider"?: string,"units"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "marketing_usage_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "marketing_posts"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"parties": {
                   Row: {
                     "budget": number | null,"checklist_data": Json | null,"child_age": number,"child_gender": string | null,"child_name": string,"city": string | null,"colors": (string)[] | null,"created_at": string | null,"guest_count": number | null,"id": string,"interests": (string)[],"is_shared": boolean | null,"latitude": number | null,"location": unknown,"longitude": number | null,"party_date": string,"party_location": string | null,"party_time": string | null,"search_radius_miles": number,"selected_theme": string | null,"share_token": string | null,"shared_at": string | null,"state": string | null,"status": string | null,"theme": string | null,"theme_details": Json | null,"updated_at": string | null,"user_id": string,"venue_type": string | null,"zip_code": string | null
@@ -839,6 +986,14 @@ isOneToOne: false
                            },
 "launch_waitlist_stats":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"marketing_claim_post":
+{ Args: { "p_attempt": string,"p_max_per_day": number,"p_min_gap_minutes": number,"p_post": string,"p_window_start": string }; Returns: {
+              "claimed": boolean,"reason": string
+            }[]
+                           },
+"marketing_media_used":
+{ Args: { "p_ids": (string)[] }; Returns: undefined
                            },
 "owns_party":
 { Args: { "p_party_id": string }; Returns: boolean

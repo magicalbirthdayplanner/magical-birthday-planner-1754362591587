@@ -18,7 +18,7 @@ Preview environment (scoped to the `mobile-first` branch) at the v1.0 baseline (
 | `VERCEL`, `VERCEL_ENV`, `VERCEL_URL`, `NODE_ENV`, `NEXT_RUNTIME`, `CI` | Set by the platform/tooling | no | — | auto | auto |
 | `NEXT_DIST_DIR` | Test-only build directory (`.next-e2e`) | no | no | — | — |
 | `NEXT_PUBLIC_META_PIXEL_ID` | Meta Pixel (dataset) ID for Facebook/Instagram ads measurement (components/analytics/MetaPixel.tsx). Unset → no pixel. Public value (it appears in page source); build-time, redeploy after changing | no | no | — | — |
-| `CRON_SECRET` | Bearer secret for Vercel Cron `/api/cron/*`. No cron jobs exist since the waitlist was retired (2026-10-09); safe to delete | yes | no | ✓ | — |
+| `CRON_SECRET` | Bearer secret for Vercel Cron `/api/cron/*` (≥ 16 chars). Used by the founder marketing agent's scheduler (`/api/cron/marketing`); without it the scheduler refuses to run | yes | no | ✓ | — |
 
 ## Supabase
 
@@ -89,6 +89,41 @@ Per-party allowances (10 / 25 / 50) and the per-user hourly cap (10) are constan
 | `EMAIL_REPLY_TO` | Optional reply-to | no | no | — | — |
 | `EMAIL_DAILY_INVITES_PER_USER`, `EMAIL_DAILY_RSVP_EMAILS_PER_PARTY` | Abuse caps (defaults 300 / 200) | no | no | — | — |
 | `RESEND_BASE_URL` | Test-only override (mock server) | no | no | never | never |
+
+## Founder marketing agent (X)
+
+Details and the go-live checklist: [marketing/FOUNDER_MARKETING_AGENT.md](marketing/FOUNDER_MARKETING_AGENT.md) and
+[marketing/X_GROWTH_ENGINE.md](marketing/X_GROWTH_ENGINE.md). Defaults are safe: dry-run ON, autonomous publishing OFF;
+cadence 8 posts/day inside the monthly budgets.
+
+| Variable | Purpose | Secret | Public | Prod | Preview |
+|---|---|:-:|:-:|:-:|:-:|
+| `X_API_KEY`, `X_API_SECRET` | X app Consumer Key / Secret (OAuth 1.0a) | **yes** | no | — | — |
+| `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET` | Posting account's Access Token / Secret (app must have *Read and write* before generating them) | **yes** | no | — | — |
+| `MARKETING_DRY_RUN` | Default `true`; only the exact string `false` lets anything reach X | no | no | — | — |
+| `AUTONOMOUS_PUBLISHING` | Default `false`; exactly `true` lets the scheduler publish (the admin switch must also be ON) | no | no | — | — |
+| `MARKETING_POSTS_PER_DAY` | 1–8 (default 8, hard cap 8); the budget may publish fewer | no | no | — | — |
+| `MARKETING_POST_TIMES`, `MARKETING_TIMEZONE` | Local slots (default `08:00,10:30,12:30,14:30,16:30,18:00,19:30,21:00`) and zone (default `America/New_York`) | no | no | — | — |
+| `MARKETING_MIN_GAP_MINUTES`, `MARKETING_PUBLISH_EARLY_MINUTES` | Spacing (60) and early-publish window (90) | no | no | — | — |
+| `MARKETING_URL_SHARE` | Max share of posts with the product link (0.1, max 0.4) — X bills $0.20 per link post, so the budget usually allows fewer | no | no | — | — |
+| `MONTHLY_X_BUDGET_USD`, `MARKETING_X_RESERVE_USD` | Hard monthly X API budget (5) and the part never spent (0.25) | no | no | — | — |
+| `MONTHLY_AI_BUDGET_USD`, `MARKETING_AI_USD_PER_1M_TOKENS` | AI budget for copy/images/video (2) and the token price used for estimates (2) | no | no | — | — |
+| `MARKETING_X_PRICE_<OP>` | Override an X rate (`POST_CREATE`, `POST_CREATE_URL`, `POST_READ`, `OWNED_READ`, `USER_READ`, `MEDIA_METADATA`, `MEDIA_UPLOAD`) | no | no | — | — |
+| `MARKETING_X_ALT_TEXT` | `auto` (only while GREEN) · `on` · `off` — alt text is a billed call | no | no | — | — |
+| `MARKETING_METRICS_WINDOWS` | Hours-ago windows read once a day (`24-48,168-192`) | no | no | — | — |
+| `MARKETING_SCORE_WEIGHTS` | Business-score weights (JSON) | no | no | — | — |
+| `MARKETING_UTM_CAMPAIGN` | `utm_campaign` for X links (`mbp_x_growth`) | no | no | — | — |
+| `MARKETING_MEDIA_SOURCE_DIR` | Seed script only: where the campaign media files are | no | no | never | never |
+| `MARKETING_X_MAX_CHARS` | Weighted-character limit (280) | no | no | — | — |
+| `MARKETING_IMAGE_PROVIDER` | `brand` (default, no API) · `openai` · `none` | no | no | — | — |
+| `OPENAI_API_KEY`, `MARKETING_IMAGE_MODEL` | Only for `openai` images (`gpt-image-1`) | **yes** / no | no | — | — |
+| `MARKETING_AI_MODEL` | Optional copy-model override (same `AI_PROVIDER`/`AI_API_KEY`) | no | no | — | — |
+| `MARKETING_AUTO_DRAFT` | One review draft a day while autonomous is off (default on) | no | no | — | — |
+| `MARKETING_BRIEF_EMAIL` | Daily brief recipient (optional) | no | no | — | — |
+| `MARKETING_LAUNCH_DATE` | Launch date (default `2026-10-13`) | no | no | — | — |
+| `MARKETING_LEARNING_INTERVAL_DAYS`, `MARKETING_LEARNING_WINDOW_DAYS` | Learning cadence (1) and window (30) | no | no | — | — |
+| `MARKETING_FORBIDDEN_TERMS` | Comma list never allowed in posts (founder/family names) | no (keep private) | no | — | — |
+| `MARKETING_X_USERNAME` | Optional handle for post URLs | no | no | — | — |
 
 ## Vercel
 

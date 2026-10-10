@@ -3,6 +3,22 @@
 Major milestones, newest first. Dates and commits are from Git history (`git log`). Configuration-only changes
 (no commit) are marked as such.
 
+## Unreleased — X growth engine (same branch, not deployed)
+
+- 8 posts/day inside a $5/month X budget: weekly 56-slot plan, one AI call per day, evergreen library fallback,
+  reusable privacy-reviewed campaign media + 10 free branded templates, polls/threads/carousels/video, budget ledger and
+  guards (X + AI), owned-read metrics, business score, decision engine, `/admin/marketing/x`. Needs migration
+  `20251010001900_x_growth_engine` after `…1800`. See [docs/marketing/X_GROWTH_ENGINE.md](docs/marketing/X_GROWTH_ENGINE.md).
+
+## Unreleased — founder marketing agent for X (branch `feat/founder-marketing-agent`, not deployed)
+
+- Autonomous, founder-voiced X agent: AI drafts from a verified fact register, claim/voice/date validation, repetition
+  check, on-brand images (`next/og` brand card; optional OpenAI), Supabase storage, claim-protected scheduler (Vercel
+  Cron + `CRON_SECRET`), X API v2 publishing (OAuth 1.0a), X metrics + UTM attribution from `analytics_events`,
+  learning loop, daily brief, `/admin/marketing`. Dry-run ON and autonomous OFF by default.
+  See [docs/marketing/FOUNDER_MARKETING_AGENT.md](docs/marketing/FOUNDER_MARKETING_AGENT.md). Needs migration
+  `20251010001800_founder_marketing` before deploy.
+
 ## Unreleased — temporary pre-launch waitlist (branch `feat/prelaunch-waitlist`, not deployed)
 
 - Oct 6–12, 2026 (America/New_York) the public site is a waitlist page; Oct 13 00:00 ET the normal site returns

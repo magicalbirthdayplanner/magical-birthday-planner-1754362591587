@@ -125,4 +125,16 @@ export const FIXTURES: Record<string, unknown> = {
     assumptions: ['Party length assumed to be 2 hours.', 'Please check allergies and dietary needs with each family.'],
     followUpQuestions: ['Will the kids need aprons, or should guests be told to wear old clothes?'],
   },
+  // Founder marketing agent (lib/marketing/generate.ts): one valid founder-voice post.
+  marketing_post: {
+    paragraphs: ['Planning one birthday party should not need a spreadsheet, three group chats and a pile of sticky notes.', 'That mess is the reason I started building this.'],
+    hook: 'Planning one birthday party should not need a spreadsheet, three group chats and a pile of sticky notes.',
+    topic: 'Why I started building a birthday planner',
+    cta: null,
+    imageHeadline: 'Fewer tabs, more party',
+    imagePrompt: 'A tidy kitchen table with a paper party hat, a cupcake and folded invitations, warm morning light',
+    altText: 'A paper party hat, a cupcake and folded invitations on a kitchen table.',
+    factsUsed: ['F-origin'],
+    angle: 'Relatable origin story for the pre-launch objective.',
+  },
 }

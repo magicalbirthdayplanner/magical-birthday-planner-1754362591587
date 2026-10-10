@@ -9,5 +9,31 @@
   },
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/marketing?task=plan",
+      "schedule": "0 10 * * 0"
+    },
+    {
+      "path": "/api/cron/marketing?task=prepare",
+      "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/marketing?task=publish&slot=1",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/marketing?task=publish&slot=2",
+      "schedule": "30 16 * * *"
+    },
+    {
+      "path": "/api/cron/marketing?task=publish&slot=3",
+      "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/marketing?task=publish&slot=4",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }
