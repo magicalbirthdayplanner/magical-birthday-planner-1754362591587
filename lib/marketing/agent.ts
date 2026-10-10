@@ -19,7 +19,7 @@ import { runDailyBrief } from './brief'
 import { budgetSnapshot } from './budget'
 import { autonomousEffective, readMarketingConfig, xUserIdFromEnv, type MarketingConfig } from './config'
 import { runLearning } from './learning'
-import { SupabaseAnalyticsAttribution, collectAttribution, collectOwnMetrics, countCampaignEvents, type AttributionSource } from './metrics'
+import { SupabaseAnalyticsAttribution, collectAttribution, collectOwnMetrics, countCampaignEvents, importHistory, type AttributionSource } from './metrics'
 import { planWeek, weekStartOf, type PlanWeights } from './planner'
 import { getMarketingProvider, type MarketingProvider } from './providers'
 import { publishPost, recoverStalePublishing, type PublishOutcome } from './publish'
@@ -113,6 +113,14 @@ export async function runPrepare(d: AgentDeps = {}): Promise<Record<string, unkn
   out.autonomous = auto
 
   await step('staleClaims', out, () => recoverStalePublishing(store, now))
+  // Once: bring the account's existing posts in (≤ 100 owned reads) so the engine never repeats them.
+  await step('history', out, async () => {
+    const userId = xUserIdFromEnv(env)
+    if (!userId || !provider.configured()) return 'not_configured'
+    const known = await store.listPosts({ platform: PLATFORM, limit: 5000 })
+    if (known.some((p) => p.source === 'imported') || (await store.recentAudit(500)).some((a) => a.action === 'history_imported')) return 'done'
+    return importHistory(store, provider, cfg, { userId, now, env })
+  })
   await step('platformMetrics', out, () => collectOwnMetrics(store, provider, cfg, { now, userId: xUserIdFromEnv(env), env }))
   const attribution = d.attribution === undefined ? new SupabaseAnalyticsAttribution() : d.attribution
   if (attribution) await step('attribution', out, () => collectAttribution(store, attribution, now))
