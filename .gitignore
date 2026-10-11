@@ -83,3 +83,6 @@ secrets/
 # Local QA / scratch artifacts
 .qa*
 /tmp/
+
+# Campaign content and rendered media stay local (code-only repository)
+/marketing/

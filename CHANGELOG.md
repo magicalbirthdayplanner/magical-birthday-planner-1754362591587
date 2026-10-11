@@ -3,14 +3,22 @@
 Major milestones, newest first. Dates and commits are from Git history (`git log`). Configuration-only changes
 (no commit) are marked as such.
 
-## Unreleased — X growth engine (same branch, not deployed)
+## 2026-10-11 — marketing console for X, Instagram and Facebook (`feat/founder-marketing-agent` → `master`, deployed)
+
+- One console at `/admin/marketing` (General · X · Instagram · Facebook) with a 30-day content engine per platform,
+  connection checks and pause; the local Facebook Page tool is retired. Fully autonomous publishing (no approval
+  needed). Supabase pg_cron publish tick every 5 minutes (migration `20251011002100`) because Vercel Hobby crons fire
+  anywhere within the hour. Migrations `20251011002000` + `20251011002100`. See
+  [docs/marketing/MARKETING_CONSOLE.md](docs/marketing/MARKETING_CONSOLE.md).
+
+## 2026-10-10 — X growth engine (same branch; deployed with the 2026-10-11 release)
 
 - 8 posts/day inside a $5/month X budget: weekly 56-slot plan, one AI call per day, evergreen library fallback,
   reusable privacy-reviewed campaign media + 10 free branded templates, polls/threads/carousels/video, budget ledger and
   guards (X + AI), owned-read metrics, business score, decision engine, `/admin/marketing/x`. Needs migration
   `20251010001900_x_growth_engine` after `…1800`. See [docs/marketing/X_GROWTH_ENGINE.md](docs/marketing/X_GROWTH_ENGINE.md).
 
-## Unreleased — founder marketing agent for X (branch `feat/founder-marketing-agent`, not deployed)
+## 2026-10-10 — founder marketing agent for X (branch `feat/founder-marketing-agent`; deployed with the 2026-10-11 release)
 
 - Autonomous, founder-voiced X agent: AI drafts from a verified fact register, claim/voice/date validation, repetition
   check, on-brand images (`next/og` brand card; optional OpenAI), Supabase storage, claim-protected scheduler (Vercel

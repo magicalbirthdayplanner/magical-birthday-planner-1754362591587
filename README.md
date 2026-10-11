@@ -22,6 +22,7 @@ activities, manage food and budgets, create invitations, and create a magical pa
 - [Authentication](#authentication)
 - [Security model](#security-model)
 - [Observability](#observability)
+- [Marketing engine](#marketing-engine-x--instagram--facebook)
 - [Database](#database)
 - [Repository structure](#repository-structure)
 - [Local development](#local-development)
@@ -233,6 +234,9 @@ User (browser, Bearer JWT)
 | **Sentry** | Errors, tracing, logs, metrics, AI monitoring, billing/auth/Google telemetry, uptime on `/api/health`, alerts | DSN public; auth token build-only |
 | **Resend** | Invitation emails, RSVP confirmations, host notifications | sender `noreply@magicalbirthdayplanner.app` |
 | **OpenCode (AI provider)** | All AI features | `AI_API_KEY` server-only |
+| **X API v2** | Marketing engine: publishing, media upload, owned metrics | OAuth 1.0a user context, pay-per-use (budget-gated) |
+| **Instagram API (Instagram Login)** | Marketing engine: images, carousels, Reels, metrics | `IG_ACCESS_TOKEN` long-lived (refresh before expiry) |
+| **Facebook Graph API** | Marketing engine: Page posts, photos, video, metrics | `FB_PAGE_ACCESS_TOKEN` Page token |
 | **Vercel** | Hosting, production deploys from `master`, env configuration | project `magical-birthday-planner-1754362591587` |
 | **GitHub** | Private source of truth, launch tag `v1.0.0` | repository must remain **private** |
 | Cloudflare | DNS only (no proxy) | |
@@ -285,9 +289,41 @@ monitors (P0–P2). Privacy scrubbing removes tokens, emails, phones and query s
 auth / google / db) → open the event's trace → check Logs/Metrics for the same `request_id` → Dodo dashboard for
 payments → Vercel deployment logs for build/runtime context. Full catalogue: [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md).
 
+## Marketing engine (X · Instagram · Facebook)
+
+An autonomous, founder-voiced content engine that writes, schedules and publishes posts for the brand accounts on X,
+Instagram and the Facebook Page, then measures them. The founder stays anonymous.
+
+- **Console:** `/admin/marketing` (Super Admin) — tabs **General · X · Instagram · Facebook**. Each platform tab lays
+  out the next 30 days slot by slot, with **Approve**, **Publish now**, **Regenerate**, **Edit**, **Cancel**, plus
+  **Check connection** and **Pause/Resume**. General holds the autonomy switch, budgets, brief and activity log.
+- **Writing:** a weekly plan per platform, one AI call per platform-day (OpenCode), an evergreen library fallback,
+  branded `next/og` templates and a privacy-reviewed media library. Every post is checked against a verified fact
+  register, the founder voice, privacy rules (no children's names/faces, founder name forbidden), the product-name
+  spelling, dates and repetition. The bank is kept `MARKETING_BANK_DAYS` (30) ahead.
+- **Publishing:** fully autonomous when `AUTONOMOUS_PUBLISHING=true` (env kill switch) and the console switch is ON —
+  no approval needed; the founder deletes on the platform if something is wrong. Supabase **pg_cron** calls
+  `/api/cron/marketing?task=publish` every 5 minutes (URL + secret in Supabase Vault), so posts go out within ~5 minutes
+  of their slot; Vercel crons (`plan` weekly, `prepare` daily, `publish` ×4) are the backup. Claim-protected
+  (`marketing_claim_post`): per-platform daily cap and minimum gap, never double-posts.
+- **Cadence (ET):** X 4/day (09:00 · 12:30 · 17:00 · 20:00) · Instagram 2/day (12:30 · 20:00) · Facebook 2/day
+  (09:00 · 17:00).
+- **Cost control:** X bills per call ($0.015/post, $0.20 with a link) — hard monthly cap `MONTHLY_X_BUDGET_USD`,
+  daily fair share, link premium only while the budget allows; AI spend capped by `MONTHLY_AI_BUDGET_USD`. Everything
+  is written to `marketing_usage`.
+- **Learning:** owned metrics per platform, UTM attribution from `analytics_events`, business score, learning loop and
+  a daily brief.
+- **Safety:** `MARKETING_DRY_RUN=true` simulates everything; credentials are server-only env vars, never stored in the
+  database or returned by the API.
+
+Docs: [MARKETING_CONSOLE](docs/marketing/MARKETING_CONSOLE.md) ·
+[X_GROWTH_ENGINE](docs/marketing/X_GROWTH_ENGINE.md) ·
+[FOUNDER_MARKETING_AGENT](docs/marketing/FOUNDER_MARKETING_AGENT.md). Campaign content and rendered media (the
+local `marketing/` folder, films) are kept out of git — this repository holds code and docs only.
+
 ## Database
 
-Supabase PostgreSQL (with PostGIS). **Migrations in `supabase/migrations/` are the source of truth** (15 files, all
+Supabase PostgreSQL (with PostGIS). **Migrations in `supabase/migrations/` are the source of truth** (22 files, all
 applied in production; the baseline file `20251001000000` is local/CI only). Generated types:
 `lib/db/database.types.ts` (`npm run db:types`).
 
@@ -300,6 +336,7 @@ applied in production; the baseline file `20251001000000` is local/CI only). Gen
 | AI | `ai_generations` (status, tokens, result, applied), `ai_cache` |
 | Billing | `billing_checkouts` (party_id), `billing_purchases` (party_id, scope, unresolved_reason), `billing_customers`, `billing_webhook_events` |
 | Discovery | `venues` (shared catalogue), `venue_searches`, `venue_search_results` |
+| Marketing | `marketing_posts`, `marketing_post_metrics`, `marketing_plans`, `marketing_media`, `marketing_usage`, `marketing_settings`, `marketing_insights`, `marketing_briefs`, `marketing_audit_log` |
 | Other | `analytics_events`, legacy `activities`, `activity_favorites`, `theme_preferences`, `invitations`, `party_activities` |
 
 **Migration policy:** additive and re-runnable; never edit an applied migration; apply with
@@ -322,10 +359,12 @@ it; never reset production. Schema notes: [docs/SUPABASE_SCHEMA.md](docs/SUPABAS
 | `lib/discovery/`, `lib/google/` | Venue search, ranking, Google clients, cost control |
 | `lib/server/` | Auth, admin checks, email (Resend), rate limits, HTTP helpers (server-only) |
 | `lib/observability/` | Sentry wrappers and privacy scrubbing |
+| `lib/marketing/` | Marketing engine: planner, batch writer, validation, repetition, budget, publisher, metrics, console, providers (`x`, `instagram`, `facebook`) |
+| `data/marketing/` | Marketing media library manifest |
 | `lib/data/`, `lib/db/` | Browser data access (SWR) and generated DB types |
 | `supabase/migrations/` | Database schema (source of truth) |
 | `tests/` | `unit`, `integration` (local Supabase), `e2e` (Playwright), `live` (opt-in real-model checks), `mock-google` (mock Google/Resend/Dodo server), `helpers` |
-| `scripts/` | Secret scanners, brand icon generator |
+| `scripts/` | Secret scanners, brand icon generator, funnel report, marketing media seeder |
 | `public/` | Icons, OG image, service worker |
 | `docs/` | All documentation ([index](docs/README.md)), screenshots |
 
@@ -347,7 +386,7 @@ reports "not configured".
 
 | Layer | Command | Scope |
 |---|---|---|
-| Unit | `npm test` | entitlements, AI client/schemas, discovery, billing events, observability, RSVP identity, route inventory |
+| Unit | `npm test` | entitlements, AI client/schemas, discovery, billing events, observability, RSVP identity, route inventory, marketing engine |
 | Integration | `npm run test:integration` | against local Supabase: RLS, security, billing & per-party entitlements, AI features & usage attacks, RSVP idempotency, email caps, admin |
 | E2E | `npm run test:e2e` | Playwright on phone viewports (375–430 px) with mocked Google/Resend/Dodo |
 | Live AI (opt-in) | `AI_LIVE=1 npx vitest run -c vitest.live.config.ts` | real provider quality checks (costs money) |
@@ -380,6 +419,9 @@ Supabase migrations: applied separately, BEFORE the code that needs them
 - **Known limitations:** [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) · **Roadmap:** [docs/ROADMAP.md](docs/ROADMAP.md)
 - **Design system:** [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) · **History:** [CHANGELOG.md](CHANGELOG.md)
 - Full index: [docs/README.md](docs/README.md).
+
+**2026-10-11:** the marketing engine (X · Instagram · Facebook) is live in production on `master`
+(unit suite 427/427).
 
 **Development rule:** master is the frozen v1.0 production baseline. Do not change production from `master` directly —
 create a feature branch, run the full test suite, review the impact on entitlements, billing, AI and security, and
