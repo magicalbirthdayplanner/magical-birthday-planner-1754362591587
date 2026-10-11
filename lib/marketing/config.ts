@@ -23,7 +23,7 @@ export interface MarketingConfig {
   postTimes: string[]
   /** Minimum minutes between two posts on the same platform. */
   minGapMinutes: number
-  /** A scheduled post may go out up to this many minutes before its slot (Vercel Hobby cron runs once in the hour). */
+  /** A scheduled post may go out up to this many minutes before its slot (the pg_cron tick runs every 5 minutes). */
   publishEarlyMinutes: number
   /** Target share of posts that carry the product link. */
   urlShare: number
@@ -115,7 +115,7 @@ export function readMarketingConfig(env: Record<string, string | undefined> = pr
     timezone: isValidTimeZone(tz) ? tz : 'America/New_York',
     postTimes: (times.length ? times : DEFAULT_POST_TIMES).sort(),
     minGapMinutes: int(env.MARKETING_MIN_GAP_MINUTES, 60, 30, 1440),
-    publishEarlyMinutes: int(env.MARKETING_PUBLISH_EARLY_MINUTES, 90, 0, 120),
+    publishEarlyMinutes: int(env.MARKETING_PUBLISH_EARLY_MINUTES, 5, 0, 120),
     urlShare: num(env.MARKETING_URL_SHARE, 0.1, 0, 0.4),
     xMaxChars: int(env.MARKETING_X_MAX_CHARS, 280, 140, 25_000),
     targetMinChars: 100,

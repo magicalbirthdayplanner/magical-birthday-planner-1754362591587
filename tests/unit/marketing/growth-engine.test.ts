@@ -113,9 +113,9 @@ describe('budget', () => {
     expect(allowX(b, 0.015, 'core')).toMatchObject({ ok: false, reason: 'x_budget_exhausted' })
     expect(allowX(b, 0.001, 'discretionary').ok).toBe(false)
     store.usage.length = 0
-    for (let i = 0; i < 40; i++) await store.recordUsage({ provider: 'x', operation: 'post_create', units: 1, costUsd: 0.015, ok: true, at: NOW.toISOString() })
+    for (let i = 0; i < 80; i++) await store.recordUsage({ provider: 'x', operation: 'post_create', units: 1, costUsd: 0.015, ok: true, at: NOW.toISOString() })
     const t = await budgetSnapshot(store, cfg(), NOW, {})
-    expect(t.x.today).toBeCloseTo(0.6, 5)
+    expect(t.x.today).toBeCloseTo(1.2, 5)
     expect(allowX(t, 0.015, 'core')).toMatchObject({ ok: false, reason: 'x_daily_allowance' })
   })
   it('failed calls cost nothing; the meter writes the ledger', async () => {

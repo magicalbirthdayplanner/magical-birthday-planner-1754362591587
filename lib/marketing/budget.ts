@@ -8,7 +8,7 @@
  *   media metadata (alt text) $0.005 · media upload: not on the rate card (tracked at $0 until X prices it).
  *
  * Spending priorities when money is short:
- *   core           — the post itself: allowed while it fits the hard cap AND today's fair share of what is left
+ *   core           — the post itself: allowed while it fits the hard cap AND 3× today's fair share of what is left
  *   discretionary  — link premium, metrics reads, alt text, account checks: only when the month's projected spend
  *                    (spent + everything still committed) stays inside the budget and the status isn't RED
  * Status: GREEN projected ≤ 80% · YELLOW ≤ 100% · RED above, or the hard cap is reached.
@@ -144,8 +144,8 @@ export function allowX(b: BudgetSnapshot, cost: number, kind: SpendKind): SpendD
   const hardCap = b.x.budget - b.x.reserve
   if (b.x.spent + cost > hardCap + 1e-9) return { ok: false, reason: 'x_budget_exhausted', cost }
   if (kind === 'core') {
-    // Fair share: never burn more than 1.5× today's share of what is left (keeps posts going all month).
-    if (b.x.today + cost > b.x.dailyAllowance * 1.5 + 1e-9) return { ok: false, reason: 'x_daily_allowance', cost }
+    // Fair share: never burn more than 3× today's share of what is left (keeps posts going all month).
+    if (b.x.today + cost > b.x.dailyAllowance * 3 + 1e-9) return { ok: false, reason: 'x_daily_allowance', cost }
     return { ok: true, cost }
   }
   if (b.x.status === 'RED') return { ok: false, reason: 'x_budget_red', cost }
