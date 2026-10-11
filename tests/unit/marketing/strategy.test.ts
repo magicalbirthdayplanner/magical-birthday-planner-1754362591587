@@ -113,6 +113,12 @@ describe('repetition check', () => {
     expect(checkRepetition({ text: t }, [h({ text: t, status: 'cancelled' })], now).repetitive).toBe(false)
     expect(checkRepetition({ text: t, excludeIds: ['old'] }, [h({ text: t })], now).repetitive).toBe(false)
   })
+  it('windows are measured from the candidate’s own date, in both directions (bank written weeks ahead)', () => {
+    const later = h({ text: 'A completely unrelated thought about cake.', topicKey: 'cake', at: '2026-11-03T14:00:00Z' })
+    expect(checkRepetition({ text: 'Set the RSVP date a week out.', topicKey: 'cake' }, [later], now).reasons.map((r) => r.code)).toEqual([])
+    expect(checkRepetition({ text: 'Set the RSVP date a week out.', topicKey: 'cake' }, [later], new Date('2026-11-01T14:00:00Z')).reasons.map((r) => r.code)).toEqual(['same_topic'])
+  })
+
   it('accepts a genuinely new idea', () => {
     expect(checkRepetition({ text: 'Set the RSVP date a week before the party and send one friendly reminder.' }, [h({ text: 'Planning a birthday is stressful because you need 20 tabs' })], now).repetitive).toBe(false)
   })

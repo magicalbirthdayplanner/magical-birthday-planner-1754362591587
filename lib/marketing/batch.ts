@@ -160,7 +160,8 @@ export function buildCandidate(slot: PlanSlot, item: Pick<Item, 'paragraphs' | '
       } else cards.push({ template: slot.media.template, headline: c.headline, bullets: c.bullets, left: c.left, right: c.right })
     }
   }
-  const rep = checkRepetition({ text, hook: item.hook, cta: item.cta ?? null, topicKey: slot.topicKey }, ctx.history, ctx.now)
+  // Compare around the slot's own date (the bank is written ahead), not around today.
+  const rep = checkRepetition({ text, hook: item.hook, cta: item.cta ?? null, topicKey: slot.topicKey }, ctx.history, new Date(Math.max(ctx.now.getTime(), new Date(slot.at).getTime())))
   reasons.push(...rep.reasons.map((r) => r.message))
   return {
     post: { slot, id, text, hook: item.hook.slice(0, 200), cta: item.cta ?? null, topic: item.topic.slice(0, 100), poll, thread, cards, source: ctx.source, libraryKey: ctx.libraryKey, factsUsed: item.factsUsed ?? [] },

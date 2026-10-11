@@ -42,11 +42,12 @@ export const REPETITION = {
 } as const
 
 export function checkRepetition(c: RepetitionCandidate, history: HistoryItem[], now = new Date()): RepetitionResult {
+  // Distance in days in either direction: the bank is written weeks ahead, so posts AFTER the candidate count too.
   const nowMs = now.getTime()
-  const ageDays = (h: HistoryItem) => (nowMs - new Date(h.at).getTime()) / 86_400_000
+  const ageDays = (h: HistoryItem) => Math.abs(nowMs - new Date(h.at).getTime()) / 86_400_000
   const recent = history
     .filter((h) => h.id !== c.id && !c.excludeIds?.includes(h.id) && h.status !== 'cancelled' && ageDays(h) <= REPETITION.ideaWindowDays)
-    .sort((a, b) => b.at.localeCompare(a.at))
+    .sort((a, b) => ageDays(a) - ageDays(b))
   const reasons: RepetitionResult['reasons'] = []
   let score = 0
   let closestId: string | null = null
