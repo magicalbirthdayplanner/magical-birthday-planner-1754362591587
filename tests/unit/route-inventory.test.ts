@@ -45,12 +45,12 @@ const EXPECTED = [
   '/api/billing/checkout [api]', '/api/billing/status [api]', '/api/webhooks/dodo [api]',
   '/api/admin/session [api]', '/api/admin/users [api]', '/api/admin/stats [api]', '/api/admin/override [api]', '/api/admin/audit [api]',
   // Founder marketing agent: Super Admin dashboard APIs + the CRON_SECRET-protected scheduler
-  '/api/admin/marketing [api]', '/api/admin/marketing/posts/[id] [api]', '/api/admin/marketing/x [api]', '/api/cron/marketing [api]',
+  '/api/admin/marketing [api]', '/api/admin/marketing/posts/[id] [api]', '/api/cron/marketing [api]',
   // AI planning assistant (every route authenticates; behind AI_ENABLED + per-feature flags)
   ...AI_ROUTES.map((r) => `${r} [api]`),
 ].sort()
 // The only routes allowed to carry "admin": each verifies the super_admin role server-side.
-const SUPER_ADMIN_ROUTES = new Set(['/admin', '/admin/marketing', '/admin/marketing/x', '/api/admin/session', '/api/admin/users', '/api/admin/stats', '/api/admin/override', '/api/admin/audit', '/api/admin/marketing', '/api/admin/marketing/posts/[id]', '/api/admin/marketing/x'])
+const SUPER_ADMIN_ROUTES = new Set(['/admin', '/admin/marketing', '/admin/marketing/x', '/api/admin/session', '/api/admin/users', '/api/admin/stats', '/api/admin/override', '/api/admin/audit', '/api/admin/marketing', '/api/admin/marketing/posts/[id]'])
 
 describe('route inventory', () => {
   const actual = routes().sort()

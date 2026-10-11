@@ -5,6 +5,7 @@ import type { Platform } from '../types'
 import type { MarketingProvider } from './types'
 import { XMarketingProvider, xCredentialsFromEnv } from './x'
 import { InstagramProvider, instagramFromEnv } from './instagram'
+import { FacebookProvider, facebookFromEnv } from './facebook'
 
 let override: MarketingProvider | null = null
 /** Tests only. */
@@ -19,8 +20,10 @@ export function getMarketingProvider(platform: Platform, cfg: MarketingConfig, e
       return new XMarketingProvider({ credentials: xCredentialsFromEnv(env), maxChars: cfg.xMaxChars, username: cfg.xUsername })
     case 'instagram':
       return new InstagramProvider(instagramFromEnv(env))
+    case 'facebook':
+      return new FacebookProvider(facebookFromEnv(env))
     default:
-      // facebook / reddit / linkedin: implement MarketingProvider and register it here.
+      // reddit / linkedin: implement MarketingProvider and register it here.
       throw new Error(`No marketing provider for ${platform} yet`)
   }
 }

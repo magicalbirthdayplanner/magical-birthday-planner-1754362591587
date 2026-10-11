@@ -45,6 +45,8 @@ const RULES = [
   { type: 'Supabase secret key (sb_secret_)', re: /sb_secret_[A-Za-z0-9_-]{20,}/g },
   { type: 'Supabase JWT', re: /eyJhbGciOi[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/g, classify: (v) => `Supabase JWT (role=${jwtRole(v)})` },
   { type: 'Google API key', re: /AIza[0-9A-Za-z_-]{35}/g },
+  { type: 'Meta (Facebook) access token', re: /\bEAA[A-Za-z0-9]{40,}/g },
+  { type: 'Instagram access token', re: /\bIGAA[A-Za-z0-9_-]{40,}/g },
   { type: 'Resend API key', re: /\bre_[A-Za-z0-9]{8}_[A-Za-z0-9]{16,}/g },
   { type: 'Apify API token', re: /apify_api_[A-Za-z0-9]{30,}/g },
   { type: 'OpenAI API key', re: /\bsk-(?:proj-)?[A-Za-z0-9_-]{32,}/g },

@@ -157,7 +157,8 @@ export async function planWeek(store: MarketingStore, cfg: MarketingConfig, opts
   const slots: PlanSlot[] = []
   // Media similarity: nothing already queued or used in the last 14 days is planned again.
   const usedMedia = new Set<string>(recent.filter((p) => p.status !== 'cancelled' && now.getTime() - new Date(p.publishedAt ?? p.createdAt).getTime() < 14 * 86_400_000).flatMap((p) => p.mediaIds))
-  let links = cad.links ? affordableLinks(opts.budget ?? null, cfg, cad.postsPerDay * 7) : 0
+  // X bills links ($0.20): only what the budget absorbs. Facebook links are free: one soft-conversion link a day.
+  let links = !cad.links ? 0 : platform === 'x' ? affordableLinks(opts.budget ?? null, cfg, cad.postsPerDay * 7) : 7
   const today = localDate(now, cfg.timezone)
 
   for (let day = 0; day < 7; day++) {
@@ -166,8 +167,8 @@ export async function planWeek(store: MarketingStore, cfg: MarketingConfig, opts
     for (let i = 0; i < times.length; i++) {
       const role = roles[i]
       const at = zonedToUtc(date, times[i], cfg.timezone)
-      const base = shape(role, day, weights, budgetGreen)
-      const s = platform === 'instagram' ? instagramShape(base, role, day) : base
+      const base = shape(role, day, weights, budgetGreen && platform === 'x')
+      const s = platform === 'instagram' ? instagramShape(base, role, day) : platform === 'facebook' ? { ...base, thread: false, format: base.format === 'thread' ? ('text' as const) : base.format } : base
       const plannedHistory = slots.map((x): StrategyPost => ({ id: `plan-${x.index}`, pillar: x.pillar, topicKey: x.topicKey, status: 'scheduled', hasLink: x.link, hasImage: x.media.source !== 'none', at: x.at }))
       const preferVenue = s.category === 'venue_content'
       const topic = selectTopic(s.pillar, [...history, ...plannedHistory], at, preferVenue ? (day % 2 ? 'age-fit-venues' : 'venue-discovery') : null)

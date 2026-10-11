@@ -63,11 +63,17 @@ export interface MarketingConfig {
   /** Instagram cadence (MARKETING_IG_POSTS_PER_DAY 1–5, default 2; MARKETING_IG_POST_TIMES). */
   igPostsPerDay: number
   igPostTimes: string[]
+  /** Facebook Page cadence (MARKETING_FB_POSTS_PER_DAY 1–8, default 2; MARKETING_FB_POST_TIMES). */
+  fbPostsPerDay: number
+  fbPostTimes: string[]
+  /** How many days ahead the content bank is kept written (MARKETING_BANK_DAYS, default 30). */
+  bankDays: number
 }
 
 /** Per-platform cadence and copy limits. */
 export interface Cadence { postsPerDay: number; postTimes: string[]; maxChars: number; targetMaxChars: number; links: boolean; maxHashtags: number; maxEmoji: number }
 export function cadenceFor(cfg: MarketingConfig, platform: Platform): Cadence {
+  if (platform === 'facebook') return { postsPerDay: cfg.fbPostsPerDay, postTimes: cfg.fbPostTimes.slice(0, cfg.fbPostsPerDay), maxChars: 2000, targetMaxChars: 500, links: true, maxHashtags: 3, maxEmoji: 3 }
   if (platform === 'instagram') return { postsPerDay: cfg.igPostsPerDay, postTimes: cfg.igPostTimes.slice(0, cfg.igPostsPerDay), maxChars: 2200, targetMaxChars: 600, links: false, maxHashtags: 5, maxEmoji: 3 }
   return { postsPerDay: cfg.postsPerDay, postTimes: cfg.postTimes.slice(0, cfg.postsPerDay), maxChars: cfg.xMaxChars, targetMaxChars: cfg.targetMaxChars, links: true, maxHashtags: 2, maxEmoji: 2 }
 }
@@ -133,6 +139,9 @@ export function readMarketingConfig(env: Record<string, string | undefined> = pr
     platforms: parsePlatforms(env.MARKETING_PLATFORMS),
     igPostsPerDay: int(env.MARKETING_IG_POSTS_PER_DAY, 2, 1, 5),
     igPostTimes: slotTimes(env.MARKETING_IG_POST_TIMES, ['12:30', '20:00']),
+    fbPostsPerDay: int(env.MARKETING_FB_POSTS_PER_DAY, 2, 1, 8),
+    fbPostTimes: slotTimes(env.MARKETING_FB_POST_TIMES, ['09:00', '17:00']),
+    bankDays: int(env.MARKETING_BANK_DAYS, 30, 2, 45),
   }
 }
 
@@ -142,9 +151,14 @@ function slotTimes(v: string | undefined, fallback: string[]): string[] {
 }
 
 function parsePlatforms(v: string | undefined): Platform[] {
-  const known: Platform[] = ['x', 'instagram']
+  const known: Platform[] = ['x', 'instagram', 'facebook']
   const out = (v ?? 'x').split(',').map((x) => x.trim().toLowerCase()).filter((x): x is Platform => (known as string[]).includes(x))
   return out.length ? [...new Set(out)] : ['x']
+}
+
+/** Facebook Page: a Page access token and the Page id. */
+export function hasFacebookCredentials(env: Record<string, string | undefined> = process.env): boolean {
+  return !!env.FB_PAGE_ACCESS_TOKEN?.trim() && /^\d{5,25}$/.test(env.FB_PAGE_ID?.trim() ?? '')
 }
 
 /** Instagram (Instagram API with Instagram Login): token + the professional account's id. Values never leave the server. */

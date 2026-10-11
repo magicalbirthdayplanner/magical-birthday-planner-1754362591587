@@ -21,7 +21,6 @@ const nextConfig = {
     '/api/cron/marketing': ['./lib/marketing/assets/**'],
     '/api/admin/marketing': ['./lib/marketing/assets/**'],
     '/api/admin/marketing/posts/[id]': ['./lib/marketing/assets/**'],
-    '/api/admin/marketing/x': ['./lib/marketing/assets/**'],
   },
   async headers() {
     return [

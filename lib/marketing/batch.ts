@@ -22,7 +22,7 @@ import { voiceRules } from './prompts'
 import { checkRepetition, toHistoryItem, type HistoryItem } from './repetition'
 import type { MarketingStore } from './store'
 import { currentObjective, utmUrl } from './strategy'
-import { localDate, weekday } from './time'
+import { addDays, localDate, weekday } from './time'
 import { SLOT_ROLE_LABEL, type Platform, type PollSpec } from './types'
 import { claimIssues, dateIssues, fixProductName, forbiddenTermsFromEnv, inventedSpecifics, platformRules, pollIssues, validatePost } from './validation'
 
@@ -51,7 +51,7 @@ const POLL_MINUTES = 1440
 
 export function batchSystemPrompt(platform: Platform = 'x'): string {
   return [
-    ...voiceRules(platform === 'instagram' ? 'instagram' : 'x'),
+    ...voiceRules(platform === 'instagram' || platform === 'facebook' ? platform : 'x'),
     'You are writing a whole day of posts at once. Make each post clearly different from the others: different idea, different opening words, different call to action (most posts have none).',
     'Return ONLY a JSON object: {"posts": [ {',
     ' "slot": number (copy the slot number),',
@@ -70,7 +70,7 @@ export function batchSystemPrompt(platform: Platform = 'x'): string {
 function slotInstruction(s: PlanSlot, maxChars: number, platform: Platform = 'x'): string {
   const spec = PILLAR_SPECS[s.pillar]
   const parts = [`SLOT ${s.index} — ${s.time} — ${SLOT_ROLE_LABEL[s.role]} — ${spec.brief}`, `  Angle: ${s.topicAngle} (your own take).`]
-  if (s.format === 'poll') parts.push('  Format: POLL. paragraphs = the question (≤ 200 characters). poll.options = 2–4 short answers (≤ 25 characters each). No link, no card.')
+  if (s.format === 'poll') parts.push(platform === 'facebook' ? '  Format: QUESTION with answer options (posted as text). paragraphs = the question (≤ 200 characters). poll.options = 2–4 short answers (≤ 25 characters each). No link, no card.' : '  Format: POLL. paragraphs = the question (≤ 200 characters). poll.options = 2–4 short answers (≤ 25 characters each). No link, no card.')
   else if (s.format === 'thread') parts.push('  Format: THREAD. paragraphs = the first post (a strong hook, ≤ 240 characters). thread = 3–4 follow-up posts (≤ 260 characters each), numbered "2/", "3/"…')
   else if (s.media.source === 'library') parts.push(`  Format: ${s.format.toUpperCase()} — the post carries an existing ${s.media.kind}: ${s.media.libraryNote ?? ''}. Write a caption that fits it (don’t describe things it doesn’t show). No card.`)
   else if (s.format === 'carousel') parts.push(`  Format: CAROUSEL of branded cards — card.headline = the cover (≤ 8 words); card.bullets = 3–4 short points, one per slide (≤ 40 characters each).`)
@@ -79,7 +79,7 @@ function slotInstruction(s: PlanSlot, maxChars: number, platform: Platform = 'x'
   else if (s.format === 'image') parts.push('  Format: IMAGE headline card — card.headline (≤ 8 words, no numbers, no claims).')
   else parts.push('  Format: TEXT only. No card.')
   parts.push(s.link ? '  Link: the system appends the product link after your text — end with one short, low-pressure line leading into it.' : '  Link: none — do not mention a web address.')
-  parts.push(platform === 'instagram' ? '  Length: 2–4 short paragraphs (aim for 200–600 characters), hashtags on the last line.' : `  Length: ≤ ${s.link ? maxChars - 25 : maxChars} characters (aim for 100–220).`)
+  parts.push(platform === 'instagram' ? '  Length: 2–4 short paragraphs (aim for 200–600 characters), hashtags on the last line.' : platform === 'facebook' ? '  Length: 1–4 short paragraphs (aim for 150–500 characters).' : `  Length: ≤ ${s.link ? maxChars - 25 : maxChars} characters (aim for 100–220).`)
   return parts.join('\n')
 }
 
@@ -177,7 +177,7 @@ function libraryCandidate(slot: PlanSlot, used: Set<string>): LibraryItem | null
 export interface DayResult { date: string; planId: string; generated: string[]; library: string[]; skipped: { index: number; reason: string }[]; aiCalls: number; aiTokens: number; aiSkipped?: string }
 
 /** Write (or fill the gaps of) one local day of the plan. Idempotent: slots that already have a post are left alone. */
-export async function generateDay(store: MarketingStore, cfg: MarketingConfig, opts: { date: string; now?: Date; budget?: BudgetSnapshot; weights?: PlanWeights; learnings?: string[]; budgetMs?: number; env?: Record<string, string | undefined>; actor?: string | null; platform?: Platform }): Promise<DayResult> {
+export async function generateDay(store: MarketingStore, cfg: MarketingConfig, opts: { date: string; now?: Date; budget?: BudgetSnapshot; weights?: PlanWeights; learnings?: string[]; budgetMs?: number; env?: Record<string, string | undefined>; actor?: string | null; platform?: Platform; onlySlots?: number[] }): Promise<DayResult> {
   const platform: Platform = opts.platform ?? 'x'
   const cad = cadenceFor(cfg, platform)
   const now = opts.now ?? new Date()
@@ -186,7 +186,7 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
   const budget = opts.budget ?? (await budgetSnapshot(store, cfg, now, env))
   const plan = await planWeek(store, cfg, { weekStart: weekStartOf(opts.date), now, budget, weights: opts.weights, platform })
   const slots = planSlots(plan)
-  const todo = slots.filter((s) => s.date === opts.date && s.status === 'planned' && new Date(s.at).getTime() > now.getTime() - 30 * 60_000)
+  const todo = slots.filter((s) => s.date === opts.date && s.status === 'planned' && new Date(s.at).getTime() > now.getTime() - 30 * 60_000 && (!opts.onlySlots || opts.onlySlots.includes(s.index)))
   const result: DayResult = { date: opts.date, planId: plan.id, generated: [], library: [], skipped: [], aiCalls: 0, aiTokens: 0 }
   if (!todo.length) return result
 
@@ -320,4 +320,45 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
   await store.savePlan({ id: plan.id, platform, week_start: plan.week_start, status: merged.some((s) => s.status === 'planned') ? 'generating' : 'ready', slots: merged, notes: plan.notes })
   await store.audit(null, opts.actor ?? null, 'batch_generated', { platform, date: opts.date, generated: result.generated.length, library: result.library.length, skipped: result.skipped.length, aiCalls: result.aiCalls, aiSkipped: result.aiSkipped ?? null })
   return result
+}
+
+/**
+ * Regenerate one planned post: the old version is cancelled and the slot is written again (one small model call,
+ * library fallback). Works for every platform.
+ */
+export async function regenerateSlot(store: MarketingStore, cfg: MarketingConfig, opts: { postId: string; actor?: string | null; now?: Date; env?: Record<string, string | undefined> }): Promise<{ ok: true; postId: string } | { ok: false; message: string }> {
+  const now = opts.now ?? new Date()
+  const post = await store.getPost(opts.postId)
+  if (!post?.planId || post.slotIndex === null) return { ok: false, message: 'Only posts from the content plan can be regenerated this way.' }
+  const plan = (await store.listPlans(60)).find((p) => p.id === post.planId)
+  if (!plan) return { ok: false, message: 'The plan for this post no longer exists.' }
+  const slots = planSlots(plan)
+  const slot = slots.find((s) => s.index === post.slotIndex)
+  if (!slot) return { ok: false, message: 'The plan slot for this post no longer exists.' }
+  if (new Date(slot.at).getTime() < now.getTime() + 5 * 60_000) return { ok: false, message: 'This slot is about to go out (or already passed) — edit the post instead.' }
+  const cancelled = await store.updatePost(post.id, { status: 'cancelled' }, ['draft', 'approved', 'scheduled', 'failed'])
+  if (!cancelled) return { ok: false, message: `A ${post.status} post can't be regenerated.` }
+  await store.savePlan({ id: plan.id, platform: post.platform, week_start: plan.week_start, status: 'generating', slots: slots.map((s) => (s.index === slot.index ? { ...s, status: 'planned', postId: null, note: 'regenerating' } : s)), notes: plan.notes })
+  const insights = await store.latestInsights()
+  const r = await generateDay(store, cfg, { date: slot.date, now, platform: post.platform, onlySlots: [slot.index], actor: opts.actor, env: opts.env, weights: (insights?.data as { weights?: PlanWeights } | undefined)?.weights ?? {}, learnings: insights?.recommendations.slice(0, 8) ?? [] })
+  const id = r.generated[0] ?? r.library[0]
+  await store.audit(post.id, opts.actor ?? null, 'regenerated', { newPostId: id ?? null })
+  return id ? { ok: true, postId: id } : { ok: false, message: `Could not write a valid replacement (${r.skipped[0]?.reason ?? r.aiSkipped ?? 'unknown'}).` }
+}
+
+/** Dates (local, ascending) in the next `horizonDays` whose plan still has unwritten future slots (or no plan yet). */
+export async function daysToWrite(store: MarketingStore, cfg: MarketingConfig, opts: { platform: Platform; now?: Date; horizonDays?: number; limit?: number }): Promise<string[]> {
+  const now = opts.now ?? new Date()
+  const today = localDate(now, cfg.timezone)
+  const out: string[] = []
+  const plans = new Map<string, PlanSlot[] | null>()
+  for (let i = 0; i < (opts.horizonDays ?? cfg.bankDays) && out.length < (opts.limit ?? 60); i++) {
+    const date = addDays(today, i)
+    const week = weekStartOf(date)
+    if (!plans.has(week)) plans.set(week, (await store.getPlan(opts.platform, week)) ? planSlots(await store.getPlan(opts.platform, week)) : null)
+    const slots = plans.get(week)
+    if (!slots) out.push(date)
+    else if (slots.some((s) => s.date === date && s.status === 'planned' && new Date(s.at).getTime() > now.getTime() + 5 * 60_000)) out.push(date)
+  }
+  return out
 }

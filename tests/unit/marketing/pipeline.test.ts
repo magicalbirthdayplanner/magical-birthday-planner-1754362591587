@@ -108,7 +108,7 @@ class FakeX implements MarketingProvider {
 let store: MemoryMarketingStore
 let x: FakeX
 let image: FakeImage
-const cfg = (env: Record<string, string> = {}): MarketingConfig => readMarketingConfig({ MARKETING_POST_TIMES: '10:00,19:30', MARKETING_POSTS_PER_DAY: '1', MARKETING_MIN_GAP_MINUTES: '240', ...env })
+const cfg = (env: Record<string, string> = {}): MarketingConfig => readMarketingConfig({ MARKETING_POST_TIMES: '10:00,19:30', MARKETING_POSTS_PER_DAY: '1', MARKETING_MIN_GAP_MINUTES: '240', MARKETING_BANK_DAYS: '2', ...env })
 
 beforeEach(() => {
   Object.assign(process.env, { AI_PROVIDER: 'mock', AI_ENABLED: 'true', ...SECRETS })
@@ -303,14 +303,17 @@ describe('publishPost', () => {
 describe('scheduler (runPrepare / runPublish)', () => {
   const at = (iso: string) => new Date(iso)
 
-  it('publish does nothing unless AUTONOMOUS_PUBLISHING=true AND the admin switch is on', async () => {
-    const p = await approvedPost()
+  it('AUTONOMOUS_PUBLISHING is the kill switch; with the admin switch OFF only human-approved posts go out', async () => {
+    const p = await approvedPost(0, { autonomous: true })
     const live = cfg({ MARKETING_DRY_RUN: 'false' })
     expect((await runPublish({ store, provider: x, cfg: live, now: at('2026-10-20T14:05:00Z') })).publish).toEqual({ skipped: 'AUTONOMOUS_PUBLISHING_not_true' })
     const allowed = cfg({ MARKETING_DRY_RUN: 'false', AUTONOMOUS_PUBLISHING: 'true' })
-    expect((await runPublish({ store, provider: x, cfg: allowed, now: at('2026-10-20T14:05:00Z') })).publish).toEqual({ skipped: 'autonomous_switch_off' })
+    expect((await runPublish({ store, provider: x, cfg: allowed, now: at('2026-10-20T14:05:00Z') })).publish).toEqual([])
     expect(x.posted).toHaveLength(0)
     expect((await store.getPost(p.id))!.status).toBe('scheduled')
+    // A person approves it → it goes out at its time even with the switch off.
+    await store.updatePost(p.id, { autonomous: false, approved_by: '11111111-1111-4111-8111-111111111111' })
+    expect((await runPublish({ store, provider: x, cfg: allowed, now: at('2026-10-20T14:06:00Z') })).publish).toEqual([expect.objectContaining({ ok: true, status: 'published' })])
   })
 
   it('autonomous + dry-run simulates the due post; a second run changes nothing', async () => {
@@ -364,6 +367,16 @@ describe('scheduler (runPrepare / runPublish)', () => {
     expect([...store.rows.values()].filter((p) => p.status === 'scheduled')).toHaveLength(2)
     expect(store.briefs.size).toBe(1)
     expect(store.usage.filter((u) => u.provider === 'ai')).toHaveLength(2)
+  })
+
+  it('prepare keeps the bank topped up toward 30 days (earliest unwritten days first, one call per day)', async () => {
+    batchDrafts()
+    const c = cfg({ MARKETING_BANK_DAYS: '30' })
+    const r = await runPrepare({ store, provider: x, cfg: c, now: NOW, attribution: null, countCampaign: null, sendEmail: null })
+    expect((r.content as { date: string }[]).map((d) => d.date)).toEqual(['2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23'])
+    const r2 = await runPrepare({ store, provider: x, cfg: c, now: new Date('2026-10-20T11:30:00Z'), attribution: null, countCampaign: null, sendEmail: null })
+    expect((r2.content as { date: string }[])[0].date).toBe('2026-10-24')
+    expect([...store.rows.values()].filter((p) => p.status === 'draft').length).toBeGreaterThan(4)
   })
 
   it('prepare with autonomous OFF writes the same bank as drafts for review', async () => {

@@ -147,7 +147,7 @@ export function AdminScreen() {
 
       <Section title="Marketing">
         <Link href="/admin/marketing" className="tap flex min-h-[56px] items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold shadow-sm active:bg-muted" data-testid="admin-marketing-link">
-          <Megaphone className="h-4 w-4 text-primary" /> Founder marketing agent (X)
+          <Megaphone className="h-4 w-4 text-primary" /> Marketing — X · Instagram · Facebook
         </Link>
       </Section>
 

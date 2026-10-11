@@ -70,7 +70,7 @@ export async function publishPost(postId: string, mode: PublishMode, deps: Publi
 
   // Media: only privacy-approved library/template media, within X limits.
   const { inputs: mediaInputs, rows: mediaRows } = await loadMedia(store, post.mediaIds, { byUrl: !!provider.mediaByUrl }).catch(() => ({ inputs: [], rows: [] as never[] }))
-  const mediaProblems = post.mediaIds.length ? mediaIssues(mediaRows, post.mediaIds.length) : provider.mediaByUrl ? ['Instagram posts need an approved image, carousel or video.'] : []
+  const mediaProblems = post.mediaIds.length ? mediaIssues(mediaRows, post.mediaIds.length) : post.platform === 'instagram' ? ['Instagram posts need an approved image, carousel or video.'] : []
   if (mediaProblems.length) return block('media', mediaProblems.join(' '))
   if (!cfg.dryRun && !provider.configured()) return { ok: false, status: 'skipped', reason: 'provider_not_configured', post }
 

@@ -456,13 +456,13 @@ isOneToOne: false
                   ]
                 },"marketing_settings": {
                   Row: {
-                    "autonomous_enabled": boolean,"id": string,"updated_at": string,"updated_by": string | null
+                    "autonomous_enabled": boolean,"id": string,"paused_platforms": (string)[],"updated_at": string,"updated_by": string | null
                   }
                   Insert: {
-                    "autonomous_enabled"?: boolean,"id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "autonomous_enabled"?: boolean,"id"?: string,"paused_platforms"?: (string)[],"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "autonomous_enabled"?: boolean,"id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "autonomous_enabled"?: boolean,"id"?: string,"paused_platforms"?: (string)[],"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     

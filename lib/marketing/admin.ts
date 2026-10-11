@@ -3,18 +3,16 @@
  * uses a conditional status update, and is written to marketing_audit_log. SERVER ONLY.
  */
 import 'server-only'
-import { aiConfig } from '@/lib/ai/config'
-import { autonomousEffective, hasXCredentials, readMarketingConfig, type MarketingConfig } from './config'
+import { cadenceFor, readMarketingConfig, type MarketingConfig } from './config'
 import { generateMarketingPost } from './generate'
-import { groupStats } from './learning'
+import { regenerateSlot } from './batch'
 import { getMarketingProvider, type MarketingProvider } from './providers'
 import { publishPost, type PublishOutcome } from './publish'
 import { getMarketingStore, type MarketingStore } from './store'
-import { selectPillar, selectTopic, toStrategyPost } from './strategy'
 import { firstSentence } from './text'
-import { localDate, nextFreeSlot } from './time'
-import { PILLAR_LABEL, type MarketingPost, type Pillar } from './types'
-import { forbiddenTermsFromEnv, validatePost } from './validation'
+import { nextFreeSlot } from './time'
+import { PILLAR_LABEL, type MarketingPost } from './types'
+import { forbiddenTermsFromEnv, platformRules, validatePost } from './validation'
 
 export interface AdminContext { store: MarketingStore; cfg: MarketingConfig; provider: MarketingProvider; actor: string; now: Date }
 
@@ -29,56 +27,6 @@ async function withImage(store: MarketingStore, p: MarketingPost): Promise<Admin
   return { ...p, pillarLabel: PILLAR_LABEL[p.pillar], imageUrl: p.imagePath ? await store.signedImageUrl(p.imagePath, 3600).catch(() => null) : null }
 }
 
-export async function overview(ctx: AdminContext) {
-  const { store, cfg, now } = ctx
-  const settings = await store.getSettings()
-  const posts = await store.listPosts({ since: new Date(now.getTime() - 90 * 86_400_000).toISOString(), limit: 500 })
-  const today = localDate(now, cfg.timezone)
-  const when = (p: MarketingPost) => p.publishedAt ?? p.dryRunAt ?? p.scheduledAt
-  const todays = posts.filter((p) => p.status !== 'cancelled' && when(p) && localDate(new Date(when(p)!), cfg.timezone) === today)
-  const upcoming = posts.filter((p) => ['approved', 'scheduled'].includes(p.status) && !todays.includes(p)).sort((a, b) => (a.scheduledAt ?? '9').localeCompare(b.scheduledAt ?? '9'))
-  const drafts = posts.filter((p) => p.status === 'draft')
-  const published = posts.filter((p) => ['published', 'dry_run', 'publishing'].includes(p.status)).sort((a, b) => (when(b) ?? '').localeCompare(when(a) ?? '')).slice(0, 30)
-  const failed = posts.filter((p) => p.status === 'failed').slice(0, 10)
-  const real30 = posts.filter((p) => p.status === 'published' && p.publishedAt && now.getTime() - new Date(p.publishedAt).getTime() < 30 * 86_400_000)
-  const [insights, briefs, audit] = await Promise.all([store.latestInsights(), store.latestBriefs(1), store.recentAudit(25)])
-  const history = posts.map(toStrategyPost)
-  const next = selectPillar(history, { now, tz: cfg.timezone, launchDate: cfg.launchDate, multipliers: insights?.pillarMultipliers })
-  const taken = posts.filter((p) => ['approved', 'scheduled', 'publishing', 'published', 'dry_run'].includes(p.status)).map((p) => when(p)).filter((x): x is string => !!x).map((x) => new Date(x))
-  const ser = (list: MarketingPost[]) => Promise.all(list.map((p) => withImage(store, p)))
-  const ai = aiConfig()
-  return {
-    config: {
-      dryRun: cfg.dryRun,
-      autonomousAllowed: cfg.autonomousAllowed,
-      autonomousSwitch: settings.autonomousEnabled,
-      autonomousEffective: autonomousEffective(cfg, settings.autonomousEnabled),
-      autoDraft: cfg.autoDraft,
-      postsPerDay: cfg.postsPerDay,
-      postTimes: cfg.postTimes.slice(0, cfg.postsPerDay),
-      timezone: cfg.timezone,
-      minGapMinutes: cfg.minGapMinutes,
-      urlShare: cfg.urlShare,
-      maxChars: cfg.xMaxChars,
-      imageProvider: cfg.imageProvider,
-      launchDate: cfg.launchDate,
-      xConfigured: hasXCredentials(),
-      aiConfigured: ai.configured,
-      cronConfigured: (process.env.CRON_SECRET?.trim().length ?? 0) >= 16,
-      briefEmail: !!cfg.briefEmail,
-    },
-    today: await ser(todays),
-    upcoming: await ser(upcoming),
-    drafts: await ser(drafts),
-    published: await ser(published),
-    failed: await ser(failed),
-    performance: { last30: groupStats('all', real30), insights },
-    brief: briefs[0] ?? null,
-    next: { pillar: next.pillar, label: PILLAR_LABEL[next.pillar], reason: next.reason, topic: selectTopic(next.pillar, history, now).angle, slot: nextFreeSlot(now, { times: cfg.postTimes, perDay: cfg.postsPerDay, tz: cfg.timezone, taken })?.toISOString() ?? null },
-    audit,
-  }
-}
-
 export type ActionResult = { ok: true; post?: AdminPost | null; detail?: unknown } | { ok: false; status: number; message: string; detail?: unknown }
 
 const fail = (status: number, message: string, detail?: unknown): ActionResult => ({ ok: false, status, message, detail })
@@ -86,13 +34,8 @@ const fail = (status: number, message: string, detail?: unknown): ActionResult =
 const why = (message: string, reasons: string[]) => (reasons.length ? `${message} ${reasons.slice(0, 4).join(' ')}` : message).slice(0, 600)
 
 function check(ctx: AdminContext, p: MarketingPost, text = p.text) {
-  return validatePost(text, { pillar: p.pillar, maxChars: ctx.cfg.xMaxChars, allowedLink: p.linkUrl, forbiddenTerms: forbiddenTermsFromEnv() })
-}
-
-export async function generateDraft(ctx: AdminContext, pillar: Pillar | null): Promise<ActionResult> {
-  const r = await generateMarketingPost({ platform: 'x', now: ctx.now, actor: ctx.actor, pillar }, { store: ctx.store, cfg: ctx.cfg })
-  if (!r.ok) return fail(r.code === 'ai_not_configured' ? 503 : 422, why(r.message, r.reasons), { reasons: r.reasons })
-  return { ok: true, post: await withImage(ctx.store, r.post) }
+  const rules = platformRules(p.platform, ctx.cfg)
+  return validatePost(text, { ...rules, pillar: p.pillar, allowedLink: p.linkUrl, forbiddenTerms: forbiddenTermsFromEnv(), minChars: p.format === 'poll' ? 10 : rules.minChars })
 }
 
 export async function postAction(ctx: AdminContext, id: string, body: { action: string; at?: string; text?: string; url?: string; confirmNotPosted?: boolean }): Promise<ActionResult> {
@@ -109,14 +52,16 @@ export async function postAction(ctx: AdminContext, id: string, body: { action: 
   switch (body.action) {
     case 'approve': {
       if (!['draft', 'failed'].includes(post.status)) return fail(409, `A ${post.status} post can't be approved.`)
-      if (unconfirmed && !body.confirmNotPosted) return fail(409, 'This post may already be live. Check X first, then confirm it was NOT posted.')
+      if (unconfirmed && !body.confirmNotPosted) return fail(409, 'This post may already be live. Check the account first, then confirm it was NOT posted.')
       const report = check(ctx, post)
       if (!report.ok) return fail(422, why('Fix the validation errors first:', report.errors.map((e) => e.message)), report)
-      return done(await store.updatePost(id, { status: 'approved', approved_at: now.toISOString(), approved_by: actor, validation: report as never, publish_error_code: null, publish_error: null }, ['draft', 'failed']), 'approved')
+      // A planned post keeps its slot: approving queues it (it publishes at its time, with or without autonomous mode).
+      const queued = !!post.scheduledAt && new Date(post.scheduledAt).getTime() > now.getTime()
+      return done(await store.updatePost(id, { status: queued ? 'scheduled' : 'approved', autonomous: false, approved_at: now.toISOString(), approved_by: actor, validation: report as never, publish_error_code: null, publish_error: null }, ['draft', 'failed']), 'approved')
     }
     case 'schedule': {
       if (!['draft', 'approved', 'scheduled', 'failed'].includes(post.status)) return fail(409, `A ${post.status} post can't be scheduled.`)
-      if (unconfirmed && !body.confirmNotPosted) return fail(409, 'This post may already be live. Check X first, then confirm it was NOT posted.')
+      if (unconfirmed && !body.confirmNotPosted) return fail(409, 'This post may already be live. Check the account first, then confirm it was NOT posted.')
       const report = check(ctx, post)
       if (!report.ok) return fail(422, why('Fix the validation errors first:', report.errors.map((e) => e.message)), report)
       let at: Date | null
@@ -125,26 +70,28 @@ export async function postAction(ctx: AdminContext, id: string, body: { action: 
         if (Number.isNaN(at.getTime()) || at.getTime() < now.getTime() + 2 * 60_000 || at.getTime() > now.getTime() + 30 * 86_400_000) return fail(400, 'Pick a time between 2 minutes and 30 days from now.')
       } else {
         const others = await store.listPosts({ platform: post.platform, statuses: ['approved', 'scheduled', 'publishing', 'published', 'dry_run'] })
-        at = nextFreeSlot(now, { times: cfg.postTimes, perDay: cfg.postsPerDay, tz: cfg.timezone, taken: others.filter((p) => p.id !== id).map((p) => p.scheduledAt ?? p.publishedAt ?? p.dryRunAt).filter((x): x is string => !!x).map((x) => new Date(x)) })
+        const cad = cadenceFor(cfg, post.platform)
+        at = nextFreeSlot(now, { times: cad.postTimes, perDay: cad.postsPerDay, tz: cfg.timezone, taken: others.filter((p) => p.id !== id).map((p) => p.scheduledAt ?? p.publishedAt ?? p.dryRunAt).filter((x): x is string => !!x).map((x) => new Date(x)) })
         if (!at) return fail(409, 'No free slot in the next 14 days.')
       }
       return done(
-        await store.updatePost(id, { status: 'scheduled', scheduled_at: at.toISOString(), approved_at: post.approvedAt ?? now.toISOString(), approved_by: actor, validation: report as never, publish_error_code: null, publish_error: null }, ['draft', 'approved', 'scheduled', 'failed']),
+        await store.updatePost(id, { status: 'scheduled', autonomous: false, scheduled_at: at.toISOString(), approved_at: post.approvedAt ?? now.toISOString(), approved_by: actor, validation: report as never, publish_error_code: null, publish_error: null }, ['draft', 'approved', 'scheduled', 'failed']),
         'scheduled',
         { at: at.toISOString() },
       )
     }
     case 'publish_now': {
       if (!['draft', 'approved', 'scheduled', 'failed'].includes(post.status)) return fail(409, `A ${post.status} post can't be published.`)
-      if (unconfirmed && !body.confirmNotPosted) return fail(409, 'This post may already be live. Check X first, then confirm it was NOT posted.')
+      if (unconfirmed && !body.confirmNotPosted) return fail(409, 'This post may already be live. Check the account first, then confirm it was NOT posted.')
       const report = check(ctx, post)
       if (!report.ok) return fail(422, why('Fix the validation errors first:', report.errors.map((e) => e.message)), report)
-      if (!cfg.dryRun && !ctx.provider.configured()) return fail(503, 'X credentials are not configured.')
+      const provider = post.platform === 'x' ? ctx.provider : getMarketingProvider(post.platform, cfg)
+      if (!cfg.dryRun && !provider.configured()) return fail(503, `${post.platform} is not connected (missing credentials).`)
       if (post.status === 'draft' || post.status === 'failed') {
         const ok = await store.updatePost(id, { status: 'approved', approved_at: now.toISOString(), approved_by: actor, publish_error_code: null, publish_error: null }, ['draft', 'failed'])
         if (!ok) return fail(409, 'The post changed in the meantime — refresh and try again.')
       }
-      const r: PublishOutcome = await publishPost(id, 'manual', { store, provider: ctx.provider, cfg }, { now, actor })
+      const r: PublishOutcome = await publishPost(id, 'manual', { store, provider, cfg }, { now, actor })
       if (!r.ok) {
         const messages: Record<string, string> = {
           daily_limit: 'Daily safety ceiling reached for manual posts.',
@@ -174,6 +121,12 @@ export async function postAction(ctx: AdminContext, id: string, body: { action: 
     }
     case 'regenerate': {
       if (!['draft', 'approved', 'scheduled', 'failed'].includes(post.status)) return fail(409, `A ${post.status} post can't be regenerated.`)
+      if (post.planId) {
+        const rs = await regenerateSlot(store, cfg, { postId: id, actor, now })
+        if (!rs.ok) return fail(422, rs.message)
+        const fresh = await store.getPost(rs.postId)
+        return { ok: true, post: fresh ? await withImage(store, fresh) : null }
+      }
       const r = await generateMarketingPost({ platform: post.platform, now, actor, regenerateOf: id }, { store, cfg })
       if (!r.ok) return fail(r.code === 'ai_not_configured' ? 503 : 422, why(r.message, r.reasons), { reasons: r.reasons })
       return { ok: true, post: await withImage(store, r.post) }

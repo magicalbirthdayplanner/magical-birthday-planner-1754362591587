@@ -9,7 +9,7 @@ import type { MarketingPost, Platform, PostStatus } from '@/lib/marketing/types'
 export class MemoryMarketingStore implements MarketingStore {
   rows = new Map<string, PostRow>()
   snapshots: { postId: string; source: string; metrics: Record<string, unknown> }[] = []
-  settings: Settings = { autonomousEnabled: false, updatedAt: null }
+  settings: Settings = { autonomousEnabled: false, updatedAt: null, pausedPlatforms: [] }
   insights: Insights[] = []
   briefs = new Map<string, Brief>()
   auditLog: { id: number; postId: string | null; actor: string | null; action: string; detail: Record<string, unknown>; createdAt: string }[] = []
@@ -101,7 +101,12 @@ export class MemoryMarketingStore implements MarketingStore {
     return { ...this.settings }
   }
   async setAutonomous(enabled: boolean) {
-    this.settings = { autonomousEnabled: enabled, updatedAt: this.now() }
+    this.settings = { ...this.settings, autonomousEnabled: enabled, updatedAt: this.now() }
+    return { ...this.settings }
+  }
+  async setPaused(platform: Platform, paused: boolean) {
+    const cur = this.settings.pausedPlatforms
+    this.settings = { ...this.settings, pausedPlatforms: paused ? [...new Set([...cur, platform])] : cur.filter((p) => p !== platform), updatedAt: this.now() }
     return { ...this.settings }
   }
   async latestInsights() {
@@ -190,6 +195,9 @@ export class MemoryMarketingStore implements MarketingStore {
   }
   async signedMediaUrl(path: string) {
     return `memory://media/${path}`
+  }
+  async signedMediaUrls(paths: string[]) {
+    return new Map(paths.map((p) => [p, `memory://media/${p}`]))
   }
   async getPlan(platform: Platform, weekStart: string) {
     return this.plans.get(`${platform}:${weekStart}`) ?? null

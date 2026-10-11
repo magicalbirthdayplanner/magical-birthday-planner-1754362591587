@@ -1,7 +1,7 @@
-import { MarketingAdminScreen } from '@/components/admin/MarketingAdminScreen'
+import { MarketingConsole } from '@/components/admin/MarketingConsole'
 
-export const metadata = { title: 'Founder marketing', robots: { index: false, follow: false } }
+export const metadata = { title: 'Marketing', robots: { index: false, follow: false } }
 
 export default function AdminMarketingPage() {
-  return <MarketingAdminScreen />
+  return <MarketingConsole />
 }

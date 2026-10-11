@@ -175,5 +175,5 @@ export function inventedSpecifics(text: string): string[] {
 /** Validation options for a platform's norms. */
 export function platformRules(platform: Platform, cfg: MarketingConfig) {
   const c = cadenceFor(cfg, platform)
-  return { maxChars: c.maxChars, maxHashtags: c.maxHashtags, maxEmoji: c.maxEmoji, allowBareProductDomain: platform === 'instagram', minChars: platform === 'instagram' ? 60 : undefined }
+  return { maxChars: c.maxChars, maxHashtags: c.maxHashtags, maxEmoji: c.maxEmoji, allowBareProductDomain: platform !== 'x', minChars: platform === 'x' ? undefined : 60 }
 }

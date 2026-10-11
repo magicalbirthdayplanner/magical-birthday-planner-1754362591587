@@ -30,7 +30,7 @@ export interface Insights {
   pillarMultipliers: Partial<Record<Pillar, number>>
 }
 export interface Brief { date: string; timezone: string; data: Record<string, unknown>; text: string; emailedAt: string | null; createdAt: string }
-export interface Settings { autonomousEnabled: boolean; updatedAt: string | null }
+export interface Settings { autonomousEnabled: boolean; updatedAt: string | null; pausedPlatforms: Platform[] }
 export interface ClaimResult { claimed: boolean; reason: string }
 
 export interface MarketingStore {
@@ -44,6 +44,7 @@ export interface MarketingStore {
   addMetricsSnapshot(postId: string, source: 'platform' | 'mbp', metrics: Record<string, unknown>): Promise<void>
   getSettings(): Promise<Settings>
   setAutonomous(enabled: boolean, by: string | null): Promise<Settings>
+  setPaused(platform: Platform, paused: boolean, by: string | null): Promise<Settings>
   latestInsights(): Promise<Insights | null>
   saveInsights(i: Omit<Insights, 'id' | 'computedAt'>): Promise<Insights>
   getBrief(date: string): Promise<Brief | null>
@@ -66,6 +67,7 @@ export interface MarketingStore {
   uploadMedia(path: string, bytes: Uint8Array, contentType: string): Promise<void>
   downloadMedia(path: string): Promise<Uint8Array>
   signedMediaUrl(path: string, seconds?: number): Promise<string | null>
+  signedMediaUrls(paths: string[], seconds?: number): Promise<Map<string, string>>
   getPlan(platform: Platform, weekStart: string): Promise<PlanRow | null>
   savePlan(row: { id?: string; platform: Platform; week_start: string; status: PlanRow['status']; slots: unknown; notes?: unknown }): Promise<PlanRow>
   listPlans(limit: number): Promise<PlanRow[]>
@@ -185,18 +187,31 @@ export class SupabaseMarketingStore implements MarketingStore {
   }
 
   async getSettings() {
-    const { data } = await this.db.from('marketing_settings').select('autonomous_enabled, updated_at').eq('id', 'default').maybeSingle()
-    return { autonomousEnabled: !!data?.autonomous_enabled, updatedAt: data?.updated_at ?? null }
+    const { data } = await this.db.from('marketing_settings').select('autonomous_enabled, updated_at, paused_platforms').eq('id', 'default').maybeSingle()
+    return { autonomousEnabled: !!data?.autonomous_enabled, updatedAt: data?.updated_at ?? null, pausedPlatforms: (data?.paused_platforms ?? []) as Platform[] }
   }
 
   async setAutonomous(enabled: boolean, by: string | null) {
     const { data, error } = await this.db
       .from('marketing_settings')
       .upsert({ id: 'default', autonomous_enabled: enabled, updated_by: by, updated_at: new Date().toISOString() })
-      .select('autonomous_enabled, updated_at')
+      .select('autonomous_enabled, updated_at, paused_platforms')
       .single()
     if (error || !data) throw new Error(`marketing_settings update failed: ${error?.message}`)
-    return { autonomousEnabled: data.autonomous_enabled, updatedAt: data.updated_at }
+    return { autonomousEnabled: data.autonomous_enabled, updatedAt: data.updated_at, pausedPlatforms: (data.paused_platforms ?? []) as Platform[] }
+  }
+
+  async setPaused(platform: Platform, paused: boolean, by: string | null) {
+    const cur = await this.getSettings()
+    const next = paused ? [...new Set([...cur.pausedPlatforms, platform])] : cur.pausedPlatforms.filter((p) => p !== platform)
+    const { data, error } = await this.db
+      .from('marketing_settings')
+      .update({ paused_platforms: next, updated_by: by, updated_at: new Date().toISOString() })
+      .eq('id', 'default')
+      .select('autonomous_enabled, updated_at, paused_platforms')
+      .single()
+    if (error || !data) throw new Error(`marketing_settings update failed: ${error?.message}`)
+    return { autonomousEnabled: data.autonomous_enabled, updatedAt: data.updated_at, pausedPlatforms: (data.paused_platforms ?? []) as Platform[] }
   }
 
   async latestInsights() {
@@ -322,6 +337,14 @@ export class SupabaseMarketingStore implements MarketingStore {
   async signedMediaUrl(path: string, seconds = 3600) {
     const { data } = await this.db.storage.from(MEDIA_BUCKET).createSignedUrl(path, seconds)
     return data?.signedUrl ?? null
+  }
+
+  async signedMediaUrls(paths: string[], seconds = 3600) {
+    const out = new Map<string, string>()
+    if (!paths.length) return out
+    const { data } = await this.db.storage.from(MEDIA_BUCKET).createSignedUrls(paths, seconds)
+    for (const r of data ?? []) if (r.path && r.signedUrl) out.set(r.path, r.signedUrl)
+    return out
   }
 
   async getPlan(platform: Platform, weekStart: string) {

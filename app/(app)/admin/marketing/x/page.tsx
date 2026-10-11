@@ -1,7 +1,6 @@
-import { XGrowthScreen } from '@/components/admin/XGrowthScreen'
+import { redirect } from 'next/navigation'
 
-export const metadata = { title: 'X growth engine', robots: { index: false, follow: false } }
-
+/** Old address of the X dashboard: the console now has one tab per platform. */
 export default function AdminMarketingXPage() {
-  return <XGrowthScreen />
+  redirect('/admin/marketing?tab=x')
 }

@@ -197,39 +197,43 @@ export async function collectOwnMetrics(store: MarketingStore, provider: Marketi
 
 /** One-time import of the account's existing posts (≤ 100, owned reads) so the engine never repeats them. */
 export async function importHistory(store: MarketingStore, provider: MarketingProvider, cfg: MarketingConfig, opts: { userId: string | null; now?: Date; env?: Record<string, string | undefined> }): Promise<{ imported: number; seen: number }> {
-  if (!opts.userId) throw new Error('X user id unknown (X_ACCESS_TOKEN must start with the account id)')
+  const platform = provider.platform
   const now = opts.now ?? new Date()
-  const budget = await budgetSnapshot(store, cfg, now, opts.env)
-  const gate = allowX(budget, 100 * budget.prices.owned_read, 'discretionary')
-  if (!gate.ok) throw new Error(`Budget: ${gate.reason}`)
-  provider.setMeter(xMeter(store, budget.prices))
   let own
-  try {
-    own = await provider.getOwnPosts(opts.userId, { maxResults: 100 })
-  } finally {
-    provider.setMeter(null)
-  }
-  const known = new Set((await store.listPosts({ platform: 'x', limit: 5000 })).map((p) => p.externalPostId).filter(Boolean))
+  if (platform === 'x') {
+    if (!opts.userId) throw new Error('X user id unknown (X_ACCESS_TOKEN must start with the account id)')
+    const budget = await budgetSnapshot(store, cfg, now, opts.env)
+    const gate = allowX(budget, 100 * budget.prices.owned_read, 'discretionary')
+    if (!gate.ok) throw new Error(`Budget: ${gate.reason}`)
+    provider.setMeter(xMeter(store, budget.prices))
+    try {
+      own = await provider.getOwnPosts(opts.userId, { maxResults: 100 })
+    } finally {
+      provider.setMeter(null)
+    }
+  } else own = await provider.getOwnPosts('', { maxResults: 100 }) // Meta: free
+  const known = new Set((await store.listPosts({ platform, limit: 5000 })).map((p) => p.externalPostId).filter(Boolean))
+  const urlOf = (id: string) => (platform === 'x' ? `https://x.com/i/web/status/${id}` : platform === 'facebook' ? `https://www.facebook.com/${id}` : 'https://www.instagram.com/')
   let imported = 0
   for (const o of own) {
     if (known.has(o.id) || !o.text.trim()) continue
     await store.insertPost({
-      platform: 'x', content_pillar: 'founder_journey', topic: 'imported from X', topic_key: `x:${o.id}`, text: o.text.slice(0, 4000), hook: o.text.split('\n')[0].slice(0, 200),
-      status: 'published', origin: 'manual', source: 'imported', published_at: o.createdAt ?? now.toISOString(), external_post_id: o.id, external_post_url: `https://x.com/i/web/status/${o.id}`,
+      platform, content_pillar: 'founder_journey', topic: `imported from ${platform}`, topic_key: `${platform}:${o.id}`, text: o.text.slice(0, 4000), hook: o.text.split('\n')[0].slice(0, 200),
+      status: 'published', origin: 'manual', source: 'imported', published_at: o.createdAt ?? now.toISOString(), external_post_id: o.id, external_post_url: urlOf(o.id),
       impressions: o.metrics.impressions, likes: o.metrics.likes, reposts: o.metrics.reposts, replies: o.metrics.replies, quotes: o.metrics.quotes, bookmarks: o.metrics.bookmarks,
       profile_visits: o.metrics.profileVisits, link_clicks: o.metrics.linkClicks, metrics_updated_at: now.toISOString(), validation: {} as never, generation: { imported: true } as never,
     })
     imported++
   }
-  await store.audit(null, null, 'history_imported', { seen: own.length, imported })
+  await store.audit(null, null, 'history_imported', { platform, seen: own.length, imported })
   return { imported, seen: own.length }
 }
 
-/** Instagram metrics (free API): once a day for posts up to 8 days old. */
-export async function collectInstagramMetrics(store: MarketingStore, provider: MarketingProvider, opts: { now?: Date } = {}): Promise<{ updated: number; skipped?: string }> {
+/** Instagram / Facebook metrics (free API): once a day for posts up to 8 days old. */
+export async function collectMetaMetrics(store: MarketingStore, provider: MarketingProvider, opts: { now?: Date } = {}): Promise<{ updated: number; skipped?: string }> {
   const now = opts.now ?? new Date()
   if (!provider.configured()) return { updated: 0, skipped: 'not_configured' }
-  const posts = (await store.listPosts({ platform: 'instagram', statuses: ['published'], since: new Date(now.getTime() - 10 * 86_400_000).toISOString(), limit: 200 })).filter(
+  const posts = (await store.listPosts({ platform: provider.platform, statuses: ['published'], since: new Date(now.getTime() - 10 * 86_400_000).toISOString(), limit: 200 })).filter(
     (p) => p.externalPostId && p.publishedAt && now.getTime() - new Date(p.publishedAt).getTime() < 8 * 86_400_000 && (!p.metricsUpdatedAt || now.getTime() - new Date(p.metricsUpdatedAt).getTime() > 20 * 3_600_000),
   )
   if (!posts.length) return { updated: 0 }
@@ -239,7 +243,7 @@ export async function collectInstagramMetrics(store: MarketingStore, provider: M
     const m = metrics.get(p.externalPostId!)
     if (!m) continue
     await store.updatePost(p.id, { impressions: m.impressions, likes: m.likes, reposts: m.reposts, replies: m.replies, quotes: m.quotes, bookmarks: m.bookmarks, profile_visits: m.profileVisits, link_clicks: m.linkClicks, metrics_updated_at: now.toISOString() })
-    await store.addMetricsSnapshot(p.id, 'platform', { ...m, platform: 'instagram' })
+    await store.addMetricsSnapshot(p.id, 'platform', { ...m, platform: provider.platform })
     updated++
   }
   return { updated }
