@@ -158,3 +158,17 @@ describe('re-plan', () => {
     expect(roles).toContain('product')
   }, 30_000)
 })
+
+describe('cancelled slots reopen', () => {
+  it('a cancelled planned post leaves its slot open for "Write this day"', async () => {
+    const cfg = readMarketingConfig({ MARKETING_PLATFORMS: 'facebook', MARKETING_FB_POSTS_PER_DAY: '2' })
+    scriptMock(reply, reply, reply)
+    await generateDay(store, cfg, { date: '2026-10-20', now: NOW, env: {}, platform: 'facebook' })
+    const first = [...store.rows.values()][0]
+    store.rows.set(first.id, { ...first, status: 'cancelled' })
+    const view = await platformOverview(store, cfg, 'facebook', NOW)
+    expect(view.days.find((d) => d.date === '2026-10-20')!.unwritten).toBe(1)
+    const r = await generateDay(store, cfg, { date: '2026-10-20', now: NOW, env: {}, platform: 'facebook' })
+    expect(r.generated.length + r.library.length).toBe(1)
+  }, 30_000)
+})

@@ -176,8 +176,10 @@ function libraryCandidates(slot: PlanSlot, used: Set<string>): LibraryItem[] {
 }
 
 /** A slot still to write: planned, or skipped by validation fewer than 3 times (never "in the past"). */
-export function retryable(s: PlanSlot, now: Date): boolean {
+export function retryable(s: PlanSlot, now: Date, cancelled?: Set<string>): boolean {
   if (s.status === 'planned') return true
+  // The post written for it was cancelled (by the founder or a re-plan): the slot is open again.
+  if ((s.status === 'generated' || s.status === 'library') && s.postId && cancelled?.has(s.postId)) return new Date(s.at).getTime() > now.getTime()
   return s.status === 'skipped' && (s.retries ?? 0) < 3 && !!s.note && !s.note.startsWith('In the past') && new Date(s.at).getTime() > now.getTime()
 }
 
@@ -193,7 +195,8 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
   const budget = opts.budget ?? (await budgetSnapshot(store, cfg, now, env))
   const plan = await planWeek(store, cfg, { weekStart: weekStartOf(opts.date), now, budget, weights: opts.weights, platform })
   const slots = planSlots(plan)
-  const todo = slots.filter((s) => s.date === opts.date && retryable(s, now) && new Date(s.at).getTime() > now.getTime() - 30 * 60_000 && (!opts.onlySlots || opts.onlySlots.includes(s.index)))
+  const cancelledIds = new Set((await store.listPosts({ platform, statuses: ['cancelled'], limit: 5000 })).map((p) => p.id))
+  const todo = slots.filter((s) => s.date === opts.date && retryable(s, now, cancelledIds) && new Date(s.at).getTime() > now.getTime() - 30 * 60_000 && (!opts.onlySlots || opts.onlySlots.includes(s.index)))
   const result: DayResult = { date: opts.date, planId: plan.id, generated: [], library: [], skipped: [], aiCalls: 0, aiTokens: 0 }
   if (!todo.length) return result
 
@@ -363,6 +366,7 @@ export async function daysToWrite(store: MarketingStore, cfg: MarketingConfig, o
   const now = opts.now ?? new Date()
   const today = localDate(now, cfg.timezone)
   const out: string[] = []
+  const cancelled = new Set((await store.listPosts({ platform: opts.platform, statuses: ['cancelled'], limit: 5000 })).map((p) => p.id))
   const plans = new Map<string, PlanSlot[] | null>()
   for (let i = 0; i < (opts.horizonDays ?? cfg.bankDays) && out.length < (opts.limit ?? 60); i++) {
     const date = addDays(today, i)
@@ -370,7 +374,7 @@ export async function daysToWrite(store: MarketingStore, cfg: MarketingConfig, o
     if (!plans.has(week)) plans.set(week, (await store.getPlan(opts.platform, week)) ? planSlots(await store.getPlan(opts.platform, week)) : null)
     const slots = plans.get(week)
     if (!slots) out.push(date)
-    else if (slots.some((s) => s.date === date && retryable(s, now) && new Date(s.at).getTime() > now.getTime() + 5 * 60_000)) out.push(date)
+    else if (slots.some((s) => s.date === date && retryable(s, now, cancelled) && new Date(s.at).getTime() > now.getTime() + 5 * 60_000)) out.push(date)
   }
   return out
 }

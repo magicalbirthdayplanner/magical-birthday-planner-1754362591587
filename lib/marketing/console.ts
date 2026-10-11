@@ -153,13 +153,14 @@ export async function platformOverview(store: MarketingStore, cfg: MarketingConf
     const d = addDays(today, i)
     dayMap.set(d, { date: d, weekday: new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }), slots: [], unwritten: 0 })
   }
+  const cancelledIds = new Set(posts.filter((p) => p.status === 'cancelled').map((p) => p.id))
   const used = new Set<string>()
   for (const s of slots) {
     const day = dayMap.get(s.date)
     if (!day) continue
     const post = upcomingPosts.find((p) => p.planId && p.slotIndex === s.index && p.status !== 'cancelled' && localDate(new Date(at(p)), cfg.timezone) === s.date)
     if (post) used.add(post.id)
-    const unwritten = !post && retryable(s, now)
+    const unwritten = !post && retryable(s, now, cancelledIds)
     if (unwritten) day.unwritten++
     day.slots.push({ index: s.index, time: s.time, at: s.at, role: s.role, roleLabel: SLOT_ROLE_LABEL[s.role], format: s.format, media: s.media.source, link: s.link, status: post ? post.status : unwritten ? 'unwritten' : s.status, note: s.note ?? null, post: post ? byId.get(post.id) ?? null : null })
   }
