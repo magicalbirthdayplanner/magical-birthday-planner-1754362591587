@@ -9,14 +9,14 @@
  */
 import 'server-only'
 import { randomUUID } from 'node:crypto'
-import { MANUAL_DAILY_CEILING, MANUAL_MIN_GAP_MINUTES, type MarketingConfig } from './config'
+import { cadenceFor, MANUAL_DAILY_CEILING, MANUAL_MIN_GAP_MINUTES, type MarketingConfig } from './config'
 import { MarketingProviderError, type MarketingProvider } from './providers'
 import type { MediaInput } from './providers/types'
 import { checkRepetition, toHistoryItem } from './repetition'
 import type { MarketingStore } from './store'
 import { startOfLocalDay } from './time'
 import type { MarketingPost } from './types'
-import { fixProductName, forbiddenTermsFromEnv, pollIssues, validatePost } from './validation'
+import { fixProductName, forbiddenTermsFromEnv, platformRules, pollIssues, validatePost } from './validation'
 import { xWeightedLength } from './text'
 import { allowX, altTextAllowed, budgetSnapshot, estimatePostCost, xMeter } from './budget'
 import { loadMedia, mediaIssues } from './media'
@@ -54,7 +54,8 @@ export async function publishPost(postId: string, mode: PublishMode, deps: Publi
 
   // Re-validate right before publishing (rules may have changed since the draft was approved).
   const forbidden = forbiddenTermsFromEnv(deps.env)
-  const report = validatePost(post.text, { pillar: post.pillar, maxChars: provider.maxChars, allowedLink: post.linkUrl, forbiddenTerms: forbidden, minChars: post.format === 'poll' ? 10 : undefined })
+  const rules = platformRules(post.platform, cfg)
+  const report = validatePost(post.text, { ...rules, pillar: post.pillar, allowedLink: post.linkUrl, forbiddenTerms: forbidden, minChars: post.format === 'poll' ? 10 : rules.minChars })
   const extra = [
     ...pollIssues(post.poll).map((i) => i.message),
     ...(post.threadParts ?? []).flatMap((t, i) => validatePost(t, { pillar: post!.pillar, maxChars: provider.maxChars, allowedLink: null, forbiddenTerms: forbidden, minChars: 20 }).errors.map((e) => `Thread part ${i + 2}: ${e.message}`)),
@@ -68,8 +69,8 @@ export async function publishPost(postId: string, mode: PublishMode, deps: Publi
   if (rep.reasons.some((r) => r.code === 'same_idea')) return block('repetitive', rep.reasons[0].message, { similarTo: rep.closestId })
 
   // Media: only privacy-approved library/template media, within X limits.
-  const { inputs: mediaInputs, rows: mediaRows } = await loadMedia(store, post.mediaIds).catch(() => ({ inputs: [], rows: [] as never[] }))
-  const mediaProblems = post.mediaIds.length ? mediaIssues(mediaRows, post.mediaIds.length) : []
+  const { inputs: mediaInputs, rows: mediaRows } = await loadMedia(store, post.mediaIds, { byUrl: !!provider.mediaByUrl }).catch(() => ({ inputs: [], rows: [] as never[] }))
+  const mediaProblems = post.mediaIds.length ? mediaIssues(mediaRows, post.mediaIds.length) : provider.mediaByUrl ? ['Instagram posts need an approved image, carousel or video.'] : []
   if (mediaProblems.length) return block('media', mediaProblems.join(' '))
   if (!cfg.dryRun && !provider.configured()) return { ok: false, status: 'skipped', reason: 'provider_not_configured', post }
 
@@ -77,7 +78,8 @@ export async function publishPost(postId: string, mode: PublishMode, deps: Publi
   // is dropped (the post stays valid without it) rather than overspending.
   const budget = await budgetSnapshot(store, cfg, now, deps.env)
   const prices = budget.prices
-  if (post.linkUrl) {
+  const paid = post.platform === 'x' // only X bills API calls
+  if (paid && post.linkUrl) {
     const premium = prices.post_create_url - prices.post_create
     if (!allowX(budget, premium, 'discretionary').ok) {
       const text = post.text.replace(`\n\n${post.linkUrl}`, '').replace(post.linkUrl, '').trim()
@@ -87,15 +89,15 @@ export async function publishPost(postId: string, mode: PublishMode, deps: Publi
       await store.audit(post.id, actor, 'link_dropped_budget', { premium })
     }
   }
-  const altText = altTextAllowed(budget, cfg) && mediaRows.some((r) => r.kind === 'image')
-  const cost = estimatePostCost(post, prices, altText)
-  const gate = allowX(budget, cost, 'core')
+  const altText = paid ? altTextAllowed(budget, cfg) && mediaRows.some((r) => r.kind === 'image') : true
+  const cost = paid ? estimatePostCost(post, prices, altText) : 0
+  const gate = paid ? allowX(budget, cost, 'core') : { ok: true as const, reason: undefined }
   if (!gate.ok) {
     await store.audit(post.id, actor, 'publish_skipped', { reason: gate.reason, cost, mode })
     return { ok: false, status: 'skipped', reason: gate.reason ?? 'budget', post }
   }
 
-  const [maxPerDay, minGap] = mode === 'manual' ? [MANUAL_DAILY_CEILING, MANUAL_MIN_GAP_MINUTES] : [cfg.postsPerDay, cfg.minGapMinutes]
+  const [maxPerDay, minGap] = mode === 'manual' ? [MANUAL_DAILY_CEILING, MANUAL_MIN_GAP_MINUTES] : [cadenceFor(cfg, post.platform).postsPerDay, cfg.minGapMinutes]
   const attempt = randomUUID()
   const claim = await store.claimPost(post.id, attempt, maxPerDay, minGap, startOfLocalDay(now, cfg.timezone))
   if (!claim.claimed) {
@@ -115,7 +117,7 @@ export async function publishPost(postId: string, mode: PublishMode, deps: Publi
     return { ok: true, status: 'dry_run', post: done ?? post }
   }
 
-  provider.setMeter(xMeter(store, prices, post.id))
+  if (paid) provider.setMeter(xMeter(store, prices, post.id))
   try {
     const media: MediaInput[] = [...mediaInputs]
     if (!media.length && post.imagePath && post.imageStatus === 'generated') {

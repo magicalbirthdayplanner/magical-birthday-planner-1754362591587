@@ -113,6 +113,9 @@ cadence 8 posts/day inside the monthly budgets.
 | `MARKETING_METRICS_WINDOWS` | Hours-ago windows read once a day (`24-48,168-192`) | no | no | — | — |
 | `MARKETING_SCORE_WEIGHTS` | Business-score weights (JSON) | no | no | — | — |
 | `MARKETING_UTM_CAMPAIGN` | `utm_campaign` for X links (`mbp_x_growth`) | no | no | — | — |
+| `MARKETING_PLATFORMS` | Channels the engine runs: `x`, `instagram` (default `x`) | no | no | — | — |
+| `IG_ACCESS_TOKEN`, `IG_USER_ID` | Instagram API with Instagram Login: long-lived token (60 days, refresh) and the professional account id | **yes** / no | no | — | — |
+| `MARKETING_IG_POSTS_PER_DAY`, `MARKETING_IG_POST_TIMES` | Instagram cadence (2; `12:30,20:00`) — times should match existing publish crons | no | no | — | — |
 | `MARKETING_MEDIA_SOURCE_DIR` | Seed script only: where the campaign media files are | no | no | never | never |
 | `MARKETING_X_MAX_CHARS` | Weighted-character limit (280) | no | no | — | — |
 | `MARKETING_IMAGE_PROVIDER` | `brand` (default, no API) · `openai` · `none` | no | no | — | — |

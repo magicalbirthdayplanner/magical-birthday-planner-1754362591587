@@ -5,13 +5,13 @@
  * many link posts ($0.20 each on X) the week can afford.
  */
 import type { BudgetSnapshot } from './budget'
-import type { MarketingConfig } from './config'
+import { cadenceFor, type MarketingConfig } from './config'
 import type { TemplateKey } from './images/templates'
 import { pickLibraryMedia } from './media'
 import type { MarketingStore, PlanRow } from './store'
 import { selectTopic, toStrategyPost, type StrategyPost } from './strategy'
 import { addDays, localDate, weekday, zonedToUtc } from './time'
-import type { Pillar, PostFormat, SlotRole } from './types'
+import type { Pillar, Platform, PostFormat, SlotRole } from './types'
 
 export interface PlanSlot {
   index: number
@@ -62,7 +62,27 @@ export function compactRoles(day: number, perDay: number): SlotRole[] {
   return DAILY_ROLES.filter((r) => ROLE_PRIORITY.slice(0, perDay).includes(r))
 }
 
-function rolesForDay(day: number, perDay: number, weights: PlanWeights): SlotRole[] {
+/** Instagram days (1–2 posts, up to 5): a visual-first carousel/reel slot plus a story, question or tip card. */
+const IG_PAIRS: [SlotRole, SlotRole][] = [
+  ['educational', 'founder_story'], ['product', 'conversation'], ['visual', 'parent_tip'], ['educational', 'soft_conversion'],
+  ['product', 'founder_story'], ['visual', 'conversation'], ['educational', 'parent_tip'],
+]
+export function instagramRoles(day: number, perDay: number): SlotRole[] {
+  const [a, b] = IG_PAIRS[day % IG_PAIRS.length]
+  return ([a, b, 'soft_conversion', 'poll', 'parent_tip'] as SlotRole[]).slice(0, Math.max(1, perDay))
+}
+
+/** Instagram needs media on every feed post, has no polls or threads, and captions carry no clickable links. */
+function instagramShape(s: SlotShape, role: SlotRole, day: number): SlotShape {
+  const card: Partial<Record<SlotRole, TemplateKey>> = { founder_story: 'founder_quote', parent_tip: 'tip', conversation: 'poll_companion', poll: 'poll_companion', soft_conversion: 'product_feature', product: 'product_feature', visual: 'pain_point', educational: 'checklist' }
+  if (role === 'educational') return { ...s, format: 'carousel', library: day % 2 === 0 ? 'carousel' : undefined, template: s.template ?? 'checklist', thread: false }
+  if (role === 'visual' || role === 'product') return { ...s, format: day % 2 === 1 ? 'video' : 'image', library: day % 2 === 1 ? 'video' : s.library, template: s.template ?? card[role], thread: false }
+  if (s.format === 'text' || s.format === 'poll' || s.format === 'thread') return { ...s, format: 'image', template: card[role] ?? 'inspiration', library: undefined, thread: false }
+  return { ...s, thread: false }
+}
+
+function rolesForDay(day: number, perDay: number, weights: PlanWeights, platform: Platform = 'x'): SlotRole[] {
+  if (platform === 'instagram') return instagramRoles(day, perDay)
   let roles = perDay >= DAILY_ROLES.length ? [...DAILY_ROLES] : compactRoles(day, perDay)
   // Learning: on alternate days, swap up to two weak roles (< 0.75) for strong ones (≥ 1.25); never 3 of a role a day.
   const w = (r: SlotRole) => weights.roles?.[r] ?? 1
@@ -123,7 +143,7 @@ export function affordableLinks(budget: BudgetSnapshot | null, cfg: MarketingCon
   return Math.max(0, Math.min(byBudget, Math.ceil(slots * cfg.urlShare), 7))
 }
 
-export async function planWeek(store: MarketingStore, cfg: MarketingConfig, opts: { weekStart: string; now?: Date; budget?: BudgetSnapshot | null; weights?: PlanWeights; force?: boolean; platform?: 'x' }): Promise<PlanRow> {
+export async function planWeek(store: MarketingStore, cfg: MarketingConfig, opts: { weekStart: string; now?: Date; budget?: BudgetSnapshot | null; weights?: PlanWeights; force?: boolean; platform?: Platform }): Promise<PlanRow> {
   const platform = opts.platform ?? 'x'
   const existing = await store.getPlan(platform, opts.weekStart)
   if (existing && !opts.force && existing.status !== 'cancelled') return existing
@@ -132,20 +152,22 @@ export async function planWeek(store: MarketingStore, cfg: MarketingConfig, opts
   const budgetGreen = !opts.budget || opts.budget.x.status === 'GREEN'
   const recent = await store.listPosts({ platform, since: new Date(now.getTime() - 30 * 86_400_000).toISOString(), limit: 1000 })
   const history: StrategyPost[] = recent.map(toStrategyPost)
-  const times = cfg.postTimes.slice(0, cfg.postsPerDay)
+  const cad = cadenceFor(cfg, platform)
+  const times = cad.postTimes
   const slots: PlanSlot[] = []
   // Media similarity: nothing already queued or used in the last 14 days is planned again.
   const usedMedia = new Set<string>(recent.filter((p) => p.status !== 'cancelled' && now.getTime() - new Date(p.publishedAt ?? p.createdAt).getTime() < 14 * 86_400_000).flatMap((p) => p.mediaIds))
-  let links = affordableLinks(opts.budget ?? null, cfg, cfg.postsPerDay * 7)
+  let links = cad.links ? affordableLinks(opts.budget ?? null, cfg, cad.postsPerDay * 7) : 0
   const today = localDate(now, cfg.timezone)
 
   for (let day = 0; day < 7; day++) {
     const date = addDays(opts.weekStart, day)
-    const roles = rolesForDay(day, times.length, weights)
+    const roles = rolesForDay(day, times.length, weights, platform)
     for (let i = 0; i < times.length; i++) {
       const role = roles[i]
       const at = zonedToUtc(date, times[i], cfg.timezone)
-      const s = shape(role, day, weights, budgetGreen)
+      const base = shape(role, day, weights, budgetGreen)
+      const s = platform === 'instagram' ? instagramShape(base, role, day) : base
       const plannedHistory = slots.map((x): StrategyPost => ({ id: `plan-${x.index}`, pillar: x.pillar, topicKey: x.topicKey, status: 'scheduled', hasLink: x.link, hasImage: x.media.source !== 'none', at: x.at }))
       const preferVenue = s.category === 'venue_content'
       const topic = selectTopic(s.pillar, [...history, ...plannedHistory], at, preferVenue ? (day % 2 ? 'age-fit-venues' : 'venue-discovery') : null)
@@ -158,8 +180,11 @@ export async function planWeek(store: MarketingStore, cfg: MarketingConfig, opts
         }
       }
       let format = s.format
-      if (media.source === 'none' && s.template) media = { source: 'template', kind: format === 'carousel' ? 'carousel' : 'image', template: s.template }
-      if (media.source === 'none' && (format === 'video' || format === 'carousel' || format === 'image')) {
+      if (media.source === 'none' && s.template) {
+        if (format === 'video') format = 'image' // no reusable video left: a branded card instead
+        media = { source: 'template', kind: format === 'carousel' ? 'carousel' : 'image', template: s.template }
+      }
+      if (media.source === 'none' && (format === 'video' || format === 'carousel' || format === 'image' || platform === 'instagram')) {
         // No reusable media left: fall back to a free branded card.
         format = 'image'
         media = { source: 'template', kind: 'image', template: s.pillar === 'product_education' ? 'product_feature' : 'pain_point' }

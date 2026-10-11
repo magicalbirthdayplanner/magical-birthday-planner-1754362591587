@@ -84,12 +84,18 @@ export async function renderTemplateMedia(store: MarketingStore, postId: string,
 }
 
 /** Bytes for a post's media, in order. Rejected/pending media are never loaded. */
-export async function loadMedia(store: MarketingStore, ids: string[]): Promise<{ inputs: MediaInput[]; rows: MediaRow[] }> {
+export async function loadMedia(store: MarketingStore, ids: string[], opts: { byUrl?: boolean } = {}): Promise<{ inputs: MediaInput[]; rows: MediaRow[] }> {
   if (!ids.length) return { inputs: [], rows: [] }
   const rows = (await store.listMedia({ ids })).filter((r) => r.privacy_status === 'approved' && r.storage_path)
   const ordered = ids.map((id) => rows.find((r) => r.id === id)).filter((r): r is MediaRow => !!r)
   const inputs: MediaInput[] = []
-  for (const r of ordered) inputs.push({ bytes: await store.downloadMedia(r.storage_path!), mimeType: r.mime_type ?? 'image/png', altText: r.alt_text })
+  for (const r of ordered) {
+    // APIs that fetch media themselves (Instagram) get a short-lived signed URL of the private bucket instead of bytes.
+    if (opts.byUrl) {
+      const url = await store.signedMediaUrl(r.storage_path!, 3600)
+      if (url) inputs.push({ url, mimeType: r.mime_type ?? 'image/png', altText: r.alt_text })
+    } else inputs.push({ bytes: await store.downloadMedia(r.storage_path!), mimeType: r.mime_type ?? 'image/png', altText: r.alt_text })
+  }
   return { inputs, rows: ordered }
 }
 

@@ -5,6 +5,7 @@
  * their values never leave lib/marketing/providers.
  */
 import 'server-only'
+import type { Platform } from './types'
 
 export type ImageProviderName = 'brand' | 'openai' | 'none'
 
@@ -57,6 +58,18 @@ export interface MarketingConfig {
   metricsWindows: [number, number][]
   /** Business-score weights (configurable; see scoring.ts). */
   scoreWeights: Record<string, number>
+  /** Channels the engine runs (MARKETING_PLATFORMS, default "x"). */
+  platforms: Platform[]
+  /** Instagram cadence (MARKETING_IG_POSTS_PER_DAY 1–5, default 2; MARKETING_IG_POST_TIMES). */
+  igPostsPerDay: number
+  igPostTimes: string[]
+}
+
+/** Per-platform cadence and copy limits. */
+export interface Cadence { postsPerDay: number; postTimes: string[]; maxChars: number; targetMaxChars: number; links: boolean; maxHashtags: number; maxEmoji: number }
+export function cadenceFor(cfg: MarketingConfig, platform: Platform): Cadence {
+  if (platform === 'instagram') return { postsPerDay: cfg.igPostsPerDay, postTimes: cfg.igPostTimes.slice(0, cfg.igPostsPerDay), maxChars: 2200, targetMaxChars: 600, links: false, maxHashtags: 5, maxEmoji: 3 }
+  return { postsPerDay: cfg.postsPerDay, postTimes: cfg.postTimes.slice(0, cfg.postsPerDay), maxChars: cfg.xMaxChars, targetMaxChars: cfg.targetMaxChars, links: true, maxHashtags: 2, maxEmoji: 2 }
 }
 
 export const MAX_POSTS_PER_DAY = 8
@@ -117,7 +130,26 @@ export function readMarketingConfig(env: Record<string, string | undefined> = pr
     altText: env.MARKETING_X_ALT_TEXT === 'on' || env.MARKETING_X_ALT_TEXT === 'off' ? env.MARKETING_X_ALT_TEXT : 'auto',
     metricsWindows: parseWindows(env.MARKETING_METRICS_WINDOWS) ?? [[24, 48], [168, 192]],
     scoreWeights: parseWeights(env.MARKETING_SCORE_WEIGHTS),
+    platforms: parsePlatforms(env.MARKETING_PLATFORMS),
+    igPostsPerDay: int(env.MARKETING_IG_POSTS_PER_DAY, 2, 1, 5),
+    igPostTimes: slotTimes(env.MARKETING_IG_POST_TIMES, ['12:30', '20:00']),
   }
+}
+
+function slotTimes(v: string | undefined, fallback: string[]): string[] {
+  const t = (v ?? '').split(',').map((x) => x.trim()).filter((x) => /^([01]\d|2[0-3]):[0-5]\d$/.test(x)).sort()
+  return t.length ? t : fallback
+}
+
+function parsePlatforms(v: string | undefined): Platform[] {
+  const known: Platform[] = ['x', 'instagram']
+  const out = (v ?? 'x').split(',').map((x) => x.trim().toLowerCase()).filter((x): x is Platform => (known as string[]).includes(x))
+  return out.length ? [...new Set(out)] : ['x']
+}
+
+/** Instagram (Instagram API with Instagram Login): token + the professional account's id. Values never leave the server. */
+export function hasInstagramCredentials(env: Record<string, string | undefined> = process.env): boolean {
+  return !!env.IG_ACCESS_TOKEN?.trim() && /^\d{5,25}$/.test(env.IG_USER_ID?.trim() ?? '')
 }
 
 function parseWindows(v: string | undefined): [number, number][] | null {

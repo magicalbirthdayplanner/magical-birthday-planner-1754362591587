@@ -25,6 +25,7 @@ const SERVER_ONLY = [
   'X_ACCESS_TOKEN',
   'X_ACCESS_TOKEN_SECRET',
   'OPENAI_API_KEY',
+  'IG_ACCESS_TOKEN',
   // deployment tooling tokens, if present in the environment
   'GITHUB_TOKEN',
   'VERCEL_TOKEN',

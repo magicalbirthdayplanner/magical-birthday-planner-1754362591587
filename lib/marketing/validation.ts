@@ -8,6 +8,8 @@ import { PRODUCT_URL } from './facts'
 import { PILLAR_SPECS } from './pillars'
 import { containsLink, countEmoji, extractUrls, xWeightedLength } from './text'
 import { daysBetween, weekday } from './time'
+import { cadenceFor, type MarketingConfig } from './config'
+import type { Platform } from './types'
 import type { Pillar, ValidationIssue, ValidationReport } from './types'
 
 interface Rule { code: string; re: RegExp; message: string }
@@ -75,6 +77,11 @@ export interface ValidateOptions {
   /** Extra forbidden terms (MARKETING_FORBIDDEN_TERMS: the founder's and family's names, anything else off-limits). */
   forbiddenTerms?: string[]
   minChars?: number
+  /** Platform norms (X: 2 hashtags / 2 emoji; Instagram: 5 / 3). */
+  maxHashtags?: number
+  maxEmoji?: number
+  /** Instagram: the product domain as plain text is fine (not clickable, not billed). */
+  allowBareProductDomain?: boolean
 }
 
 export function forbiddenTermsFromEnv(env: Record<string, string | undefined> = process.env): string[] {
@@ -103,7 +110,7 @@ export function validatePost(text: string, opts: ValidateOptions): ValidationRep
   if (!trimmed) errors.push({ code: 'empty', message: 'The post is empty.' })
   if (weightedLength > opts.maxChars) errors.push({ code: 'too_long', message: `Too long for X: ${weightedLength}/${opts.maxChars} weighted characters.` })
   else if (trimmed && weightedLength < minChars) errors.push({ code: 'too_short', message: `Too short (${weightedLength} characters).` })
-  else if (weightedLength > 250) warnings.push({ code: 'long', message: `Longer than the 100–250 target (${weightedLength}).` })
+  else if (weightedLength > 250 && opts.maxChars <= 280) warnings.push({ code: 'long', message: `Longer than the 100–250 target (${weightedLength}).` })
 
   const urls = extractUrls(trimmed)
   const spec = PILLAR_SPECS[opts.pillar]
@@ -115,16 +122,18 @@ export function validatePost(text: string, opts: ValidateOptions): ValidationRep
   }
   if (urls.length && spec.link === 'never') errors.push({ code: 'link_not_allowed', message: 'This pillar never carries a link.' })
   // X bills a bare domain ("magicalbirthdayplanner.app") as a $0.20 link post too.
-  if (!urls.length && containsLink(trimmed)) errors.push({ code: 'link_not_allowed', message: 'Mentions a web address — X turns it into a (costly) link. Use the product name instead.' })
+  if (!urls.length && containsLink(opts.allowBareProductDomain ? trimmed.replace(/\bmagicalbirthdayplanner\.app\b/gi, '') : trimmed)) errors.push({ code: 'link_not_allowed', message: 'Mentions a web address — X turns it into a (costly) link. Use the product name instead.' })
   if (/\bmagic(?:al|cal|el)?\s+birth\s*day\s+plan+[ae]*n*[ae]*r+s?\b/i.test(trimmed) && fixProductName(trimmed).fixed) errors.push({ code: 'product_name', message: `Write the product name exactly: ${PRODUCT_NAME}.` })
   if (/(^|[^\w])@[A-Za-z0-9_]{1,15}\b/.test(trimmed.replace(/https?:\/\/\S+/g, ''))) errors.push({ code: 'mention', message: 'Mentions an account (@). The agent never mentions people.' })
 
+  const maxTags = opts.maxHashtags ?? 2
+  const maxEmoji = opts.maxEmoji ?? 2
   const hashtags = (trimmed.match(/(^|\s)#[\p{L}\d_]+/gu) ?? []).length
-  if (hashtags > 2) errors.push({ code: 'hashtags', message: `Too many hashtags (${hashtags}).` })
-  else if (hashtags === 2) warnings.push({ code: 'hashtags', message: 'Two hashtags — prefer none or one.' })
+  if (hashtags > maxTags) errors.push({ code: 'hashtags', message: `Too many hashtags (${hashtags}).` })
+  else if (hashtags === maxTags && maxTags <= 2 && hashtags > 1) warnings.push({ code: 'hashtags', message: 'Two hashtags — prefer none or one.' })
   const emoji = countEmoji(trimmed)
-  if (emoji > 2) errors.push({ code: 'emoji', message: `Too many emojis (${emoji}).` })
-  else if (emoji === 2) warnings.push({ code: 'emoji', message: 'Two emojis — prefer none or one.' })
+  if (emoji > maxEmoji) errors.push({ code: 'emoji', message: `Too many emojis (${emoji}).` })
+  else if (emoji === maxEmoji && maxEmoji <= 2 && emoji > 1) warnings.push({ code: 'emoji', message: 'Two emojis — prefer none or one.' })
 
   errors.push(...claimIssues(trimmed, opts.forbiddenTerms))
 
@@ -161,4 +170,10 @@ export function inventedSpecifics(text: string): string[] {
   return /\b\d+\s+(?:open\s+)?(?:browser\s+)?(?:tabs|text threads|threads|group chats|chats|spreadsheets|sticky notes|notes apps?|apps|websites|sites|texts|emails)\b/i.test(text)
     ? ['Invented specifics: do not give exact counts (tabs, threads, apps…) for the founder’s story — say "a lot of tabs" instead.']
     : []
+}
+
+/** Validation options for a platform's norms. */
+export function platformRules(platform: Platform, cfg: MarketingConfig) {
+  const c = cadenceFor(cfg, platform)
+  return { maxChars: c.maxChars, maxHashtags: c.maxHashtags, maxEmoji: c.maxEmoji, allowBareProductDomain: platform === 'instagram', minChars: platform === 'instagram' ? 60 : undefined }
 }

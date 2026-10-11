@@ -11,7 +11,7 @@ import { z } from 'zod'
 import { callStructured } from '@/lib/ai/client'
 import { aiConfig } from '@/lib/ai/config'
 import { allowAI, budgetSnapshot, estimatePostCost, recordAI, type BudgetSnapshot } from './budget'
-import { autonomousEffective, type MarketingConfig } from './config'
+import { autonomousEffective, cadenceFor, type MarketingConfig } from './config'
 import { factSheet, FOUNDER_FACTS, PRODUCT_FACTS } from './facts'
 import type { CardSpec } from './images/templates'
 import { LIBRARY, libraryKey, type LibraryItem } from './library'
@@ -23,8 +23,8 @@ import { checkRepetition, toHistoryItem, type HistoryItem } from './repetition'
 import type { MarketingStore } from './store'
 import { currentObjective, utmUrl } from './strategy'
 import { localDate, weekday } from './time'
-import { SLOT_ROLE_LABEL, type PollSpec } from './types'
-import { claimIssues, dateIssues, fixProductName, forbiddenTermsFromEnv, inventedSpecifics, pollIssues, validatePost } from './validation'
+import { SLOT_ROLE_LABEL, type Platform, type PollSpec } from './types'
+import { claimIssues, dateIssues, fixProductName, forbiddenTermsFromEnv, inventedSpecifics, platformRules, pollIssues, validatePost } from './validation'
 
 const CardSchema = z.object({
   headline: z.string().min(1).max(90),
@@ -49,9 +49,9 @@ type Item = z.infer<typeof ItemSchema>
 const KNOWN_FACTS = new Set([...FOUNDER_FACTS, ...PRODUCT_FACTS].map((f) => f.id))
 const POLL_MINUTES = 1440
 
-export function batchSystemPrompt(): string {
+export function batchSystemPrompt(platform: Platform = 'x'): string {
   return [
-    ...voiceRules(),
+    ...voiceRules(platform === 'instagram' ? 'instagram' : 'x'),
     'You are writing a whole day of posts at once. Make each post clearly different from the others: different idea, different opening words, different call to action (most posts have none).',
     'Return ONLY a JSON object: {"posts": [ {',
     ' "slot": number (copy the slot number),',
@@ -67,7 +67,7 @@ export function batchSystemPrompt(): string {
   ].join('\n')
 }
 
-function slotInstruction(s: PlanSlot, maxChars: number): string {
+function slotInstruction(s: PlanSlot, maxChars: number, platform: Platform = 'x'): string {
   const spec = PILLAR_SPECS[s.pillar]
   const parts = [`SLOT ${s.index} — ${s.time} — ${SLOT_ROLE_LABEL[s.role]} — ${spec.brief}`, `  Angle: ${s.topicAngle} (your own take).`]
   if (s.format === 'poll') parts.push('  Format: POLL. paragraphs = the question (≤ 200 characters). poll.options = 2–4 short answers (≤ 25 characters each). No link, no card.')
@@ -79,11 +79,11 @@ function slotInstruction(s: PlanSlot, maxChars: number): string {
   else if (s.format === 'image') parts.push('  Format: IMAGE headline card — card.headline (≤ 8 words, no numbers, no claims).')
   else parts.push('  Format: TEXT only. No card.')
   parts.push(s.link ? '  Link: the system appends the product link after your text — end with one short, low-pressure line leading into it.' : '  Link: none — do not mention a web address.')
-  parts.push(`  Length: ≤ ${s.link ? maxChars - 25 : maxChars} characters (aim for 100–220).`)
+  parts.push(platform === 'instagram' ? '  Length: 2–4 short paragraphs (aim for 200–600 characters), hashtags on the last line.' : `  Length: ≤ ${s.link ? maxChars - 25 : maxChars} characters (aim for 100–220).`)
   return parts.join('\n')
 }
 
-function batchUserPrompt(p: { date: string; today: string; launchDate: string; objective: string; slots: PlanSlot[]; recent: HistoryItem[]; learnings: string[]; maxChars: number; feedback?: Record<number, string[]> }): string {
+function batchUserPrompt(p: { date: string; today: string; launchDate: string; objective: string; slots: PlanSlot[]; recent: HistoryItem[]; learnings: string[]; maxChars: number; feedback?: Record<number, string[]>; platform?: Platform }): string {
   return [
     `TODAY: ${weekday(p.today)}, ${p.today} (US Eastern). These posts go out on ${weekday(p.date)}, ${p.date}.`,
     `PUBLIC LAUNCH: ${weekday(p.launchDate)}, ${p.launchDate}. If you mention it, use exactly this date.`,
@@ -98,7 +98,7 @@ function batchUserPrompt(p: { date: string; today: string; launchDate: string; o
     factSheet(),
     '',
     'WRITE THESE POSTS:',
-    ...p.slots.map((s) => slotInstruction(s, p.maxChars) + (p.feedback?.[s.index]?.length ? `\n  YOUR PREVIOUS VERSION WAS REJECTED: ${p.feedback[s.index].join(' ')} Write a clearly different post.` : '')),
+    ...p.slots.map((s) => slotInstruction(s, p.maxChars, p.platform) + (p.feedback?.[s.index]?.length ? `\n  YOUR PREVIOUS VERSION WAS REJECTED: ${p.feedback[s.index].join(' ')} Write a clearly different post.` : '')),
   ].join('\n')
 }
 
@@ -118,14 +118,16 @@ export interface BuiltPost {
 }
 
 /** Turn a model item / library item into a post candidate and list everything wrong with it. */
-export function buildCandidate(slot: PlanSlot, item: Pick<Item, 'paragraphs' | 'hook' | 'topic' | 'cta' | 'card' | 'poll' | 'thread' | 'factsUsed'>, ctx: { cfg: MarketingConfig; today: string; history: HistoryItem[]; now: Date; env?: Record<string, string | undefined>; source: 'ai' | 'library'; libraryKey?: string }): { post: BuiltPost; reasons: string[] } {
+export function buildCandidate(slot: PlanSlot, item: Pick<Item, 'paragraphs' | 'hook' | 'topic' | 'cta' | 'card' | 'poll' | 'thread' | 'factsUsed'>, ctx: { cfg: MarketingConfig; today: string; history: HistoryItem[]; now: Date; env?: Record<string, string | undefined>; source: 'ai' | 'library'; libraryKey?: string; platform?: Platform }): { post: BuiltPost; reasons: string[] } {
   const id = randomUUID()
-  const link = slot.link ? utmUrl(id, 'x', ctx.cfg.utmCampaign) : null
+  const platform = ctx.platform ?? 'x'
+  const rules = platformRules(platform, ctx.cfg)
+  const link = slot.link ? utmUrl(id, platform, ctx.cfg.utmCampaign) : null
   const body = item.paragraphs.map((p) => p.trim()).filter(Boolean).join('\n\n')
   const text = fixProductName(link ? `${body}\n\n${link}` : body).text
   const forbidden = forbiddenTermsFromEnv(ctx.env)
   const reasons: string[] = []
-  const report = validatePost(text, { pillar: slot.pillar, maxChars: ctx.cfg.xMaxChars, allowedLink: link, forbiddenTerms: forbidden, minChars: slot.format === 'poll' ? 10 : undefined })
+  const report = validatePost(text, { ...rules, pillar: slot.pillar, allowedLink: link, forbiddenTerms: forbidden, minChars: slot.format === 'poll' ? 10 : rules.minChars })
   reasons.push(...report.errors.map((e) => e.message), ...dateIssues(text, { today: ctx.today, launchDate: ctx.cfg.launchDate }))
   if (ctx.source === 'ai') reasons.push(...inventedSpecifics(text))
   const unknown = (item.factsUsed ?? []).filter((f) => !KNOWN_FACTS.has(f))
@@ -175,19 +177,21 @@ function libraryCandidate(slot: PlanSlot, used: Set<string>): LibraryItem | null
 export interface DayResult { date: string; planId: string; generated: string[]; library: string[]; skipped: { index: number; reason: string }[]; aiCalls: number; aiTokens: number; aiSkipped?: string }
 
 /** Write (or fill the gaps of) one local day of the plan. Idempotent: slots that already have a post are left alone. */
-export async function generateDay(store: MarketingStore, cfg: MarketingConfig, opts: { date: string; now?: Date; budget?: BudgetSnapshot; weights?: PlanWeights; learnings?: string[]; budgetMs?: number; env?: Record<string, string | undefined>; actor?: string | null }): Promise<DayResult> {
+export async function generateDay(store: MarketingStore, cfg: MarketingConfig, opts: { date: string; now?: Date; budget?: BudgetSnapshot; weights?: PlanWeights; learnings?: string[]; budgetMs?: number; env?: Record<string, string | undefined>; actor?: string | null; platform?: Platform }): Promise<DayResult> {
+  const platform: Platform = opts.platform ?? 'x'
+  const cad = cadenceFor(cfg, platform)
   const now = opts.now ?? new Date()
   const started = Date.now()
   const env = opts.env ?? process.env
   const budget = opts.budget ?? (await budgetSnapshot(store, cfg, now, env))
-  const plan = await planWeek(store, cfg, { weekStart: weekStartOf(opts.date), now, budget, weights: opts.weights })
+  const plan = await planWeek(store, cfg, { weekStart: weekStartOf(opts.date), now, budget, weights: opts.weights, platform })
   const slots = planSlots(plan)
   const todo = slots.filter((s) => s.date === opts.date && s.status === 'planned' && new Date(s.at).getTime() > now.getTime() - 30 * 60_000)
   const result: DayResult = { date: opts.date, planId: plan.id, generated: [], library: [], skipped: [], aiCalls: 0, aiTokens: 0 }
   if (!todo.length) return result
 
   const today = localDate(now, cfg.timezone)
-  const recentPosts = await store.listPosts({ platform: 'x', since: new Date(now.getTime() - 60 * 86_400_000).toISOString(), limit: 1000 })
+  const recentPosts = await store.listPosts({ platform, since: new Date(now.getTime() - 60 * 86_400_000).toISOString(), limit: 1000 })
   const history = recentPosts.map(toHistoryItem)
   // Posts imported from the account are used for repetition checks only — never quoted back to the model (they may
   // contain personal details such as the founder's name).
@@ -212,16 +216,16 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
     const res = await callStructured({
       feature: 'marketing_batch',
       schema: BatchSchema as unknown as z.ZodType<z.infer<typeof BatchSchema>>,
-      system: batchSystemPrompt(),
-      user: batchUserPrompt({ date: opts.date, today, launchDate: cfg.launchDate, objective, slots: pending, recent: [...promptHistory, ...[...accepted.values()].map((b) => ({ id: b.id, text: b.text, hook: b.hook, cta: b.cta, topicKey: b.slot.topicKey, status: 'scheduled', at: b.slot.at }))].sort((a, b) => b.at.localeCompare(a.at)), learnings: opts.learnings ?? [], maxChars: cfg.xMaxChars, feedback }),
-      sessionId: `mkt-batch-${plan.id}-${opts.date}-${attempt}`,
+      system: batchSystemPrompt(platform),
+      user: batchUserPrompt({ date: opts.date, today, launchDate: cfg.launchDate, objective, slots: pending, recent: [...promptHistory, ...[...accepted.values()].map((b) => ({ id: b.id, text: b.text, hook: b.hook, cta: b.cta, topicKey: b.slot.topicKey, status: 'scheduled', at: b.slot.at }))].sort((a, b) => b.at.localeCompare(a.at)), learnings: opts.learnings ?? [], maxChars: cad.maxChars, feedback, platform }),
+      sessionId: `mkt-batch-${platform}-${plan.id}-${opts.date}-${attempt}`,
       maxTokens: Math.min(8000, 700 + pending.length * 450),
       cfg: aiCfg,
     })
     result.aiCalls++
     const tokens = (res.inputTokens ?? 0) + (res.outputTokens ?? 0)
     result.aiTokens += tokens
-    await recordAI(store, cfg, 'batch_generate', tokens, res.ok, { date: opts.date, slots: pending.length, attempt })
+    await recordAI(store, cfg, 'batch_generate', tokens, res.ok, { date: opts.date, slots: pending.length, attempt, platform })
     if (!res.ok) { result.aiSkipped = `ai_${res.code}`; break }
     const byIndex = new Map(res.data.posts.map((p) => [p.slot, p]))
     const next: PlanSlot[] = []
@@ -230,7 +234,7 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
       const item = byIndex.get(slot.index)
       if (!item) { next.push(slot); feedback[slot.index] = ['It was missing from your answer.']; continue }
       const batchHistory = [...history, ...[...accepted.values()].map((b): HistoryItem => ({ id: b.id, text: b.text, hook: b.hook, cta: b.cta, topicKey: b.slot.topicKey, status: 'scheduled', at: b.slot.at }))]
-      const { post, reasons } = buildCandidate(slot, item, { cfg, today, history: batchHistory, now, env, source: 'ai' })
+      const { post, reasons } = buildCandidate(slot, item, { cfg, today, history: batchHistory, now, env, source: 'ai', platform })
       if (reasons.length) { next.push(slot); feedback[slot.index] = reasons.slice(0, 5) } else accepted.set(slot.index, post)
     }
     pending = next
@@ -240,9 +244,13 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
   for (const slot of pending) {
     const lib = libraryCandidate(slot, usedLibrary)
     if (!lib) { result.skipped.push({ index: slot.index, reason: feedback[slot.index]?.[0] ?? 'nothing valid' }); continue }
-    const libSlot: PlanSlot = { ...slot, format: lib.format, topicKey: libraryKey(lib.key), pillar: lib.pillar, link: false, thread: false, media: lib.card ? { source: 'template', kind: lib.format === 'carousel' ? 'carousel' : 'image', template: lib.card.template } : { source: 'none' } }
+    // Instagram needs media on every post: a text-only library item gets a branded card from its first line.
+    const igCard = platform === 'instagram' && !lib.card ? { template: (lib.role === 'founder_story' ? 'founder_quote' : lib.role === 'conversation' ? 'poll_companion' : 'tip') as NonNullable<LibraryItem['card']>['template'], headline: (lib.hook ?? lib.text.split(/[.!?\n]/)[0]).split(/\s+/).slice(0, 8).join(' ') } : null
+    const card: LibraryItem['card'] | null = lib.card ?? igCard
+    const libFormat = lib.format === 'poll' && platform === 'instagram' ? 'image' : card && lib.format === 'text' ? 'image' : lib.format
+    const libSlot: PlanSlot = { ...slot, format: libFormat, topicKey: libraryKey(lib.key), pillar: lib.pillar, link: false, thread: false, media: card ? { source: 'template', kind: libFormat === 'carousel' ? 'carousel' : 'image', template: card.template } : { source: 'none' } }
     const batchHistory = [...history, ...[...accepted.values()].map((b): HistoryItem => ({ id: b.id, text: b.text, hook: b.hook, cta: b.cta, topicKey: b.slot.topicKey, status: 'scheduled', at: b.slot.at }))]
-    const { post, reasons } = buildCandidate(libSlot, { paragraphs: lib.text.split(/\n\n+/), hook: lib.hook ?? lib.text.split('\n')[0], topic: lib.key, cta: lib.cta ?? null, card: lib.card ? { headline: lib.card.headline, bullets: lib.card.bullets, left: lib.card.left, right: lib.card.right } : null, poll: lib.poll ? { options: lib.poll.options } : null, thread: null, factsUsed: [] }, { cfg, today, history: batchHistory, now, env, source: 'library', libraryKey: libraryKey(lib.key) })
+    const { post, reasons } = buildCandidate(libSlot, { paragraphs: lib.text.split(/\n\n+/), hook: lib.hook ?? lib.text.split('\n')[0], topic: lib.key, cta: lib.cta ?? null, card: card ? { headline: card.headline, bullets: card.bullets, left: card.left, right: card.right } : null, poll: lib.poll && platform !== 'instagram' ? { options: lib.poll.options } : null, thread: null, factsUsed: [] }, { cfg, today, history: batchHistory, now, env, source: 'library', libraryKey: libraryKey(lib.key), platform })
     if (reasons.length) { usedLibrary.add(libraryKey(lib.key)); result.skipped.push({ index: slot.index, reason: `library ${lib.key}: ${reasons[0]}` }); continue }
     usedLibrary.add(libraryKey(lib.key))
     accepted.set(slot.index, post)
@@ -262,12 +270,13 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
       }
     }
     const format = slot.format === 'poll' || slot.format === 'thread' ? slot.format : mediaIds.length === 0 ? 'text' : slot.format === 'video' && slot.media.source === 'library' ? 'video' : mediaIds.length > 1 ? 'carousel' : 'image'
-    const linkUrl = slot.link ? utmUrl(post.id, 'x', cfg.utmCampaign) : null
-    const est = estimatePostCost({ linkUrl, threadParts: post.thread, mediaIds, imagePath: null }, budget.prices)
-    const report = validatePost(post.text, { pillar: slot.pillar, maxChars: cfg.xMaxChars, allowedLink: linkUrl, forbiddenTerms: forbiddenTermsFromEnv(env), minChars: slot.format === 'poll' ? 10 : undefined })
+    const linkUrl = slot.link ? utmUrl(post.id, platform, cfg.utmCampaign) : null
+    const est = platform === 'x' ? estimatePostCost({ linkUrl, threadParts: post.thread, mediaIds, imagePath: null }, budget.prices) : 0
+    const rules = platformRules(platform, cfg)
+    const report = validatePost(post.text, { ...rules, pillar: slot.pillar, allowedLink: linkUrl, forbiddenTerms: forbiddenTermsFromEnv(env), minChars: slot.format === 'poll' ? 10 : rules.minChars })
     await store.insertPost({
       id: post.id,
-      platform: 'x',
+      platform,
       content_type: mediaIds.length ? 'text_image' : 'text',
       content_pillar: slot.pillar,
       topic_key: post.libraryKey ?? slot.topicKey,
@@ -301,7 +310,7 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
   }
   for (const s of result.skipped) updated.set(s.index, { ...updated.get(s.index)!, status: 'skipped', note: s.reason.slice(0, 200) })
   const merged = [...updated.values()].sort((a, b) => a.index - b.index)
-  await store.savePlan({ id: plan.id, platform: 'x', week_start: plan.week_start, status: merged.some((s) => s.status === 'planned') ? 'generating' : 'ready', slots: merged, notes: plan.notes })
-  await store.audit(null, opts.actor ?? null, 'batch_generated', { date: opts.date, generated: result.generated.length, library: result.library.length, skipped: result.skipped.length, aiCalls: result.aiCalls, aiSkipped: result.aiSkipped ?? null })
+  await store.savePlan({ id: plan.id, platform, week_start: plan.week_start, status: merged.some((s) => s.status === 'planned') ? 'generating' : 'ready', slots: merged, notes: plan.notes })
+  await store.audit(null, opts.actor ?? null, 'batch_generated', { platform, date: opts.date, generated: result.generated.length, library: result.library.length, skipped: result.skipped.length, aiCalls: result.aiCalls, aiSkipped: result.aiSkipped ?? null })
   return result
 }

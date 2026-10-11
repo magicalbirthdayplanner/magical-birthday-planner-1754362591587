@@ -17,9 +17,9 @@ import { reportError } from '@/lib/observability/telemetry'
 import { generateDay } from './batch'
 import { runDailyBrief } from './brief'
 import { budgetSnapshot } from './budget'
-import { autonomousEffective, readMarketingConfig, xUserIdFromEnv, type MarketingConfig } from './config'
+import { autonomousEffective, cadenceFor, readMarketingConfig, xUserIdFromEnv, type MarketingConfig } from './config'
 import { runLearning } from './learning'
-import { SupabaseAnalyticsAttribution, collectAttribution, collectOwnMetrics, countCampaignEvents, importHistory, type AttributionSource } from './metrics'
+import { SupabaseAnalyticsAttribution, collectAttribution, collectInstagramMetrics, collectOwnMetrics, countCampaignEvents, importHistory, type AttributionSource } from './metrics'
 import { planWeek, weekStartOf, type PlanWeights } from './planner'
 import { getMarketingProvider, type MarketingProvider } from './providers'
 import { publishPost, recoverStalePublishing, type PublishOutcome } from './publish'
@@ -89,16 +89,18 @@ export async function runPlan(d: AgentDeps = {}): Promise<Record<string, unknown
   const out: Record<string, unknown> = { task: 'plan', at: now.toISOString() }
   const today = localDate(now, cfg.timezone)
   const thisWeek = weekStartOf(today)
-  const target = (await store.getPlan(PLATFORM, thisWeek)) ? addDays(thisWeek, 7) : thisWeek
+  const target = (await store.getPlan(cfg.platforms[0] ?? PLATFORM, thisWeek)) ? addDays(thisWeek, 7) : thisWeek
   const budget = await budgetSnapshot(store, cfg, now, env)
   const { weights, learnings } = await learned(store)
-  const plan = await step('plan', out, async () => {
-    const p = await planWeek(store, cfg, { weekStart: target, now, budget, weights })
-    return { weekStart: p.week_start, slots: (p.slots as unknown[]).length, status: p.status }
-  })
-  if (plan) {
-    const first = target > today ? target : today
-    await step('generate', out, () => generateDay(store, cfg, { date: first, now, budget, weights, learnings, budgetMs: budgetMs - (Date.now() - started) - 5_000, env }))
+  for (const platform of cfg.platforms) {
+    const plan = await step(`plan_${platform}`, out, async () => {
+      const p = await planWeek(store, cfg, { weekStart: target, now, budget, weights, platform })
+      return { weekStart: p.week_start, slots: (p.slots as unknown[]).length, status: p.status }
+    })
+    if (plan && budgetMs - (Date.now() - started) > 25_000) {
+      const first = target > today ? target : today
+      await step(`generate_${platform}`, out, () => generateDay(store, cfg, { date: first, now, budget, weights, learnings, budgetMs: budgetMs - (Date.now() - started) - 5_000, env, platform }))
+    }
   }
   out.durationMs = Date.now() - started
   return out
@@ -121,7 +123,8 @@ export async function runPrepare(d: AgentDeps = {}): Promise<Record<string, unkn
     if (known.some((p) => p.source === 'imported') || (await store.recentAudit(500)).some((a) => a.action === 'history_imported')) return 'done'
     return importHistory(store, provider, cfg, { userId, now, env })
   })
-  await step('platformMetrics', out, () => collectOwnMetrics(store, provider, cfg, { now, userId: xUserIdFromEnv(env), env }))
+  if (cfg.platforms.includes('x')) await step('platformMetrics', out, () => collectOwnMetrics(store, provider, cfg, { now, userId: xUserIdFromEnv(env), env }))
+  if (cfg.platforms.includes('instagram')) await step('instagramMetrics', out, () => collectInstagramMetrics(store, getMarketingProvider('instagram', cfg, env), { now }))
   const attribution = d.attribution === undefined ? new SupabaseAnalyticsAttribution() : d.attribution
   if (attribution) await step('attribution', out, () => collectAttribution(store, attribution, now))
   await step('scores', out, () => updateScores(store, cfg.scoreWeights, now))
@@ -136,11 +139,13 @@ export async function runPrepare(d: AgentDeps = {}): Promise<Record<string, unkn
     const today = localDate(now, cfg.timezone)
     const done: Record<string, unknown>[] = []
     for (const date of [today, addDays(today, 1)]) {
-      const remaining = budgetMs - (Date.now() - started)
-      if (remaining < 30_000) break
-      const budget = await budgetSnapshot(store, cfg, now, env)
-      const r = await generateDay(store, cfg, { date, now, budget, weights, learnings, budgetMs: remaining - 8_000, env })
-      done.push({ date, generated: r.generated.length, library: r.library.length, skipped: r.skipped.length, aiCalls: r.aiCalls, aiSkipped: r.aiSkipped ?? null })
+      for (const platform of cfg.platforms) {
+        const remaining = budgetMs - (Date.now() - started)
+        if (remaining < 30_000) break
+        const budget = await budgetSnapshot(store, cfg, now, env)
+        const r = await generateDay(store, cfg, { date, now, budget, weights, learnings, budgetMs: remaining - 8_000, env, platform })
+        done.push({ platform, date, generated: r.generated.length, library: r.library.length, skipped: r.skipped.length, aiCalls: r.aiCalls, aiSkipped: r.aiSkipped ?? null })
+      }
     }
     return done
   })
@@ -173,36 +178,41 @@ export async function runPublish(d: AgentDeps = {}): Promise<Record<string, unkn
     return out
   }
   const horizon = now.getTime() + cfg.publishEarlyMinutes * 60_000
-  // Autonomous mode needs no approval: the bank's validated drafts (written while the switch was off) go to the queue.
-  for (const d of await store.listPosts({ platform: PLATFORM, statuses: ['draft'], limit: 200 })) {
-    if (d.origin !== 'agent' || !d.planId || !d.scheduledAt || new Date(d.scheduledAt).getTime() > horizon) continue
-    if (await store.updatePost(d.id, { status: 'scheduled', autonomous: true, approved_at: now.toISOString() }, ['draft'])) await store.audit(d.id, null, 'auto_approved', {})
-  }
-  const dueNow = async () =>
-    (await store.listPosts({ platform: PLATFORM, statuses: ['scheduled'] })).filter((p) => p.scheduledAt && new Date(p.scheduledAt).getTime() <= horizon).sort((a, b) => a.scheduledAt!.localeCompare(b.scheduledAt!))
-  let due = await dueNow()
+  const results: (PublishOutcome & { id: string; platform: Platform })[] = []
+  for (const platform of cfg.platforms) {
+    const prov = platform === 'x' ? provider : getMarketingProvider(platform, cfg, env)
+    // Autonomous mode needs no approval: the bank's validated drafts (written while the switch was off) go to the queue.
+    for (const dr of await store.listPosts({ platform, statuses: ['draft'], limit: 200 })) {
+      if (dr.origin !== 'agent' || !dr.planId || !dr.scheduledAt || new Date(dr.scheduledAt).getTime() > horizon) continue
+      if (await store.updatePost(dr.id, { status: 'scheduled', autonomous: true, approved_at: now.toISOString() }, ['draft'])) await store.audit(dr.id, null, 'auto_approved', {})
+    }
+    const dueNow = async () =>
+      (await store.listPosts({ platform, statuses: ['scheduled'] })).filter((p) => p.scheduledAt && new Date(p.scheduledAt).getTime() <= horizon).sort((a, b) => a.scheduledAt!.localeCompare(b.scheduledAt!))
+    let due = await dueNow()
 
-  // The slot is here but the day was never written (prepare failed): write it now (one batch call), then publish.
-  if (!due.length) {
-    const dayStart = startOfLocalDay(now, cfg.timezone).getTime()
-    const slotNow = slotsFrom(now, cfg.postTimes.slice(0, cfg.postsPerDay), cfg.timezone, 1).find((s) => s.getTime() >= now.getTime() - 3 * 3_600_000 && s.getTime() <= horizon)
-    const aimedToday = (await store.listPosts({ platform: PLATFORM, statuses: ['published', 'publishing', 'dry_run', 'failed', 'scheduled', 'approved'], since: new Date(now.getTime() - 30 * 86_400_000).toISOString() }))
-      .filter((p) => [p.publishedAt, p.dryRunAt, p.publishingStartedAt, p.scheduledAt].some((t) => t && new Date(t).getTime() >= dayStart && new Date(t).getTime() < dayStart + 86_400_000))
-    if (slotNow && !aimedToday.length && budgetMs - (Date.now() - started) > 35_000) {
-      const { weights, learnings } = await learned(store)
-      await step('justInTime', out, () => generateDay(store, cfg, { date: localDate(now, cfg.timezone), now, weights, learnings, budgetMs: budgetMs - (Date.now() - started) - 15_000, env }))
-      due = await dueNow()
+    // The slot is here but the day was never written (prepare failed): write it now (one batch call), then publish.
+    if (!due.length) {
+      const cad = cadenceFor(cfg, platform)
+      const dayStart = startOfLocalDay(now, cfg.timezone).getTime()
+      const slotNow = slotsFrom(now, cad.postTimes, cfg.timezone, 1).find((s) => s.getTime() >= now.getTime() - 3 * 3_600_000 && s.getTime() <= horizon)
+      const aimedToday = (await store.listPosts({ platform, statuses: ['published', 'publishing', 'dry_run', 'failed', 'scheduled', 'approved'], since: new Date(now.getTime() - 30 * 86_400_000).toISOString() }))
+        .filter((p) => [p.publishedAt, p.dryRunAt, p.publishingStartedAt, p.scheduledAt].some((t) => t && new Date(t).getTime() >= dayStart && new Date(t).getTime() < dayStart + 86_400_000))
+      if (slotNow && !aimedToday.length && budgetMs - (Date.now() - started) > 35_000) {
+        const { weights, learnings } = await learned(store)
+        await step(`justInTime_${platform}`, out, () => generateDay(store, cfg, { date: localDate(now, cfg.timezone), now, weights, learnings, budgetMs: budgetMs - (Date.now() - started) - 15_000, env, platform }))
+        due = await dueNow()
+      }
+    }
+
+    for (const p of due) {
+      if (budgetMs - (Date.now() - started) < 10_000) break
+      const r = await publishPost(p.id, 'scheduled', { store, provider: prov, cfg, env }, { now })
+      results.push({ ...r, id: p.id, platform })
+      // One post per platform per run; stop on limits/budget; skip over a post that failed its own checks.
+      if (r.ok || r.status === 'requeued' || (r.status === 'skipped' && ['daily_limit', 'min_gap', 'x_budget_exhausted', 'x_daily_allowance', 'budget_link', 'provider_not_configured'].includes(r.reason))) break
     }
   }
-
-  const results: (PublishOutcome & { id: string })[] = []
-  for (const p of due) {
-    const r = await publishPost(p.id, 'scheduled', { store, provider, cfg, env }, { now })
-    results.push({ ...r, id: p.id })
-    // One post per run; stop on limits/budget; skip over a post that failed its own checks.
-    if (r.ok || r.status === 'requeued' || (r.status === 'skipped' && ['daily_limit', 'min_gap', 'x_budget_exhausted', 'x_daily_allowance', 'budget_link'].includes(r.reason))) break
-  }
-  out.publish = results.map((r) => ({ id: r.id, ok: r.ok, status: r.status, reason: r.ok ? undefined : r.reason }))
+  out.publish = results.map((r) => ({ platform: r.platform, id: r.id, ok: r.ok, status: r.status, reason: r.ok ? undefined : r.reason }))
   out.durationMs = Date.now() - started
   return out
 }

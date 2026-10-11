@@ -5,7 +5,8 @@
 import type { XMeter } from '../budget'
 import type { Platform, PlatformMetrics, PollSpec } from '../types'
 
-export interface MediaInput { bytes: Uint8Array; mimeType: string; altText?: string | null }
+/** bytes for APIs that take uploads (X); url (short-lived, public) for APIs that fetch media themselves (Instagram). */
+export interface MediaInput { bytes?: Uint8Array; url?: string; mimeType: string; altText?: string | null }
 export interface PublishInput {
   text: string
   /** Up to 4 images, or exactly one video. */
@@ -37,6 +38,8 @@ export class MarketingProviderError extends Error {
 
 export interface MarketingProvider {
   readonly platform: Platform
+  /** The API pulls media from URLs instead of accepting uploads (Instagram). */
+  readonly mediaByUrl?: boolean
   /** Weighted characters allowed per post for this account. */
   readonly maxChars: number
   configured(): boolean

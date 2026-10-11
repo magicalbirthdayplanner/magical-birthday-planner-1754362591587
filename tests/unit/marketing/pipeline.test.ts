@@ -318,7 +318,7 @@ describe('scheduler (runPrepare / runPublish)', () => {
     await store.setAutonomous(true)
     const c = cfg({ AUTONOMOUS_PUBLISHING: 'true' })
     const r1 = await runPublish({ store, provider: x, cfg: c, now: at('2026-10-20T14:05:00Z') })
-    expect(r1.publish).toEqual([{ id: p.id, ok: true, status: 'dry_run', reason: undefined }])
+    expect(r1.publish).toEqual([{ platform: 'x', id: p.id, ok: true, status: 'dry_run', reason: undefined }])
     const r2 = await runPublish({ store, provider: x, cfg: c, now: at('2026-10-20T14:10:00Z') })
     expect(r2.publish).toEqual([])
     expect(x.posted).toHaveLength(0)

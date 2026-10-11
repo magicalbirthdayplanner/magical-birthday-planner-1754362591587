@@ -23,8 +23,9 @@ export const maxDuration = 60
 export async function GET(req: Request) {
   const { error } = await requireSuperAdmin(req)
   if (error) return error
+  const platform = new URL(req.url).searchParams.get('platform') === 'instagram' ? 'instagram' : 'x'
   try {
-    return NextResponse.json(await xOverview(getMarketingStore(), readMarketingConfig()))
+    return NextResponse.json(await xOverview(getMarketingStore(), readMarketingConfig(), new Date(), platform))
   } catch (e) {
     reportError(e, { area: 'api', op: 'marketing_x_overview', level: 'error' })
     return apiError(500, 'server_error', 'Could not load the X dashboard. Are the marketing migrations applied?')
@@ -32,9 +33,10 @@ export async function GET(req: Request) {
 }
 
 const DATE = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+const PLATFORM = z.enum(['x', 'instagram'])
 const Body = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('plan_week'), weekStart: DATE.optional(), force: z.boolean().optional() }).strict(),
-  z.object({ action: z.literal('generate_day'), date: DATE }).strict(),
+  z.object({ action: z.literal('plan_week'), weekStart: DATE.optional(), force: z.boolean().optional(), platform: PLATFORM.optional() }).strict(),
+  z.object({ action: z.literal('generate_day'), date: DATE, platform: PLATFORM.optional() }).strict(),
   z.object({ action: z.literal('import_history') }).strict(),
   z.object({ action: z.literal('run'), task: z.enum(['plan', 'prepare', 'publish']) }).strict(),
 ])
@@ -63,13 +65,13 @@ export async function POST(req: Request) {
       case 'plan_week': {
         const weekStart = body.weekStart ? weekStartOf(body.weekStart) : weekStartOf(localDate(new Date(), cfg.timezone))
         const insights = await store.latestInsights()
-        const plan = await planWeek(store, cfg, { weekStart, budget: await budgetSnapshot(store, cfg), weights: (insights?.data as { weights?: object } | undefined)?.weights ?? {}, force: body.force })
-        await store.audit(null, auth.user.id, 'plan_week', { weekStart, force: !!body.force })
+        const plan = await planWeek(store, cfg, { weekStart, budget: await budgetSnapshot(store, cfg), weights: (insights?.data as { weights?: object } | undefined)?.weights ?? {}, force: body.force, platform: body.platform ?? 'x' })
+        await store.audit(null, auth.user.id, 'plan_week', { weekStart, force: !!body.force, platform: body.platform ?? 'x' })
         return NextResponse.json({ ok: true, weekStart: plan.week_start, slots: (plan.slots as unknown[]).length })
       }
       case 'generate_day': {
         const insights = await store.latestInsights()
-        const r = await generateDay(store, cfg, { date: body.date, actor: auth.user.id, weights: (insights?.data as { weights?: object } | undefined)?.weights ?? {}, learnings: insights?.recommendations.slice(0, 8) ?? [], budgetMs: 52_000 })
+        const r = await generateDay(store, cfg, { date: body.date, actor: auth.user.id, weights: (insights?.data as { weights?: object } | undefined)?.weights ?? {}, learnings: insights?.recommendations.slice(0, 8) ?? [], budgetMs: 52_000, platform: body.platform ?? 'x' })
         return NextResponse.json({ ok: true, result: r })
       }
       case 'import_history': {

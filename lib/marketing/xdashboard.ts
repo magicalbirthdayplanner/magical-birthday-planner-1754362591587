@@ -2,13 +2,13 @@
 import 'server-only'
 import { aiConfig } from '@/lib/ai/config'
 import { budgetSnapshot } from './budget'
-import { autonomousEffective, hasXCredentials, xUserIdFromEnv, type MarketingConfig } from './config'
+import { autonomousEffective, cadenceFor, hasInstagramCredentials, hasXCredentials, xUserIdFromEnv, type MarketingConfig } from './config'
 import { hookStyle } from './learning'
 import { planSlots, weekStartOf } from './planner'
 import { engagements } from './scoring'
 import type { MarketingStore } from './store'
 import { addDays, localDate } from './time'
-import { SLOT_ROLE_LABEL, type MarketingPost, type SlotRole } from './types'
+import { SLOT_ROLE_LABEL, type MarketingPost, type Platform, type SlotRole } from './types'
 
 export interface XPostView {
   id: string
@@ -82,11 +82,11 @@ function rankBy<T extends string>(posts: MarketingPost[], key: (p: MarketingPost
     .sort((a, b) => b.avgScore - a.avgScore)
 }
 
-export async function xOverview(store: MarketingStore, cfg: MarketingConfig, now = new Date()) {
+export async function xOverview(store: MarketingStore, cfg: MarketingConfig, now = new Date(), platform: Platform = 'x') {
   const settings = await store.getSettings()
   const budget = await budgetSnapshot(store, cfg, now)
   const today = localDate(now, cfg.timezone)
-  const posts = await store.listPosts({ platform: 'x', since: new Date(now.getTime() - 45 * 86_400_000).toISOString(), limit: 3000 })
+  const posts = await store.listPosts({ platform, since: new Date(now.getTime() - 45 * 86_400_000).toISOString(), limit: 3000 })
   const at = (p: MarketingPost) => p.publishedAt ?? p.dryRunAt ?? p.scheduledAt ?? p.createdAt
   const day = (p: MarketingPost) => localDate(new Date(at(p)), cfg.timezone)
   const live = posts.filter((p) => p.status !== 'cancelled')
@@ -98,7 +98,7 @@ export async function xOverview(store: MarketingStore, cfg: MarketingConfig, now
   const weeks = [weekStartOf(today), addDays(weekStartOf(today), 7)]
   const plans: { weekStart: string; status: string; slots: { index: number; date: string; time: string; role: string; format: string; media: string; link: boolean; status: string; postId: string | null; note: string | null }[] }[] = []
   for (const w of weeks) {
-    const p = await store.getPlan('x', w)
+    const p = await store.getPlan(platform, w)
     if (p) plans.push({ weekStart: w, status: p.status, slots: planSlots(p).map((s) => ({ index: s.index, date: s.date, time: s.time, role: s.role, format: s.format, media: s.media.source, link: s.link, status: s.status, postId: s.postId ?? null, note: s.note ?? null })) })
   }
   const media = await store.listMedia({})
@@ -110,8 +110,11 @@ export async function xOverview(store: MarketingStore, cfg: MarketingConfig, now
       autonomousAllowed: cfg.autonomousAllowed,
       autonomousSwitch: settings.autonomousEnabled,
       autonomousEffective: autonomousEffective(cfg, settings.autonomousEnabled),
-      postsPerDay: cfg.postsPerDay,
-      postTimes: cfg.postTimes.slice(0, cfg.postsPerDay),
+      platform,
+      platforms: cfg.platforms,
+      instagramConfigured: hasInstagramCredentials(),
+      postsPerDay: cadenceFor(cfg, platform).postsPerDay,
+      postTimes: cadenceFor(cfg, platform).postTimes,
       timezone: cfg.timezone,
       utmCampaign: cfg.utmCampaign,
       altText: cfg.altText,

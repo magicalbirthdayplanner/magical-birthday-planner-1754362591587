@@ -172,9 +172,10 @@ export class XMarketingProvider implements MarketingProvider {
   }
 
   async uploadImage(media: MediaInput, altText = false): Promise<string> {
+    if (!media.bytes) throw new MarketingProviderError('invalid', 'X needs the image bytes')
     if (!/^image\/(png|jpe?g|webp)$/.test(media.mimeType)) throw new MarketingProviderError('invalid', `Unsupported image type ${media.mimeType}`)
-    if (media.bytes.byteLength > 5 * 1024 * 1024) throw new MarketingProviderError('invalid', 'Image is larger than 5 MB')
-    const r = await this.call<{ data?: { id?: string } }>('POST', '/2/media/upload', { media: Buffer.from(media.bytes).toString('base64'), media_category: 'tweet_image' }, { timeoutMs: 45_000, op: 'media_upload' })
+    if (media.bytes!.byteLength > 5 * 1024 * 1024) throw new MarketingProviderError('invalid', 'Image is larger than 5 MB')
+    const r = await this.call<{ data?: { id?: string } }>('POST', '/2/media/upload', { media: Buffer.from(media.bytes!).toString('base64'), media_category: 'tweet_image' }, { timeoutMs: 45_000, op: 'media_upload' })
     const id = r?.data?.id
     if (!id) throw new MarketingProviderError('unknown', 'X returned no media id')
     if (altText && media.altText) {
@@ -185,15 +186,17 @@ export class XMarketingProvider implements MarketingProvider {
   }
 
   async uploadVideo(media: MediaInput): Promise<string> {
+    if (!media.bytes) throw new MarketingProviderError('invalid', 'X needs the video bytes')
+    const bytes = media.bytes
     if (media.mimeType !== 'video/mp4') throw new MarketingProviderError('invalid', `Unsupported video type ${media.mimeType}`)
-    if (media.bytes.byteLength > 100 * 1024 * 1024) throw new MarketingProviderError('invalid', 'Video is larger than 100 MB')
-    const init = await this.call<{ data?: { id?: string } }>('POST', '/2/media/upload/initialize', { media_type: 'video/mp4', total_bytes: media.bytes.byteLength, media_category: 'tweet_video' }, { op: 'media_upload', detail: { step: 'initialize' } })
+    if (bytes.byteLength > 100 * 1024 * 1024) throw new MarketingProviderError('invalid', 'Video is larger than 100 MB')
+    const init = await this.call<{ data?: { id?: string } }>('POST', '/2/media/upload/initialize', { media_type: 'video/mp4', total_bytes: bytes.byteLength, media_category: 'tweet_video' }, { op: 'media_upload', detail: { step: 'initialize' } })
     const id = init?.data?.id
     if (!id) throw new MarketingProviderError('unknown', 'X returned no media id')
-    for (let i = 0, seg = 0; i < media.bytes.byteLength; i += VIDEO_CHUNK, seg++) {
+    for (let i = 0, seg = 0; i < bytes.byteLength; i += VIDEO_CHUNK, seg++) {
       const form = new FormData()
       form.append('segment_index', String(seg))
-      form.append('media', new Blob([media.bytes.slice(i, i + VIDEO_CHUNK)], { type: 'application/octet-stream' }), `chunk${seg}`)
+      form.append('media', new Blob([bytes.slice(i, i + VIDEO_CHUNK)], { type: 'application/octet-stream' }), `chunk${seg}`)
       await this.call('POST', `/2/media/upload/${id}/append`, undefined, { form, timeoutMs: 45_000, op: 'media_upload', detail: { step: 'append', segment: seg } })
     }
     type Proc = { data?: { processing_info?: { state?: string; check_after_secs?: number; error?: { message?: string } } } }

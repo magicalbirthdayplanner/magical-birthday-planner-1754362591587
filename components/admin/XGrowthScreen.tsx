@@ -16,7 +16,7 @@ interface Post {
 }
 interface Rank { key: string; posts: number; avgScore: number; impressions: number; clicks: number; signups: number }
 interface Overview {
-  config: { dryRun: boolean; autonomousAllowed: boolean; autonomousSwitch: boolean; autonomousEffective: boolean; postsPerDay: number; postTimes: string[]; timezone: string; utmCampaign: string; altText: string; xConfigured: boolean; xUserIdKnown: boolean; aiConfigured: boolean }
+  config: { platform: 'x' | 'instagram'; platforms: string[]; instagramConfigured: boolean; dryRun: boolean; autonomousAllowed: boolean; autonomousSwitch: boolean; autonomousEffective: boolean; postsPerDay: number; postTimes: string[]; timezone: string; utmCampaign: string; altText: string; xConfigured: boolean; xUserIdKnown: boolean; aiConfigured: boolean }
   budget: { month: string; daysLeft: number; x: PB & { reserve: number; dailyAllowance: number }; ai: PB; image: { spent: number }; video: { spent: number }; totalSpent: number; notes: string[] }
   today: Post[]
   upcoming: Post[]
@@ -103,14 +103,15 @@ export function XGrowthScreen() {
   const { user } = useAuth()
   const session = useSWR(user ? ['admin-session', user.id] : null, () => apiFetch<{ admin: boolean }>('/api/admin/session'), { shouldRetryOnError: false })
   const isAdmin = !!session.data?.admin
-  const data = useSWR(isAdmin ? 'admin-marketing-x' : null, () => apiFetch<Overview>('/api/admin/marketing/x'), { revalidateOnFocus: true })
+  const [platform, setPlatform] = useState<'x' | 'instagram'>('x')
+  const data = useSWR(isAdmin ? ['admin-marketing-x', platform] : null, () => apiFetch<Overview>(`/api/admin/marketing/x?platform=${platform}`), { revalidateOnFocus: true })
   const [busy, setBusy] = useState<string | null>(null)
 
   async function act(key: string, body: Record<string, unknown>, ok: string, confirm?: string) {
     if (confirm && !window.confirm(confirm)) return
     setBusy(key)
     try {
-      await apiFetch('/api/admin/marketing/x', { method: 'POST', body: JSON.stringify(body) })
+      await apiFetch('/api/admin/marketing/x', { method: 'POST', body: JSON.stringify(['plan_week', 'generate_day'].includes(String(body.action)) ? { ...body, platform } : body) })
       toast.success(ok)
       void data.mutate()
     } catch (e) {
@@ -133,13 +134,21 @@ export function XGrowthScreen() {
 
   return (
     <div className="pb-6" data-testid="x-growth">
-      <PageHeader title="X growth engine" subtitle={`${c.postsPerDay} posts/day · ${c.postTimes.join(' · ')} ${c.timezone}`} back="/admin/marketing" />
+      <PageHeader title={platform === 'instagram' ? 'Instagram growth engine' : 'X growth engine'} subtitle={`${c.postsPerDay} posts/day · ${c.postTimes.join(' · ')} ${c.timezone}`} back="/admin/marketing" />
+      <div className="flex gap-2 px-4" role="tablist">
+        {(['x', 'instagram'] as const).map((p) => (
+          <AppButton key={p} size="sm" variant={platform === p ? 'primary' : 'outline'} role="tab" aria-selected={platform === p} onClick={() => setPlatform(p)}>
+            {p === 'x' ? 'X' : 'Instagram'}{c.platforms.includes(p) ? '' : ' (off)'}
+          </AppButton>
+        ))}
+      </div>
 
       <Section title="Status">
         <Card className="flex flex-wrap gap-2 p-4 text-xs">
           <Pill className={c.dryRun ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'}>{c.dryRun ? 'DRY-RUN' : 'LIVE'}</Pill>
           <Pill className={c.autonomousEffective ? 'bg-emerald-100 text-emerald-800' : 'bg-muted'}>Autonomous {c.autonomousEffective ? 'ON' : `OFF${c.autonomousAllowed ? ' (switch)' : ' (env)'}`}</Pill>
           <Pill className={c.xConfigured ? 'bg-emerald-100 text-emerald-800' : 'bg-destructive/10 text-destructive'}>X {c.xConfigured ? (c.xUserIdKnown ? 'ready' : 'user id unknown') : 'not configured'}</Pill>
+          <Pill className={c.instagramConfigured ? 'bg-emerald-100 text-emerald-800' : 'bg-muted'}>Instagram {c.instagramConfigured ? (c.platforms.includes('instagram') ? 'on' : 'ready, off') : 'not configured'}</Pill>
           <Pill className={c.aiConfigured ? 'bg-emerald-100 text-emerald-800' : 'bg-destructive/10 text-destructive'}>AI {c.aiConfigured ? 'ready' : 'off'}</Pill>
           <Pill className="bg-muted">utm_campaign={c.utmCampaign}</Pill>
           <Pill className="bg-muted">alt text: {c.altText}</Pill>

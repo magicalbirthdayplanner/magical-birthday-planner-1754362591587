@@ -224,3 +224,23 @@ export async function importHistory(store: MarketingStore, provider: MarketingPr
   await store.audit(null, null, 'history_imported', { seen: own.length, imported })
   return { imported, seen: own.length }
 }
+
+/** Instagram metrics (free API): once a day for posts up to 8 days old. */
+export async function collectInstagramMetrics(store: MarketingStore, provider: MarketingProvider, opts: { now?: Date } = {}): Promise<{ updated: number; skipped?: string }> {
+  const now = opts.now ?? new Date()
+  if (!provider.configured()) return { updated: 0, skipped: 'not_configured' }
+  const posts = (await store.listPosts({ platform: 'instagram', statuses: ['published'], since: new Date(now.getTime() - 10 * 86_400_000).toISOString(), limit: 200 })).filter(
+    (p) => p.externalPostId && p.publishedAt && now.getTime() - new Date(p.publishedAt).getTime() < 8 * 86_400_000 && (!p.metricsUpdatedAt || now.getTime() - new Date(p.metricsUpdatedAt).getTime() > 20 * 3_600_000),
+  )
+  if (!posts.length) return { updated: 0 }
+  const metrics = await provider.getMetrics(posts.map((p) => p.externalPostId!))
+  let updated = 0
+  for (const p of posts) {
+    const m = metrics.get(p.externalPostId!)
+    if (!m) continue
+    await store.updatePost(p.id, { impressions: m.impressions, likes: m.likes, reposts: m.reposts, replies: m.replies, quotes: m.quotes, bookmarks: m.bookmarks, profile_visits: m.profileVisits, link_clicks: m.linkClicks, metrics_updated_at: now.toISOString() })
+    await store.addMetricsSnapshot(p.id, 'platform', { ...m, platform: 'instagram' })
+    updated++
+  }
+  return { updated }
+}
