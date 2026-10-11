@@ -168,10 +168,17 @@ export function buildCandidate(slot: PlanSlot, item: Pick<Item, 'paragraphs' | '
   }
 }
 
-function libraryCandidate(slot: PlanSlot, used: Set<string>): LibraryItem | null {
-  // Same role first, then any item whose format fits the slot; never one used in the last 60 days.
+/** Library items that fit a slot, best first: same role, then same pillar, then anything of a compatible format. */
+function libraryCandidates(slot: PlanSlot, used: Set<string>): LibraryItem[] {
   const fits = (i: LibraryItem) => !used.has(libraryKey(i.key)) && (slot.format === 'poll' ? i.format === 'poll' : i.format !== 'poll')
-  return LIBRARY.find((i) => i.role === slot.role && fits(i)) ?? LIBRARY.find((i) => i.pillar === slot.pillar && fits(i)) ?? null
+  const all = LIBRARY.filter(fits)
+  return [...all.filter((i) => i.role === slot.role), ...all.filter((i) => i.role !== slot.role && i.pillar === slot.pillar), ...all.filter((i) => i.role !== slot.role && i.pillar !== slot.pillar)]
+}
+
+/** A slot still to write: planned, or skipped by validation fewer than 3 times (never "in the past"). */
+export function retryable(s: PlanSlot, now: Date): boolean {
+  if (s.status === 'planned') return true
+  return s.status === 'skipped' && (s.retries ?? 0) < 3 && !!s.note && !s.note.startsWith('In the past') && new Date(s.at).getTime() > now.getTime()
 }
 
 export interface DayResult { date: string; planId: string; generated: string[]; library: string[]; skipped: { index: number; reason: string }[]; aiCalls: number; aiTokens: number; aiSkipped?: string }
@@ -186,7 +193,7 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
   const budget = opts.budget ?? (await budgetSnapshot(store, cfg, now, env))
   const plan = await planWeek(store, cfg, { weekStart: weekStartOf(opts.date), now, budget, weights: opts.weights, platform })
   const slots = planSlots(plan)
-  const todo = slots.filter((s) => s.date === opts.date && s.status === 'planned' && new Date(s.at).getTime() > now.getTime() - 30 * 60_000 && (!opts.onlySlots || opts.onlySlots.includes(s.index)))
+  const todo = slots.filter((s) => s.date === opts.date && retryable(s, now) && new Date(s.at).getTime() > now.getTime() - 30 * 60_000 && (!opts.onlySlots || opts.onlySlots.includes(s.index)))
   const result: DayResult = { date: opts.date, planId: plan.id, generated: [], library: [], skipped: [], aiCalls: 0, aiTokens: 0 }
   if (!todo.length) return result
 
@@ -242,18 +249,23 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
 
   // ---- zero-cost fallback: the evergreen library -------------------------------------------------------------------
   for (const slot of pending) {
-    const lib = libraryCandidate(slot, usedLibrary)
-    if (!lib) { result.skipped.push({ index: slot.index, reason: feedback[slot.index]?.[0] ?? 'nothing valid' }); continue }
-    // Instagram needs media on every post: a text-only library item gets a branded card from its first line.
-    const igCard = platform === 'instagram' && !lib.card ? { template: (lib.role === 'founder_story' ? 'founder_quote' : lib.role === 'conversation' ? 'poll_companion' : 'tip') as NonNullable<LibraryItem['card']>['template'], headline: (lib.hook ?? lib.text.split(/[.!?\n]/)[0]).split(/\s+/).slice(0, 8).join(' ') } : null
-    const card: LibraryItem['card'] | null = lib.card ?? igCard
-    const libFormat = lib.format === 'poll' && platform === 'instagram' ? 'image' : card && lib.format === 'text' ? 'image' : lib.format
-    const libSlot: PlanSlot = { ...slot, format: libFormat, topicKey: libraryKey(lib.key), pillar: lib.pillar, link: false, thread: false, media: card ? { source: 'template', kind: libFormat === 'carousel' ? 'carousel' : 'image', template: card.template } : { source: 'none' } }
-    const batchHistory = [...history, ...[...accepted.values()].map((b): HistoryItem => ({ id: b.id, text: b.text, hook: b.hook, cta: b.cta, topicKey: b.slot.topicKey, status: 'scheduled', at: b.slot.at }))]
-    const { post, reasons } = buildCandidate(libSlot, { paragraphs: lib.text.split(/\n\n+/), hook: lib.hook ?? lib.text.split('\n')[0], topic: lib.key, cta: lib.cta ?? null, card: card ? { headline: card.headline, bullets: card.bullets, left: card.left, right: card.right } : null, poll: lib.poll && platform !== 'instagram' ? { options: lib.poll.options } : null, thread: null, factsUsed: [] }, { cfg, today, history: batchHistory, now, env, source: 'library', libraryKey: libraryKey(lib.key), platform })
-    if (reasons.length) { usedLibrary.add(libraryKey(lib.key)); result.skipped.push({ index: slot.index, reason: `library ${lib.key}: ${reasons[0]}` }); continue }
-    usedLibrary.add(libraryKey(lib.key))
-    accepted.set(slot.index, post)
+    let lastReason = feedback[slot.index]?.[0] ?? 'nothing valid'
+    let placed = false
+    for (const lib of libraryCandidates(slot, usedLibrary).slice(0, 12)) {
+      // Instagram needs media on every post: a text-only library item gets a branded card from its first line.
+      const igCard = platform === 'instagram' && !lib.card ? { template: (lib.role === 'founder_story' ? 'founder_quote' : lib.role === 'conversation' ? 'poll_companion' : 'tip') as NonNullable<LibraryItem['card']>['template'], headline: (lib.hook ?? lib.text.split(/[.!?\n]/)[0]).split(/\s+/).slice(0, 8).join(' ') } : null
+      const card: LibraryItem['card'] | null = lib.card ?? igCard
+      const libFormat = lib.format === 'poll' && platform === 'instagram' ? 'image' : card && lib.format === 'text' ? 'image' : lib.format
+      const libSlot: PlanSlot = { ...slot, format: libFormat, topicKey: libraryKey(lib.key), pillar: lib.pillar, link: false, thread: false, media: card ? { source: 'template', kind: libFormat === 'carousel' ? 'carousel' : 'image', template: card.template } : { source: 'none' } }
+      const batchHistory = [...history, ...[...accepted.values()].map((b): HistoryItem => ({ id: b.id, text: b.text, hook: b.hook, cta: b.cta, topicKey: b.slot.topicKey, status: 'scheduled', at: b.slot.at }))]
+      const { post, reasons } = buildCandidate(libSlot, { paragraphs: lib.text.split(/\n\n+/), hook: lib.hook ?? lib.text.split('\n')[0], topic: lib.key, cta: lib.cta ?? null, card: card ? { headline: card.headline, bullets: card.bullets, left: card.left, right: card.right } : null, poll: lib.poll && platform !== 'instagram' ? { options: lib.poll.options } : null, thread: null, factsUsed: [] }, { cfg, today, history: batchHistory, now, env, source: 'library', libraryKey: libraryKey(lib.key), platform })
+      usedLibrary.add(libraryKey(lib.key))
+      if (reasons.length) { lastReason = `library ${lib.key}: ${reasons[0]}`; continue }
+      accepted.set(slot.index, post)
+      placed = true
+      break
+    }
+    if (!placed) result.skipped.push({ index: slot.index, reason: lastReason })
   }
 
   // ---- media + storage -------------------------------------------------------------------------------------------
@@ -315,7 +327,7 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
     updated.set(slot.index, { ...updated.get(slot.index)!, postId: post.id, status: post.source === 'library' ? 'library' : 'generated' })
     ;(post.source === 'library' ? result.library : result.generated).push(post.id)
   }
-  for (const s of result.skipped) updated.set(s.index, { ...updated.get(s.index)!, status: 'skipped', note: s.reason.slice(0, 200) })
+  for (const s of result.skipped) updated.set(s.index, { ...updated.get(s.index)!, status: 'skipped', note: s.reason.slice(0, 200), retries: (updated.get(s.index)!.retries ?? 0) + 1 })
   const merged = [...updated.values()].sort((a, b) => a.index - b.index)
   await store.savePlan({ id: plan.id, platform, week_start: plan.week_start, status: merged.some((s) => s.status === 'planned') ? 'generating' : 'ready', slots: merged, notes: plan.notes })
   await store.audit(null, opts.actor ?? null, 'batch_generated', { platform, date: opts.date, generated: result.generated.length, library: result.library.length, skipped: result.skipped.length, aiCalls: result.aiCalls, aiSkipped: result.aiSkipped ?? null })
@@ -358,7 +370,7 @@ export async function daysToWrite(store: MarketingStore, cfg: MarketingConfig, o
     if (!plans.has(week)) plans.set(week, (await store.getPlan(opts.platform, week)) ? planSlots(await store.getPlan(opts.platform, week)) : null)
     const slots = plans.get(week)
     if (!slots) out.push(date)
-    else if (slots.some((s) => s.date === date && s.status === 'planned' && new Date(s.at).getTime() > now.getTime() + 5 * 60_000)) out.push(date)
+    else if (slots.some((s) => s.date === date && retryable(s, now) && new Date(s.at).getTime() > now.getTime() + 5 * 60_000)) out.push(date)
   }
   return out
 }

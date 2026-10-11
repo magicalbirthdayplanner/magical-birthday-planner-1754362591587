@@ -30,6 +30,8 @@ export interface PlanSlot {
   status: 'planned' | 'generated' | 'library' | 'skipped'
   postId?: string | null
   note?: string
+  /** Times this slot was skipped by validation (retried up to 3 times). */
+  retries?: number
 }
 
 export interface PlanWeights { roles?: Partial<Record<SlotRole, number>>; formats?: Partial<Record<PostFormat, number>> }

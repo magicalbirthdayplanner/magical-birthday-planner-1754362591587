@@ -4,7 +4,7 @@
  */
 import 'server-only'
 import { aiConfig } from '@/lib/ai/config'
-import { generateDay, daysToWrite } from './batch'
+import { generateDay, daysToWrite, retryable } from './batch'
 import { allowX, budgetSnapshot, xMeter } from './budget'
 import { autonomousEffective, cadenceFor, hasFacebookCredentials, hasInstagramCredentials, hasXCredentials, xUserIdFromEnv, type MarketingConfig } from './config'
 import { hookStyle } from './learning'
@@ -159,7 +159,7 @@ export async function platformOverview(store: MarketingStore, cfg: MarketingConf
     if (!day) continue
     const post = upcomingPosts.find((p) => p.planId && p.slotIndex === s.index && p.status !== 'cancelled' && localDate(new Date(at(p)), cfg.timezone) === s.date)
     if (post) used.add(post.id)
-    const unwritten = !post && s.status === 'planned' && new Date(s.at).getTime() > now.getTime()
+    const unwritten = !post && retryable(s, now)
     if (unwritten) day.unwritten++
     day.slots.push({ index: s.index, time: s.time, at: s.at, role: s.role, roleLabel: SLOT_ROLE_LABEL[s.role], format: s.format, media: s.media.source, link: s.link, status: post ? post.status : unwritten ? 'unwritten' : s.status, note: s.note ?? null, post: post ? byId.get(post.id) ?? null : null })
   }
