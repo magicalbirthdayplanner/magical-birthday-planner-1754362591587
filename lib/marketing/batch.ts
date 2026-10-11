@@ -263,11 +263,18 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
     let mediaIds: string[] = []
     if (slot.media.source === 'library' && slot.media.libraryIds?.length) mediaIds = slot.media.libraryIds
     else if (post.cards.length) {
-      try {
-        mediaIds = await renderTemplateMedia(store, post.id, post.cards)
-      } catch (e) {
-        console.warn('template render failed', (e as Error).message?.slice(0, 200))
+      for (let attempt = 0; attempt < 2 && !mediaIds.length; attempt++) {
+        try {
+          mediaIds = await renderTemplateMedia(store, post.id, post.cards)
+        } catch (e) {
+          await store.audit(null, opts.actor ?? null, 'template_render_failed', { platform, postId: post.id, attempt, error: String((e as Error)?.message ?? e).slice(0, 300) })
+        }
       }
+    }
+    // Instagram can't publish without media: never store a post that would be refused.
+    if (platform === 'instagram' && !mediaIds.length) {
+      result.skipped.push({ index: slot.index, reason: 'no media (template render failed)' })
+      continue
     }
     const format = slot.format === 'poll' || slot.format === 'thread' ? slot.format : mediaIds.length === 0 ? 'text' : slot.format === 'video' && slot.media.source === 'library' ? 'video' : mediaIds.length > 1 ? 'carousel' : 'image'
     const linkUrl = slot.link ? utmUrl(post.id, platform, cfg.utmCampaign) : null
