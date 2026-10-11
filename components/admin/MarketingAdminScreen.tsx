@@ -72,6 +72,7 @@ function PostCard({ post, cfg, onChanged }: { post: AdminPost; cfg: Overview['co
     <Card className="space-y-3 p-4" data-testid="marketing-post">
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <Badge className={STATUS_STYLE[post.status]}>{post.status === 'dry_run' ? 'dry-run' : post.status}</Badge>
+        <Badge className={post.platform === 'instagram' ? 'bg-pink-100 text-pink-800' : 'bg-muted'}>{post.platform === 'instagram' ? 'Instagram' : 'X'}</Badge>
         <Badge className="bg-secondary text-primary">{post.pillarLabel}</Badge>
         {post.autonomous ? <Badge className="bg-muted">autonomous</Badge> : null}
         <span className="text-muted-foreground">
@@ -198,10 +199,13 @@ export function MarketingAdminScreen() {
 
   return (
     <div className="pb-6" data-testid="marketing-admin">
-      <PageHeader title="Founder marketing" subtitle="X founder agent — every action is audited" back="/admin" />
-      <div className="px-4">
-        <a href="/admin/marketing/x" className="tap flex min-h-[48px] items-center justify-center rounded-2xl bg-hero px-4 text-sm font-semibold text-white" data-testid="x-growth-link">
-          X growth engine — budget, weekly content bank, performance →
+      <PageHeader title="Founder marketing" subtitle="X + Instagram growth engine — every action is audited" back="/admin" />
+      <div className="grid grid-cols-2 gap-2 px-4">
+        <a href="/admin/marketing/x" className="tap flex min-h-[48px] items-center justify-center rounded-2xl bg-hero px-3 text-center text-sm font-semibold text-white" data-testid="x-growth-link">
+          X dashboard →
+        </a>
+        <a href="/admin/marketing/x?platform=instagram" className="tap flex min-h-[48px] items-center justify-center rounded-2xl bg-hero px-3 text-center text-sm font-semibold text-white" data-testid="ig-growth-link">
+          Instagram dashboard →
         </a>
       </div>
 

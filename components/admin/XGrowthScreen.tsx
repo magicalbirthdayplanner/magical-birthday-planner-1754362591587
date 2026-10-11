@@ -103,7 +103,7 @@ export function XGrowthScreen() {
   const { user } = useAuth()
   const session = useSWR(user ? ['admin-session', user.id] : null, () => apiFetch<{ admin: boolean }>('/api/admin/session'), { shouldRetryOnError: false })
   const isAdmin = !!session.data?.admin
-  const [platform, setPlatform] = useState<'x' | 'instagram'>('x')
+  const [platform, setPlatform] = useState<'x' | 'instagram'>(() => (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('platform') === 'instagram' ? 'instagram' : 'x'))
   const data = useSWR(isAdmin ? ['admin-marketing-x', platform] : null, () => apiFetch<Overview>(`/api/admin/marketing/x?platform=${platform}`), { revalidateOnFocus: true })
   const [busy, setBusy] = useState<string | null>(null)
 
@@ -137,7 +137,7 @@ export function XGrowthScreen() {
       <PageHeader title={platform === 'instagram' ? 'Instagram growth engine' : 'X growth engine'} subtitle={`${c.postsPerDay} posts/day · ${c.postTimes.join(' · ')} ${c.timezone}`} back="/admin/marketing" />
       <div className="flex gap-2 px-4" role="tablist">
         {(['x', 'instagram'] as const).map((p) => (
-          <AppButton key={p} size="sm" variant={platform === p ? 'primary' : 'outline'} role="tab" aria-selected={platform === p} onClick={() => setPlatform(p)}>
+          <AppButton key={p} size="sm" variant={platform === p ? 'primary' : 'outline'} role="tab" aria-selected={platform === p} onClick={() => { setPlatform(p); window.history.replaceState(null, '', p === 'instagram' ? '?platform=instagram' : window.location.pathname) }}>
             {p === 'x' ? 'X' : 'Instagram'}{c.platforms.includes(p) ? '' : ' (off)'}
           </AppButton>
         ))}
