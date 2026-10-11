@@ -104,7 +104,7 @@ cadence 8 posts/day inside the monthly budgets.
 | `AUTONOMOUS_PUBLISHING` | Default `false`; exactly `true` lets the scheduler publish (the admin switch must also be ON) | no | no | — | — |
 | `MARKETING_POSTS_PER_DAY` | 1–8 (default 8, hard cap 8); the budget may publish fewer | no | no | — | — |
 | `MARKETING_POST_TIMES`, `MARKETING_TIMEZONE` | Local slots (default `08:00,10:30,12:30,14:30,16:30,18:00,19:30,21:00`) and zone (default `America/New_York`) | no | no | — | — |
-| `MARKETING_MIN_GAP_MINUTES`, `MARKETING_PUBLISH_EARLY_MINUTES` | Spacing (60) and early-publish window (90) | no | no | — | — |
+| `MARKETING_MIN_GAP_MINUTES`, `MARKETING_PUBLISH_EARLY_MINUTES` | Spacing (60) and early-publish window (5) | no | no | — | — |
 | `MARKETING_URL_SHARE` | Max share of posts with the product link (0.1, max 0.4) — X bills $0.20 per link post, so the budget usually allows fewer | no | no | — | — |
 | `MONTHLY_X_BUDGET_USD`, `MARKETING_X_RESERVE_USD` | Hard monthly X API budget (5) and the part never spent (0.25) | no | no | — | — |
 | `MONTHLY_AI_BUDGET_USD`, `MARKETING_AI_USD_PER_1M_TOKENS` | AI budget for copy/images/video (2) and the token price used for estimates (2) | no | no | — | — |

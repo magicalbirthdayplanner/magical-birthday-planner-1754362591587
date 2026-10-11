@@ -32,7 +32,14 @@ local Facebook Page tool (`tools/facebook-content-manager`, systemd timer) — e
 | Instagram | 2 | 12:30 · 20:00 | every post has media; no links/polls/threads |
 | Facebook | 2 | 09:00 · 17:00 | links free (UTM `utm_source=facebook`); polls posted as questions |
 
-All slots reuse the existing publish crons. The daily prepare keeps the bank topped up toward `MARKETING_BANK_DAYS`
+**Publishing clock.** Vercel Hobby crons fire anywhere within their hour, so they can't hit a 09:00 slot. Supabase
+pg_cron runs `public.marketing_tick('publish')` every 5 minutes (migration `20251011002100`), which calls
+`/api/cron/marketing?task=publish&source=pg_cron` via pg_net. The URL and Bearer secret live in Supabase Vault
+(`marketing_cron_url`, `marketing_cron_secret` = `CRON_SECRET`); without them the tick does nothing. A post goes out at
+most `MARKETING_PUBLISH_EARLY_MINUTES` (5) before its slot and within ~5 minutes after it. The Vercel publish crons stay
+as a backup. Check ticks: `select status_code, left(content, 200) from net._http_response order by created desc limit 5`.
+
+The daily prepare keeps the bank topped up toward `MARKETING_BANK_DAYS`
 (30): today and tomorrow first, then the earliest unwritten day, round-robin across platforms.
 
 ## Facebook setup
