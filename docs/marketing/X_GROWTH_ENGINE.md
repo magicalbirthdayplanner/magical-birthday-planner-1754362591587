@@ -93,7 +93,7 @@ covered (posts may go out up to an hour early in winter).
 
 ## Dashboard
 
-`/admin/marketing/x` (Super Admin): status, **X budget dashboard** (budget, X/AI/image/video spend, remaining,
+`/admin/marketing` (Super Admin; see MARKETING_CONSOLE.md): status, **X budget dashboard** (budget, X/AI/image/video spend, remaining,
 projected, GREEN/YELLOW/RED, ledger by operation), actions (plan week, write today/tomorrow, import X history, run
 prepare/publish), today, upcoming, content bank (week grid + library stats), performance (funnel, top formats/roles/
 hooks/CTAs/content by business score), decisions.
@@ -125,4 +125,4 @@ overrides) · `MARKETING_MEDIA_SOURCE_DIR` (seed script only). Changed defaults:
   budget ledger entries. Quota: 100 API-published posts per 24 h.
 - Metrics (free): likes, comments, saves, shares, views once a day for posts ≤ 8 days old.
 - Token: long-lived Instagram tokens last 60 days — regenerate (or refresh) before they expire.
-- Dashboard: `/admin/marketing/x` → Instagram tab.
+- Dashboard: `/admin/marketing` → Instagram tab.

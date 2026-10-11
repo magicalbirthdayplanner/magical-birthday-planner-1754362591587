@@ -142,8 +142,10 @@ export async function runPrepare(d: AgentDeps = {}): Promise<Record<string, unkn
     const done: Record<string, unknown>[] = []
     const queues = new Map<Platform, string[]>()
     for (const platform of cfg.platforms) queues.set(platform, await daysToWrite(store, cfg, { platform, now, limit: 4 }))
+    // Most urgent first: the platform whose next unwritten day is earliest (then the one with the most missing days).
+    const order = [...cfg.platforms].sort((a, b) => (queues.get(a)?.[0] ?? '9').localeCompare(queues.get(b)?.[0] ?? '9') || (queues.get(b)?.length ?? 0) - (queues.get(a)?.length ?? 0))
     for (let round = 0; round < 4; round++) {
-      for (const platform of cfg.platforms) {
+      for (const platform of order) {
         const date = queues.get(platform)?.[round]
         if (!date) continue
         const remaining = budgetMs - (Date.now() - started)
