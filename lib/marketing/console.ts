@@ -8,7 +8,7 @@ import { generateDay, daysToWrite } from './batch'
 import { allowX, budgetSnapshot, xMeter } from './budget'
 import { autonomousEffective, cadenceFor, hasFacebookCredentials, hasInstagramCredentials, hasXCredentials, xUserIdFromEnv, type MarketingConfig } from './config'
 import { hookStyle } from './learning'
-import { planSlots, weekStartOf, type PlanSlot } from './planner'
+import { planSlots, planWeek, weekStartOf, type PlanSlot } from './planner'
 import { getMarketingProvider, MarketingProviderError } from './providers'
 import { engagements } from './scoring'
 import type { MarketingStore } from './store'
@@ -257,4 +257,21 @@ export async function writeNextDay(store: MarketingStore, cfg: MarketingConfig, 
   const insights = await store.latestInsights()
   const r = await generateDay(store, cfg, { date: todo[0], now, platform, actor, budgetMs: 52_000, weights: (insights?.data as { weights?: object } | undefined)?.weights ?? {}, learnings: insights?.recommendations.slice(0, 8) ?? [] })
   return { date: todo[0], remaining: todo.length - 1, result: { generated: r.generated.length, library: r.library.length, skipped: r.skipped.length, aiSkipped: r.aiSkipped ?? null } }
+}
+
+/** Re-plan a platform from today: cancels its unpublished future posts and re-plans those weeks (the bank refills). */
+export async function replanFrom(store: MarketingStore, cfg: MarketingConfig, platform: Platform, actor: string, now = new Date()) {
+  const cutoff = now.getTime() + 30 * 60_000
+  const future = (await store.listPosts({ platform, statuses: ['draft', 'approved', 'scheduled'], limit: 5000 })).filter((p) => p.scheduledAt && new Date(p.scheduledAt).getTime() > cutoff)
+  for (const p of future) await store.updatePost(p.id, { status: 'cancelled' }, ['draft', 'approved', 'scheduled'])
+  const today = localDate(now, cfg.timezone)
+  const insights = await store.latestInsights()
+  const budget = await budgetSnapshot(store, cfg, now)
+  const weeks: string[] = []
+  for (let w = weekStartOf(today); w < addDays(today, cfg.bankDays); w = addDays(w, 7)) {
+    await planWeek(store, cfg, { weekStart: w, now, budget, platform, force: true, weights: (insights?.data as { weights?: object } | undefined)?.weights ?? {} })
+    weeks.push(w)
+  }
+  await store.audit(null, actor, 'replanned', { platform, cancelled: future.length, weeks })
+  return { cancelled: future.length, weeks }
 }

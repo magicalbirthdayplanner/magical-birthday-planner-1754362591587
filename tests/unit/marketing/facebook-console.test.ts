@@ -141,3 +141,20 @@ describe('marketing console', () => {
     expect(await checkConnection(store, c, 'facebook')).toMatchObject({ ok: false })
   })
 })
+
+describe('re-plan', () => {
+  it('cancels unpublished future posts of one platform and re-plans its weeks (2-a-day mix includes soft conversions)', async () => {
+    const { replanFrom } = await import('@/lib/marketing/console')
+    const cfg = readMarketingConfig({ MARKETING_PLATFORMS: 'facebook', MARKETING_FB_POSTS_PER_DAY: '2', MARKETING_BANK_DAYS: '14' })
+    scriptMock(reply, reply)
+    await generateDay(store, cfg, { date: '2026-10-20', now: NOW, env: {}, platform: 'facebook' })
+    const other = store.seed({ platform: 'x', content_pillar: 'useful_tips', topic: 't', text: 'x'.repeat(60), status: 'scheduled', scheduled_at: '2026-10-21T13:00:00Z' })
+    const r = await replanFrom(store, cfg, 'facebook', 'admin', NOW)
+    expect(r.cancelled).toBe(2)
+    expect(store.rows.get(other.id)!.status).toBe('scheduled')
+    const { planSlots } = await import('@/lib/marketing/planner')
+    const roles = planSlots(await store.getPlan('facebook', '2026-10-19')).map((s) => s.role)
+    expect(roles).toContain('soft_conversion')
+    expect(roles).toContain('product')
+  }, 30_000)
+})

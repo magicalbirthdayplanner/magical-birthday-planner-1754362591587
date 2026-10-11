@@ -53,10 +53,15 @@ const COMPACT_PAIRS: [SlotRole, SlotRole][] = [
   ['poll', 'parent_tip'], ['conversation', 'product'], ['poll', 'educational'], ['conversation', 'visual'],
   ['poll', 'product'], ['conversation', 'parent_tip'], ['poll', 'educational'],
 ]
+/** Two posts a day (Facebook): story and conversation days alternate with tip, product and soft-conversion days. */
+const TWO_A_DAY: [SlotRole, SlotRole][] = [
+  ['founder_story', 'poll'], ['parent_tip', 'soft_conversion'], ['founder_story', 'conversation'], ['product', 'educational'],
+  ['founder_story', 'poll'], ['parent_tip', 'soft_conversion'], ['visual', 'conversation'],
+]
 export function compactRoles(day: number, perDay: number): SlotRole[] {
   const [a, b] = COMPACT_PAIRS[day % COMPACT_PAIRS.length]
   if (perDay <= 1) return ['founder_story']
-  if (perDay === 2) return ['founder_story', a]
+  if (perDay === 2) return TWO_A_DAY[day % TWO_A_DAY.length]
   if (perDay === 3) return ['founder_story', a, 'soft_conversion']
   if (perDay === 4) return ['founder_story', a, b, 'soft_conversion']
   return DAILY_ROLES.filter((r) => ROLE_PRIORITY.slice(0, perDay).includes(r))

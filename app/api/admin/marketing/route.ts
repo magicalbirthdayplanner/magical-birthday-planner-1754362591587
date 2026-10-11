@@ -7,7 +7,7 @@ import { reportError } from '@/lib/observability/telemetry'
 import { runPlan, runPrepare, runPublish } from '@/lib/marketing/agent'
 import { generateDay } from '@/lib/marketing/batch'
 import { autonomousEffective, readMarketingConfig, xUserIdFromEnv } from '@/lib/marketing/config'
-import { approveDay, checkConnection, CONSOLE_PLATFORMS, generalOverview, platformOverview, writeNextDay } from '@/lib/marketing/console'
+import { approveDay, checkConnection, CONSOLE_PLATFORMS, generalOverview, platformOverview, replanFrom, writeNextDay } from '@/lib/marketing/console'
 import { importHistory } from '@/lib/marketing/metrics'
 import { getMarketingProvider } from '@/lib/marketing/providers'
 import { getMarketingStore } from '@/lib/marketing/store'
@@ -44,6 +44,7 @@ const Body = z.discriminatedUnion('action', [
   z.object({ action: z.literal('write_day'), platform: PLATFORM, date: DATE }).strict(),
   z.object({ action: z.literal('approve_day'), platform: PLATFORM, date: DATE }).strict(),
   z.object({ action: z.literal('import_history'), platform: PLATFORM }).strict(),
+  z.object({ action: z.literal('replan'), platform: PLATFORM }).strict(),
   z.object({ action: z.literal('run'), task: z.enum(['plan', 'prepare', 'publish']) }).strict(),
 ])
 
@@ -92,6 +93,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true, ...(await approveDay(store, cfg, body.platform, body.date, actor)) })
       case 'import_history':
         return NextResponse.json({ ok: true, result: await importHistory(store, getMarketingProvider(body.platform, cfg), cfg, { userId: xUserIdFromEnv() }) })
+      case 'replan':
+        return NextResponse.json({ ok: true, ...(await replanFrom(store, cfg, body.platform, actor)) })
       case 'run': {
         const result = body.task === 'plan' ? await runPlan() : body.task === 'prepare' ? await runPrepare() : await runPublish()
         return NextResponse.json({ ok: true, result })

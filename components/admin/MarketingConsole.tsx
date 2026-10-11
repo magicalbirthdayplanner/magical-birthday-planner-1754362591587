@@ -388,6 +388,7 @@ function PlatformTab({ d, refresh }: { d: PlatformData; refresh: () => void }) {
             <div className="flex flex-wrap gap-2">
               <AppButton size="sm" variant="magic" disabled={!unwrittenDays} onClick={fill}><Sparkles className="h-4 w-4" /> Write all unwritten days ({unwrittenDays})</AppButton>
               <AppButton size="sm" variant="outline" loading={busy === 'next'} disabled={!unwrittenDays} onClick={() => act('next', { action: 'write_next_day', platform: d.platform }, 'Next day written')}><CalendarDays className="h-4 w-4" /> Write next day</AppButton>
+              <AppButton size="sm" variant="ghost" loading={busy === 'replan'} onClick={() => window.confirm(`Re-plan ${d.label} from today? Unpublished future posts are cancelled and the days are written again.`) && act('replan', { action: 'replan', platform: d.platform }, 'Re-planned — write the days again')}>Re-plan from today</AppButton>
             </div>
           )}
         </Card>
