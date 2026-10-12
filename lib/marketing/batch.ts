@@ -24,6 +24,7 @@ import type { MarketingStore } from './store'
 import { currentObjective, utmUrl } from './strategy'
 import { addDays, localDate, weekday } from './time'
 import { SLOT_ROLE_LABEL, type Platform, type PollSpec } from './types'
+import { withHashtags, X_HASHTAG_ROOM } from './hashtags'
 import { claimIssues, dateIssues, fixProductName, forbiddenTermsFromEnv, inventedSpecifics, platformRules, pollIssues, validatePost } from './validation'
 
 const CardSchema = z.object({
@@ -79,7 +80,7 @@ function slotInstruction(s: PlanSlot, maxChars: number, platform: Platform = 'x'
   else if (s.format === 'image') parts.push('  Format: IMAGE headline card — card.headline (≤ 8 words, no numbers, no claims).')
   else parts.push('  Format: TEXT only. No card.')
   parts.push(s.link ? '  Link: the system appends the product link after your text — end with one short, low-pressure line leading into it.' : '  Link: none — do not mention a web address.')
-  parts.push(platform === 'instagram' ? '  Length: 2–4 short paragraphs (aim for 200–600 characters), hashtags on the last line.' : platform === 'facebook' ? '  Length: 1–4 short paragraphs (aim for 150–500 characters).' : `  Length: ≤ ${s.link ? maxChars - 25 : maxChars} characters (aim for 100–220).`)
+  parts.push(platform === 'instagram' ? '  Length: 2–4 short paragraphs (aim for 200–600 characters).' : platform === 'facebook' ? '  Length: 1–4 short paragraphs (aim for 150–500 characters).' : `  Length: ≤ ${maxChars - X_HASHTAG_ROOM - (s.link ? 25 : 0)} characters (aim for 100–220).`)
   return parts.join('\n')
 }
 
@@ -124,7 +125,8 @@ export function buildCandidate(slot: PlanSlot, item: Pick<Item, 'paragraphs' | '
   const rules = platformRules(platform, ctx.cfg)
   const link = slot.link ? utmUrl(id, platform, ctx.cfg.utmCampaign) : null
   const body = item.paragraphs.map((p) => p.trim()).filter(Boolean).join('\n\n')
-  const text = fixProductName(link ? `${body}\n\n${link}` : body).text
+  const cad = cadenceFor(ctx.cfg, platform)
+  const text = withHashtags(fixProductName(link ? `${body}\n\n${link}` : body).text, { platform, pillar: slot.pillar, topicKey: slot.topicKey, linkUrl: link, target: cad.maxHashtags, max: cad.maxHashtags, maxChars: cad.maxChars })
   const forbidden = forbiddenTermsFromEnv(ctx.env)
   const reasons: string[] = []
   const report = validatePost(text, { ...rules, pillar: slot.pillar, allowedLink: link, forbiddenTerms: forbidden, minChars: slot.format === 'poll' ? 10 : rules.minChars })

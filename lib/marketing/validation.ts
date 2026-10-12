@@ -130,7 +130,6 @@ export function validatePost(text: string, opts: ValidateOptions): ValidationRep
   const maxEmoji = opts.maxEmoji ?? 2
   const hashtags = (trimmed.match(/(^|\s)#[\p{L}\d_]+/gu) ?? []).length
   if (hashtags > maxTags) errors.push({ code: 'hashtags', message: `Too many hashtags (${hashtags}).` })
-  else if (hashtags === maxTags && maxTags <= 2 && hashtags > 1) warnings.push({ code: 'hashtags', message: 'Two hashtags — prefer none or one.' })
   const emoji = countEmoji(trimmed)
   if (emoji > maxEmoji) errors.push({ code: 'emoji', message: `Too many emojis (${emoji}).` })
   else if (emoji === maxEmoji && maxEmoji <= 2 && emoji > 1) warnings.push({ code: 'emoji', message: 'Two emojis — prefer none or one.' })

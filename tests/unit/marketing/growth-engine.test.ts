@@ -269,7 +269,7 @@ describe('publishing formats + guards', () => {
     const x = new FakeX()
     const p = seed({ content_pillar: 'founder_journey', text: 'Why I started building Magical Birthday Plannner: one party, too many tabs.' })
     await publishPost(p.id, 'manual', { store, provider: x, cfg: live(), env: {} }, { now: NOW })
-    expect(x.posted[0].text).toBe('Why I started building Magical Birthday Planner: one party, too many tabs.')
+    expect(x.posted[0].text).toMatch(/^Why I started building Magical Birthday Planner: one party, too many tabs\.\n\n#\w+ #\w+$/)
     expect(store.auditLog.map((a) => a.action)).toContain('product_name_fixed')
   })
 
@@ -289,7 +289,7 @@ describe('publishing formats + guards', () => {
     await store.recordUsage({ provider: 'x', operation: 'post_create', units: 1, costUsd: 4.5, ok: true, at: '2026-10-02T12:00:00Z' })
     seed({ id, content_pillar: 'launch_invitation', text: `Planning a birthday soon? Try planning it in one place.\n\n${link}`, link_url: link })
     expect(await publishPost(id, 'manual', { store, provider: x, cfg: live(), env: {} }, { now: NOW })).toMatchObject({ ok: true })
-    expect(x.posted[0].text).toBe('Planning a birthday soon? Try planning it in one place.')
+    expect(x.posted[0].text).toMatch(/^Planning a birthday soon\? Try planning it in one place\.\n\n#\w+ #\w+$/)
     expect(store.auditLog.map((a) => a.action)).toContain('link_dropped_budget')
     await store.recordUsage({ provider: 'x', operation: 'post_create', units: 1, costUsd: 0.5, ok: true, at: '2026-10-03T12:00:00Z' })
     const q = seed({ text: 'What is the one birthday task you wish someone else would handle?' })

@@ -18,6 +18,7 @@ import { daysToWrite, generateDay } from './batch'
 import { runDailyBrief } from './brief'
 import { budgetSnapshot } from './budget'
 import { autonomousEffective, cadenceFor, readMarketingConfig, xUserIdFromEnv, type MarketingConfig } from './config'
+import { addHashtags } from './hashtags'
 import { runLearning } from './learning'
 import { SupabaseAnalyticsAttribution, collectAttribution, collectMetaMetrics, collectOwnMetrics, countCampaignEvents, importHistory, type AttributionSource } from './metrics'
 import { planWeek, weekStartOf, type PlanWeights } from './planner'
@@ -229,8 +230,24 @@ export async function runPublish(d: AgentDeps = {}): Promise<Record<string, unkn
     }
   }
   out.publish = results.map((r) => ({ platform: r.platform, id: r.id, ok: r.ok, status: r.status, reason: r.ok ? undefined : r.reason }))
+  // After publishing (never delays a due post): give the written bank its hashtags so the console shows them.
+  if (budgetMs - (Date.now() - started) > 20_000) await step('hashtags', out, () => tagBank(store, cfg, now, 40))
   out.durationMs = Date.now() - started
   return out
+}
+
+/** Tops up hashtags on queued and draft posts that don't have them yet (at most `limit` updates per call). */
+export async function tagBank(store: MarketingStore, cfg: MarketingConfig, now: Date, limit: number): Promise<number> {
+  let updated = 0
+  for (const platform of cfg.platforms) {
+    for (const p of await store.listPosts({ platform, statuses: ['draft', 'approved', 'scheduled'], limit: 1000 })) {
+      if (updated >= limit) return updated
+      if (p.generation?.hashtags === false || (p.scheduledAt && new Date(p.scheduledAt) < now)) continue
+      const text = addHashtags(p, cfg)
+      if (text !== p.text && (await store.updatePost(p.id, { text }, ['draft', 'approved', 'scheduled']))) updated++
+    }
+  }
+  return updated
 }
 
 export function runMarketingTask(task: MarketingTask, d: AgentDeps = {}) {

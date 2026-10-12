@@ -128,7 +128,7 @@ describe('admin actions', () => {
     const s = await postAction(ctx(), p.id, { action: 'schedule' })
     expect(s).toMatchObject({ ok: true, post: { status: 'scheduled', scheduledAt: '2026-10-30T14:00:00.000Z' } })
     expect(await postAction(ctx(), p.id, { action: 'publish_now' })).toMatchObject({ ok: true, detail: { status: 'dry_run' } })
-    expect(store.auditLog.map((a) => a.action)).toEqual(['approved', 'scheduled', 'dry_run_publish'])
+    expect(store.auditLog.map((a) => a.action)).toEqual(['approved', 'scheduled', 'hashtags_added', 'dry_run_publish'])
   })
 
   it('invalid text can be neither approved nor saved', async () => {

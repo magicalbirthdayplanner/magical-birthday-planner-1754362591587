@@ -19,6 +19,7 @@ import type { MarketingPost } from './types'
 import { fixProductName, forbiddenTermsFromEnv, platformRules, pollIssues, validatePost } from './validation'
 import { xWeightedLength } from './text'
 import { allowX, altTextAllowed, budgetSnapshot, estimatePostCost, xMeter } from './budget'
+import { addHashtags } from './hashtags'
 import { loadMedia, mediaIssues } from './media'
 
 export type PublishMode = 'scheduled' | 'manual'
@@ -50,6 +51,15 @@ export async function publishPost(postId: string, mode: PublishMode, deps: Publi
   if (fixed.fixed || (fixedThread && JSON.stringify(fixedThread) !== JSON.stringify(post.threadParts))) {
     post = (await store.updatePost(post.id, { text: fixed.text, thread_parts: fixedThread as never }, ['approved', 'scheduled'])) ?? post
     await store.audit(post.id, actor, 'product_name_fixed', {})
+  }
+
+  // Hashtags: topped up to the platform's dose (posts written before the hashtag layer get theirs here).
+  if (post.generation?.hashtags !== false) {
+    const tagged = addHashtags(post, cfg)
+    if (tagged !== post.text) {
+      post = (await store.updatePost(post.id, { text: tagged }, ['approved', 'scheduled'])) ?? post
+      await store.audit(post.id, actor, 'hashtags_added', {})
+    }
   }
 
   // Re-validate right before publishing (rules may have changed since the draft was approved).

@@ -90,6 +90,7 @@ function stem(w: string): string {
 /** The idea fingerprint: canonical content words (numbers kept — "20 tabs" is part of the idea). */
 export function conceptSet(text: string): Set<string> {
   const words = text
+    .replace(/(^|\s)#[\p{L}\d_]+/gu, ' ') // hashtags are added by the system, not part of the idea
     .toLowerCase()
     .replace(URL_RE, ' ')
     .replace(/[’']/g, "'")

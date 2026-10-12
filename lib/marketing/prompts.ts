@@ -34,10 +34,10 @@ export function voiceRules(platform: 'x' | 'instagram' | 'facebook' = 'x'): stri
     'House rules:',
     ...HOUSE_RULES.map((r) => `- ${r}`),
     ...(platform === 'facebook'
-      ? ['Facebook: conversational posts for parents, 1–4 short paragraphs (aim for 150–500 characters). Never write a URL — the system adds a clickable link when one is wanted. No @mentions. Hashtags: none or up to 2. At most 2 emojis. A genuine question that invites comments is welcome (never “like/share/tag”).']
+      ? ['Facebook: conversational posts for parents, 1–4 short paragraphs (aim for 150–500 characters). Never write a URL — the system adds a clickable link when one is wanted. No @mentions. No hashtags (the system adds relevant ones). At most 2 emojis. A genuine question that invites comments is welcome (never “like/share/tag”).']
       : platform === 'instagram'
-      ? ['Instagram: captions can’t carry clickable links — never write a URL; you may end with the plain text “magicalbirthdayplanner.app”. No @mentions. Put 3–5 relevant, non-spammy hashtags on the last line. At most 3 emojis. A genuine question that invites comments is welcome (never “like/share/tag”).']
-      : ['Never include a URL or a web address; the system adds the link when one is wanted. No @mentions. Hashtags: none (at most one). Emojis: none (at most one).']),
+      ? ['Instagram: captions can’t carry clickable links — never write a URL; you may end with the plain text “magicalbirthdayplanner.app”. No @mentions. No hashtags (the system adds relevant ones). At most 3 emojis. A genuine question that invites comments is welcome (never “like/share/tag”).']
+      : ['Never include a URL or a web address; the system adds the link when one is wanted. No @mentions. No hashtags (the system adds relevant ones). Emojis: none (at most one).']),
     'Write the product name exactly as “Magical Birthday Planner”.',
   ]
 }

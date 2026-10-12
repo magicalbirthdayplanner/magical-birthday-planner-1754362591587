@@ -45,7 +45,7 @@ export const HOUSE_RULES = [
   'Never name the AI vendor or model, and never quote internal usage limits.',
   'No copyrighted characters, franchises, celebrities or competitor names.',
   'No politics, religion, news events, or anything unrelated to family celebrations and building the product.',
-  'No mentions (@handles), no more than one hashtag (prefer none), at most one emoji (prefer none).',
+  'No mentions (@handles), no hashtags (the system adds relevant ones), at most one emoji (prefer none).',
   'Never criticise parents, never use fear, guilt, fake urgency or scarcity.',
 ]
 

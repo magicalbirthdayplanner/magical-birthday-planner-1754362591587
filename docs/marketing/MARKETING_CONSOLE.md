@@ -42,6 +42,14 @@ as a backup. Check ticks: `select status_code, left(content, 200) from net._http
 The daily prepare keeps the bank topped up toward `MARKETING_BANK_DAYS`
 (30): today and tomorrow first, then the earliest unwritten day, round-robin across platforms.
 
+## Hashtags
+
+The model writes no hashtags; `lib/marketing/hashtags.ts` adds relevant ones — topic first (RSVP → #BirthdayInvitations,
+cake → #BirthdayCake, …), then the pillar's audience (#BuildInPublic, #ParentingTips, …), then broad audience tags
+rotated per post. Doses: X 2 · Instagram 5 · Facebook 3, on one line after the body and above any link; fewer on X if
+the 280 limit would break. Applied when a post is written, topped up at publish time, and the publish tick backfills
+up to 40 queued posts per run. Set `generation.hashtags = false` on a post to opt it out.
+
 ## Facebook setup
 
 `FB_PAGE_ID` (1387953677730770) and `FB_PAGE_ACCESS_TOKEN` — a Page token derived from the owner's long-lived user

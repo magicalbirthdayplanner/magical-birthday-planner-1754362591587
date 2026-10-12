@@ -227,7 +227,8 @@ describe('publishPost', () => {
     expect(r).toMatchObject({ ok: true, status: 'dry_run' })
     expect(x.posted).toHaveLength(0)
     const saved = (await store.getPost(p.id))!
-    expect(saved.dryRunPayload).toMatchObject({ text: p.text, platform: 'x' })
+    expect(saved.dryRunPayload).toMatchObject({ text: saved.text, platform: 'x' })
+    expect(saved.text.startsWith(p.text)).toBe(true)
     expect(saved.externalPostId).toBeNull()
   })
 
@@ -236,7 +237,8 @@ describe('publishPost', () => {
     const r = await publishPost(p.id, 'scheduled', { store, provider: x, cfg: cfg({ MARKETING_DRY_RUN: 'false' }) }, { now: NOW })
     expect(r).toMatchObject({ ok: true, status: 'published' })
     expect(x.posted).toHaveLength(1)
-    expect(x.posted[0].text).toBe(p.text)
+    expect(x.posted[0].text.startsWith(p.text)).toBe(true)
+    expect(x.posted[0].text.match(/#\w+/g)).toHaveLength(2)
     expect((x.posted[0].media as { bytes: Uint8Array }[])[0].bytes).toEqual(new Uint8Array([137, 80, 78, 71, 1, 2, 3]))
     const saved = (await store.getPost(p.id))!
     expect(saved).toMatchObject({ status: 'published', externalPostId: '1880000000000000001', externalPostUrl: 'https://x.com/founder/status/1880000000000000001', externalMediaId: 'media-1' })
