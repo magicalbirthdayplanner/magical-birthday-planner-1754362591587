@@ -1,0 +1,170 @@
+MAGICAL BIRTHDAY PLANNER — INDIA MARKET EXPANSION PLAN
+=====================================================
+
+Branch:      feat/india-market-expansion (from origin/master c8ebf76 = production dpl_5uRmRVtgtiq5DBEdzoPrQQmKFzaZ)
+Written:     2026-10-14, after the Phase-0 audit and before any code change.
+Status keys: [IMPLEMENTED] [TESTED] [NEEDS CREDENTIALS] [NEEDS DASHBOARD CONFIG] [NEEDS BUSINESS APPROVAL]
+             [NOT IMPLEMENTED]. This file is the plan; the final state of every item is in
+             docs/INDIA_LAUNCH_CHECKLIST.txt.
+
+Source of truth used for the audit: the code and supabase/migrations at c8ebf76 (22 migrations, all applied in
+production), not older docs. Docs read: README, ARCHITECTURE, AI_AGENT_HANDOFF, LAUNCH_BASELINE, KNOWN_LIMITATIONS,
+ENVIRONMENT_VARIABLES, BILLING_SECURITY, PRODUCT_MODEL_AUDIT, FOUNDING_FAMILIES, GOOGLE_PLACES, TESTING.
+
+
+1. EXISTING CAPABILITIES THAT ALREADY SUPPORT INDIA
+---------------------------------------------------
+- One Next.js 15 mobile-first PWA, Supabase Auth/Postgres/RLS. Nothing about auth, RLS or the app shell is
+  country-specific. English UI works for Indian users as-is.
+- Party model is location-based (parties.latitude/longitude/city/state + zip_code). Discovery (Google Places API
+  (New) Text Search) searches a bounding box around the party's coordinates, so it works anywhere Google has data
+  once the party has Indian coordinates.
+- The venue cache (venues, venue_searches) is keyed by coordinates + category + radius: Indian and US searches can
+  never share cache entries. venues.country column already exists (currently not filled).
+- Google Map (Maps JS) renders any coordinates; markers, clustering, saving, compare and "use as party venue" are
+  location-agnostic.
+- Per-party billing is already provider-shaped: billing_purchases has provider, provider_ref, amount_minor, currency,
+  party_id, scope, unresolved_reason; billing_webhook_events is a generic idempotency ledger; billing_checkouts ties a
+  checkout to (user, plan, party). Razorpay can reuse these tables with a few nullable columns.
+- Entitlements are resolved per party on the server (getPartyPlan, party_plan(), has_paid_access(party)) and are
+  country-agnostic — the India expansion does not need to touch them.
+- The Founding-25 promotion is account-wide, seat-limited in the database (advisory lock), country-agnostic.
+- Invitations: a public, token-scoped page (/invite/<48-hex token>) with no account needed, RSVP Yes/Maybe/No,
+  idempotent per invitee (respondent hash), rate limited, 300-RSVP cap. The link carries no internal id.
+- guests.phone exists (free text today). Analytics already strips keys that look like name/email/phone/address.
+- Analytics (analytics_events) already carries UTM attribution on every client event.
+- Terms are already governed by the laws of India (owner ruling 2026-10-04).
+
+2. CAPABILITIES THAT NEED LOCALIZATION
+--------------------------------------
+- No country concept anywhere: parties have no country, users have no country preference.
+- Location input is US-only: wizard step "ZIP" (5 digits), /api/discovery/zip (US dataset + Google geocoding with
+  country:US), PartyEditSheet ("5-digit US ZIP code"), discovery search route (re-resolves ZIPs).
+- Places Text Search hard-codes regionCode 'US'. Category queries are US phrasing (fine to keep, a few Indian
+  phrasings help: "kids play area", "party hall", "cake shop").
+- Distances are miles everywhere (cards, filters, wizard copy "within 20 miles").
+- Money is hard-coded "$": wizard budget presets/labels, PartyEditSheet "Budget ($)", PartyPlanSection,
+  ExperienceSheet, AI result views, AI prompts ("Costs are estimates in US dollars", "USD"), server AI assumption
+  strings ("about $X over your $Y budget"), entitlements.formatPrice.
+- Ranking: expectedPriceLevel uses USD per-guest thresholds (15/35/70) — wrong for INR budgets.
+- Dates/times hard-coded 'en-US' in wizard, home, invitation card, ICS, emails (lib/server/notifications.ts).
+- ICS calendar file uses floating local time (no timezone) — an Indian event opened abroad would shift.
+- Guest phone: free text, no normalization, no duplicate check.
+- Invitation sharing: native share / SMS / email / copy. No WhatsApp option.
+- Pricing UI and checkout: USD only; Dodo only.
+- No India landing page; sitemap/route inventory list only US pages.
+
+3. REQUIRED SCHEMA CHANGES (one forward migration, additive, re-runnable)
+-------------------------------------------------------------------------
+supabase/migrations/20251014002200_india_market.sql
+- parties: country_code text not null default 'US' check in ('US','IN')        (event country; existing rows = US)
+           timezone text null (IANA name; null = floating local time, today's behaviour)
+           address_line1, address_line2, locality, district text null (all optional, length-capped)
+           zip_code is REUSED as the postal code (US ZIP or Indian PIN) — semantics fit, no new column.
+- users:   country_code text null check in ('US','IN')                          (profile preference, separate)
+- billing_checkouts: provider text not null default 'dodo' check in ('dodo','razorpay'),
+           amount_minor integer null, currency text null (authoritative amount for Razorpay orders).
+           session_id (unique) stores the Razorpay order id; product_id stores our internal price id.
+- billing_purchases: provider_order_ref text null + index (provider, provider_order_ref).
+- get_invitation(token): same signature, adds country_code and timezone to the public projection (no PII).
+- admin_market_report(days): service-role-only aggregate RPC for the US vs India dashboard.
+No column is dropped, renamed or made mandatory for existing rows; all RLS policies stay as they are (parties/users
+policies are row-level and already cover the new columns). Rollback = leave the columns (old code ignores them).
+
+4. REQUIRED THIRD-PARTY INTEGRATIONS
+------------------------------------
+- Google Places API (New) + Geocoding API: existing project/key. India needs no new API. Places requests send
+  regionCode IN. (Found during implementation: the production server key is NOT allowed to use the Geocoding API —
+  REQUEST_DENIED — so PINs are located with Places Text Search for the postal code, which works today; Geocoding is
+  tried first only if it becomes enabled.)
+- Offline PIN dataset: GeoNames postal codes for India (CC BY 4.0, same licence/source as the bundled US ZIP data),
+  19,238 PINs → data/geo-in-pins.json (server-only import). Attribution already listed for GeoNames.
+- Razorpay (Standard Checkout, Orders API v1, payment signature, webhooks, Fetch Payment API). Needs a Razorpay
+  merchant account with KYC; test mode first.
+- WhatsApp: Stage A uses the official click-to-chat share link (https://wa.me/?text=...) and the Web Share API — no
+  account, no API. Stage B (WhatsApp Business Platform / Cloud API) is documented only (docs/WHATSAPP_INTEGRATION.txt).
+
+5. SECURITY IMPLICATIONS
+------------------------
+- Provider selection is server-side from the PARTY's stored country_code; the client never sends a currency,
+  amount, provider or price. Unknown/disabled provider → 503 with a clear message, never a silent USD fallback.
+- Razorpay key secret and webhook secret are server-only (server-only modules, never NEXT_PUBLIC_*). Only the key id
+  is sent to the browser, which Standard Checkout requires.
+- Entitlement only from server-verified payments: (a) checkout handler signature HMAC_SHA256(order_id|payment_id,
+  key_secret) using OUR stored order id, plus a server-side Fetch Payment call confirming captured/amount/currency/
+  order; or (b) the webhook (HMAC_SHA256(raw body, webhook secret), constant-time compare, x-razorpay-event-id
+  idempotency). The browser's "success" alone grants nothing.
+- Party binding: the order id is created by our server and stored in billing_checkouts (user, party, plan, amount,
+  currency). A payment unlocks only that checkout's party; same per-party invariant and scope trigger as Dodo.
+- Users can edit their party's country. Consequence: a US event could be relabelled India to see INR prices. This is
+  a pricing/business risk, not an entitlement bypass (the plan still applies to that one party). Razorpay accounts
+  accept domestic Indian payment methods by default (international cards need separate activation), which limits
+  arbitrage. Documented in the pricing proposal.
+- Phone numbers: normalized to E.164 in guests.phone only; never in analytics, URLs we generate, logs or the public
+  invitation projection. WhatsApp sharing does not use guest phone numbers.
+- Permissions-Policy currently says payment=() — Razorpay Checkout runs in a frame on our page, so payment is allowed
+  for self and Razorpay origins only. X-Frame-Options/frame-ancestors unchanged (we are never framed).
+- Analytics: a "market" property (the selected/event country code) is added; never addresses, PINs, phones, names.
+
+6. REQUIRED CREDENTIALS AND DASHBOARD CONFIGURATION (none present today)
+-----------------------------------------------------------------------
+- Razorpay: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET (test mode first), webhook endpoint
+  https://magicalbirthdayplanner.app/api/webhooks/razorpay with payment.captured, payment.failed, order.paid,
+  refund.processed; automatic capture ON; approved INR prices RAZORPAY_PRICE_{STARTER,PLUS,PRO}_PAISE; switches
+  RAZORPAY_ENABLED and (live only) RAZORPAY_LIVE_PAYMENTS_ENABLED. Details: docs/RAZORPAY_SETUP.txt.
+- Google Cloud: nothing required (Places-only key works for India; verified live). Optional: allow the Geocoding API
+  on the server key (cheaper PIN lookups); raise Places quota if India traffic grows. No restriction weakening.
+- WhatsApp Business: nothing for Stage A.
+
+7. IMPLEMENTATION STAGES
+------------------------
+Stage 1  Country module (lib/country/*: config, postal codes, phone, money/date/time formatting, preference),
+         migration, wizard country + PIN step, edit sheet with country-aware address, profile country preference.
+Stage 2  PIN → location (offline dataset + Google fallback), Places regionCode, Indian query phrasing, km display,
+         INR budget presets/formatting everywhere, currency-aware ranking and AI prompts, en-IN dates/times, ICS with
+         the event timezone.
+Stage 3  WhatsApp share (invitation screen), share-text builder, invitation projection with country/timezone,
+         country-aware phone input + E.164 + duplicate check, email dates by party locale.
+Stage 4  Razorpay: provider policy, order creation, client checkout, verify endpoint, webhook, idempotent purchase
+         recording, mock Razorpay in the test server, unit + integration tests. Disabled without credentials.
+Stage 5  /in landing page (metadata, canonical, hreflang), sitemap, analytics market attribution + new events,
+         admin "Markets" report (US vs India).
+Stage 6  Full test suite, secret scan, RLS/authorization review, docs, deployment + rollback plan.
+Production deployment and the production migration need explicit owner approval (they change production).
+
+8. TEST PLAN
+------------
+Unit: country config, PIN/ZIP validation, phone E.164 (+91/+1), money (USD/INR, lakh grouping), dates/times
+en-IN/en-US, timezone → UTC for ICS, WhatsApp share URL encoding, provider selection policy, Razorpay signatures
+(payment + webhook), Razorpay event decisions, price-table parsing, query phrasing, km formatting, ranking with INR.
+Integration (local Supabase + mock server): migration defaults (existing parties = US), India party create/read,
+cross-user isolation of the new columns, get_invitation projection (no PII), PIN endpoint, discovery for an India
+party (regionCode IN reaches Google), Razorpay checkout (not configured → 503; IN party → order with server price;
+US party → Dodo untouched; wrong party → 404; already owned → 409; reuse of a pending order), verify (bad signature,
+amount/currency mismatch, wrong user, success → party plan), webhook (bad signature, duplicate, out-of-order,
+failed, refund), concurrent verify + webhook.
+E2E (Playwright, mocked Google/Resend/Dodo/Razorpay): India wizard with PIN, INR budget, discovery, WhatsApp share
+link, public invite in en-IN; full US regression suites unchanged.
+Live checks (only with real credentials): Google geocode + Places for Mumbai, Bengaluru, Delhi, Hyderabad PINs and a
+US ZIP; Razorpay test-mode payment.
+
+9. ROLLBACK PLAN
+----------------
+- App: promote the previous Vercel production deployment (dpl_5uRmRVtgtiq5DBEdzoPrQQmKFzaZ, c8ebf76). The old app
+  ignores the new columns/RPC fields, so the migration does not need reverting.
+- Feature-level: RAZORPAY_ENABLED unset → India checkout returns "not available"; NEXT_PUBLIC_INDIA_ENABLED=false
+  hides the country picker/landing CTA (existing India parties keep working read-only-safe as INR display).
+- Data: the migration is additive; a reverse script is provided commented in the migration header (drop the new
+  columns/RPC) but must only be run with approval and only if no India data must be kept.
+
+10. ESTIMATED COMPLEXITY AND BLOCKERS
+-------------------------------------
+Complexity: medium-large (≈ 1 migration, ~25 files touched, ~12 new modules, ~100 new tests).
+Blockers outside the code:
+- No Razorpay account/credentials → Razorpay can be built and tested only against a mock; no real test-mode payment.
+- INR prices not approved → India checkout stays disabled even with credentials.
+- Production migration + deploy need owner approval.
+- WhatsApp Business automation needs a Meta Business account, a registered number, approved templates and a
+  consent design — out of scope for this phase.
+- Google: real India coverage can only be judged with production traffic; a handful of verification searches is
+  not proof of coverage.
