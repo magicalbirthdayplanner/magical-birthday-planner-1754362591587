@@ -16,7 +16,7 @@ export function IndiaLandingTracker() {
 /** INR prices once Razorpay is live with approved prices; until then an honest "coming soon". */
 export function IndiaPricingNote() {
   const prices = usePlanPrices('IN')
-  const { campaign, until } = useCampaign()
+  const { campaign, until } = useCampaign('IN')
   if (campaign) {
     return (
       <p className="mx-auto mt-4 max-w-md rounded-2xl bg-secondary px-4 py-3 text-sm" data-testid="india-pricing-note">
