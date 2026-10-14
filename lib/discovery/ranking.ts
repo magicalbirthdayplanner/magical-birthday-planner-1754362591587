@@ -5,7 +5,9 @@
  * Unknown data scores a neutral 0.5 (never a fabricated good or bad value).
  */
 import { isLegacyGeoapifyPlaceId } from '@/lib/discovery/legacy'
-import { formatMiles, haversineMiles } from '@/lib/geo/distance'
+import { haversineMiles } from '@/lib/geo/distance'
+import { countryConfig } from '@/lib/country/countries'
+import { formatCount, formatDistance } from '@/lib/country/format'
 import {
   INTERESTS,
   getCategory,
@@ -81,13 +83,17 @@ export function distanceScore(miles: number, radiusMiles: number): number {
   return clamp01(1 - Math.pow(Math.min(miles, r) / r, 0.8))
 }
 
-/** Expected Google price level for a per-guest budget. */
-export function expectedPriceLevel(budget: number | null | undefined, guests: number | null | undefined): number | null {
+/**
+ * Expected Google price level for a per-guest budget. The budget is in the party's currency, so the thresholds come
+ * from the event country (US: $15 / $35 / $70 per guest; India: ₹400 / ₹1,000 / ₹2,500).
+ */
+export function expectedPriceLevel(budget: number | null | undefined, guests: number | null | undefined, country?: string | null): number | null {
   if (!budget || budget <= 0) return null
   const perGuest = budget / Math.max(1, guests || 1)
-  if (perGuest < 15) return 1
-  if (perGuest < 35) return 2
-  if (perGuest < 70) return 3
+  const [one, two, three] = countryConfig(country).priceLevelPerGuest
+  if (perGuest < one) return 1
+  if (perGuest < two) return 2
+  if (perGuest < three) return 3
   return 4
 }
 
@@ -155,7 +161,7 @@ export function rankVenue(v: Venue, ctx: PartyContext, opts: RankOptions = {}): 
   const cats = categoriesOf(v)
   const setting = settingForCategories(v.categories)
   const distanceMiles = haversineMiles(ctx.center, { lat: v.lat, lng: v.lng })
-  const expected = expectedPriceLevel(ctx.budget, ctx.guestCount)
+  const expected = expectedPriceLevel(ctx.budget, ctx.guestCount, ctx.country)
   const rel = relevanceScore(cats, ctx, v.goodForChildren)
 
   const factors = {
@@ -184,9 +190,9 @@ export function rankVenue(v: Venue, ctx: PartyContext, opts: RankOptions = {}): 
     })
   }
   if (v.rating != null && v.reviewCount && v.rating >= 4.3 && v.reviewCount >= 25) {
-    reasons.push({ kind: 'rating', text: `Rated ${v.rating.toFixed(1)} by ${v.reviewCount.toLocaleString('en-US')} Google reviewers` })
+    reasons.push({ kind: 'rating', text: `Rated ${v.rating.toFixed(1)} by ${formatCount(v.reviewCount, ctx.country)} Google reviewers` })
   }
-  const dist = formatMiles(distanceMiles)
+  const dist = formatDistance(distanceMiles, ctx.country)
   if (dist && distanceMiles <= Math.max(5, ctx.radiusMiles * 0.35)) reasons.push({ kind: 'distance', text: `Close by — ${dist} away` })
   if (v.goodForChildren === true) reasons.push({ kind: 'kids', text: 'Google lists it as good for kids' })
   if (ctx.childAge != null && factors.age === 1 && cats.some((c) => c.group !== 'general')) {

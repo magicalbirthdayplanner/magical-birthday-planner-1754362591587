@@ -10,6 +10,7 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/database.types'
 import { computeTimeline, effectiveGuests, type TimelineKind } from '@/lib/experience/model'
+import { countryConfig, type CountryCode } from '@/lib/country/countries'
 
 export interface PartyAIContext {
   childAge: number | null
@@ -18,6 +19,9 @@ export interface PartyAIContext {
   daysUntilParty: number | null
   city: string | null
   state: string | null
+  /** Event country and the currency every amount (budget, costs, estimates) is in. */
+  country: CountryCode
+  currency: 'USD' | 'INR'
   /** Guests to plan for: the planned count, or confirmed RSVPs when they exceed it. */
   guestCountEstimate: number | null
   /** Aggregates only (never names): confirmed kids/adults, awaiting replies, dietary needs mentioned in RSVPs. */
@@ -67,7 +71,7 @@ export async function buildPartyAIContext(
 ): Promise<PartyAIContext | null> {
   const { data: party } = await supabase
     .from('parties')
-    .select('id, child_name, child_age, interests, party_date, party_time, city, state, guest_count, budget, venue_type, theme, theme_details')
+    .select('id, child_name, child_age, interests, party_date, party_time, city, state, guest_count, budget, venue_type, theme, theme_details, country_code')
     .eq('id', partyId)
     .maybeSingle()
   if (!party) return null // RLS: another user's party is indistinguishable from a missing one
@@ -114,6 +118,8 @@ export async function buildPartyAIContext(
     daysUntilParty: daysUntil(party.party_date ?? null, opts.today),
     city: party.city ?? null,
     state: party.state ?? null,
+    country: countryConfig(party.country_code).code,
+    currency: countryConfig(party.country_code).currency,
     guestCountEstimate: effectiveGuests(party.guest_count, rsvp), // guest_count 0 is the column default = "not set"
     rsvp,
     partyStartTime: startTime,

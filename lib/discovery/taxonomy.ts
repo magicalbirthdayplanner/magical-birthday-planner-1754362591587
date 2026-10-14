@@ -117,6 +117,37 @@ export const CATEGORIES: DiscoveryCategory[] = [
   c({ id: 'caterer', label: 'Caterer', emoji: '🍱', group: 'vendor', setting: 'either', query: 'party catering', interests: [], ages: [0, 13], googleTypes: ['catering_service'], chips: ['vendors'], priority: 109 }),
 ]
 
+/**
+ * Local phrasing per event country: the same category, searched the way people in that country name it
+ * ("kids indoor play area", "party hall", "birthday party decorators"). Categories without an entry use `query`.
+ * Themes and categories stay universal — only the search words change.
+ */
+const LOCAL_QUERIES: Record<string, Record<string, string>> = {
+  IN: {
+    'indoor-playground': 'kids indoor play area',
+    'kids-activity-center': 'kids activity centre',
+    'community-center': 'community hall for birthday party',
+    'party-hall': 'party hall',
+    'party-restaurant': 'family restaurant for kids birthday party',
+    'indoor-event-venue': 'birthday party hall',
+    'trampoline-park': 'trampoline park kids',
+    'park': 'park',
+    'picnic-area': 'garden picnic spot',
+    'splash-pad': 'water park for kids',
+    'outdoor-recreation': 'family fun centre go karting',
+    'bakery': 'bakery birthday cakes',
+    'balloon-decorator': 'birthday party decorators',
+    'party-rental': 'party supplies shop',
+    'caterer': 'party caterers',
+    'entertainer': 'kids birthday party entertainer',
+  },
+}
+
+/** The Text Search query for a category in an event country. */
+export function queryFor(category: DiscoveryCategory, country?: string | null): string {
+  return (country && LOCAL_QUERIES[country]?.[category.id]) || category.query
+}
+
 const byId = new Map(CATEGORIES.map((cat) => [cat.id, cat]))
 export const getCategory = (id: string): DiscoveryCategory | undefined => byId.get(id)
 

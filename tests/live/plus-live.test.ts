@@ -17,7 +17,7 @@ import { mergeCandidates, shoppingListSpec } from '@/lib/ai/features/shoppingLis
 const live = process.env.AI_LIVE === '1' && !!process.env.AI_API_KEY
 const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: 'opencode' } as NodeJS.ProcessEnv)
 const ctx: PartyAIContext = {
-  childAge: 6, childInterests: ['dinosaurs', 'science'], partyDate: null, daysUntilParty: 18, city: 'Troy', state: 'MI', guestCountEstimate: 14, budget: 280,
+  childAge: 6, childInterests: ['dinosaurs', 'science'], partyDate: null, daysUntilParty: 18, city: 'Troy', state: 'MI', country: 'US', currency: 'USD', guestCountEstimate: 14, budget: 280,
   venue: { name: 'Backyard', type: 'home', booked: true }, theme: 'Dino Dig', durationMinutes: 120, indoorOutdoor: 'outdoor', foodPreferences: ['one child is gluten-free'],
   existingActivities: ['Fossil dig in the sandbox', 'Volcano experiment', 'Dino egg hunt'], existingChecklist: [{ title: 'Send invitations', done: false }],
   currentBudgetLines: [{ category: 'food', label: 'Pizza', amount: 70, actual: null }, { category: 'decorations', label: null, amount: 40, actual: 35 }, { category: 'activities', label: 'Fossil kits', amount: 60, actual: null }],

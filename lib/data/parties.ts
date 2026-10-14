@@ -2,11 +2,12 @@ import { db, type Tables, type TablesUpdate } from '@/lib/db/browser'
 import type { InterestId, Setting } from '@/lib/discovery/taxonomy'
 import { venueTypeFromSetting } from '@/lib/discovery/party-context'
 import { reportDbError } from '@/lib/observability/telemetry'
+import { timezoneFor, type CountryCode } from '@/lib/country/countries'
 
 export type Party = Tables<'parties'>
 
 export const PARTY_COLUMNS =
-  'id, user_id, child_name, child_age, party_date, party_time, zip_code, city, state, latitude, longitude, guest_count, budget, interests, venue_type, theme, theme_details, search_radius_miles, status, created_at, updated_at'
+  'id, user_id, child_name, child_age, party_date, party_time, zip_code, city, state, latitude, longitude, guest_count, budget, interests, venue_type, theme, theme_details, search_radius_miles, status, created_at, updated_at, country_code, timezone, address_line1, address_line2, locality, district'
 
 export interface NewPartyInput {
   childName: string
@@ -18,7 +19,9 @@ export interface NewPartyInput {
   setting: Setting
   interests: InterestId[]
   theme: string | null
-  location?: { lat: number; lng: number; city: string | null; state: string | null } | null
+  location?: { lat: number; lng: number; city: string | null; state: string | null; district?: string | null } | null
+  /** Event country (default United States). Decides postal code, currency, venue search and checkout provider. */
+  country?: CountryCode
 }
 
 export async function listParties(): Promise<Party[]> {
@@ -47,6 +50,9 @@ export async function createParty(userId: string, input: NewPartyInput): Promise
       state: input.location?.state ?? null,
       search_radius_miles: 20,
       status: 'PLANNING',
+      country_code: input.country ?? 'US',
+      timezone: timezoneFor(input.country ?? 'US'),
+      district: input.location?.district ?? null,
     })
     .select(PARTY_COLUMNS)
     .single()

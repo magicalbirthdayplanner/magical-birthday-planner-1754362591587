@@ -2,6 +2,7 @@ import { INTEREST_IDS, type InterestId, type Setting } from './taxonomy'
 import { snapRadius } from './config'
 import type { PartyContext } from './types'
 import type { LatLng } from '@/lib/geo/distance'
+import { parseCountryCode } from '@/lib/country/countries'
 
 export interface PartyRowLike {
   child_name?: string | null
@@ -12,6 +13,7 @@ export interface PartyRowLike {
   venue_type?: string | null
   zip_code?: string | null
   search_radius_miles?: number | null
+  country_code?: string | null
 }
 
 /** parties.venue_type (legacy: 'mixed' = either) → Setting */
@@ -44,5 +46,6 @@ export function partyContextFromRow(row: PartyRowLike, center: LatLng, zip: stri
     zip,
     center,
     radiusMiles: snapRadius(radiusMiles ?? row.search_radius_miles ?? 20),
+    country: parseCountryCode(row.country_code) ?? 'US',
   }
 }

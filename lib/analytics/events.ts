@@ -39,6 +39,11 @@ export const ANALYTICS_EVENTS = [
   'ai_feature_blocked',
   'rsvp_started',
   'rsvp_completed',
+  // markets (India expansion): the chosen event/preferred country, never inferred from IP
+  'country_selected',
+  'invitation_created',
+  'whatsapp_share_initiated',
+  'payment_failed',
 ] as const
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number]

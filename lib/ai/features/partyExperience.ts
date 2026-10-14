@@ -7,7 +7,7 @@ import 'server-only'
 import { z } from 'zod'
 import { BaseBody, itemId, type FeatureSpec } from '../handler'
 import { partyExperiencePrompt } from '../prompts/experience'
-import { list, num, optStr, pick, shoppingCategory, str, strList } from '../schemas/shared'
+import { list, money, num, optStr, pick, shoppingCategory, str, strList } from '../schemas/shared'
 import { FoodItemSchema, type FoodItem } from '../schemas/food'
 import { dueDateFor } from '../schedule'
 import { ActivityDetailSchema, offsetsToDurations, TIMELINE_KINDS, type ActivityDetail, type TimelineKind } from '@/lib/experience/model'
@@ -20,26 +20,27 @@ export const ExperienceAISchema = z.object({
   activities: list(ActivityDetailSchema, 5, 1),
   timeline: list(z.object({ minute: num(0, 600), label: str(80), kind: pick(TIMELINE_KINDS, 'other') }), 14),
   food: list(FoodItemSchema, 10),
-  shopping: list(z.object({ item: str(80), qty: optStr(30), category: shoppingCategory, estimatedCost: num(0, 1000, 0) }), 30),
+  shopping: list(z.object({ item: str(80), qty: optStr(30), category: shoppingCategory, estimatedCost: money(1000, 0) }), 30),
   host: z.object({ welcome: optStr(600), cake: optStr(600), closing: optStr(600) }).default({ welcome: '', cake: '', closing: '' }),
   checklist: list(z.object({ title: str(120), daysBeforeParty: num(0, 120, 7) }), 10),
-  budget: list(z.object({ category: str(40), amount: num(0, 10000) }), 10),
+  budget: list(z.object({ category: str(40), amount: money(10000) }), 10),
   assumptions: strList(6, 200),
 })
 type Out = z.infer<typeof ExperienceAISchema>
 
 export type { ExperienceResult } from './partyExperience.types'
 import type { ExperienceResult } from './partyExperience.types'
+import { formatMoney } from '@/lib/country/format'
 
 const r2 = (n: number) => Math.round(n * 100) / 100
 const HOST_TITLES = { welcome: 'Welcome speech', cake: 'Cake announcement', closing: 'Closing speech' } as const
 
-export function postProcessExperience(out: Out, opts: { budget: number | null; durationMinutes: number; partyDate: string | null; guests: number | null; scrubbed: boolean }, today = new Date()): ExperienceResult {
+export function postProcessExperience(out: Out, opts: { budget: number | null; durationMinutes: number; partyDate: string | null; guests: number | null; scrubbed: boolean; country?: string | null }, today = new Date()): ExperienceResult {
   const lines = out.budget.map((l, i) => ({ id: itemId('bud', i), category: l.category, amount: r2(l.amount) }))
   const total = r2(lines.reduce((s, l) => s + l.amount, 0))
   const overBy = opts.budget != null && total > opts.budget ? r2(total - opts.budget) : null
   const assumptions = [...out.assumptions]
-  if (overBy != null) assumptions.push(`These estimates come to about $${total}, which is $${overBy} over your $${opts.budget} budget — trim the largest lines first.`)
+  if (overBy != null) assumptions.push(`These estimates come to about ${formatMoney(total, opts.country)}, which is ${formatMoney(overBy, opts.country)} over your ${formatMoney(opts.budget!, opts.country)} budget — trim the largest lines first.`)
   if (opts.scrubbed) assumptions.push('Some character or brand names were replaced with generic ideas.')
   const seen = new Set<number>()
   const entries = out.timeline.map((t) => ({ ...t, minute: Math.round(t.minute) })).filter((t) => t.minute <= opts.durationMinutes && !seen.has(t.minute) && seen.add(t.minute))
@@ -67,6 +68,6 @@ export const experienceSpec: FeatureSpec<typeof ExperienceBody, ExperienceResult
   maxTokens: 4000,
   long: true,
   prompt: ({ ctx, notes }) => partyExperiencePrompt(ctx, notes),
-  post: ({ result, ctx, scrubbed }) => postProcessExperience(result as unknown as Out, { budget: ctx.budget, durationMinutes: ctx.durationMinutes, partyDate: ctx.partyDate, guests: ctx.guestCountEstimate, scrubbed }),
+  post: ({ result, ctx, scrubbed }) => postProcessExperience(result as unknown as Out, { budget: ctx.budget, durationMinutes: ctx.durationMinutes, partyDate: ctx.partyDate, guests: ctx.guestCountEstimate, scrubbed, country: ctx.country }),
   summary: (_b, ctx) => ({ guests: ctx.guestCountEstimate, budget: ctx.budget, theme: ctx.theme }),
 }

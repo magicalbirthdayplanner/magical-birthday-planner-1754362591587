@@ -20,7 +20,7 @@ import { join } from 'node:path'
 const PORT = Number(process.env.MOCK_GOOGLE_PORT || process.env.PORT || 4010)
 const HOST = '127.0.0.1'
 let mode = 'ok'
-let stats = { searchText: 0, details: 0, photo: 0, geocode: 0 }
+let stats = { searchText: 0, details: 0, photo: 0, geocode: 0, lastRegionCode: null, lastTextQuery: null }
 // placeId → raw place (for details). Persisted so details still work after a restart
 // when the app serves search results from its Supabase cache.
 const KNOWN_FILE = join(tmpdir(), 'mock-google-known-places.json')
@@ -57,7 +57,7 @@ const TYPES = [
 
 const h = (s) => createHash('sha1').update(s).digest('hex')
 
-function placesFor(query, lat, lng) {
+function placesFor(query, lat, lng, region = 'US') {
   const names = NAMES.find(([re]) => re.test(query))?.[1] ?? [`${query.replace(/\b\w/g, (c) => c.toUpperCase())} Place`]
   const types = TYPES.find(([re]) => re.test(query))?.[1] ?? ['point_of_interest', 'establishment']
   const out = names.map((name, i) => {
@@ -67,16 +67,25 @@ function placesFor(query, lat, lng) {
     // Real place ids identify one physical place: include the area so the same
     // fictional name in two cities never collides.
     const id = `ChIJmock${h(`${name}|${lat.toFixed(1)},${lng.toFixed(1)}`).slice(0, 18)}`
+    const india = region === 'IN'
+    const street = india ? `${1 + (seed % 90)}, ${['Mock Main Road', 'Test Cross Street', 'Sample Layout', 'Demo Nagar', 'Fixture Marg'][seed % 5]}` : `${100 + (seed % 900)} ${['Maple', 'Oak', 'Big Beaver', 'Crooks', 'Long Lake'][seed % 5]} Rd`
     const place = {
       id,
       displayName: { text: name, languageCode: 'en' },
-      formattedAddress: `${100 + (seed % 900)} ${['Maple', 'Oak', 'Big Beaver', 'Crooks', 'Long Lake'][seed % 5]} Rd, Troy, MI 48084, USA`,
-      shortFormattedAddress: `${100 + (seed % 900)} ${['Maple', 'Oak', 'Big Beaver', 'Crooks', 'Long Lake'][seed % 5]} Rd, Troy`,
-      addressComponents: [
-        { longText: 'Troy', shortText: 'Troy', types: ['locality', 'political'] },
-        { longText: 'Michigan', shortText: 'MI', types: ['administrative_area_level_1', 'political'] },
-        { longText: '48084', shortText: '48084', types: ['postal_code'] },
-      ],
+      formattedAddress: india ? `${street}, Mockpuram, Mock City, Karnataka 560001, India` : `${street}, Troy, MI 48084, USA`,
+      shortFormattedAddress: india ? `${street}, Mockpuram` : `${street}, Troy`,
+      addressComponents: india
+        ? [
+            { longText: 'Mock City', shortText: 'Mock City', types: ['locality', 'political'] },
+            { longText: 'Karnataka', shortText: 'KA', types: ['administrative_area_level_1', 'political'] },
+            { longText: '560001', shortText: '560001', types: ['postal_code'] },
+            { longText: 'India', shortText: 'IN', types: ['country', 'political'] },
+          ]
+        : [
+            { longText: 'Troy', shortText: 'Troy', types: ['locality', 'political'] },
+            { longText: 'Michigan', shortText: 'MI', types: ['administrative_area_level_1', 'political'] },
+            { longText: '48084', shortText: '48084', types: ['postal_code'] },
+          ],
       location: { latitude: lat + dLat, longitude: lng + dLng },
       types,
       primaryType: types[0],
@@ -231,10 +240,89 @@ async function handleServices(req, res, url) {
   return false
 }
 
+// ---------------------------------------------------------------------------
+// Mock Razorpay test mode: Orders API, Fetch Payment API, a checkout.js stand-in and a control endpoint that "pays"
+// an order (signs the handler response with the test key secret and, if configured, delivers the signed webhook).
+// ---------------------------------------------------------------------------
+const RZP_KEY_ID = process.env.RAZORPAY_KEY_ID || ''
+const RZP_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || ''
+const RZP_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || ''
+const RZP_APP_WEBHOOK_URL = process.env.MOCK_APP_RAZORPAY_WEBHOOK_URL || ''
+const rzpOrders = new Map()
+const rzpPayments = new Map()
+const rzpId = (prefix) => `${prefix}_${randomUUID().replace(/-/g, '').slice(0, 14)}`
+const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type', 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS' }
+
+async function deliverRazorpayWebhook(event, payment) {
+  if (!RZP_APP_WEBHOOK_URL || !RZP_WEBHOOK_SECRET) return 0
+  const body = JSON.stringify({ entity: 'event', account_id: 'acc_mock', event, contains: ['payment'], payload: { payment: { entity: payment } }, created_at: Math.floor(Date.now() / 1000) })
+  const r = await fetch(RZP_APP_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-razorpay-signature': createHmac('sha256', RZP_WEBHOOK_SECRET).update(body).digest('hex'), 'x-razorpay-event-id': rzpId('evt') }, body })
+  return r.status
+}
+
+const CHECKOUT_JS = `window.Razorpay = function (o) {
+  this.o = o; this.failed = null
+  this.on = function (ev, cb) { if (ev === 'payment.failed') this.failed = cb }
+  this.open = function () {
+    var self = this, d = document.createElement('div')
+    d.setAttribute('data-testid', 'rzp-mock'); d.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:99999;padding:24px;font-family:sans-serif'
+    d.innerHTML = '<h1>Razorpay (mock test mode)</h1><p data-testid="rzp-amount">' + o.currency + ' ' + (o.amount / 100) + '</p>'
+    function btn(label, outcome) { var b = document.createElement('button'); b.textContent = label; b.style.cssText = 'display:block;margin:12px 0;font-size:20px;padding:12px 24px'; b.onclick = function () { pay(outcome) }; d.appendChild(b) }
+    function pay(outcome) {
+      if (outcome === 'close') { d.remove(); o.modal && o.modal.ondismiss && o.modal.ondismiss(); return }
+      fetch('__MOCK_BASE__/__razorpay/pay', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ orderId: o.order_id, outcome: outcome }) })
+        .then(function (r) { return r.json() })
+        .then(function (r) { if (outcome === 'failed') { self.failed && self.failed({ error: { code: 'BAD_REQUEST_ERROR', reason: 'payment_failed' } }); return } d.remove(); o.handler(r) })
+    }
+    btn('Pay (success)', 'captured'); btn('Pay (card declined)', 'failed'); btn('Close', 'close')
+    document.body.appendChild(d)
+  }
+}`
+
+async function handleRazorpay(req, res, url) {
+  const path = url.pathname
+  if (req.method === 'OPTIONS' && path.startsWith('/__razorpay')) return res.writeHead(204, CORS), res.end(), true
+  if (path === '/razorpay/checkout.js') {
+    res.writeHead(200, { 'Content-Type': 'application/javascript', ...CORS })
+    res.end(CHECKOUT_JS.replace('__MOCK_BASE__', `http://${HOST}:${PORT}`))
+    return true
+  }
+  const authed = () => req.headers.authorization === `Basic ${Buffer.from(`${RZP_KEY_ID}:${RZP_KEY_SECRET}`).toString('base64')}`
+  if (path === '/v1/orders' && req.method === 'POST') {
+    if (!RZP_KEY_ID || !authed()) return send(res, 401, { error: { code: 'BAD_REQUEST_ERROR', description: 'Authentication failed' } }), true
+    const body = await readBody(req)
+    if (!Number.isInteger(body.amount) || body.amount < 100 || !/^[A-Z]{3}$/.test(body.currency || '')) return send(res, 400, { error: { code: 'BAD_REQUEST_ERROR' } }), true
+    const order = { id: rzpId('order'), entity: 'order', amount: body.amount, amount_paid: 0, amount_due: body.amount, currency: body.currency, receipt: body.receipt ?? null, status: 'created', attempts: 0, notes: body.notes ?? {}, created_at: Math.floor(Date.now() / 1000) }
+    rzpOrders.set(order.id, order)
+    return send(res, 200, order), true
+  }
+  const fetchPay = path.match(/^\/v1\/payments\/(pay_\w+)$/)
+  if (fetchPay && req.method === 'GET') {
+    if (!authed()) return send(res, 401, { error: { code: 'BAD_REQUEST_ERROR' } }), true
+    const p = rzpPayments.get(fetchPay[1])
+    return p ? send(res, 200, p) : send(res, 400, { error: { code: 'BAD_REQUEST_ERROR', description: 'The id provided does not exist' } }), true
+  }
+  // Test control: pay an order. Body { orderId, outcome: captured|failed|authorized, amount?, currency?, webhook? }.
+  if (path === '/__razorpay/pay' && req.method === 'POST') {
+    const body = await readBody(req)
+    const order = rzpOrders.get(body.orderId)
+    if (!order) return send(res, 404, { error: 'unknown order' }, CORS), true
+    const outcome = ['captured', 'failed', 'authorized'].includes(body.outcome) ? body.outcome : 'captured'
+    const payment = { id: rzpId('pay'), entity: 'payment', amount: body.amount ?? order.amount, currency: body.currency ?? order.currency, status: outcome, order_id: order.id, captured: outcome === 'captured', amount_refunded: 0, refund_status: null, notes: [], created_at: Math.floor(Date.now() / 1000), error_code: outcome === 'failed' ? 'BAD_REQUEST_ERROR' : null }
+    rzpPayments.set(payment.id, payment)
+    if (outcome === 'captured') order.status = 'paid'
+    const webhookStatus = body.webhook === false ? 0 : await deliverRazorpayWebhook(outcome === 'captured' ? 'payment.captured' : outcome === 'failed' ? 'payment.failed' : 'payment.authorized', payment)
+    const signature = createHmac('sha256', RZP_KEY_SECRET).update(`${order.id}|${payment.id}`).digest('hex')
+    return send(res, 200, { razorpay_payment_id: payment.id, razorpay_order_id: order.id, razorpay_signature: signature, webhookStatus }, CORS), true
+  }
+  return false
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${HOST}:${PORT}`)
   const path = url.pathname
   if (await handleServices(req, res, url)) return
+  if (await handleRazorpay(req, res, url)) return
 
   if (path === '/__mock/mode' && req.method === 'POST') {
     mode = (await readBody(req)).mode || 'ok'
@@ -243,7 +331,7 @@ const server = http.createServer(async (req, res) => {
   if (path === '/__mock/stats') return send(res, 200, { mode, ...stats })
   if (path === '/__mock/reset') {
     mode = 'ok'
-    stats = { searchText: 0, details: 0, photo: 0, geocode: 0 }
+    stats = { searchText: 0, details: 0, photo: 0, geocode: 0, lastRegionCode: null, lastTextQuery: null }
     return send(res, 200, { ok: true })
   }
   if (path === '/health') return send(res, 200, { ok: true })
@@ -261,7 +349,15 @@ const server = http.createServer(async (req, res) => {
     const c = rect
       ? { latitude: (rect.low.latitude + rect.high.latitude) / 2, longitude: (rect.low.longitude + rect.high.longitude) / 2 }
       : body?.locationBias?.circle?.center ?? { latitude: 42.5627, longitude: -83.1799 }
-    return send(res, 200, { places: placesFor(String(body.textQuery || ''), c.latitude, c.longitude) })
+    // Places as a PIN locator ("560034, India"): a postal_code place for one fictional-mock PIN, nothing otherwise.
+    const pinQuery = String(body.textQuery || '').match(/^(\d{6}), India$/)
+    if (pinQuery) {
+      if (pinQuery[1] !== '560034') return send(res, 200, {})
+      return send(res, 200, { places: [{ types: ['postal_code'], location: { latitude: 12.9261, longitude: 77.6221 }, addressComponents: [{ longText: '560034', shortText: '560034', types: ['postal_code'] }, { longText: 'Bengaluru', shortText: 'Bengaluru', types: ['locality', 'political'] }, { longText: 'Karnataka', shortText: 'KA', types: ['administrative_area_level_1', 'political'] }, { longText: 'India', shortText: 'IN', types: ['country', 'political'] }] }] })
+    }
+    stats.lastRegionCode = body.regionCode ?? null
+    stats.lastTextQuery = body.textQuery ?? null
+    return send(res, 200, { places: placesFor(String(body.textQuery || ''), c.latitude, c.longitude, body.regionCode) })
   }
 
   const media = path.match(/^\/v1\/(places\/[^/]+\/photos\/[^/]+)\/media$/)
@@ -303,6 +399,14 @@ const server = http.createServer(async (req, res) => {
   if (path === '/maps/api/geocode/json') {
     stats.geocode++
     const comp = url.searchParams.get('components') || ''
+    if (/country:IN/.test(comp)) {
+      // Fictional mock answers for a few Indian PINs; any other PIN → ZERO_RESULTS (exercises the offline dataset).
+      const pin = comp.match(/postal_code:(\d{6})/)?.[1]
+      const INDIA = { '560001': [12.9762, 77.6033, 'Bengaluru', 'Shivaji Nagar', 'Bangalore Urban', 'Karnataka'], '400050': [19.0596, 72.8295, 'Mumbai', 'Bandra West', 'Mumbai Suburban', 'Maharashtra'], '110016': [28.5494, 77.2001, 'New Delhi', 'Hauz Khas', 'South West Delhi', 'Delhi'], '500081': [17.4483, 78.3915, 'Hyderabad', 'Madhapur', 'Hyderabad', 'Telangana'] }
+      const row = pin && INDIA[pin]
+      if (!row) return send(res, 200, { status: 'ZERO_RESULTS', results: [] })
+      return send(res, 200, { status: 'OK', results: [{ geometry: { location: { lat: row[0], lng: row[1] } }, address_components: [{ long_name: pin, short_name: pin, types: ['postal_code'] }, { long_name: row[3], short_name: row[3], types: ['sublocality_level_1', 'sublocality', 'political'] }, { long_name: row[2], short_name: row[2], types: ['locality', 'political'] }, { long_name: row[4], short_name: row[4], types: ['administrative_area_level_3', 'political'] }, { long_name: row[5], short_name: 'XX', types: ['administrative_area_level_1', 'political'] }, { long_name: 'India', short_name: 'IN', types: ['country', 'political'] }] }] })
+    }
     const zip = comp.match(/postal_code:(\d{5})/)?.[1]
     if (!zip || zip === '99999') return send(res, 200, { status: 'ZERO_RESULTS', results: [] })
     return send(res, 200, {

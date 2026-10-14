@@ -3,10 +3,12 @@ import { Card } from '@/components/app/ui'
 import type { ShoppingListResult } from '@/lib/ai/schemas/shoppingList'
 import { AddAllButton } from '../AddAllButton'
 import { ApplyControls } from '../ApplyControls'
+import { useMoney } from '@/components/app/useCountry'
 
 const LABEL = { food: 'Food', decorations: 'Decorations', activities: 'Activities', favors: 'Party favors', other: 'Other' } as const
 
 export function ShoppingListResultView({ r, generationId, partyId }: { r: ShoppingListResult; generationId: string; partyId: string }) {
+  const money = useMoney()
   if (!r.items.length) return <p className="text-sm text-muted-foreground">Nothing to buy yet — add activities, a theme or an AI plan first.</p>
   return (
     <div className="space-y-3">
@@ -21,7 +23,7 @@ export function ShoppingListResultView({ r, generationId, partyId }: { r: Shoppi
               <div key={i.id} className="flex min-h-[56px] items-center gap-3 px-4 py-2 text-sm">
                 <span className="min-w-0 flex-1">
                   <span className="block font-medium">{i.item}</span>
-                  <span className="block text-xs text-muted-foreground">{[i.qty, i.estimatedCost ? `~$${i.estimatedCost}` : null, `from ${i.sources.join(', ')}`].filter(Boolean).join(' · ')}</span>
+                  <span className="block text-xs text-muted-foreground">{[i.qty, i.estimatedCost ? `~${money(i.estimatedCost)}` : null, `from ${i.sources.join(', ')}`].filter(Boolean).join(' · ')}</span>
                 </span>
                 {i.onList ? <span className="shrink-0 text-xs font-semibold text-success">On your list</span> : <ApplyControls generationId={generationId} target="shopping_list" itemId={i.id} label={i.item} partyId={partyId} />}
               </div>

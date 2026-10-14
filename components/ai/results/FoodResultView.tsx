@@ -3,11 +3,12 @@ import { Card } from '@/components/app/ui'
 import type { FoodResult } from '@/lib/ai/schemas/food'
 import { AddAllButton } from '../AddAllButton'
 import { ApplyControls } from '../ApplyControls'
+import { useMoney } from '@/components/app/useCountry'
 
 const LABEL: Record<string, string> = { main: 'Mains', snack: 'Snacks', dessert: 'Desserts', cake: 'Cake', drink: 'Drinks', other: 'Other' }
-const money = (n: number) => `$${n % 1 === 0 ? n : n.toFixed(2)}`
 
 export function FoodResultView({ r, generationId, partyId }: { r: FoodResult; generationId: string; partyId: string }) {
+  const money = useMoney()
   const who = r.kids != null ? `${r.kids} kids and ${r.adults} adults` : r.guests ? `${r.guests} guests` : null
   return (
     <div className="space-y-3">

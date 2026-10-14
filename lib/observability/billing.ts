@@ -91,3 +91,24 @@ export function paymentUnresolved(plan: string, reason: string) {
   track('PAYMENT_UNRESOLVED', { plan, reason, environment: env() }, undefined, 'warn')
   reportError(`Paid ${plan} purchase could not be matched to a party (${reason}) — needs reconciliation`, { area: 'billing', op: 'reconciliation', level: 'warning', tags: { plan, reason, environment: env() }, fingerprint: ['dodo-payment-unresolved', reason] })
 }
+
+// ------------------------------------------------------------------ Razorpay (India)
+const rzpEnv = () => (process.env.RAZORPAY_KEY_ID?.startsWith('rzp_live_') ? 'live' : 'test')
+
+/** An India checkout was asked for while Razorpay is off/unconfigured/unpriced: expected before launch, not an error. */
+export function razorpayCheckoutUnavailable(plan: string, reason: string) {
+  track('RAZORPAY_CHECKOUT_UNAVAILABLE', { plan, reason, environment: rzpEnv() })
+}
+
+/** Result of the browser's post-payment verify call (status or failure kind only). */
+export function razorpayVerified(result: string) {
+  track('RAZORPAY_VERIFY', { result, environment: rzpEnv() }, undefined, result === 'bad_signature' || result === 'mismatch' ? 'warn' : 'info')
+}
+
+export function razorpayWebhook(outcome: string, ms: number, err?: unknown) {
+  timing('razorpay.webhook.latency', ms, { environment: rzpEnv(), outcome })
+  if (outcome === 'invalid_signature') return track('RAZORPAY_WEBHOOK_INVALID_SIGNATURE', { environment: rzpEnv() }, undefined, 'warn')
+  if (outcome === 'not_configured') return reportError('Razorpay webhook not configured', { area: 'billing', op: 'razorpay_webhook_config', fingerprint: ['razorpay-webhook-config'] })
+  if (outcome === 'error') return reportError(err instanceof Error ? err : 'Razorpay webhook failed', { area: 'billing', op: 'razorpay_webhook', fingerprint: ['razorpay-webhook'] })
+  track('RAZORPAY_WEBHOOK', { environment: rzpEnv(), outcome })
+}

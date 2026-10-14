@@ -13,7 +13,9 @@ const PLANNING_ACTIONS: ReadonlySet<AnalyticsEvent> = new Set<AnalyticsEvent>([
   'venue_saved', 'venue_added_to_party', 'theme_selected', 'ai_feature_used', 'guest_added', 'invitation_shared', 'checklist_completed',
 ])
 
-const planValue = (plan: unknown) => {
+const planValue = (plan: unknown, props: Record<string, unknown> = {}) => {
+  // Non-USD checkouts (India/Razorpay) report their own currency and server amount.
+  if (props.currency === 'INR' && typeof props.amount_minor === 'number') return { currency: 'INR', value: props.amount_minor / 100 }
   const p = typeof plan === 'string' ? (plan.toUpperCase() as Plan) : null
   return p && p in PLAN_INFO ? { currency: 'USD', value: PLAN_INFO[p].priceCents / 100 } : { currency: 'USD', value: 0 }
 }
@@ -33,9 +35,9 @@ export function pixelCallsFor(event: AnalyticsEvent, props: Record<string, unkno
     case 'pricing_viewed':
       return [{ kind: 'track', name: 'ViewContent', params: { content_name: 'pricing' } }]
     case 'checkout_started':
-      return [{ kind: 'track', name: 'InitiateCheckout', params: planValue(props.plan) }]
+      return [{ kind: 'track', name: 'InitiateCheckout', params: planValue(props.plan, props) }]
     case 'purchase_completed':
-      return [{ kind: 'track', name: 'Purchase', params: planValue(props.plan) }]
+      return [{ kind: 'track', name: 'Purchase', params: planValue(props.plan, props) }]
     default:
       return PLANNING_ACTIONS.has(event) && !firstActionSent ? [{ kind: 'trackCustom', name: 'FirstPlanningAction' }] : []
   }

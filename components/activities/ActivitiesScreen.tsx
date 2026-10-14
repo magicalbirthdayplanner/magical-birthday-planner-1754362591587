@@ -19,6 +19,7 @@ import { ActivityDetailSheet } from './ActivityDetailSheet'
 import { ActivityFormSheet } from './ActivityFormSheet'
 import { usePartyFacts } from './usePartyFacts'
 import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
+import { usePartyCountry } from '@/components/app/useCountry'
 
 export function ActivitiesScreen() {
   const { party, isLoading } = useParty()
@@ -56,7 +57,7 @@ export function ActivitiesScreen() {
       <div className="px-4 pt-5">
         <h1 className="font-display text-[28px] font-extrabold leading-tight tracking-tight">Activities</h1>
         {facts?.label ? <p className="mt-1 text-sm font-semibold text-primary">{facts.label}</p> : null}
-        <p className="mt-1 text-sm text-muted-foreground">{sum.planned ? `${sum.planned} planned · ${formatMinutes(sum.minutes)}${facts?.minutes ? ` of ${formatMinutes(facts.minutes)}` : ''}${sum.estimatedCost ? ` · about ${costRange(sum.estimatedCost)}` : ''}` : 'Games, crafts and treasure hunts for the party.'}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{sum.planned ? `${sum.planned} planned · ${formatMinutes(sum.minutes)}${facts?.minutes ? ` of ${formatMinutes(facts.minutes)}` : ''}${sum.estimatedCost ? ` · about ${costRange(sum.estimatedCost, party?.country_code)}` : ''}` : 'Games, crafts and treasure hunts for the party.'}</p>
       </div>
 
       {studioOn ? (
@@ -133,6 +134,7 @@ export function ActivitiesScreen() {
 }
 
 function ActivityCard({ a, data, onOpen, partyId }: { a: Activity; data: Experience; onOpen: () => void; partyId: string }) {
+  const country = usePartyCountry()
   const v = fromRow(a)
   const onTimeline = data.timeline.some((t) => t.activity_id === a.id)
   return (
@@ -141,7 +143,7 @@ function ActivityCard({ a, data, onOpen, partyId }: { a: Activity; data: Experie
         <p className="font-display text-lg font-bold leading-snug"><span aria-hidden>{v.emoji}</span> {a.name}</p>
         <p className="mt-0.5 text-sm text-muted-foreground">{activityMeta(v)}</p>
         {v.description ? <p className="mt-2 line-clamp-2 text-[15px]">{v.description}</p> : null}
-        <p className="mt-2 text-sm"><span className="font-semibold">Estimated cost:</span> {costRange(a.estimated_cost)}{v.materials.length ? <span className="text-muted-foreground"> · {v.materials.length} supplies</span> : null}</p>
+        <p className="mt-2 text-sm"><span className="font-semibold">Estimated cost:</span> {costRange(a.estimated_cost, country)}{v.materials.length ? <span className="text-muted-foreground"> · {v.materials.length} supplies</span> : null}</p>
       </button>
       <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
         {a.status === 'planned' ? (

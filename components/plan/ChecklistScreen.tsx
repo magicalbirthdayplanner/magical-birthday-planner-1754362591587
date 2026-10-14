@@ -14,10 +14,11 @@ import { countdownLabel } from '@/lib/planning/progress'
 import { track } from '@/lib/analytics/client'
 import { cn } from '@/lib/utils'
 import { ChecklistAIButton } from '@/components/ai/ChecklistAIButton'
+import { formatDateWith } from '@/lib/country/format'
 
-const fmt = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+const fmt = (d: string, country?: string | null) => formatDateWith(d, country, { weekday: 'short', month: 'short', day: 'numeric' })
 
-function TaskRow({ task, today, onToggle, onDelete }: { task: ChecklistItem; today: string; onToggle: (t: ChecklistItem, done: boolean) => void; onDelete: (t: ChecklistItem) => void }) {
+function TaskRow({ task, today, onToggle, onDelete, country }: { task: ChecklistItem; today: string; onToggle: (t: ChecklistItem, done: boolean) => void; onDelete: (t: ChecklistItem) => void; country?: string | null }) {
   const done = !!task.completed_at
   const overdue = bucketFor(task, today) === 'overdue'
   return (
@@ -40,7 +41,7 @@ function TaskRow({ task, today, onToggle, onDelete }: { task: ChecklistItem; tod
         {task.detail && !done ? <p className="text-sm text-muted-foreground">{task.detail}</p> : null}
         {task.due_date && !done ? (
           <p className={cn('text-xs', overdue ? 'font-semibold text-destructive' : 'text-muted-foreground')}>
-            {overdue ? `Overdue · was due ${fmt(task.due_date)}` : daysBetween(today, task.due_date) === 0 ? 'Due today' : `Due ${fmt(task.due_date)}`}
+            {overdue ? `Overdue · was due ${fmt(task.due_date, country)}` : daysBetween(today, task.due_date) === 0 ? 'Due today' : `Due ${fmt(task.due_date, country)}`}
           </p>
         ) : null}
       </div>
@@ -153,7 +154,7 @@ export function ChecklistScreen() {
                 <Card>
                   <ul className="divide-y divide-border">
                     {list.map((t) => (
-                      <TaskRow key={t.id} task={t} today={today} onToggle={toggle} onDelete={remove} />
+                      <TaskRow key={t.id} task={t} today={today} onToggle={toggle} onDelete={remove} country={party.country_code} />
                     ))}
                   </ul>
                 </Card>
@@ -172,7 +173,7 @@ export function ChecklistScreen() {
                 <Card>
                   <ul className="divide-y divide-border">
                     {groups.done.map((t) => (
-                      <TaskRow key={t.id} task={t} today={today} onToggle={toggle} onDelete={remove} />
+                      <TaskRow key={t.id} task={t} today={today} onToggle={toggle} onDelete={remove} country={party.country_code} />
                     ))}
                   </ul>
                 </Card>

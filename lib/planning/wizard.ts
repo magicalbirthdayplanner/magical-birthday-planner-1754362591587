@@ -1,7 +1,8 @@
 /** Party-creation wizard: steps, validation and draft persistence. Pure. */
 import type { InterestId, Setting } from '@/lib/discovery/taxonomy'
 import { INTEREST_IDS } from '@/lib/discovery/taxonomy'
-import { normalizeZip } from '@/lib/geo/zip'
+import { countryConfig, parseCountryCode, type CountryCode } from '@/lib/country/countries'
+import { normalizePostal, postalFormatError } from '@/lib/country/postal'
 import { daysBetween } from './checklist'
 
 export const WIZARD_STEPS = ['name', 'age', 'date', 'zip', 'guests', 'budget', 'vibe', 'interests', 'theme'] as const
@@ -11,8 +12,11 @@ export interface WizardDraft {
   childName: string
   childAge: number | null
   partyDate: string
+  /** Event country: where the party takes place (not where the parent is). */
+  country: CountryCode
+  /** Postal code of the event country (US ZIP / Indian PIN). */
   zip: string
-  zipPlace: { city: string | null; state: string | null; lat: number; lng: number } | null
+  zipPlace: { city: string | null; state: string | null; lat: number; lng: number; district?: string | null; localities?: string[] } | null
   guestCount: number
   budget: number | null
   budgetUnsure: boolean
@@ -25,6 +29,7 @@ export const EMPTY_DRAFT: WizardDraft = {
   childName: '',
   childAge: null,
   partyDate: '',
+  country: 'US',
   zip: '',
   zipPlace: null,
   guestCount: 15,
@@ -57,14 +62,14 @@ export function validateStep(step: WizardStep, d: WizardDraft, today: string): s
       return null
     }
     case 'zip':
-      if (!normalizeZip(d.zip)) return 'Please enter a 5-digit US ZIP code.'
-      if (!d.zipPlace) return 'We need to find that ZIP first.'
+      if (!normalizePostal(d.country, d.zip)) return postalFormatError(d.country)
+      if (!d.zipPlace) return `We need to find that ${countryConfig(d.country).postal.shortLabel} first.`
       return null
     case 'guests':
       return Number.isInteger(d.guestCount) && d.guestCount >= 1 && d.guestCount <= 200 ? null : 'Please enter between 1 and 200 guests.'
     case 'budget':
       if (d.budgetUnsure) return null
-      return d.budget != null && d.budget >= 0 && d.budget <= 100_000 ? null : 'Pick a budget, or choose “Not sure yet”.'
+      return d.budget != null && d.budget >= 0 && d.budget <= countryConfig(d.country).budget.max ? null : 'Pick a budget, or choose “Not sure yet”.'
     case 'vibe':
       return ['indoor', 'outdoor', 'either'].includes(d.setting) ? null : 'Please choose one.'
     case 'interests':
@@ -88,6 +93,7 @@ export function parseDraft(raw: string | null): WizardDraft | null {
       childName: typeof x.childName === 'string' ? x.childName.slice(0, 40) : '',
       childAge: typeof x.childAge === 'number' ? x.childAge : null,
       partyDate: typeof x.partyDate === 'string' ? x.partyDate : '',
+      country: parseCountryCode(x.country) ?? 'US',
       zip: typeof x.zip === 'string' ? x.zip.slice(0, 10) : '',
       zipPlace: x.zipPlace && typeof x.zipPlace.lat === 'number' ? x.zipPlace : null,
       guestCount: typeof x.guestCount === 'number' ? x.guestCount : EMPTY_DRAFT.guestCount,
@@ -118,5 +124,6 @@ export function dateSuggestions(today: string): { label: string; date: string }[
   ]
 }
 
-export const BUDGET_PRESETS = [250, 500, 750, 1000, 1500, 2500]
+/** US presets (kept for existing callers); per-country presets live in lib/country/countries.ts. */
+export const BUDGET_PRESETS = countryConfig('US').budget.presets
 export const GUEST_PRESETS = [8, 12, 15, 20, 30, 40]

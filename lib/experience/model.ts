@@ -3,7 +3,8 @@
  * the AI activity studio and the apply step. Client-safe (no secrets, no server modules). Unit-tested.
  */
 import { z } from 'zod'
-import { list, num, optStr, pick, str, strList } from '@/lib/ai/schemas/shared'
+import { list, money, num, optStr, pick, str, strList } from '@/lib/ai/schemas/shared'
+import { formatCount, formatMoney } from '@/lib/country/format'
 
 export const ACTIVITY_CATEGORIES = ['game', 'craft', 'treasure_hunt', 'active', 'calm', 'performance', 'food', 'other'] as const
 export const SETTINGS = ['indoor', 'outdoor', 'either'] as const
@@ -34,7 +35,7 @@ export const ActivityDetailSchema = z.object({
   age_max: num(0, 18, 10),
   duration_minutes: num(5, 180, 20),
   indoor_outdoor: pick(SETTINGS, 'either'),
-  estimated_cost: num(0, 2000, 0),
+  estimated_cost: money(2000, 0),
   difficulty: pick(DIFFICULTY, 'easy'),
   materials: strList(15, 80),
   preparation_steps: strList(8, 160),
@@ -195,12 +196,13 @@ export function activitySummary(rows: ActivityLike[]) {
 
 export const formatMinutes = (m: number) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`)
 export const ageRange = (min: number | null, max: number | null) => (min != null && max != null ? (min === max ? `Age ${min}` : `Ages ${min}–${max}`) : min != null ? `Ages ${min}+` : null)
-export const costRange = (n: number | string | null) => {
+/** An estimate as a range in the party's currency: "~$5", "$85–115", "₹850–1,150". */
+export const costRange = (n: number | string | null, country?: string | null) => {
   const v = Number(n ?? 0)
   if (!v) return 'Free'
-  if (v < 10) return `~$${Math.round(v)}`
+  if (v < 10) return `~${formatMoney(Math.round(v), country)}`
   const lo = Math.max(1, Math.round(v * 0.85)), hi = Math.round(v * 1.15)
-  return `$${lo}–${hi}`
+  return `${formatMoney(lo, country)}–${formatCount(hi, country)}`
 }
 
 /** The party details AI results are built on, computed the same way as the server (lib/ai/context.ts). */

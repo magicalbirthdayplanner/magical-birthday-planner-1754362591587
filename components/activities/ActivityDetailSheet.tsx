@@ -18,6 +18,7 @@ import { costRange, guestDrift, parseSupply, type ActivityEdit } from '@/lib/exp
 import { fromDetail, fromRow } from '@/lib/experience/view'
 import { act, applySuggestion } from '@/components/experience/apply'
 import { ActivitySections } from './ActivitySections'
+import { usePartyCountry } from '@/components/app/useCountry'
 
 const MAKE_IT: [ActivityEdit, string][] = [['cheaper', 'Make it cheaper'], ['exciting', 'More exciting'], ['easier', 'Make it easier'], ['shorter', 'Shorter'], ['longer', 'Longer'], ['indoor', 'Make it indoor'], ['outdoor', 'Make it outdoor'], ['less_messy', 'Less messy'], ['younger', 'For younger kids'], ['older', 'For older kids']]
 const DISCOVER_CHIP: Record<string, string> = { craft: 'art', performance: 'art', active: 'sports', game: 'play', treasure_hunt: 'play', calm: 'museums', food: 'vendors', other: 'recommended' }
@@ -37,6 +38,7 @@ export function ActivityDetailSheet({ partyId, partyDate, activity, experience, 
   onIntro?: (a: Activity) => void
   onUsed: () => void
 }) {
+  const country = usePartyCountry()
   const gen = useAIGenerate<ActivityStudioResult>('/api/ai/activity')
   const [ask, setAsk] = useState('')
   const [confirmRemove, setConfirmRemove] = useState(false)
@@ -127,7 +129,7 @@ export function ActivityDetailSheet({ partyId, partyDate, activity, experience, 
             />
 
             <Card className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
-              <span className="min-w-0"><span className="block font-semibold">Estimated cost: {costRange(a.estimated_cost)}</span><span className="block text-xs text-muted-foreground">Adds a planned estimate to your budget. Actual spending stays yours to enter.</span></span>
+              <span className="min-w-0"><span className="block font-semibold">Estimated cost: {costRange(a.estimated_cost, country)}</span><span className="block text-xs text-muted-foreground">Adds a planned estimate to your budget. Actual spending stays yours to enter.</span></span>
               <AppButton size="sm" variant={inBudget ? 'ghost' : 'secondary'} className="min-h-[44px]" onClick={() => act(partyId, () => addCostToBudget(a), (r) => (r === 'updated' ? 'Budget estimate updated.' : 'Added to your budget.'))}>
                 <PiggyBank className="h-4 w-4" /> {inBudget ? 'Update estimate' : 'Add to budget'}
               </AppButton>

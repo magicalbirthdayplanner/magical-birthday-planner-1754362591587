@@ -35,7 +35,7 @@ import { postProcessBudget } from '@/lib/ai/features/budget'
 
 const live = process.env.AI_LIVE === '1' && !!process.env.AI_API_KEY
 const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: 'opencode' } as NodeJS.ProcessEnv)
-const base: PartyAIContext = { childAge: 7, childInterests: ['art', 'animals'], partyDate: null, daysUntilParty: 30, city: 'Troy', state: 'MI', guestCountEstimate: 12, budget: 250, venue: null, theme: null, durationMinutes: 120, indoorOutdoor: 'indoor', foodPreferences: [], existingActivities: [], existingChecklist: [], currentBudgetLines: [], existingShoppingItems: [], rsvp: null, partyStartTime: null, activityPlan: [], timeline: [], menu: [], savedVenueCount: 0, plan: 'PLUS' }
+const base: PartyAIContext = { childAge: 7, childInterests: ['art', 'animals'], partyDate: null, daysUntilParty: 30, city: 'Troy', state: 'MI', country: 'US', currency: 'USD', guestCountEstimate: 12, budget: 250, venue: null, theme: null, durationMinutes: 120, indoorOutdoor: 'indoor', foodPreferences: [], existingActivities: [], existingChecklist: [], currentBudgetLines: [], existingShoppingItems: [], rsvp: null, partyStartTime: null, activityPlan: [], timeline: [], menu: [], savedVenueCount: 0, plan: 'PLUS' }
 const usage: { name: string; ms: number; attempts: number; in: number | null; out: number | null }[] = []
 const plans: Record<string, PartyPlanResult> = {}
 

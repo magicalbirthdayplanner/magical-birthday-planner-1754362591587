@@ -16,6 +16,8 @@ import { siteUrl } from '@/lib/site-url'
 import { generateInvitationEmail } from '@/lib/email-templates/invitation'
 import { generateRSVPConfirmationEmail } from '@/lib/email-templates/rsvp-confirmation'
 import { getSupabaseAdmin, hasServiceRole } from './supabase-admin'
+import { countryConfig } from '@/lib/country/countries'
+import { formatPartyDate } from '@/lib/country/format'
 
 export const emailConfigured = () => !!process.env.RESEND_API_KEY
 
@@ -133,6 +135,8 @@ export async function emailsSentSince(filter: { userId?: string; partyId?: strin
 // ------------------------------------------------------------------ shared formatting
 export interface PartyFacts {
   partyId: string
+  /** Event country: dates/times in emails are written the way that country writes them (default US). */
+  country?: string | null
   childName: string
   childAge: number | null
   partyDate: string
@@ -146,14 +150,15 @@ export interface PartyFacts {
   token: string
 }
 
-const fmtDate = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
-const fmtTime = (t: string | null) => {
+const fmtDate = (d: string, country?: string | null) => formatPartyDate(d, country, 'full')
+const fmtTime = (t: string | null, country?: string | null) => {
   if (!t) return ''
   const [h, m] = t.split(':').map(Number)
   const am = h < 12
-  return `${((h + 11) % 12) + 1}${m ? `:${String(m).padStart(2, '0')}` : ''} ${am ? 'AM' : 'PM'}`
+  const suffix = countryConfig(country).code === 'IN' ? (am ? 'am' : 'pm') : am ? 'AM' : 'PM'
+  return `${((h + 11) % 12) + 1}${m ? `:${String(m).padStart(2, '0')}` : ''} ${suffix}`
 }
-const timeRange = (p: PartyFacts) => [fmtTime(p.startTime), fmtTime(p.endTime)].filter(Boolean).join(' – ') || 'Time to be confirmed'
+const timeRange = (p: PartyFacts) => [fmtTime(p.startTime, p.country), fmtTime(p.endTime, p.country)].filter(Boolean).join(' – ') || 'Time to be confirmed'
 const first = (name: string) => name.trim().split(/\s+/)[0] || name
 
 export const inviteLink = (token: string) => `${appBaseUrl()}/invite/${token}`
@@ -166,7 +171,7 @@ export async function sendInvitationEmail(p: PartyFacts, guest: { id: string; na
     childName: escapeHtml(first(p.childName)),
     childAge: p.childAge ?? 0,
     partyTheme: escapeHtml(p.theme || 'party'),
-    partyDate: escapeHtml(fmtDate(p.partyDate)),
+    partyDate: escapeHtml(fmtDate(p.partyDate, p.country)),
     partyTime: escapeHtml(timeRange(p)),
     partyLocation: escapeHtml(p.locationText || 'Location to be confirmed'),
     rsvpUrl: escapeHtml(inviteLink(p.token)),
@@ -190,7 +195,7 @@ export async function sendRsvpConfirmation(p: PartyFacts, rsvp: { name: string; 
   const { html, text } = generateRSVPConfirmationEmail({
     guestName: escapeHtml(rsvp.name),
     childName: escapeHtml(first(p.childName)),
-    partyDate: escapeHtml(fmtDate(p.partyDate)),
+    partyDate: escapeHtml(fmtDate(p.partyDate, p.country)),
     partyTime: escapeHtml(timeRange(p)),
     partyLocation: escapeHtml(p.locationText || 'Location to be confirmed'),
     rsvpStatus: rsvp.status === 'CONFIRMED' ? 'accepted' : rsvp.status === 'DECLINED' ? 'declined' : 'maybe',
@@ -239,13 +244,14 @@ ${rsvp.note ? `<p style="font-size:15px;background:#fff;border-radius:12px;paddi
 export async function partyFactsByToken(token: string): Promise<(PartyFacts & { hostUserId: string }) | null> {
   const { data } = await getSupabaseAdmin()
     .from('party_invitations')
-    .select('token, headline, message, host_name, location_text, start_time, end_time, is_active, parties!inner(id, user_id, child_name, child_age, party_date, theme)')
+    .select('token, headline, message, host_name, location_text, start_time, end_time, is_active, parties!inner(id, user_id, child_name, child_age, party_date, theme, country_code)')
     .eq('token', token)
     .maybeSingle()
   if (!data || !data.is_active) return null
-  const party = (data as unknown as { parties: { id: string; user_id: string; child_name: string; child_age: number; party_date: string; theme: string | null } }).parties
+  const party = (data as unknown as { parties: { id: string; user_id: string; child_name: string; child_age: number; party_date: string; theme: string | null; country_code: string | null } }).parties
   return {
     partyId: party.id,
+    country: party.country_code,
     hostUserId: party.user_id,
     childName: party.child_name,
     childAge: party.child_age,

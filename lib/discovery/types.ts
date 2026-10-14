@@ -1,5 +1,6 @@
 import type { LatLng } from '@/lib/geo/distance'
 import type { InterestId, Setting } from './taxonomy'
+import type { CountryCode } from '@/lib/country/countries'
 
 /** Party facts that drive discovery. Built from a `parties` row. */
 export interface PartyContext {
@@ -13,6 +14,8 @@ export interface PartyContext {
   zip: string
   center: LatLng
   radiusMiles: number
+  /** Event country (parties.country_code). Absent = United States. */
+  country?: CountryCode
 }
 
 export interface PhotoAttribution {
@@ -42,6 +45,8 @@ export interface Venue {
   city: string | null
   state: string | null
   postalCode: string | null
+  /** ISO country of the place (from Google address components); optional for venues stored before 2026-10-14. */
+  country?: string | null
   lat: number
   lng: number
   rating: number | null

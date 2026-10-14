@@ -10,6 +10,7 @@ import { cleanText } from './safety'
 import type { ApplyTarget } from './types'
 import { activityColumns, ActivityDetailSchema, TIMELINE_KINDS, type TimelineKind } from '@/lib/experience/model'
 import { FOOD_CATEGORIES } from './schemas/food'
+import { formatMoney } from '@/lib/country/format'
 
 type DB = SupabaseClient<Database>
 export type ApplyOutcome =
@@ -30,7 +31,7 @@ export const ApplyBody = z.object({
     .object({
       title: z.string().trim().min(1).max(200).optional(),
       notes: z.string().trim().max(500).optional(),
-      amount: z.number().min(0).max(100000).optional(),
+      amount: z.number().min(0).max(10_000_000).optional(), // party currency
       qty: z.string().trim().max(40).optional(),
       /** host content: the parent's edited text */
       body: z.string().trim().min(1).max(4000).optional(),
@@ -209,6 +210,8 @@ export async function applyItem(db: DB, userId: string, req: ApplyRequest): Prom
     const amount = e.amount ?? n(item.newAmount ?? item.amount)
     if (!category || amount == null) return { status: 'error', code: 'invalid_input', message: 'That budget line needs a category and an amount.' }
     const label = item.label ? s(item.label, 120) : null
+    const { data: partyRow } = await db.from('parties').select('country_code').eq('id', partyId).maybeSingle()
+    const country = partyRow?.country_code ?? 'US'
     const { data: existing } = await db.from('party_budget_lines').select('id, category, label, amount').eq('party_id', partyId)
     const match = (existing ?? []).find((x) => x.category.toLowerCase() === category.toLowerCase() && (x.label ?? '').toLowerCase() === (label ?? '').toLowerCase())
     if (match) {
@@ -217,7 +220,7 @@ export async function applyItem(db: DB, userId: string, req: ApplyRequest): Prom
       if (error) return { status: 'error', code: 'provider_error', message: 'We couldn’t update your budget. Please try again.' }
       rowId = match.id
       undo = { previousAmount: Number(match.amount) }
-      message = `Budget updated: ${category} $${amount}.`
+      message = `Budget updated: ${category} ${formatMoney(amount, country)}.`
     } else {
       const { data, error } = await db.from('party_budget_lines').insert({ party_id: partyId, user_id: userId, category, label, amount, source_generation_id: gen.id, source_item_id: req.itemId }).select('id').single()
       if (isUnique(error)) return { status: 'duplicate', message: 'Your budget already has that line.' }

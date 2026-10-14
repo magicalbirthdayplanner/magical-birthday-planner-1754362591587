@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { ChevronRight, ClipboardCheck, MapPin, Send } from 'lucide-react'
 import { Card, Section } from '@/components/app/ui'
 import type { PartyPlanResult } from '@/lib/ai/schemas/partyPlanner'
+import { useMoney } from '@/components/app/useCountry'
 
 export type ItemAction = (target: 'activities' | 'shopping_list' | 'theme' | 'budget' | 'checklist', itemId: string, label: string) => ReactNode
 export type BulkAction = (target: 'activities' | 'shopping_list' | 'budget', itemIds: string[], label: string) => ReactNode
@@ -19,9 +20,10 @@ const NEXT_STEPS = [
   { href: '/plan/checklist', icon: ClipboardCheck, label: 'Open your checklist', sub: 'Tasks with dates, ready to tick off' },
 ]
 
-const money = (n: number) => (n === 0 ? 'Free' : `$${n % 1 === 0 ? n : n.toFixed(2)}`)
 
 export function PlanResultView({ plan, action, bulk, nextSteps = false }: { plan: PartyPlanResult; action?: ItemAction; bulk?: BulkAction; nextSteps?: boolean }) {
+  const fmt = useMoney()
+  const money = (n: number) => (n === 0 ? 'Free' : fmt(n))
   return (
     <div className="space-y-1 pb-4" aria-live="polite">
       <div className="rounded-3xl bg-secondary p-5">

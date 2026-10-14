@@ -5,10 +5,10 @@ import { apiFetch } from '@/lib/data/api'
 import { track } from '@/lib/analytics/client'
 
 type State = { phase: 'checking' | 'active' | 'pending' | 'failed'; plan?: string; childName?: string | null }
-type Status = { plan: string; purchases: { status: string; plan: string }[]; checkout: { plan: string; status: string; childName: string | null } | null }
+type Status = { plan: string; purchases: { status: string; plan: string }[]; checkout: { plan: string; status: string; childName: string | null; currency?: string | null; amountMinor?: number | null } | null }
 
 /**
- * Shows the SERVER's view of the purchase after returning from Dodo. The plan is
+ * Shows the SERVER's view of the purchase after returning from Dodo (or Razorpay Checkout). The plan is
  * only ever activated by the verified webhook; this just polls for it. With the checkout
  * reference it reports THAT purchase and the party it was for (plans are bought per party).
  */
@@ -25,7 +25,7 @@ export function CheckoutStatus({ providerStatus, checkoutRef }: { providerStatus
         const s = await apiFetch<Status>(`/api/billing/status${checkoutRef ? `?checkout=${encodeURIComponent(checkoutRef)}` : ''}`)
         if (s.checkout) {
           if (s.checkout.status === 'completed') {
-            if (!stopped) track('purchase_completed', { plan: s.checkout.plan })
+            if (!stopped) track('purchase_completed', { plan: s.checkout.plan, ...(s.checkout.currency && s.checkout.currency !== 'USD' ? { currency: s.checkout.currency, amount_minor: s.checkout.amountMinor ?? undefined } : {}) })
             return !stopped && setState({ phase: 'active', plan: s.checkout.plan, childName: s.checkout.childName })
           }
           if (s.checkout.status === 'failed') return !stopped && setState({ phase: 'failed' })

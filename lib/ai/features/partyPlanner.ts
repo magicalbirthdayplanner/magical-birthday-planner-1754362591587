@@ -5,6 +5,7 @@ import { BaseBody, itemId, type FeatureSpec } from '../handler'
 import type { PartyAIContext } from '../context'
 import { partyPlannerPrompt, type PlannerOverrides } from '../prompts/partyPlanner'
 import { PartyPlanAIResultSchema, type PartyPlanModelOutput, type PartyPlanResult } from '../schemas/partyPlanner'
+import { formatMoney } from '@/lib/country/format'
 
 export const PlannerBody = BaseBody.extend({
   overrides: z
@@ -12,7 +13,7 @@ export const PlannerBody = BaseBody.extend({
       childAge: z.number().int().min(0).max(14).optional(),
       interests: z.array(z.string().trim().min(1).max(30)).max(8).optional(),
       guestCount: z.number().int().min(1).max(200).optional(),
-      budget: z.number().min(0).max(100000).optional(),
+      budget: z.number().min(0).max(10_000_000).optional(), // party currency (₹ budgets run into lakhs)
       city: z.string().trim().max(60).optional(),
       date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
       setting: z.enum(['indoor', 'outdoor', 'either']).optional(),
@@ -27,12 +28,12 @@ const round2 = (n: number) => Math.round(n * 100) / 100
 export const clock = (minute: number) => `${Math.floor(minute / 60)}:${String(minute % 60).padStart(2, '0')}`
 
 /** Never trust model arithmetic, ids or times. Pure; unit-tested. */
-export function postProcessPlan(out: PartyPlanModelOutput, opts: { budget: number | null; durationMinutes: number; scrubbed: boolean }): PartyPlanResult {
+export function postProcessPlan(out: PartyPlanModelOutput, opts: { budget: number | null; durationMinutes: number; scrubbed: boolean; country?: string | null }): PartyPlanResult {
   const lines = out.budget.lines.map((l, i) => ({ ...l, amount: round2(l.amount), id: itemId('bud', i) }))
   const total = round2(lines.reduce((s, l) => s + l.amount, 0))
   const assumptions = [...out.assumptions]
   const overBy = opts.budget != null && total > opts.budget ? round2(total - opts.budget) : null
-  if (overBy != null) assumptions.push(`These estimates come to about $${total}, which is $${overBy} over your $${opts.budget} budget — trim the largest lines first.`)
+  if (overBy != null) assumptions.push(`These estimates come to about ${formatMoney(total, opts.country)}, which is ${formatMoney(overBy, opts.country)} over your ${formatMoney(opts.budget!, opts.country)} budget — trim the largest lines first.`)
   if (opts.scrubbed) assumptions.push('Some character or brand names were replaced with generic ideas.')
   const seen = new Set<number>()
   const timeline = [...out.timeline]
@@ -58,6 +59,6 @@ export const partyPlannerSpec: FeatureSpec<typeof PlannerBody, PartyPlanResult> 
   long: true, // ~1,500–2,300 output tokens; provider speed varies 55–100 tokens/s
   prompt: ({ body, ctx, notes }) => partyPlannerPrompt(ctx, body.overrides as PlannerOverrides, notes),
   post: ({ result, body, ctx, scrubbed }) =>
-    postProcessPlan(result as unknown as PartyPlanModelOutput, { budget: body.overrides.budget ?? ctx.budget, durationMinutes: ctx.durationMinutes, scrubbed }),
+    postProcessPlan(result as unknown as PartyPlanModelOutput, { budget: body.overrides.budget ?? ctx.budget, durationMinutes: ctx.durationMinutes, scrubbed, country: ctx.country }),
   summary: (body, ctx: PartyAIContext) => ({ childAge: body.overrides.childAge ?? ctx.childAge, guestCount: body.overrides.guestCount ?? ctx.guestCountEstimate, budget: body.overrides.budget ?? ctx.budget, daysUntilParty: ctx.daysUntilParty, overrides: Object.keys(body.overrides) }),
 }

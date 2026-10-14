@@ -1,5 +1,7 @@
 import { db, type Tables } from '@/lib/db/browser'
 import { reportDbError } from '@/lib/observability/telemetry'
+import { normalizePhone, samePhone } from '@/lib/country/phone'
+import type { CountryCode } from '@/lib/country/countries'
 
 export type Guest = Tables<'guests'>
 export type RsvpStatus = 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'MAYBE'
@@ -22,12 +24,32 @@ export async function listGuests(partyId: string): Promise<Guest[]> {
   return (data ?? []) as Guest[]
 }
 
-export function validateGuest(input: GuestInput): string | null {
+/**
+ * Validates a guest form. With `opts`, the phone number is checked for the party's country and against the party's
+ * other guests (one phone number = one guest). Phone numbers are optional and never required for an invitation.
+ */
+export function validateGuest(input: GuestInput, opts?: { country?: CountryCode; existing?: Pick<Guest, 'id' | 'name' | 'phone'>[]; selfId?: string }): string | null {
   const name = input.name.trim()
   if (!name) return 'Please add a name.'
   if (name.length > 80) return 'That name is a little long.'
   if (input.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(input.email.trim())) return 'That email doesn’t look right.'
+  const phone = input.phone?.trim()
+  if (phone && opts) {
+    const country = opts.country ?? 'US'
+    const r = normalizePhone(phone, country)
+    if (!r.ok) return r.error
+    const dup = opts.existing?.find((g) => g.id !== opts.selfId && samePhone(g.phone, r.e164, country))
+    if (dup) return `${dup.name} already has this phone number on your guest list.`
+  }
   return null
+}
+
+/** The stored form of a guest phone (E.164) for the party's country; null when empty or not a valid number. */
+export function guestPhone(input: string | null | undefined, country: CountryCode): string | null {
+  const t = input?.trim()
+  if (!t) return null
+  const r = normalizePhone(t, country)
+  return r.ok ? r.e164 : null
 }
 
 export async function addGuest(partyId: string, userId: string, input: GuestInput): Promise<Guest> {

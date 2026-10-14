@@ -16,6 +16,7 @@ import useSWR from 'swr'
 import { apiFetch } from '@/lib/data/api'
 import { cn } from '@/lib/utils'
 import { AccountSettings } from './AccountSettings'
+import { formatDateWith } from '@/lib/country/format'
 
 function LinkRow({ href, icon: Icon, label, external }: { href: string; icon: typeof Settings; label: string; external?: boolean }) {
   return (
@@ -106,7 +107,7 @@ export function MoreScreen() {
                   <span className={cn('flex h-10 w-10 items-center justify-center rounded-full text-lg', active ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>{active ? <Check className="h-5 w-5" /> : '🎂'}</span>
                   <span className="min-w-0">
                     <span className="block truncate font-semibold">{p.child_name} turns {p.child_age}</span>
-                    <span className="block text-sm text-muted-foreground">{new Date(`${p.party_date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span className="block text-sm text-muted-foreground">{formatDateWith(p.party_date, p.country_code, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </span>
                 </button>
                 <button type="button" aria-label={`Delete ${p.child_name}’s party`} onClick={() => setConfirmDelete(p.id)} className="tap flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground active:bg-muted">
@@ -147,7 +148,7 @@ export function MoreScreen() {
           <LinkRow href="/privacy" icon={Shield} label="Privacy" />
           <LinkRow href="/terms" icon={FileText} label="Terms" />
         </Card>
-        <p className="mt-3 px-1 text-xs text-muted-foreground">Place data © Google Maps. ZIP code data © GeoNames (CC BY 4.0).</p>
+        <p className="mt-3 px-1 text-xs text-muted-foreground">Place data © Google Maps. ZIP and PIN code data © GeoNames (CC BY 4.0).</p>
       </Section>
 
       <Section>

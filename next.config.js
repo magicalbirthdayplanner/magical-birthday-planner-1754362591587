@@ -4,7 +4,8 @@ const { withSentryConfig } = require('@sentry/nextjs/config')
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), payment=()' },
+  // Payment Request is allowed only for our own pages and Razorpay Checkout's frames (India); nothing else.
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), payment=(self "https://checkout.razorpay.com" "https://api.razorpay.com")' },
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   // Never framed (clickjacking on login/checkout); no plugins or <base> hijacking.
   { key: 'X-Frame-Options', value: 'DENY' },

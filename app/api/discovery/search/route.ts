@@ -4,12 +4,12 @@ import { z } from 'zod'
 import { getAuthedRequest } from '@/lib/server/auth'
 import { apiError } from '@/lib/server/http'
 import { rateLimit } from '@/lib/server/rate-limit'
-import { resolveZip } from '@/lib/geo/zip'
 import { isValidLatLng } from '@/lib/geo/distance'
 import { snapRadius } from '@/lib/discovery/config'
 import { partyContextFromRow } from '@/lib/discovery/party-context'
 import { DiscoveryUnavailableError, discoverVenues } from '@/lib/discovery/service'
-import { discoveryDeps, zipGeocoder } from '@/lib/discovery/server-deps'
+import { discoveryDeps, resolvePostal } from '@/lib/discovery/server-deps'
+import { countryConfig } from '@/lib/country/countries'
 import { toClientVenue } from '@/lib/discovery/client-venue'
 import { getCategory } from '@/lib/discovery/taxonomy'
 import { trackServer } from '@/lib/analytics/server'
@@ -36,7 +36,8 @@ const MESSAGES: Record<string, [number, string]> = {
 
 /**
  * POST /api/discovery/search { partyId, radiusMiles?, categories?, refresh? }
- * Resolves the party's ZIP (once), then runs cache-first discovery for that party.
+ * Resolves the party's postal code (once: US ZIP or Indian PIN), then runs cache-first discovery for that party in
+ * its event country (local phrasing, Places regionCode).
  */
 export async function POST(req: Request) {
   const auth = await getAuthedRequest(req)
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
   // RLS: this only returns the party if it belongs to the caller.
   const { data: party, error } = await auth.supabase
     .from('parties')
-    .select('id, child_name, child_age, guest_count, budget, interests, venue_type, zip_code, latitude, longitude, city, state, search_radius_miles')
+    .select('id, child_name, child_age, guest_count, budget, interests, venue_type, zip_code, latitude, longitude, city, state, search_radius_miles, country_code')
     .eq('id', body.partyId)
     .maybeSingle()
   if (error) {
@@ -70,15 +71,16 @@ export async function POST(req: Request) {
   let center = { lat: party.latitude as number, lng: party.longitude as number }
   let city = party.city
   let state = party.state
+  const country = countryConfig(party.country_code).code
   if (!isValidLatLng(center)) {
-    const loc = await resolveZip(party.zip_code, zipGeocoder(auth.user.id))
-    if (!loc) return apiError(422, 'invalid_zip', `We couldn't find ZIP ${party.zip_code ?? ''}. Update it in your party details.`)
+    const loc = await resolvePostal(country, party.zip_code, auth.user.id)
+    if (!loc) return apiError(422, 'invalid_zip', `We couldn't find ${countryConfig(country).postal.shortLabel} ${party.zip_code ?? ''}. Update it in your party details.`)
     center = { lat: loc.lat, lng: loc.lng }
     city = loc.city
     state = loc.state
     await auth.supabase
       .from('parties')
-      .update({ latitude: loc.lat, longitude: loc.lng, city: loc.city, state: loc.state, zip_code: loc.zip })
+      .update({ latitude: loc.lat, longitude: loc.lng, city: loc.city, state: loc.state, zip_code: loc.postalCode })
       .eq('id', party.id)
   }
 
@@ -103,11 +105,12 @@ export async function POST(req: Request) {
         degraded: result.meta.degraded,
         radiusMiles,
         vendors: !!categoryIds?.length,
+        country,
       },
       { userId: auth.user.id, partyId: party.id, path: '/api/discovery/search' },
     )
     return NextResponse.json({
-      location: { zip: ctx.zip, city, state, lat: center.lat, lng: center.lng, radiusMiles },
+      location: { zip: ctx.zip, city, state, lat: center.lat, lng: center.lng, radiusMiles, country },
       total: result.total,
       venues: result.venues.map((v) => toClientVenue(v)),
       meta: {
@@ -120,7 +123,7 @@ export async function POST(req: Request) {
     })
   } catch (err) {
     const kind = err instanceof DiscoveryUnavailableError ? err.kind : 'google_unavailable'
-    trackServer('venue_search_failed', { kind }, { userId: auth.user.id, partyId: party.id })
+    trackServer('venue_search_failed', { kind, country }, { userId: auth.user.id, partyId: party.id })
     if (!(err instanceof DiscoveryUnavailableError)) {
       console.error('discovery failed', err)
       reportError(err, { area: 'api', op: 'discovery_search' })

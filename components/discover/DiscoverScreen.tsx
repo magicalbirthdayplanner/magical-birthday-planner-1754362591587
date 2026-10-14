@@ -20,6 +20,7 @@ import { MapView } from './MapView'
 import { MapSheet, type SheetSnap } from './MapSheet'
 import { useSaveVenue } from './useSaveVenue'
 import { DiscoverWhyItFits } from '@/components/ai/DiscoverWhyItFits'
+import { formatRadius } from '@/lib/country/format'
 
 const VIEW_KEY = 'mbp.discoverView'
 const FILTERS_KEY = 'mbp.discoverFilters'
@@ -165,7 +166,7 @@ export function DiscoverScreen() {
   const place = loc ? [loc.city, loc.state].filter(Boolean).join(', ') || loc.zip : party?.zip_code
   const subtitle = (
     <button type="button" onClick={() => setFiltersOpen(true)} className="tap -my-2 -ml-1 inline-flex min-h-[44px] items-center rounded-md px-1 text-left underline-offset-4 hover:underline">
-      {party?.zip_code ?? '—'} • Within {radius} miles
+      {party?.zip_code ?? '—'} • Within {formatRadius(radius, party?.country_code)}
     </button>
   )
 
@@ -316,9 +317,9 @@ export function DiscoverScreen() {
               {discovery.data && discovery.data.total === 0 ? (
                 <EmptyState
                   icon="🔭"
-                  title={`No places within ${radius} miles`}
+                  title={`No places within ${formatRadius(radius, party?.country_code)}`}
                   body="Try a wider search radius — we’ll look further out."
-                  action={radius < 50 ? <AppButton block onClick={() => applyFilterSheet(filters, Math.min(50, radius >= 30 ? 50 : radius * 2))}>Search {Math.min(50, radius >= 30 ? 50 : radius * 2)} miles</AppButton> : undefined}
+                  action={radius < 50 ? <AppButton block onClick={() => applyFilterSheet(filters, Math.min(50, radius >= 30 ? 50 : radius * 2))}>Search {formatRadius(Math.min(50, radius >= 30 ? 50 : radius * 2), party?.country_code)}</AppButton> : undefined}
                 />
               ) : results.length === 0 ? (
                 <EmptyState

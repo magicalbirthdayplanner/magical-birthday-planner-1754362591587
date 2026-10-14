@@ -229,4 +229,5 @@ export function Stars({ rating, count }: { rating: number | null; count?: number
   )
 }
 
-export const priceLabel = (level: number | null) => (level == null ? null : level === 0 ? 'Free' : '$'.repeat(level))
+/** Google price level as symbols in the party's currency ($$ / ₹₹). */
+export const priceLabel = (level: number | null, symbol = '$') => (level == null ? null : level === 0 ? 'Free' : symbol.repeat(level))

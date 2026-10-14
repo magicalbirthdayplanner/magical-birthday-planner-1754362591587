@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { list, num, optStr, pick, str, strList } from './shared'
+import { list, money, num, optStr, pick, str, strList } from './shared'
 
 export const ActivityIdeaSchema = z.object({
   name: str(80),
   description: optStr(300),
   whyItFits: optStr(200),
   durationMin: num(5, 240, 20),
-  estimatedCost: num(0, 2000, 0),
+  estimatedCost: money(2000, 0),
   materials: strList(10, 60),
   setup: optStr(300),
   instructions: strList(8, 200),

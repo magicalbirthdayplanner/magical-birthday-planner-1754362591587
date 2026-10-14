@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { list, num, optStr, shoppingCategory, str, strList } from './shared'
+import { list, money, num, optStr, shoppingCategory, str, strList } from './shared'
 
 export const FOOD_CATEGORIES = ['main', 'snack', 'dessert', 'cake', 'drink', 'other'] as const
 const foodCategory = z.preprocess((v) => {
@@ -18,7 +18,7 @@ export const FoodItemSchema = z.object({
   category: foodCategory,
   quantity: num(0, 10000, 1),
   unit: optStr(30),
-  estimated_cost: num(0, 2000, 0),
+  estimated_cost: money(2000, 0),
   dietary_tags: strList(5, 30),
   notes: optStr(200),
 })
@@ -26,7 +26,7 @@ export type FoodItem = z.infer<typeof FoodItemSchema>
 
 export const FoodAISchema = z.object({
   items: list(FoodItemSchema, 14),
-  shoppingList: list(z.object({ item: str(80), qty: optStr(30), category: shoppingCategory, estimatedCost: num(0, 1000, 0) }), 25),
+  shoppingList: list(z.object({ item: str(80), qty: optStr(30), category: shoppingCategory, estimatedCost: money(1000, 0) }), 25),
   prepTimeline: list(z.object({ when: str(40), task: str(140) }), 8),
   tips: strList(4, 200),
 }).refine((f) => f.items.length >= 3, { message: 'the menu needs at least 3 dishes or drinks' })

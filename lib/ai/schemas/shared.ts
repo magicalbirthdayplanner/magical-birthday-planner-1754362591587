@@ -4,14 +4,37 @@
  */
 import { z } from 'zod'
 
+const toNumber = (v: unknown) => {
+  if (typeof v === 'string') {
+    const m = v.replace(/^\s*(?:rs\.?|inr|usd)\s*/i, '').replace(/[$₹,\s]/g, '').match(/^-?\d+(\.\d+)?/)
+    return m ? Number(m[0]) : v
+  }
+  return v
+}
+
 export const num = (min: number, max: number, fallback?: number) =>
   z.preprocess((v) => {
-    if (typeof v === 'string') {
-      const m = v.replace(/[$,\s]/g, '').match(/^-?\d+(\.\d+)?/)
-      v = m ? Number(m[0]) : v
-    }
+    v = toNumber(v)
     if (v == null && fallback != null) return fallback
     return typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : v
+  }, z.number())
+
+/**
+ * How much larger money amounts may be in the current request's currency than in US dollars (INR ≈ 100×). The AI
+ * handler sets it per request (lib/ai/money-scale.ts); everywhere else it is 1, i.e. today's US limits.
+ */
+let moneyScale: () => number = () => 1
+export function setMoneyScaleProvider(fn: () => number) {
+  moneyScale = fn
+}
+
+/** A money amount: like num(0, maxUsd) with the cap scaled to the party's currency at parse time. */
+export const money = (maxUsd: number, fallback?: number) =>
+  z.preprocess((v) => {
+    v = toNumber(v)
+    if (v == null && fallback != null) return fallback
+    const max = maxUsd * Math.max(1, moneyScale())
+    return typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : v
   }, z.number())
 
 export const str = (max: number, min = 1) => z.preprocess((v) => (typeof v === 'number' ? String(v) : v), z.string().trim().min(min).transform((s) => s.slice(0, max)))

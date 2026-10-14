@@ -16,7 +16,8 @@ import type { DiscoveryConfig } from './config'
 import { planQueries } from './query-plan'
 import { rankVenue, rankVenues } from './ranking'
 import { mergeVenue, type DiscoveryStore } from './store'
-import { getCategory, type DiscoveryCategory } from './taxonomy'
+import { getCategory, queryFor, type DiscoveryCategory } from './taxonomy'
+import { countryConfig, type CountryCode } from '@/lib/country/countries'
 import type { DiscoveryMeta, DiscoveryResult, PartyContext, RankedVenue, Venue } from './types'
 import type { LatLng } from '@/lib/geo/distance'
 
@@ -26,7 +27,8 @@ export interface VenueSource {
   id: 'google'
   /** Categories this source can search honestly; the query plan skips the rest. */
   supports(categoryId: string): boolean
-  search(category: DiscoveryCategory, center: LatLng, radiusMeters: number, now: Date): Promise<Venue[]>
+  /** `country` = the party's event country (local phrasing + region); absent = United States. */
+  search(category: DiscoveryCategory, center: LatLng, radiusMeters: number, now: Date, country?: CountryCode): Promise<Venue[]>
   /** Fresh details for a place discovery already surfaced; null when the provider has nothing. */
   details(placeId: string, known: Venue | null, now: Date): Promise<Venue | null>
 }
@@ -36,8 +38,8 @@ export function googleSource(places: PlacesApi): VenueSource {
   return {
     id: 'google',
     supports: () => true,
-    async search(category, center, radiusMeters, now) {
-      const raw = await places.searchText({ textQuery: category.query, center, radiusMeters, pageSize: 20 })
+    async search(category, center, radiusMeters, now, country) {
+      const raw = await places.searchText({ textQuery: queryFor(category, country), center, radiusMeters, pageSize: 20, regionCode: countryConfig(country).maps.regionCode })
       return raw.map((p) => normalizePlace(p, [category.id], now)).filter((v): v is Venue => !!v)
     },
     async details(placeId, known, now) {
@@ -73,8 +75,11 @@ export class DiscoveryUnavailableError extends Error {
 }
 
 /** Cache key: query + location rounded to ~1 km + radius. Version/provider-prefixed for safe invalidation. */
-export function searchCacheKey(categoryId: string, ctx: Pick<PartyContext, 'center' | 'radiusMiles'>, sourceId: VenueSource['id'] = 'google'): string {
-  const raw = ['v1', categoryId, ctx.center.lat.toFixed(2), ctx.center.lng.toFixed(2), Math.round(ctx.radiusMiles)].join('|')
+export function searchCacheKey(categoryId: string, ctx: Pick<PartyContext, 'center' | 'radiusMiles' | 'country'>, sourceId: VenueSource['id'] = 'google'): string {
+  const parts: (string | number)[] = ['v1', categoryId, ctx.center.lat.toFixed(2), ctx.center.lng.toFixed(2), Math.round(ctx.radiusMiles)]
+  // Other countries search with their own phrasing/region: keyed separately (US keys are unchanged).
+  if (ctx.country && ctx.country !== 'US') parts.push(ctx.country)
+  const raw = parts.join('|')
   return createHash('sha256').update(raw).digest('hex').slice(0, 40)
 }
 
@@ -151,7 +156,7 @@ export async function discoverVenues(ctx: PartyContext, deps: DiscoveryDeps, opt
         if (deps.budget && !deps.budget.allow(1)) throw new PlacesError('quota', 'Local place-search call budget exhausted')
         meta.apiCalls++
         const fetchedAt = now()
-        const found = await source.search(category, ctx.center, radiusMeters, fetchedAt)
+        const found = await source.search(category, ctx.center, radiusMeters, fetchedAt, ctx.country)
         // Providers can return the same place twice in one response: dedupe before storing.
         const unique = new Map<string, Venue>()
         for (const v of found) if (!unique.has(v.placeId)) unique.set(v.placeId, v)

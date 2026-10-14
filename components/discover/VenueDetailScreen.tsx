@@ -10,7 +10,6 @@ import { useChosenVenue, useVenueDetails } from '@/lib/data/hooks'
 import { chooseVenue, clearChosenVenue } from '@/lib/data/venues'
 import { completeTaskByKey } from '@/lib/data/checklist'
 import { ApiError, friendlyError } from '@/lib/data/api'
-import { formatMiles } from '@/lib/geo/distance'
 import { primaryCategory } from '@/lib/discovery/taxonomy'
 import { track } from '@/lib/analytics/client'
 import { cn } from '@/lib/utils'
@@ -18,6 +17,7 @@ import { isLegacyGeoapifyPlaceId } from '@/lib/discovery/legacy'
 import { VenuePhoto } from './VenuePhoto'
 import { useSaveVenue } from './useSaveVenue'
 import { useSWRConfig } from 'swr'
+import { currencySymbol, formatDistance } from '@/lib/country/format'
 
 function directionsUrl(v: { name: string; address: string | null; placeId: string; lat: number; lng: number }) {
   const q = new URLSearchParams({ api: '1', destination: v.address ?? `${v.lat},${v.lng}` })
@@ -110,8 +110,8 @@ export function VenueDetailScreen({ placeId }: { placeId: string }) {
 
   const saved = savedIds.has(venue.placeId)
   const cat = primaryCategory(venue.categories)
-  const distance = formatMiles(venue.distanceMiles)
-  const price = priceLabel(venue.priceLevel)
+  const distance = formatDistance(venue.distanceMiles, party?.country_code)
+  const price = priceLabel(venue.priceLevel, currencySymbol(party?.country_code))
   const today = new Date().getDay() // 0 = Sunday; Google lists Monday first
   // Google gives 7 Monday-first lines; OpenStreetMap hours are ranges ("Mon–Fri: …"), so no single "today" line.
   const todayHours = venue.openingHours?.weekdayDescriptions.length === 7 ? venue.openingHours.weekdayDescriptions[(today + 6) % 7] : undefined

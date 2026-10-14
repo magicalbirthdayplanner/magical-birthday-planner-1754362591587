@@ -7,29 +7,8 @@ import { TextField } from '@/components/app/fields'
 import { Logo } from '@/components/app/Logo'
 import { forgetRsvpRespondent, getPublicInvitation, lastRsvpName, submitRsvp, type PublicInvitation } from '@/lib/data/invitations'
 import { InvitationCard } from './InvitationCard'
-import { track } from '@/lib/analytics/client'
-
-function icsFor(inv: PublicInvitation): string {
-  const d = inv.party_date.replace(/-/g, '')
-  const t = (x: string | null, fallback: string) => (x ?? fallback).slice(0, 5).replace(':', '') + '00'
-  const esc = (s: string) => s.replace(/[\\;,]/g, (m) => `\\${m}`).replace(/\n/g, '\\n')
-  return [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Magical Birthday Planner//EN',
-    'BEGIN:VEVENT',
-    `UID:${d}-${Math.random().toString(36).slice(2)}@magical-birthday-planner.invalid`,
-    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
-    `DTSTART:${d}T${t(inv.start_time, '14:00')}`,
-    `DTEND:${d}T${t(inv.end_time, '16:00')}`,
-    `SUMMARY:${esc(inv.headline || `${inv.child_name}’s birthday party`)}`,
-    inv.location_text ? `LOCATION:${esc(inv.location_text)}` : '',
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ]
-    .filter(Boolean)
-    .join('\r\n')
-}
+import { setAnalyticsMarket, track } from '@/lib/analytics/client'
+import { icsFor } from '@/lib/invite/ics'
 
 function Counter({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
   return (
@@ -95,6 +74,8 @@ export function PublicInviteScreen({ token }: { token: string }) {
   if (!data) return <ErrorState title="Invitation not found" message="This link may have been turned off by the host. Ask them for a new one." />
 
   const first = data.child_name
+  // RSVP analytics count toward the event's market (a country code only).
+  setAnalyticsMarket(data.country_code ?? 'US')
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -126,7 +107,7 @@ export function PublicInviteScreen({ token }: { token: string }) {
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-magic px-4 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-[calc(env(safe-area-inset-top)+16px)]">
       <InvitationCard
-        inv={{ childName: data.child_name, childAge: data.child_age, partyDate: data.party_date, startTime: data.start_time, endTime: data.end_time, locationText: data.location_text, headline: data.headline, message: data.message, hostName: data.host_name, rsvpBy: data.rsvp_by, design: data.design }}
+        inv={{ country: data.country_code, childName: data.child_name, childAge: data.child_age, partyDate: data.party_date, startTime: data.start_time, endTime: data.end_time, locationText: data.location_text, headline: data.headline, message: data.message, hostName: data.host_name, rsvpBy: data.rsvp_by, design: data.design }}
       />
       <AppButton variant="outline" block className="mt-4" onClick={addToCalendar}>
         <CalendarPlus className="h-4 w-4" /> Add to calendar

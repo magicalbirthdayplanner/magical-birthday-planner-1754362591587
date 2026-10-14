@@ -22,6 +22,7 @@ type Sink = (e: QueuedEvent) => void
 const queue: QueuedEvent[] = []
 let timer: ReturnType<typeof setTimeout> | null = null
 let currentPartyId: string | null = null
+let currentMarket: string | null = null
 
 const sinks: Sink[] = [
   (e) => {
@@ -35,6 +36,23 @@ export function addAnalyticsSink(sink: Sink) {
 
 export function setAnalyticsParty(partyId: string | null) {
   currentPartyId = partyId
+}
+
+/**
+ * The market every event is attributed to: the active party's event country, else the visitor's chosen country
+ * (lib/country/preference.ts). Country codes only — never an address, PIN or anything from an IP lookup.
+ */
+export function setAnalyticsMarket(country: string | null) {
+  currentMarket = country
+}
+
+function market(): string | null {
+  if (currentMarket) return currentMarket
+  try {
+    return localStorage.getItem('mbp.country')
+  } catch {
+    return null
+  }
 }
 
 function ids() {
@@ -60,7 +78,7 @@ export function track(event: AnalyticsEvent, props: AnalyticsProps = {}) {
   const e: QueuedEvent = {
     event,
     // Campaign tags first: an event's own properties win on a name clash.
-    properties: sanitizeProps({ ...attributionProps(), ...props }),
+    properties: sanitizeProps({ ...attributionProps(), market: market() ?? undefined, ...props }),
     partyId: currentPartyId,
     path: window.location.pathname,
     ts: new Date().toISOString(),

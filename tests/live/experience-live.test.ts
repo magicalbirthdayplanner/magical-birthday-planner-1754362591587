@@ -19,7 +19,7 @@ import { ACTIVITY_EDITS } from '@/lib/experience/model'
 const live = process.env.AI_LIVE === '1' && !!process.env.AI_API_KEY
 const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: 'opencode' } as NodeJS.ProcessEnv)
 const space: PartyAIContext = {
-  childAge: 7, childInterests: ['science', 'art'], partyDate: null, daysUntilParty: 21, city: 'Troy', state: 'MI', guestCountEstimate: 15, budget: 200, venue: null, theme: 'Space',
+  childAge: 7, childInterests: ['science', 'art'], partyDate: null, daysUntilParty: 21, city: 'Troy', state: 'MI', country: 'US', currency: 'USD', guestCountEstimate: 15, budget: 200, venue: null, theme: 'Space',
   durationMinutes: 120, indoorOutdoor: 'indoor', foodPreferences: [], existingActivities: [], existingChecklist: [], currentBudgetLines: [], existingShoppingItems: [],
   rsvp: { kids: 12, adults: 3, awaiting: 0, dietary: ['vegetarian'] }, partyStartTime: '14:00', activityPlan: [], timeline: [], menu: [], savedVenueCount: 0, plan: 'PRO',
   invitation: { childFirstName: 'Mia', venueName: null, venueAddress: null, startTime: '14:00', endTime: '16:00' },

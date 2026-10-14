@@ -55,6 +55,7 @@ export function venueToRow(v: Venue): VenueInsert {
     city: v.city,
     state: v.state,
     zip_code: v.postalCode,
+    ...(v.country ? { country: v.country } : {}),
     latitude: v.lat,
     longitude: v.lng,
     rating: v.rating,

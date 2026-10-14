@@ -11,13 +11,14 @@ import { useChosenVenue } from '@/lib/data/hooks'
 import { chooseVenue, updateSavedVenueNotes, type SavedVenue } from '@/lib/data/venues'
 import { completeTaskByKey } from '@/lib/data/checklist'
 import { friendlyError } from '@/lib/data/api'
-import { formatMiles, haversineMiles } from '@/lib/geo/distance'
+import { haversineMiles } from '@/lib/geo/distance'
 import { primaryCategory } from '@/lib/discovery/taxonomy'
 import type { ClientVenue } from '@/lib/discovery/client-venue'
 import { track } from '@/lib/analytics/client'
 import { cn } from '@/lib/utils'
 import { VenuePhoto } from './VenuePhoto'
 import { useSaveVenue } from './useSaveVenue'
+import { currencySymbol, formatCount, formatDistance } from '@/lib/country/format'
 
 function NotesField({ item }: { item: SavedVenue }) {
   const [value, setValue] = useState(item.notes ?? '')
@@ -57,13 +58,13 @@ function NotesField({ item }: { item: SavedVenue }) {
   )
 }
 
-function CompareSheet({ open, onOpenChange, venues, center }: { open: boolean; onOpenChange: (o: boolean) => void; venues: ClientVenue[]; center: { lat: number; lng: number } | null }) {
+function CompareSheet({ open, onOpenChange, venues, center, country }: { open: boolean; onOpenChange: (o: boolean) => void; venues: ClientVenue[]; center: { lat: number; lng: number } | null; country?: string | null }) {
   const rows: [string, (v: ClientVenue) => React.ReactNode][] = [
     ['Type', (v) => primaryCategory(v.categories)?.label ?? '—'],
     ['Rating', (v) => (v.rating != null ? `★ ${v.rating.toFixed(1)}` : '—')],
-    ['Reviews', (v) => (v.reviewCount != null ? v.reviewCount.toLocaleString('en-US') : '—')],
-    ['Distance', (v) => (center ? formatMiles(haversineMiles(center, v)) : '—')],
-    ['Price', (v) => priceLabel(v.priceLevel) ?? 'Not listed'],
+    ['Reviews', (v) => (v.reviewCount != null ? formatCount(v.reviewCount, country) : '—')],
+    ['Distance', (v) => (center ? formatDistance(haversineMiles(center, v), country) : '—')],
+    ['Price', (v) => priceLabel(v.priceLevel, currencySymbol(country)) ?? 'Not listed'],
     ['Setting', (v) => (v.setting === 'indoor' ? 'Indoor' : v.setting === 'outdoor' ? 'Outdoor' : '—')],
     ['Phone', (v) => (v.phone ? <a className="text-primary" href={`tel:${v.phone}`}>{v.phone}</a> : '—')],
     ['Website', (v) => (v.website ? <a className="text-primary" href={v.website} target="_blank" rel="noopener noreferrer">Visit</a> : '—')],
@@ -194,7 +195,7 @@ export function SavedScreen() {
                       </Link>
                       <div className="mt-1 text-sm text-muted-foreground">
                         <Stars rating={v.rating} count={v.reviewCount} />
-                        {center ? <span> · {formatMiles(haversineMiles(center, v))}</span> : null}
+                        {center ? <span> · {formatDistance(haversineMiles(center, v), party?.country_code)}</span> : null}
                       </div>
                       <p className="truncate text-sm text-muted-foreground">{v.shortAddress ?? v.address ?? ''}</p>
                     </div>
@@ -234,7 +235,7 @@ export function SavedScreen() {
           </AppButton>
         </div>
       ) : null}
-      <CompareSheet open={compareOpen} onOpenChange={setCompareOpen} venues={items.filter((s) => compareIds.includes(s.place_id)).map((s) => s.venue!)} center={center} />
+      <CompareSheet open={compareOpen} onOpenChange={setCompareOpen} venues={items.filter((s) => compareIds.includes(s.place_id)).map((s) => s.venue!)} center={center} country={party?.country_code} />
     </div>
   )
 }

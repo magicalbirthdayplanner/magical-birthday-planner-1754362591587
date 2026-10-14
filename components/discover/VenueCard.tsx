@@ -2,15 +2,17 @@
 import Link from 'next/link'
 import { Heart, MapPin } from 'lucide-react'
 import type { ClientVenue } from '@/lib/discovery/client-venue'
-import { formatMiles } from '@/lib/geo/distance'
 import { Card, Skeleton, Stars, priceLabel } from '@/components/app/ui'
 import { cn } from '@/lib/utils'
 import { VenuePhoto } from './VenuePhoto'
+import { useOptionalParty } from '@/components/app/PartyProvider'
+import { currencySymbol, formatDistance } from '@/lib/country/format'
 
 export function VenueCard({ venue, saved, onToggleSave, priority, compact }: { venue: ClientVenue; saved: boolean; onToggleSave: (v: ClientVenue) => void; priority?: boolean; compact?: boolean }) {
   const href = `/venue/${encodeURIComponent(venue.placeId)}`
-  const distance = formatMiles(venue.distanceMiles)
-  const price = priceLabel(venue.priceLevel)
+  const country = useOptionalParty()?.party?.country_code
+  const distance = formatDistance(venue.distanceMiles, country)
+  const price = priceLabel(venue.priceLevel, currencySymbol(country))
   const [categoryTag, ...otherTags] = venue.tags
   return (
     <Card className="overflow-hidden" data-testid="venue-card">

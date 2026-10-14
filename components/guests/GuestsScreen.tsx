@@ -9,9 +9,11 @@ import { BottomSheet } from '@/components/app/BottomSheet'
 import { AppButton, Card, Chip, EmptyState, ErrorState, IconButton, LinkButton, PageHeader, Skeleton } from '@/components/app/ui'
 import { TextField } from '@/components/app/fields'
 import { useGuests } from '@/lib/data/hooks'
-import { addGuest, deleteGuest, guestTotals, updateGuest, validateGuest, type Guest, type GuestInput, type RsvpStatus } from '@/lib/data/guests'
+import { addGuest, deleteGuest, guestPhone, guestTotals, updateGuest, validateGuest, type Guest, type GuestInput, type RsvpStatus } from '@/lib/data/guests'
 import { friendlyError } from '@/lib/data/api'
 import { track } from '@/lib/analytics/client'
+import { countryConfig, type CountryCode } from '@/lib/country/countries'
+import { formatPhone } from '@/lib/country/phone'
 import { cn } from '@/lib/utils'
 import { usePlanStatus } from '@/components/billing/usePlanStatus'
 import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
@@ -42,8 +44,8 @@ function Counter({ label, value, onChange, min = 0 }: { label: string; value: nu
   )
 }
 
-function GuestForm({ initial, onSubmit, submitLabel, busy, onDelete, guest }: { initial: GuestInput & { rsvp?: RsvpStatus; invited?: boolean }; onSubmit: (v: GuestInput & { rsvp?: RsvpStatus; invited?: boolean }) => void; submitLabel: string; busy: boolean; onDelete?: () => void; guest?: Guest }) {
-  const [v, setV] = useState(initial)
+function GuestForm({ initial, onSubmit, submitLabel, busy, onDelete, guest, country, existing }: { initial: GuestInput & { rsvp?: RsvpStatus; invited?: boolean }; onSubmit: (v: GuestInput & { rsvp?: RsvpStatus; invited?: boolean }) => void; submitLabel: string; busy: boolean; onDelete?: () => void; guest?: Guest; country: CountryCode; existing: Guest[] }) {
+  const [v, setV] = useState({ ...initial, phone: formatPhone(initial.phone, country) })
   const [error, setError] = useState<string | null>(null)
   return (
     <form
@@ -51,15 +53,17 @@ function GuestForm({ initial, onSubmit, submitLabel, busy, onDelete, guest }: { 
       className="space-y-4 pb-2"
       onSubmit={(e) => {
         e.preventDefault()
-        const err = validateGuest(v)
+        // An untouched phone saved before numbers were normalized is kept as it was.
+        const phoneUnchanged = !!guest && (v.phone ?? '') === formatPhone(initial.phone, country)
+        const err = validateGuest(phoneUnchanged ? { ...v, phone: null } : v, { country, existing, selfId: guest?.id })
         if (err) return setError(err)
-        onSubmit(v)
+        onSubmit({ ...v, phone: phoneUnchanged ? initial.phone ?? null : guestPhone(v.phone, country) })
       }}
     >
       <TextField label="Name" autoFocus={!guest} value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} placeholder="e.g. The Patel family" maxLength={80} error={error} />
       <div className="grid grid-cols-1 gap-3">
         <TextField label="Email (optional)" type="email" inputMode="email" autoCapitalize="none" value={v.email ?? ''} onChange={(e) => setV({ ...v, email: e.target.value })} />
-        <TextField label="Phone (optional)" type="tel" inputMode="tel" value={v.phone ?? ''} onChange={(e) => setV({ ...v, phone: e.target.value })} />
+        <TextField label="Phone (optional)" type="tel" inputMode="tel" autoComplete="tel" value={v.phone ?? ''} onChange={(e) => setV({ ...v, phone: e.target.value })} placeholder={`+${countryConfig(country).phone.callingCode} ${countryConfig(country).phone.example}`} hint="Private to you — never shown on the invitation." />
       </div>
       <Counter label="Kids" value={v.childCount ?? 1} onChange={(n) => setV({ ...v, childCount: n })} />
       <Counter label="Adults" value={v.adultCount ?? 1} onChange={(n) => setV({ ...v, adultCount: n })} />
@@ -97,6 +101,7 @@ function GuestForm({ initial, onSubmit, submitLabel, busy, onDelete, guest }: { 
 export function GuestsScreen() {
   const { user } = useAuth()
   const { party } = useParty()
+  const country = countryConfig(party?.country_code).code
   const { data, error, isLoading, mutate } = useGuests(party?.id)
   const planStatus = usePlanStatus()
   // Guests & RSVP are Starter+ (lib/entitlements.ts); the database refuses writes without it (migration 1300).
@@ -146,7 +151,7 @@ export function GuestsScreen() {
       await updateGuest(g.id, {
         name: v.name.trim(),
         email: v.email?.trim() || null,
-        phone: v.phone?.trim() || null,
+        phone: v.phone ?? null,
         adult_count: v.adultCount ?? 1,
         child_count: v.childCount ?? 0,
         notes: v.notes?.trim() || null,
@@ -280,13 +285,15 @@ export function GuestsScreen() {
       )}
 
       <BottomSheet open={adding} onOpenChange={setAdding} title="Add a guest" description="Add another right after — the form resets.">
-        <GuestForm key={formKey} initial={{ name: '', email: '', phone: '', adultCount: 1, childCount: 1 }} submitLabel="Add guest" busy={busy} onSubmit={add} />
+        <GuestForm key={formKey} initial={{ name: '', email: '', phone: '', adultCount: 1, childCount: 1 }} submitLabel="Add guest" busy={busy} onSubmit={add} country={country} existing={guests} />
       </BottomSheet>
       <BottomSheet open={!!editing} onOpenChange={(o) => !o && setEditing(null)} title="Edit guest">
         {editing ? (
           <GuestForm
             key={editing.id}
             guest={editing}
+            country={country}
+            existing={guests}
             initial={{ name: editing.name, email: editing.email, phone: editing.phone, adultCount: editing.adult_count ?? 1, childCount: editing.child_count ?? 0, notes: editing.notes, rsvp: (editing.rsvp_status as RsvpStatus) ?? 'PENDING', invited: editing.invite_status !== 'NOT_SENT' }}
             submitLabel="Save"
             busy={busy}

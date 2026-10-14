@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Card } from '@/components/app/ui'
 import { ageRange, costRange, formatMinutes } from '@/lib/experience/model'
 import { CATEGORY_LABEL, CLEANUP_LABEL, PREP_LABEL, SETTING_LABEL, type ActivityView } from '@/lib/experience/view'
+import { usePartyCountry } from '@/components/app/useCountry'
 
 export function activityMeta(v: ActivityView) {
   return [v.minutes ? formatMinutes(v.minutes) : null, SETTING_LABEL[v.setting], ageRange(v.ageMin, v.ageMax)].filter(Boolean).join(' · ')
@@ -22,13 +23,14 @@ function Block({ title, action, children }: { title: string; action?: ReactNode;
 }
 
 export function ActivitySections({ v, actions = {} }: { v: ActivityView; actions?: { supplies?: ReactNode; supply?: (m: string) => ReactNode; prep?: ReactNode; script?: ReactNode } }) {
+  const country = usePartyCountry()
   return (
     <div className="space-y-5">
       <Card className="space-y-2 p-4">
         <p className="text-sm font-semibold text-primary">{CATEGORY_LABEL[v.category] ?? 'Activity'} · {activityMeta(v)}</p>
         {v.description ? <p className="text-[15px] leading-relaxed">{v.description}</p> : null}
         <div className="flex flex-wrap gap-1.5 pt-1 text-xs">
-          <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">Estimated cost: {costRange(v.cost)}</span>
+          <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">Estimated cost: {costRange(v.cost, country)}</span>
           <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">{PREP_LABEL[v.difficulty] ?? 'Easy prep'}</span>
           <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">{CLEANUP_LABEL[v.cleanup] ?? 'Little cleanup'}</span>
         </div>

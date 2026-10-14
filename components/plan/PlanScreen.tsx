@@ -19,6 +19,8 @@ import { AIToolsSection } from '@/components/ai/AIToolsSection'
 import { PartyMagic } from '@/components/experience/PartyMagic'
 import { usePartyFacts } from '@/components/activities/usePartyFacts'
 import { EXPERIENCE_ENABLED } from '@/lib/experience/flags'
+import { countryConfig } from '@/lib/country/countries'
+import { formatMoney, formatRadius } from '@/lib/country/format'
 
 function Row({ href, icon: Icon, title, value, done }: { href: string; icon: typeof Cake; title: string; value: React.ReactNode; done?: boolean }) {
   return (
@@ -139,11 +141,11 @@ export function PlanScreen() {
       <Section title="Details">
         <Card className="space-y-3 p-4 text-[15px]">
           <p className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" /> {[party.city, party.state].filter(Boolean).join(', ') || 'ZIP'} {party.zip_code} · within {party.search_radius_miles ?? 20} mi
+            <MapPin className="h-4 w-4 text-muted-foreground" /> {[party.city, party.state].filter(Boolean).join(', ') || countryConfig(party.country_code).postal.shortLabel} {party.zip_code} · within {formatRadius(party.search_radius_miles ?? 20, party.country_code)}
           </p>
           <p className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-muted-foreground" />
-            {budget != null ? `$${budget.toLocaleString('en-US')} budget · about $${Math.round(budget / Math.max(1, party.guest_count ?? 1))}/guest` : 'Budget not set'}
+            {budget != null ? `${formatMoney(budget, party.country_code)} budget · about ${formatMoney(Math.round(budget / Math.max(1, party.guest_count ?? 1)), party.country_code)}/guest` : 'Budget not set'}
           </p>
           <p className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" /> {party.guest_count ?? '—'} guests · {setting === 'either' ? 'indoor or outdoor' : setting}

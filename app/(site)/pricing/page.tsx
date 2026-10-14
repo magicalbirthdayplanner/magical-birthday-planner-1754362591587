@@ -9,6 +9,7 @@ import { usePlanStatus } from "@/components/billing/usePlanStatus"
 import { PartyProvider, useOptionalParty } from "@/components/app/PartyProvider"
 import { track } from "@/lib/analytics/client"
 import { PLAN_INFO, type Plan } from "@/lib/entitlements"
+import { countryConfig } from "@/lib/country/countries"
 
 /** Answers reflect actual behaviour (lib/entitlements.ts, lib/billing/*, lib/ai/*) and the Terms. */
 const FAQS: { q: string; a: string }[] = [
@@ -84,7 +85,7 @@ function PricingContent() {
           ))}
         </div>
         <p className="mt-6 text-center text-sm text-gray-500">
-          Payments are processed securely by Dodo Payments. See our <Link href="/terms" className="underline">Terms</Link> and <Link href="/privacy" className="underline">Privacy Policy</Link>.
+          {party && countryConfig(party.country_code).code === "IN" ? "Payments for parties in India are processed securely by Razorpay, in INR." : "Payments are processed securely by Dodo Payments."} See our <Link href="/terms" className="underline">Terms</Link> and <Link href="/privacy" className="underline">Privacy Policy</Link>.
         </p>
       </section>
     </div>

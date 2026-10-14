@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     return apiError(400, 'invalid_request', 'Invalid request.')
   }
 
-  const { data: party } = await auth.supabase.from('parties').select('id, user_id, child_name, child_age, party_date, theme').eq('id', body.partyId).maybeSingle()
+  const { data: party } = await auth.supabase.from('parties').select('id, user_id, child_name, child_age, party_date, theme, country_code').eq('id', body.partyId).maybeSingle()
   if (!party) return apiError(404, 'not_found', 'Party not found.')
   // Product model: invitations & RSVP are Starter+ for THIS party (plans are per party). Same DB check as the RLS policies.
   const { data: paid } = await auth.supabase.rpc('has_paid_access', { p_party: party.id })
@@ -63,6 +63,7 @@ export async function POST(req: Request) {
   const targets = (guests ?? []).filter((g) => g.email && (body.resend || g.invite_status === 'NOT_SENT')).slice(0, Math.min(MAX_PER_REQUEST, remaining))
   const facts: PartyFacts = {
     partyId: party.id,
+    country: party.country_code,
     childName: party.child_name,
     childAge: party.child_age,
     partyDate: party.party_date,

@@ -127,13 +127,13 @@ isOneToOne: false
                   ]
                 },"billing_checkouts": {
                   Row: {
-                    "completed_at": string | null,"created_at": string,"customer_email": string | null,"id": string,"party_id": string | null,"payment_ref": string | null,"plan": string,"product_id": string,"session_id": string | null,"status": string,"user_id": string
+                    "amount_minor": number | null,"completed_at": string | null,"created_at": string,"currency": string | null,"customer_email": string | null,"id": string,"party_id": string | null,"payment_ref": string | null,"plan": string,"product_id": string,"provider": string,"session_id": string | null,"status": string,"user_id": string
                   }
                   Insert: {
-                    "completed_at"?: string | null,"created_at"?: string,"customer_email"?: string | null,"id"?: string,"party_id"?: string | null,"payment_ref"?: string | null,"plan": string,"product_id": string,"session_id"?: string | null,"status"?: string,"user_id": string
+                    "amount_minor"?: number | null,"completed_at"?: string | null,"created_at"?: string,"currency"?: string | null,"customer_email"?: string | null,"id"?: string,"party_id"?: string | null,"payment_ref"?: string | null,"plan": string,"product_id": string,"provider"?: string,"session_id"?: string | null,"status"?: string,"user_id": string
                   }
                   Update: {
-                    "completed_at"?: string | null,"created_at"?: string,"customer_email"?: string | null,"id"?: string,"party_id"?: string | null,"payment_ref"?: string | null,"plan"?: string,"product_id"?: string,"session_id"?: string | null,"status"?: string,"user_id"?: string
+                    "amount_minor"?: number | null,"completed_at"?: string | null,"created_at"?: string,"currency"?: string | null,"customer_email"?: string | null,"id"?: string,"party_id"?: string | null,"payment_ref"?: string | null,"plan"?: string,"product_id"?: string,"provider"?: string,"session_id"?: string | null,"status"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -159,13 +159,13 @@ isOneToOne: false
                   ]
                 },"billing_purchases": {
                   Row: {
-                    "amount_minor": number | null,"created_at": string,"currency": string | null,"current_period_end": string | null,"customer_ref": string | null,"id": string,"kind": string,"last_event_at": string | null,"party_id": string | null,"plan": string,"product_id": string | null,"provider": string,"provider_ref": string,"scope": string,"status": string,"unresolved_reason": string | null,"updated_at": string,"user_id": string
+                    "amount_minor": number | null,"created_at": string,"currency": string | null,"current_period_end": string | null,"customer_ref": string | null,"id": string,"kind": string,"last_event_at": string | null,"party_id": string | null,"plan": string,"product_id": string | null,"provider": string,"provider_order_ref": string | null,"provider_ref": string,"scope": string,"status": string,"unresolved_reason": string | null,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind": string,"last_event_at"?: string | null,"party_id"?: string | null,"plan": string,"product_id"?: string | null,"provider"?: string,"provider_ref": string,"scope"?: string,"status": string,"unresolved_reason"?: string | null,"updated_at"?: string,"user_id": string
+                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind": string,"last_event_at"?: string | null,"party_id"?: string | null,"plan": string,"product_id"?: string | null,"provider"?: string,"provider_order_ref"?: string | null,"provider_ref": string,"scope"?: string,"status": string,"unresolved_reason"?: string | null,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind"?: string,"last_event_at"?: string | null,"party_id"?: string | null,"plan"?: string,"product_id"?: string | null,"provider"?: string,"provider_ref"?: string,"scope"?: string,"status"?: string,"unresolved_reason"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "amount_minor"?: number | null,"created_at"?: string,"currency"?: string | null,"current_period_end"?: string | null,"customer_ref"?: string | null,"id"?: string,"kind"?: string,"last_event_at"?: string | null,"party_id"?: string | null,"plan"?: string,"product_id"?: string | null,"provider"?: string,"provider_order_ref"?: string | null,"provider_ref"?: string,"scope"?: string,"status"?: string,"unresolved_reason"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -488,13 +488,13 @@ isOneToOne: false
                   ]
                 },"parties": {
                   Row: {
-                    "budget": number | null,"checklist_data": Json | null,"child_age": number,"child_gender": string | null,"child_name": string,"city": string | null,"colors": (string)[] | null,"created_at": string | null,"guest_count": number | null,"id": string,"interests": (string)[],"is_shared": boolean | null,"latitude": number | null,"location": unknown,"longitude": number | null,"party_date": string,"party_location": string | null,"party_time": string | null,"search_radius_miles": number,"selected_theme": string | null,"share_token": string | null,"shared_at": string | null,"state": string | null,"status": string | null,"theme": string | null,"theme_details": Json | null,"updated_at": string | null,"user_id": string,"venue_type": string | null,"zip_code": string | null
+                    "address_line1": string | null,"address_line2": string | null,"budget": number | null,"checklist_data": Json | null,"child_age": number,"child_gender": string | null,"child_name": string,"city": string | null,"colors": (string)[] | null,"country_code": string,"created_at": string | null,"district": string | null,"guest_count": number | null,"id": string,"interests": (string)[],"is_shared": boolean | null,"latitude": number | null,"locality": string | null,"location": unknown,"longitude": number | null,"party_date": string,"party_location": string | null,"party_time": string | null,"search_radius_miles": number,"selected_theme": string | null,"share_token": string | null,"shared_at": string | null,"state": string | null,"status": string | null,"theme": string | null,"theme_details": Json | null,"timezone": string | null,"updated_at": string | null,"user_id": string,"venue_type": string | null,"zip_code": string | null
                   }
                   Insert: {
-                    "budget"?: number | null,"checklist_data"?: Json | null,"child_age": number,"child_gender"?: string | null,"child_name": string,"city"?: string | null,"colors"?: (string)[] | null,"created_at"?: string | null,"guest_count"?: number | null,"id"?: string,"interests"?: (string)[],"is_shared"?: boolean | null,"latitude"?: number | null,"location"?: unknown,"longitude"?: number | null,"party_date": string,"party_location"?: string | null,"party_time"?: string | null,"search_radius_miles"?: number,"selected_theme"?: string | null,"share_token"?: string | null,"shared_at"?: string | null,"state"?: string | null,"status"?: string | null,"theme"?: string | null,"theme_details"?: Json | null,"updated_at"?: string | null,"user_id": string,"venue_type"?: string | null,"zip_code"?: string | null
+                    "address_line1"?: string | null,"address_line2"?: string | null,"budget"?: number | null,"checklist_data"?: Json | null,"child_age": number,"child_gender"?: string | null,"child_name": string,"city"?: string | null,"colors"?: (string)[] | null,"country_code"?: string,"created_at"?: string | null,"district"?: string | null,"guest_count"?: number | null,"id"?: string,"interests"?: (string)[],"is_shared"?: boolean | null,"latitude"?: number | null,"locality"?: string | null,"location"?: unknown,"longitude"?: number | null,"party_date": string,"party_location"?: string | null,"party_time"?: string | null,"search_radius_miles"?: number,"selected_theme"?: string | null,"share_token"?: string | null,"shared_at"?: string | null,"state"?: string | null,"status"?: string | null,"theme"?: string | null,"theme_details"?: Json | null,"timezone"?: string | null,"updated_at"?: string | null,"user_id": string,"venue_type"?: string | null,"zip_code"?: string | null
                   }
                   Update: {
-                    "budget"?: number | null,"checklist_data"?: Json | null,"child_age"?: number,"child_gender"?: string | null,"child_name"?: string,"city"?: string | null,"colors"?: (string)[] | null,"created_at"?: string | null,"guest_count"?: number | null,"id"?: string,"interests"?: (string)[],"is_shared"?: boolean | null,"latitude"?: number | null,"location"?: unknown,"longitude"?: number | null,"party_date"?: string,"party_location"?: string | null,"party_time"?: string | null,"search_radius_miles"?: number,"selected_theme"?: string | null,"share_token"?: string | null,"shared_at"?: string | null,"state"?: string | null,"status"?: string | null,"theme"?: string | null,"theme_details"?: Json | null,"updated_at"?: string | null,"user_id"?: string,"venue_type"?: string | null,"zip_code"?: string | null
+                    "address_line1"?: string | null,"address_line2"?: string | null,"budget"?: number | null,"checklist_data"?: Json | null,"child_age"?: number,"child_gender"?: string | null,"child_name"?: string,"city"?: string | null,"colors"?: (string)[] | null,"country_code"?: string,"created_at"?: string | null,"district"?: string | null,"guest_count"?: number | null,"id"?: string,"interests"?: (string)[],"is_shared"?: boolean | null,"latitude"?: number | null,"locality"?: string | null,"location"?: unknown,"longitude"?: number | null,"party_date"?: string,"party_location"?: string | null,"party_time"?: string | null,"search_radius_miles"?: number,"selected_theme"?: string | null,"share_token"?: string | null,"shared_at"?: string | null,"state"?: string | null,"status"?: string | null,"theme"?: string | null,"theme_details"?: Json | null,"timezone"?: string | null,"updated_at"?: string | null,"user_id"?: string,"venue_type"?: string | null,"zip_code"?: string | null
                   }
                   Relationships: [
                     {
@@ -862,13 +862,13 @@ isOneToOne: false
                   ]
                 },"users": {
                   Row: {
-                    "avatar_url": string | null,"created_at": string | null,"current_plan": string | null,"display_name": string | null,"displayName": string | null,"email": string,"email_notifications": boolean | null,"full_name": string | null,"has_used_trial": boolean | null,"id": string,"is_trial_active": boolean | null,"marketing_emails": boolean | null,"name": string | null,"party_reminders": boolean | null,"trial_expires_at": string | null,"trial_plan": string | null,"trial_started_at": string | null,"updated_at": string | null
+                    "avatar_url": string | null,"country_code": string | null,"created_at": string | null,"current_plan": string | null,"display_name": string | null,"displayName": string | null,"email": string,"email_notifications": boolean | null,"full_name": string | null,"has_used_trial": boolean | null,"id": string,"is_trial_active": boolean | null,"marketing_emails": boolean | null,"name": string | null,"party_reminders": boolean | null,"trial_expires_at": string | null,"trial_plan": string | null,"trial_started_at": string | null,"updated_at": string | null
                   }
                   Insert: {
-                    "avatar_url"?: string | null,"created_at"?: string | null,"current_plan"?: string | null,"display_name"?: string | null,"displayName"?: string | null,"email": string,"email_notifications"?: boolean | null,"full_name"?: string | null,"has_used_trial"?: boolean | null,"id": string,"is_trial_active"?: boolean | null,"marketing_emails"?: boolean | null,"name"?: string | null,"party_reminders"?: boolean | null,"trial_expires_at"?: string | null,"trial_plan"?: string | null,"trial_started_at"?: string | null,"updated_at"?: string | null
+                    "avatar_url"?: string | null,"country_code"?: string | null,"created_at"?: string | null,"current_plan"?: string | null,"display_name"?: string | null,"displayName"?: string | null,"email": string,"email_notifications"?: boolean | null,"full_name"?: string | null,"has_used_trial"?: boolean | null,"id": string,"is_trial_active"?: boolean | null,"marketing_emails"?: boolean | null,"name"?: string | null,"party_reminders"?: boolean | null,"trial_expires_at"?: string | null,"trial_plan"?: string | null,"trial_started_at"?: string | null,"updated_at"?: string | null
                   }
                   Update: {
-                    "avatar_url"?: string | null,"created_at"?: string | null,"current_plan"?: string | null,"display_name"?: string | null,"displayName"?: string | null,"email"?: string,"email_notifications"?: boolean | null,"full_name"?: string | null,"has_used_trial"?: boolean | null,"id"?: string,"is_trial_active"?: boolean | null,"marketing_emails"?: boolean | null,"name"?: string | null,"party_reminders"?: boolean | null,"trial_expires_at"?: string | null,"trial_plan"?: string | null,"trial_started_at"?: string | null,"updated_at"?: string | null
+                    "avatar_url"?: string | null,"country_code"?: string | null,"created_at"?: string | null,"current_plan"?: string | null,"display_name"?: string | null,"displayName"?: string | null,"email"?: string,"email_notifications"?: boolean | null,"full_name"?: string | null,"has_used_trial"?: boolean | null,"id"?: string,"is_trial_active"?: boolean | null,"marketing_emails"?: boolean | null,"name"?: string | null,"party_reminders"?: boolean | null,"trial_expires_at"?: string | null,"trial_plan"?: string | null,"trial_started_at"?: string | null,"updated_at"?: string | null
                   }
                   Relationships: [
                     
@@ -943,7 +943,10 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "ai_finalize":
+            "admin_market_report":
+{ Args: { "p_days"?: number }; Returns: Json
+                           },
+"ai_finalize":
 { Args: { "p_duration_ms": number,"p_error_code": string,"p_id": string,"p_input_tokens": number,"p_model": string,"p_output_tokens": number,"p_provider": string,"p_result": Json,"p_status": string,"p_user": string }; Returns: undefined
                            },
 "ai_global_count_today":
@@ -994,6 +997,9 @@ isOneToOne: false
                            },
 "marketing_media_used":
 { Args: { "p_ids": (string)[] }; Returns: undefined
+                           },
+"marketing_tick":
+{ Args: { "p_task"?: string }; Returns: number
                            },
 "owns_party":
 { Args: { "p_party_id": string }; Returns: boolean

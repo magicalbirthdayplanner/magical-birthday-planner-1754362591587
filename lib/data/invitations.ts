@@ -54,6 +54,9 @@ export interface PublicInvitation {
   theme: string | null
   design: string
   rsvp_by: string | null
+  /** Event country and IANA timezone (null = floating local time; parties created before India support). */
+  country_code?: string | null
+  timezone?: string | null
 }
 
 export async function getPublicInvitation(token: string): Promise<PublicInvitation | null> {

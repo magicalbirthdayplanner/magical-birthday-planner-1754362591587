@@ -18,6 +18,7 @@ import { track } from '@/lib/analytics/client'
 import { useSWRConfig } from 'swr'
 import { cn } from '@/lib/utils'
 import { PlanWithAICard } from '@/components/ai/PlanWithAICard'
+import { formatDateWith, formatDistance } from '@/lib/country/format'
 
 function Welcome() {
   return (
@@ -135,7 +136,7 @@ export function HomeScreen() {
               </p>
               <p className="mt-2 flex items-center gap-1.5 text-sm text-white/85">
                 <CalendarHeart className="h-4 w-4" />
-                {new Date(`${party.party_date}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })}
+                {formatDateWith(party.party_date, party.country_code, { weekday: 'short', month: 'long', day: 'numeric' })}
               </p>
             </div>
             <ProgressRing value={summary.progress} size={84} stroke={8} className="shrink-0 text-white">
@@ -175,7 +176,7 @@ export function HomeScreen() {
                     <div className="p-3">
                       <p className="truncate font-semibold">{v.name}</p>
                       <p className="mt-0.5 text-sm text-muted-foreground">
-                        <Stars rating={v.rating} count={v.reviewCount} /> {v.distanceMiles != null ? `· ${formatMiles(v.distanceMiles)}` : ''}
+                        <Stars rating={v.rating} count={v.reviewCount} /> {v.distanceMiles != null ? `· ${formatDistance(v.distanceMiles, party?.country_code)}` : ''}
                       </p>
                       {v.reasons[0] ? <p className="mt-1 truncate text-xs font-medium text-primary">{v.reasons[0].text}</p> : null}
                     </div>
@@ -269,7 +270,7 @@ export function HomeScreen() {
                 <input type="checkbox" className="h-6 w-6 shrink-0 rounded-md accent-[hsl(258_56%_45%)]" onChange={(e) => toggleTask(t.id, e.target.checked)} />
                 <span className="min-w-0 flex-1">
                   <span className="block font-medium">{t.title}</span>
-                  {t.due_date ? <span className="block text-xs text-muted-foreground">Due {new Date(`${t.due_date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span> : null}
+                  {t.due_date ? <span className="block text-xs text-muted-foreground">Due {formatDateWith(t.due_date, party?.country_code, { month: 'short', day: 'numeric' })}</span> : null}
                 </span>
               </label>
             ))}

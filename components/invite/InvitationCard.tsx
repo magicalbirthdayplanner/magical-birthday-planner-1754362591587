@@ -1,5 +1,6 @@
 import { CalendarDays, Clock, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatClock, formatDateWith, formatPartyDate } from '@/lib/country/format'
 
 export const INVITE_DESIGNS = [
   { id: 'classic', label: 'Magical', swatch: 'bg-hero' },
@@ -9,6 +10,8 @@ export const INVITE_DESIGNS = [
 export type InviteDesign = (typeof INVITE_DESIGNS)[number]['id']
 
 export interface InvitationView {
+  /** Event country: dates and times are written the way that country writes them. */
+  country?: string | null
   childName: string
   childAge: number | null
   partyDate: string
@@ -22,19 +25,14 @@ export interface InvitationView {
   design?: string | null
 }
 
-const fmtTime = (t?: string | null) => {
-  if (!t) return null
-  const [h, m] = t.split(':').map(Number)
-  const d = new Date(2000, 0, 1, h, m)
-  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: m ? '2-digit' : undefined })
-}
+const fmtTime = (t: string | null | undefined, country?: string | null) => formatClock(t, country)
 const ordinal = (n: number) => `${n}${['th', 'st', 'nd', 'rd'][n % 100 >= 11 && n % 100 <= 13 ? 0 : n % 10] ?? 'th'}`
 
 export function InvitationCard({ inv, className }: { inv: InvitationView; className?: string }) {
   const design = (inv.design as InviteDesign) || 'classic'
   const first = inv.childName.split(' ')[0]
-  const date = new Date(`${inv.partyDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-  const time = [fmtTime(inv.startTime), fmtTime(inv.endTime)].filter(Boolean).join(' – ')
+  const date = formatPartyDate(inv.partyDate, inv.country, 'long')
+  const time = [fmtTime(inv.startTime, inv.country), fmtTime(inv.endTime, inv.country)].filter(Boolean).join(' – ')
   const elegant = design === 'elegant'
   return (
     <article
@@ -77,7 +75,7 @@ export function InvitationCard({ inv, className }: { inv: InvitationView; classN
         </div>
         {inv.rsvpBy ? (
           <p className={cn('mt-4 text-sm', elegant ? 'text-muted-foreground' : 'text-white/85')}>
-            Please RSVP by {new Date(`${inv.rsvpBy}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+            Please RSVP by {formatDateWith(inv.rsvpBy, inv.country, { month: 'long', day: 'numeric' })}
           </p>
         ) : null}
         {inv.hostName ? <p className={cn('mt-2 text-sm', elegant ? 'text-muted-foreground' : 'text-white/85')}>— {inv.hostName}</p> : null}

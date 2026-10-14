@@ -16,7 +16,6 @@ import { INTERESTS, type InterestId } from '@/lib/discovery/taxonomy'
 import { localToday } from '@/lib/planning/checklist'
 import { recommendThemes, type ScoredTheme } from '@/lib/planning/themes'
 import {
-  BUDGET_PRESETS,
   EMPTY_DRAFT,
   GUEST_PRESETS,
   MAX_AGE,
@@ -28,7 +27,11 @@ import {
   type WizardDraft,
   type WizardStep,
 } from '@/lib/planning/wizard'
-import { track } from '@/lib/analytics/client'
+import { setAnalyticsMarket, track } from '@/lib/analytics/client'
+import { COUNTRIES, countryConfig, parseCountryCode, selectableCountries, type CountryCode } from '@/lib/country/countries'
+import { formatMoney, formatPartyDate, formatRadius } from '@/lib/country/format'
+import { normalizePostal, postalInputFilter } from '@/lib/country/postal'
+import { preferredCountry, rememberCountry } from '@/lib/country/preference'
 import { cn } from '@/lib/utils'
 import type { ClassicTheme } from '@/data/themes-data'
 
@@ -38,7 +41,7 @@ const QUESTIONS: Record<WizardStep, { title: (d: WizardDraft) => string; sub?: (
   name: { title: () => 'Who are we celebrating?', sub: () => 'Just a first name is perfect.' },
   age: { title: (d) => `How old is ${first(d)} turning?` },
   date: { title: () => 'When is the party?', sub: () => 'A rough date is fine — you can change it later.' },
-  zip: { title: () => 'Where are you planning?', sub: () => 'We’ll find party places within 20 miles.' },
+  zip: { title: () => 'Where are you planning?', sub: (d) => `We’ll find party places within ${formatRadius(20, d.country)}.` },
   guests: { title: () => 'How many guests?', sub: () => 'Kids and grown-ups. A best guess is fine.' },
   budget: { title: () => 'What’s your budget?', sub: () => 'We’ll favor places that fit it.' },
   vibe: { title: () => 'What’s the vibe?' },
@@ -50,7 +53,11 @@ function first(d: WizardDraft) {
   return d.childName.trim().split(/\s+/)[0] || 'your child'
 }
 
-const fmtMoney = (n: number) => `$${n.toLocaleString('en-US')}${n >= 2500 ? '+' : ''}`
+/** Budget preset label in the event country's currency; the top preset reads "and up". */
+const fmtMoney = (n: number, country: CountryCode) => {
+  const presets = countryConfig(country).budget.presets
+  return `${formatMoney(n, country)}${n >= presets[presets.length - 1] ? '+' : ''}`
+}
 
 export function PartyWizard() {
   const router = useRouter()
@@ -81,6 +88,11 @@ export function PartyWizard() {
         restoredLocal.current = true
         setDraft(saved)
         if (params?.get('resume') === '1') setFinale(true)
+      } else {
+        // A fresh party starts in the country the parent came for (/in → ?country=IN) or their preferred country;
+        // they can always pick another event country on the location step.
+        const asked = parseCountryCode(params?.get('country'))
+        setDraft((d) => ({ ...d, country: asked && selectableCountries().includes(asked) ? asked : preferredCountry() }))
       }
     } catch {
       /* ignore */
@@ -119,11 +131,12 @@ export function PartyWizard() {
     setDraft((d) => ({ ...d, ...patch }))
   }, [])
 
-  // Live ZIP lookup.
+  // Live postal-code lookup (US ZIP / Indian PIN) for the event country.
   useEffect(() => {
     if (step !== 'zip') return
-    const zip = draft.zip.trim()
-    if (!/^\d{5}$/.test(zip)) {
+    const country = draft.country
+    const zip = normalizePostal(country, draft.zip)
+    if (!zip || (country === 'US' && !/^\d{5}$/.test(draft.zip.trim()))) {
       setZipState('idle')
       return
     }
@@ -133,23 +146,24 @@ export function PartyWizard() {
     }
     setZipState('checking')
     const ctrl = new AbortController()
-    fetch(`/api/discovery/zip?zip=${zip}`, { signal: ctrl.signal })
+    fetch(`/api/discovery/zip?zip=${zip}&country=${country}`, { signal: ctrl.signal })
       .then(async (r) => {
         if (!r.ok) {
           setZipState('bad')
           track('zip_entered', { valid: false })
           return
         }
-        const z = (await r.json()) as { city: string | null; state: string | null; lat: number; lng: number }
-        setDraft((d) => (d.zip.trim() === zip ? { ...d, zipPlace: z } : d))
+        const z = (await r.json()) as { city: string | null; state: string | null; lat: number; lng: number; district?: string | null; localities?: string[] }
+        const place = { city: z.city, state: z.state, lat: z.lat, lng: z.lng, district: z.district ?? null, localities: z.localities ?? [] }
+        setDraft((d) => (d.country === country && normalizePostal(country, d.zip) === zip ? { ...d, zip, zipPlace: place } : d))
         setZipState('ok')
-        track('zip_entered', { valid: true, state: z.state ?? '' })
+        track('zip_entered', { valid: true, state: z.state ?? '', country })
       })
       .catch((e) => {
         if ((e as Error).name !== 'AbortError') setZipState('bad')
       })
     return () => ctrl.abort()
-  }, [step, draft.zip, draft.zipPlace])
+  }, [step, draft.zip, draft.zipPlace, draft.country])
 
   // Theme recommendations (catalogue loaded lazily, only on this step).
   useEffect(() => {
@@ -197,13 +211,14 @@ export function PartyWizard() {
         childName: draft.childName,
         childAge: draft.childAge!,
         partyDate: draft.partyDate,
-        zip: draft.zip.trim(),
+        zip: normalizePostal(draft.country, draft.zip) ?? draft.zip.trim(),
+        country: draft.country,
         guestCount: draft.guestCount,
         budget: draft.budgetUnsure ? null : draft.budget,
         setting: draft.setting,
         interests: draft.interests,
         theme: draft.theme,
-        location: draft.zipPlace ? { lat: draft.zipPlace.lat, lng: draft.zipPlace.lng, city: draft.zipPlace.city, state: draft.zipPlace.state } : null,
+        location: draft.zipPlace ? { lat: draft.zipPlace.lat, lng: draft.zipPlace.lng, city: draft.zipPlace.city, state: draft.zipPlace.state, district: draft.zipPlace.district ?? null } : null,
       })
       track('party_creation_completed')
       track('party_created', {
@@ -213,6 +228,7 @@ export function PartyWizard() {
         setting: draft.setting,
         interests: draft.interests,
         theme: !!draft.theme,
+        country: draft.country,
       })
       // Create the countdown checklist now, so milestones completed before the
       // parent ever opens Plan (e.g. choosing a theme) are tracked.
@@ -366,42 +382,70 @@ function StepBody({
           </div>
           {draft.partyDate ? (
             <p className="text-sm text-muted-foreground">
-              {new Date(`${draft.partyDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              {formatPartyDate(draft.partyDate, draft.country, 'full')}
             </p>
           ) : null}
         </div>
       )
-    case 'zip':
+    case 'zip': {
+      const cc = countryConfig(draft.country)
+      const choices = selectableCountries()
       return (
         <div>
+          {choices.length > 1 || !choices.includes(draft.country) ? (
+            <div className="mb-4 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Country of the party" data-testid="wizard-country">
+              {Array.from(new Set([...choices, draft.country])).map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  role="radio"
+                  aria-checked={draft.country === code}
+                  data-testid={`wizard-country-${code}`}
+                  onClick={() => {
+                    if (code === draft.country) return
+                    rememberCountry(code)
+                    setAnalyticsMarket(code)
+                    track('country_selected', { country: code, from: 'wizard' })
+                    update({ country: code, zip: '', zipPlace: null, budget: null, budgetUnsure: false })
+                  }}
+                  className={cn(
+                    'tap flex h-14 items-center justify-center gap-2 rounded-2xl border px-2 text-base font-semibold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    draft.country === code ? 'border-primary bg-secondary ring-2 ring-primary' : 'border-border bg-card',
+                  )}
+                >
+                  <span aria-hidden>{COUNTRIES[code].flag}</span> <span className="truncate">{COUNTRIES[code].name}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
           <TextField
-            label="ZIP code"
+            label={cc.postal.label}
             hideLabel
             autoFocus
             inputMode="numeric"
             autoComplete="postal-code"
             enterKeyHint="next"
-            pattern="[0-9]*"
-            maxLength={10}
-            placeholder="e.g. 48084"
+            maxLength={cc.postal.maxLength}
+            placeholder={`${cc.postal.label}, e.g. ${cc.postal.example}`}
             value={draft.zip}
-            onChange={(e) => update({ zip: e.target.value.replace(/[^\d-]/g, ''), zipPlace: null })}
-            error={zipState === 'bad' ? 'We couldn’t find that ZIP code. Double-check it?' : null}
+            onChange={(e) => update({ zip: postalInputFilter(draft.country, e.target.value), zipPlace: null })}
+            error={zipState === 'bad' ? `We couldn’t find that ${cc.postal.label}. Double-check it?` : null}
             trailing={
               zipState === 'checking' ? (
-                <Loader2 className="mr-4 h-5 w-5 animate-spin text-muted-foreground" aria-label="Checking ZIP" />
+                <Loader2 className="mr-4 h-5 w-5 animate-spin text-muted-foreground" aria-label={`Checking ${cc.postal.shortLabel}`} />
               ) : zipState === 'ok' ? (
-                <Check className="mr-4 h-5 w-5 text-success" aria-label="ZIP found" />
+                <Check className="mr-4 h-5 w-5 text-success" aria-label={`${cc.postal.shortLabel} found`} />
               ) : null
             }
           />
           {zipState === 'ok' && draft.zipPlace ? (
-            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground">
-              <MapPin className="h-4 w-4" /> {[draft.zipPlace.city, draft.zipPlace.state].filter(Boolean).join(', ') || draft.zip}
+            <p className="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground">
+              <MapPin className="h-4 w-4 shrink-0" /> <span className="truncate">{[draft.zipPlace.city, draft.zipPlace.state].filter(Boolean).join(', ') || draft.zip}</span>
             </p>
           ) : null}
         </div>
       )
+    }
     case 'guests':
       return (
         <div>
@@ -429,7 +473,7 @@ function StepBody({
       return (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
-            {BUDGET_PRESETS.map((b) => (
+            {countryConfig(draft.country).budget.presets.map((b) => (
               <button
                 key={b}
                 type="button"
@@ -440,15 +484,15 @@ function StepBody({
                   !draft.budgetUnsure && draft.budget === b ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card',
                 )}
               >
-                {fmtMoney(b)}
+                {fmtMoney(b, draft.country)}
               </button>
             ))}
           </div>
           <TextField
             label="Or enter an amount"
             inputMode="numeric"
-            placeholder="$"
-            value={draft.budget != null && !BUDGET_PRESETS.includes(draft.budget) && !draft.budgetUnsure ? String(draft.budget) : ''}
+            placeholder={countryConfig(draft.country).budget.placeholder}
+            value={draft.budget != null && !countryConfig(draft.country).budget.presets.includes(draft.budget) && !draft.budgetUnsure ? String(draft.budget) : ''}
             onChange={(e) => {
               const n = Number(e.target.value.replace(/[^\d]/g, ''))
               update({ budget: e.target.value ? n : null, budgetUnsure: false })
@@ -458,7 +502,7 @@ function StepBody({
             Not sure yet
           </Chip>
           {!draft.budgetUnsure && draft.budget ? (
-            <p className="text-sm text-muted-foreground">About ${Math.round(draft.budget / Math.max(1, draft.guestCount))} per guest.</p>
+            <p className="text-sm text-muted-foreground">About {formatMoney(Math.round(draft.budget / Math.max(1, draft.guestCount)), draft.country)} per guest.</p>
           ) : null}
         </div>
       )
@@ -585,10 +629,10 @@ function Finale({
   const place = draft.zipPlace ? [draft.zipPlace.city, draft.zipPlace.state].filter(Boolean).join(', ') : draft.zip
   const items: [string, string, number][] = [
     ['🎂', `${first(draft)} turns ${draft.childAge}`, 1],
-    ['📅', draft.partyDate ? new Date(`${draft.partyDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '', 2],
-    ['📍', `${place} · 20 mi`, 3],
+    ['📅', formatPartyDate(draft.partyDate, draft.country, 'medium'), 2],
+    ['📍', `${place} · ${formatRadius(20, draft.country)}`, 3],
     ['👥', `${draft.guestCount} guests`, 4],
-    ['💰', draft.budgetUnsure || draft.budget == null ? 'Budget TBD' : fmtMoney(draft.budget), 5],
+    ['💰', draft.budgetUnsure || draft.budget == null ? 'Budget TBD' : fmtMoney(draft.budget, draft.country), 5],
     ['✨', draft.setting === 'either' ? 'Indoor or outdoor' : draft.setting === 'indoor' ? 'Indoor' : 'Outdoor', 6],
   ]
   return (

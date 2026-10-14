@@ -1,16 +1,16 @@
 import { z } from 'zod'
-import { list, num, optStr, pick, shoppingCategory, str, strList } from './shared'
+import { list, money, num, optStr, pick, shoppingCategory, str, strList } from './shared'
 
 export const ActivitySchema = z.object({
   name: str(80),
   description: optStr(400),
   durationMin: num(5, 240, 30),
-  estimatedCost: num(0, 2000, 0),
+  estimatedCost: money(2000, 0),
   materials: strList(10, 60),
   difficulty: pick(['easy', 'medium', 'hard'] as const, 'easy'),
 })
-export const ShoppingItemSchema = z.object({ item: str(80), qty: optStr(30), category: shoppingCategory, estimatedCost: num(0, 2000, 0) })
-export const BudgetLineSchema = z.object({ category: str(40), amount: num(0, 10000) })
+export const ShoppingItemSchema = z.object({ item: str(80), qty: optStr(30), category: shoppingCategory, estimatedCost: money(2000, 0) })
+export const BudgetLineSchema = z.object({ category: str(40), amount: money(10000) })
 export const TimelineEntrySchema = z.object({ minute: num(0, 600), label: str(120) })
 
 export const PartyPlanAIResultSchema = z.object({
@@ -22,7 +22,7 @@ export const PartyPlanAIResultSchema = z.object({
   decorations: strList(10, 100),
   timeline: list(TimelineEntrySchema, 14),
   shoppingList: list(ShoppingItemSchema, 30),
-  budget: z.object({ lines: list(BudgetLineSchema, 12), total: num(0, 100000, 0).optional() }).default({ lines: [] }),
+  budget: z.object({ lines: list(BudgetLineSchema, 12), total: money(100000, 0).optional() }).default({ lines: [] }),
   backupPlan: optStr(300),
   assumptions: strList(8, 200),
   followUpQuestions: strList(4, 160),

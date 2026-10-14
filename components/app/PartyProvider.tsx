@@ -4,7 +4,7 @@ import useSWR from 'swr'
 import { useAuth } from '@/contexts/AuthContext'
 import { listParties, type Party } from '@/lib/data/parties'
 import { localToday } from '@/lib/planning/checklist'
-import { setAnalyticsParty } from '@/lib/analytics/client'
+import { setAnalyticsMarket, setAnalyticsParty } from '@/lib/analytics/client'
 
 interface PartyContextValue {
   parties: Party[]
@@ -48,7 +48,8 @@ export function PartyProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setAnalyticsParty(party?.id ?? null)
-  }, [party?.id])
+    setAnalyticsMarket(party?.country_code ?? null)
+  }, [party?.id, party?.country_code])
 
   const setActivePartyId = useCallback((id: string) => {
     setActiveId(id)

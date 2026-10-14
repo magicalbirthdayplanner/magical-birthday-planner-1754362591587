@@ -11,6 +11,8 @@ import { emailInvitations, inviteUrl, markInvitationShared, rotateInvitationToke
 import { completeTaskByKey } from '@/lib/data/checklist'
 import { friendlyError } from '@/lib/data/api'
 import { track } from '@/lib/analytics/client'
+import { countryConfig } from '@/lib/country/countries'
+import { invitationShareText, whatsappShareUrl } from '@/lib/invite/share'
 import { cn } from '@/lib/utils'
 import { INVITE_DESIGNS, InvitationCard } from './InvitationCard'
 import { InvitationWriter } from '@/components/ai/InvitationWriter'
@@ -19,6 +21,7 @@ import { UpgradePrompt } from '@/components/billing/UpgradePrompt'
 
 export function InviteScreen() {
   const { party } = useParty()
+  const cc = countryConfig(party?.country_code)
   const { mutate } = useSWRConfig()
   const invitation = useInvitation(party?.id)
   const planStatus = usePlanStatus()
@@ -62,7 +65,9 @@ export function InviteScreen() {
   async function persist(): Promise<PartyInvitation | null> {
     setSaving(true)
     try {
+      const isNew = !invitation.data
       const saved = await saveInvitation(party!.id, form)
+      if (isNew) track('invitation_created', { design: saved.design, country: cc.code })
       await invitation.mutate(saved, { revalidate: false })
       setDirty(false)
       return saved
@@ -81,13 +86,40 @@ export function InviteScreen() {
     track('invitation_shared', { channel, design: inv.design })
   }
 
-  async function share(channel: 'native' | 'copy' | 'sms' | 'email') {
+  async function share(channel: 'native' | 'copy' | 'sms' | 'email' | 'whatsapp') {
     const inv = dirty || !invitation.data ? await persist() : invitation.data
     if (!inv) return
     const url = inviteUrl(inv.token)
     const first = party!.child_name.split(' ')[0]
     const text = `You’re invited to ${first}’s birthday party! RSVP here:`
     try {
+      if (channel === 'whatsapp') {
+        // Manual share only: WhatsApp opens with the message and the host chooses who gets it. Nothing is sent for
+        // them, so we never say it was sent or delivered.
+        const message = invitationShareText({
+          childFirstName: first,
+          childAge: party!.child_age,
+          partyDate: party!.party_date,
+          startTime: inv.start_time,
+          endTime: inv.end_time,
+          locationText: inv.location_text,
+          headline: inv.headline,
+          message: inv.message,
+          hostName: inv.host_name,
+          theme: (party!.theme_details as { name?: string } | null)?.name ?? null,
+          country: cc.code,
+          url,
+        })
+        const link = whatsappShareUrl(message)
+        track('whatsapp_share_initiated', { design: inv.design, country: cc.code })
+        // ("noopener" would make window.open return null even on success, so the opener is cut by hand.)
+        const w = window.open(link, '_blank')
+        if (w) w.opener = null
+        else window.location.href = link // popup blocked (e.g. installed PWA): open WhatsApp in place
+        toast.success('WhatsApp opened — choose who to send it to.')
+        await afterShare(inv, 'whatsapp')
+        return
+      }
       if (channel === 'native' && navigator.share) {
         await navigator.share({ title: `${first}’s birthday party`, text, url })
       } else if (channel === 'sms') {
@@ -105,6 +137,7 @@ export function InviteScreen() {
   }
 
   const view = {
+    country: cc.code,
     childName: party.child_name,
     childAge: party.child_age,
     partyDate: party.party_date,
@@ -140,8 +173,19 @@ export function InviteScreen() {
           </div>
 
           <Section title="Share" className="pt-5">
-            <AppButton block size="lg" variant="magic" loading={saving} onClick={() => share('native')}>
-              <Share2 className="h-5 w-5" /> Share invitation
+            {cc.shareChannels.includes('whatsapp') ? (
+              <button
+                type="button"
+                onClick={() => share('whatsapp')}
+                disabled={saving}
+                data-testid="share-whatsapp"
+                className="tap mb-3 flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 text-lg font-semibold text-[#073b1c] shadow-sm active:brightness-95 disabled:opacity-60"
+              >
+                <MessageCircle className="h-5 w-5" /> Share on WhatsApp
+              </button>
+            ) : null}
+            <AppButton block size="lg" variant={cc.shareChannels.includes('whatsapp') ? 'outline' : 'magic'} loading={saving} onClick={() => share('native')}>
+              <Share2 className="h-5 w-5" /> {cc.shareChannels.includes('whatsapp') ? 'More ways to share' : 'Share invitation'}
             </AppButton>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {(

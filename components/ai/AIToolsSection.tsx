@@ -12,9 +12,11 @@ import { TOOLS, type ToolDef } from './tools'
 import { useAICapabilities } from './useAI'
 import { UpgradeSheet } from '@/components/billing/UpgradePrompt'
 import type { Plan } from '@/lib/entitlements'
+import { useMoney } from '@/components/app/useCountry'
 
 export function AIToolsSection({ partyId, budget }: { partyId: string; budget: number | null }) {
   const caps = useAICapabilities(partyId)
+  const money = useMoney()
   const [active, setActive] = useState<ToolDef | null>(null)
   const [locked, setLocked] = useState<{ feature: ToolDef['feature']; plan: Plan | null } | null>(null)
   const visible = TOOLS.filter((t) => caps.get(t.feature)?.enabled)
@@ -30,7 +32,7 @@ export function AIToolsSection({ partyId, budget }: { partyId: string; budget: n
             <button key={t.feature} type="button" onClick={() => setLocked({ feature: t.feature, plan: cap.upgradeTo })} className="tap flex min-h-[64px] w-full items-center gap-3 px-4 py-3 text-left">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"><Lock className="h-5 w-5" /></span>
               <span className="min-w-0 flex-1">
-                <span className="block font-semibold">{t.label(budget)}</span>
+                <span className="block font-semibold">{t.label(budget, money)}</span>
                 <span className="block text-sm text-muted-foreground">Part of {cap.upgradeTo ? cap.upgradeTo.charAt(0) + cap.upgradeTo.slice(1).toLowerCase() : 'a paid plan'}</span>
               </span>
               <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
@@ -39,7 +41,7 @@ export function AIToolsSection({ partyId, budget }: { partyId: string; budget: n
             <button key={t.feature} type="button" onClick={() => setActive(t)} className="tap flex min-h-[64px] w-full items-center gap-3 px-4 py-3 text-left active:bg-muted" data-testid={`ai-tool-${t.feature}`}>
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary"><Icon className="h-5 w-5" /></span>
               <span className="min-w-0 flex-1">
-                <span className="block font-semibold">{t.label(budget)}</span>
+                <span className="block font-semibold">{t.label(budget, money)}</span>
                 <span className="block text-sm text-muted-foreground">{t.sub}</span>
               </span>
               <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />

@@ -19,7 +19,8 @@ import { ShoppingListResultView } from './results/ShoppingListResultView'
 
 export interface ToolDef {
   feature: AIFeature
-  label: (budget: number | null) => string
+  /** `money` formats an amount in the party's currency. */
+  label: (budget: number | null, money: (n: number) => string) => string
   sub: string
   title: string
   path: string
@@ -44,7 +45,7 @@ export const TOOLS: ToolDef[] = [
   },
   {
     feature: 'budget_optimizer',
-    label: (budget) => (budget != null ? `Help me stretch my $${budget} budget` : 'Help me plan my budget'),
+    label: (budget, money) => (budget != null ? `Help me stretch my ${money(budget)} budget` : 'Help me plan my budget'),
     sub: 'Where the money goes, savings and missing costs',
     title: 'Budget assistant',
     path: '/api/ai/budget',

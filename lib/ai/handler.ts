@@ -14,6 +14,8 @@ import { aiLimitReached, aiPostProcessingFailed, observeAICall } from '@/lib/obs
 import { aiConfig, featureEnabled } from './config'
 import { capability, PARTY_CAP, planAllows, tierFor, USER_HOURLY_CAP, type Tier } from './capabilities'
 import { callStructured } from './client'
+import { runWithMoneyScale } from './money-scale'
+import { countryConfig } from '@/lib/country/countries'
 import { buildPartyAIContext, type PartyAIContext } from './context'
 import { aiError } from './errors'
 import { sanitizeFreeText } from './safety'
@@ -140,7 +142,8 @@ export function createAIRoute<B extends z.ZodTypeAny, R>(spec: FeatureSpec<B, R>
     const { system, user } = spec.prompt({ body, ctx, notes, extra })
     const callCfg = spec.long ? { ...cfg, timeoutMs: cfg.longTimeoutMs } : cfg
     const meta = { feature: spec.feature, plan: ent.tier, superAdmin: ent.superAdmin, provider: cfg.provider, model: cfg.model, requestId: genId, partyId }
-    const r = await observeAICall(meta, () => callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg: callCfg }))
+    // Amounts are in the party's currency: validation caps scale with it (₹ amounts are ~100× $ amounts).
+    const r = await observeAICall(meta, () => runWithMoneyScale(countryConfig(ctx.country).moneyScale, () => callStructured({ feature: spec.feature, schema: spec.result, system, user, sessionId: genId, signal: req.signal, maxTokens: spec.maxTokens, cfg: callCfg })))
     const log = { feature: spec.feature, user_id: auth.user.id, party_id: partyId, provider: r.provider, model: r.model, duration_ms: r.durationMs, attempts: r.attempts }
     if (!r.ok) {
       // code = what the parent saw; detail = why (timeout / unavailable / rate_limited / auth / json / schema) for diagnosis

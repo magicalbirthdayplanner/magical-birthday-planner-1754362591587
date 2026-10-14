@@ -20,9 +20,11 @@ import { RefreshNotice } from '@/components/ai/PlanWithAICard'
 import { useParty } from '@/components/app/PartyProvider'
 import { costRange, formatMinutes, type TimelineKind } from '@/lib/experience/model'
 import { KIND_EMOJI } from './TimelineSheet'
+import { useMoney } from '@/components/app/useCountry'
+import { countryConfig } from '@/lib/country/countries'
+import { formatDateWith } from '@/lib/country/format'
 
 const STEPS = ['✨ Creating something special for your party…', 'Choosing a theme and activities…', 'Planning the day, the food and the shopping…', 'Writing what to say…']
-const money = (n: number) => `$${n % 1 === 0 ? n : n.toFixed(2)}`
 
 function Block({ title, sub, action, children }: { title: string; sub?: string; action?: ReactNode; children: ReactNode }) {
   return (
@@ -37,6 +39,7 @@ export function ExperienceSheet({ partyId, open, onOpenChange, onUsed, basedOn }
   const gen = useAIGenerate<ExperienceResult>('/api/ai/party-experience')
   const [notes, setNotes] = useState('')
   const { party } = useParty()
+  const money = useMoney()
   const [restoredSummary, setRestoredSummary] = useState<Record<string, unknown> | null>(null)
   const guests = useGuests(open ? partyId : null)
   useEffect(() => {
@@ -65,7 +68,7 @@ export function ExperienceSheet({ partyId, open, onOpenChange, onUsed, basedOn }
       ) : s.phase === 'done' ? (
         <AppliedProvider key={s.generationId} initial={s.appliedKeys}>
           <div className="space-y-1 pb-2" aria-live="polite">
-            {s.restoredAt ? <p className="px-4 text-xs text-muted-foreground">Your experience from {new Date(s.restoredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}.</p> : null}
+            {s.restoredAt ? <p className="px-4 text-xs text-muted-foreground">Your experience from {new Date(s.restoredAt).toLocaleDateString(countryConfig(party?.country_code).locale, { month: 'short', day: 'numeric' })}.</p> : null}
             {s.restoredAt && party?.id === partyId ? <RefreshNotice changed={partyDetailsChanged(restoredSummary, party && guests.data ? partyNow(party, guests.data) : null)} onRefresh={() => void run()} /> : null}
             <div className="mx-4 rounded-3xl bg-secondary p-5"><p className="text-sm font-semibold text-secondary-foreground">Your party experience</p><p className="mt-1 text-[15px] leading-relaxed">{s.result.summary}</p></div>
 
@@ -83,7 +86,7 @@ export function ExperienceSheet({ partyId, open, onOpenChange, onUsed, basedOn }
                 {s.result.activities.map((a) => (
                   <Card key={a.id} className="p-4">
                     <p className="font-bold">{a.emoji} {a.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatMinutes(a.duration_minutes)} · {a.indoor_outdoor} · {costRange(a.estimated_cost)}</p>
+                    <p className="text-xs text-muted-foreground">{formatMinutes(a.duration_minutes)} · {a.indoor_outdoor} · {costRange(a.estimated_cost, party?.country_code)}</p>
                     <p className="mt-1 text-sm">{a.description}</p>
                     <div className="mt-2 flex justify-end">{p('activities', a.id, a.name)}</div>
                   </Card>
@@ -126,7 +129,7 @@ export function ExperienceSheet({ partyId, open, onOpenChange, onUsed, basedOn }
             {s.result.checklist.length ? (
               <Block title="Checklist" action={all('checklist', s.result.checklist.map((c) => c.id))}>
                 <Card className="divide-y divide-border">
-                  {s.result.checklist.map((c) => <div key={c.id} className="flex items-center justify-between gap-3 px-4 py-2 text-sm"><span className="min-w-0"><span className="block font-medium">{c.title}</span>{c.dueDate ? <span className="block text-xs text-muted-foreground">By {new Date(`${c.dueDate}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}{c.late ? ' · do this now' : ''}</span> : null}</span>{p('checklist', c.id, c.title)}</div>)}
+                  {s.result.checklist.map((c) => <div key={c.id} className="flex items-center justify-between gap-3 px-4 py-2 text-sm"><span className="min-w-0"><span className="block font-medium">{c.title}</span>{c.dueDate ? <span className="block text-xs text-muted-foreground">By {formatDateWith(c.dueDate, party?.country_code, { month: 'short', day: 'numeric' })}{c.late ? ' · do this now' : ''}</span> : null}</span>{p('checklist', c.id, c.title)}</div>)}
                 </Card>
               </Block>
             ) : null}

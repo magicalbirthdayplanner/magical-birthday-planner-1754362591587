@@ -18,13 +18,15 @@ import { addFoodToShopping, removeFoodItem, useExperience, type Experience } fro
 import { formatMinutes } from '@/lib/experience/model'
 import { TimelineSheet, timelineOf } from '@/components/experience/TimelineSheet'
 import { act as actExp } from '@/components/experience/apply'
+import { useMoney, usePartyCountry } from '@/components/app/useCountry'
+import { currencySymbol } from '@/lib/country/format'
 
-const $ = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`
 const CATEGORY = { food: 'Food', decorations: 'Decorations', activities: 'Activities', favors: 'Party favors', other: 'Other' } as Record<string, string>
 
 type Open = null | 'activities' | 'shopping' | 'budget' | 'timeline' | 'menu' | 'host'
 
 export function PartyPlanSection({ partyId, budget, startTime = null, partyMinutes = null }: { partyId: string; budget: number | null; startTime?: string | null; partyMinutes?: number | null }) {
+  const $ = useMoney()
   const { data, mutate } = usePlanItems(partyId)
   const exp = useExperience(EXPERIENCE_ENABLED ? partyId : null)
   const [open, setOpen] = useState<Open>(null)
@@ -182,11 +184,13 @@ export function PartyPlanSection({ partyId, budget, startTime = null, partyMinut
 }
 
 function BudgetRow({ line, onSpent, onRemove }: { line: BudgetLine; onSpent: (v: number | null) => void; onRemove: () => void }) {
+  const $ = useMoney()
+  const symbol = currencySymbol(usePartyCountry())
   const [value, setValue] = useState(line.actual_amount != null ? String(Number(line.actual_amount)) : '')
   const commit = () => {
     const t = value.trim()
     const v = t === '' ? null : Number(t)
-    if (v !== null && (!Number.isFinite(v) || v < 0 || v > 100000)) return
+    if (v !== null && (!Number.isFinite(v) || v < 0 || v > 10_000_000)) return
     if (v !== (line.actual_amount != null ? Number(line.actual_amount) : null)) onSpent(v)
   }
   return (
@@ -196,7 +200,7 @@ function BudgetRow({ line, onSpent, onRemove }: { line: BudgetLine; onSpent: (v:
         <p className="text-xs text-muted-foreground">Planned {$(Number(line.amount))}{line.source_generation_id ? ' · AI estimate' : ''}</p>
       </div>
       <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
-        <span>Spent $</span>
+        <span>Spent {symbol}</span>
         <input
           inputMode="decimal"
           aria-label={`Actually spent on ${line.category}`}

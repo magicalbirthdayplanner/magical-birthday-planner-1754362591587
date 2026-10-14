@@ -25,7 +25,7 @@ const AI_ROUTES = ['/api/ai/capabilities', '/api/ai/party-planner', '/api/ai/the
 
 const EXPECTED = [
   // public marketing + legal
-  '/ [page]', '/pricing [page]', '/checkout-success [page]', '/privacy [page]', '/terms [page]', '/help [page]',
+  '/ [page]', '/in [page]', '/pricing [page]', '/checkout-success [page]', '/privacy [page]', '/terms [page]', '/help [page]',
   // retired pre-launch waitlist: only the unsubscribe link in emails already sent stays working
   '/api/waitlist/unsubscribe [api]',
   // founding-families offer: public seat count
@@ -43,14 +43,16 @@ const EXPECTED = [
   '/api/discovery/search [api]', '/api/discovery/places/[placeId] [api]', '/api/discovery/photo [api]', '/api/discovery/zip [api]',
   '/api/themes/ai [api]', '/api/invitations/send [api]', '/api/invite/[token]/rsvp [api]',
   '/api/billing/checkout [api]', '/api/billing/status [api]', '/api/webhooks/dodo [api]',
-  '/api/admin/session [api]', '/api/admin/users [api]', '/api/admin/stats [api]', '/api/admin/override [api]', '/api/admin/audit [api]',
+  // India: public price catalogue, Razorpay post-checkout verification (signed-in) and signed webhooks
+  '/api/billing/catalog [api]', '/api/billing/razorpay/verify [api]', '/api/webhooks/razorpay [api]',
+  '/api/admin/session [api]', '/api/admin/users [api]', '/api/admin/stats [api]', '/api/admin/override [api]', '/api/admin/audit [api]', '/api/admin/markets [api]',
   // Founder marketing agent: Super Admin dashboard APIs + the CRON_SECRET-protected scheduler
   '/api/admin/marketing [api]', '/api/admin/marketing/posts/[id] [api]', '/api/cron/marketing [api]',
   // AI planning assistant (every route authenticates; behind AI_ENABLED + per-feature flags)
   ...AI_ROUTES.map((r) => `${r} [api]`),
 ].sort()
 // The only routes allowed to carry "admin": each verifies the super_admin role server-side.
-const SUPER_ADMIN_ROUTES = new Set(['/admin', '/admin/marketing', '/admin/marketing/x', '/api/admin/session', '/api/admin/users', '/api/admin/stats', '/api/admin/override', '/api/admin/audit', '/api/admin/marketing', '/api/admin/marketing/posts/[id]'])
+const SUPER_ADMIN_ROUTES = new Set(['/admin', '/admin/marketing', '/admin/marketing/x', '/api/admin/session', '/api/admin/users', '/api/admin/stats', '/api/admin/override', '/api/admin/audit', '/api/admin/markets', '/api/admin/marketing', '/api/admin/marketing/posts/[id]'])
 
 describe('route inventory', () => {
   const actual = routes().sort()

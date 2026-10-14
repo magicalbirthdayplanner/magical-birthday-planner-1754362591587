@@ -2,10 +2,11 @@
 import { Card } from '@/components/app/ui'
 import type { BudgetResult } from '@/lib/ai/schemas/budget'
 import { ApplyControls } from '../ApplyControls'
+import { useMoney } from '@/components/app/useCountry'
 
-const $ = (n: number) => `$${n % 1 === 0 ? n : n.toFixed(2)}`
 
 export function BudgetResultView({ r, generationId, partyId }: { r: BudgetResult; generationId: string; partyId: string }) {
+  const $ = useMoney()
   return (
     <div className="space-y-3">
       <Card className="grid grid-cols-3 gap-2 p-4 text-center text-sm">

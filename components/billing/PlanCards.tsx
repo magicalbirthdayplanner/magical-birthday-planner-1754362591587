@@ -11,7 +11,11 @@ import { usePlanStatus } from './usePlanStatus'
 import { useOptionalParty } from '@/components/app/PartyProvider'
 import { useAuth } from '@/contexts/AuthContext'
 import { track } from '@/lib/analytics/client'
-import { formatPrice, PLAN_INFO, planRank, type Plan } from '@/lib/entitlements'
+import { PLAN_INFO, planRank, type Plan } from '@/lib/entitlements'
+import { useEffect, useState } from 'react'
+import { usePlanPrices } from './usePlanPrices'
+import { COUNTRIES, countryConfig, selectableCountries, type CountryCode } from '@/lib/country/countries'
+import { preferredCountry, rememberCountry } from '@/lib/country/preference'
 import { COMPARISON, PLAN_HIGHLIGHTS } from './planContent'
 import { cn } from '@/lib/utils'
 
@@ -27,6 +31,12 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
   const ctx = useOptionalParty()
   const party = ctx?.party ?? null
   const status = usePlanStatus()
+  // Prices follow the party's event country; without a party, the visitor's chosen country (switchable).
+  const [visitorCountry, setVisitorCountry] = useState<CountryCode>('US')
+  useEffect(() => setVisitorCountry(preferredCountry()), [])
+  const country = party ? countryConfig(party.country_code).code : visitorCountry
+  const prices = usePlanPrices(country)
+  const priceOf = (p: Plan) => prices.label(p) ?? 'Coming soon'
   const owned = user ? status.ownedPlan : null
   const firstName = party?.child_name.split(' ')[0]
   // Signed in inside the app context but no party yet: a plan needs a party to belong to.
@@ -37,6 +47,20 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
       <p className="mb-5 text-center text-sm text-muted-foreground" data-testid="per-party-note">
         Pay once for each party. No monthly subscription.
       </p>
+      {!party && (selectableCountries().length > 1 || country !== 'US') ? (
+        <div className="mb-5 flex justify-center gap-2" role="radiogroup" aria-label="Where is your party?" data-testid="pricing-country">
+          {Array.from(new Set([...selectableCountries(), country])).map((c) => (
+            <button key={c} type="button" role="radio" aria-checked={country === c} onClick={() => { setVisitorCountry(c); rememberCountry(c); track('country_selected', { country: c, from: 'pricing' }) }} className={cn('tap min-h-[44px] rounded-full border px-4 text-sm font-semibold', country === c ? 'border-primary bg-secondary' : 'border-border bg-background')}>
+              {COUNTRIES[c].flag} {COUNTRIES[c].name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {country !== 'US' && !prices.loading && !prices.available ? (
+        <p className="mx-auto mb-5 max-w-xl rounded-2xl bg-secondary px-4 py-3 text-center text-sm" data-testid="pricing-unavailable">
+          Paid plans for parties in {COUNTRIES[country].name} are coming soon, priced in {countryConfig(country).currency}. Everything in Free works today.
+        </p>
+      ) : null}
       {user && party ? (
         <div className="mb-5 flex flex-wrap items-center justify-center gap-2 text-sm" data-testid="pricing-party">
           <span>Choosing a plan for <strong>{firstName}’s party</strong>.</span>
@@ -68,7 +92,7 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
             <h3 id={`plan-${p}`} className="mt-1 font-display text-2xl font-extrabold">{info.name}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{info.tagline}</p>
             <p className="mt-3">
-              <span className="font-display text-3xl font-extrabold">{formatPrice(info.priceCents)}</span>
+              <span className="font-display text-3xl font-extrabold" data-testid={`plan-price-${p}`}>{priceOf(p)}</span>
               <span className="ml-1 text-sm text-muted-foreground">{p === 'FREE' ? 'forever' : 'per party'}</span>
             </p>
             {h.intro ? <p className="mt-4 text-sm font-semibold">{h.intro}</p> : <div className="mt-4" />}
@@ -93,8 +117,12 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
                 </Link>
               ) : user && !ctx ? (
                 <Link href={`/pricing?upgrade=${p.toLowerCase()}`} className="tap flex min-h-[44px] items-center justify-center rounded-full border-2 border-border bg-background text-sm font-semibold">
-                  {`Choose ${info.name} — ${formatPrice(info.priceCents)}`}
+                  {`Choose ${info.name} — ${priceOf(p)}`}
                 </Link>
+              ) : !prices.available ? (
+                <span className="flex min-h-[44px] items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground" data-testid={`plan-unavailable-${p}`}>
+                  {prices.loading ? '…' : 'Coming soon'}
+                </span>
               ) : (
                 <CheckoutButton
                   plan={p}
@@ -106,7 +134,7 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
                     p === 'PRO' && 'bg-emerald-600 hover:bg-emerald-700',
                   )}
                 >
-                  {owned && owned !== 'FREE' ? `Upgrade to ${info.name}` : `Choose ${info.name} — ${formatPrice(info.priceCents)}`}
+                  {owned && owned !== 'FREE' ? `Upgrade to ${info.name}` : `Choose ${info.name} — ${priceOf(p)}`}
                 </CheckoutButton>
               )}
             </div>

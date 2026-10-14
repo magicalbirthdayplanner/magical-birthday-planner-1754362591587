@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { AppButton, Card, Chip, EmptyState, PageHeader, Section, Skeleton } from '@/components/app/ui'
 import { TextField } from '@/components/app/fields'
 import { apiFetch, friendlyError } from '@/lib/data/api'
+import { MarketsReport } from './MarketsReport'
 
 type Plan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO'
 type Duration = '24h' | '7d' | '30d' | 'none'
@@ -164,6 +165,10 @@ export function AdminScreen() {
             </span>
           ) : null}
         </Card>
+      </Section>
+
+      <Section title="Markets — US vs India">
+        <MarketsReport />
       </Section>
 
       <Section title="Users">

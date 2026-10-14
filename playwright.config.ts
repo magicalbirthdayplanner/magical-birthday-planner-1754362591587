@@ -32,7 +32,7 @@ export default defineConfig({
   webServer: [
     {
       // Mock Google + Resend + Dodo test mode; delivers signed webhooks to the app under test.
-      command: `npx dotenv -e .env.e2e -v MOCK_APP_WEBHOOK_URL=${BASE_URL}/api/webhooks/dodo -- node tests/mock-google/server.mjs`,
+      command: `npx dotenv -e .env.e2e -v MOCK_APP_WEBHOOK_URL=${BASE_URL}/api/webhooks/dodo -v MOCK_APP_RAZORPAY_WEBHOOK_URL=${BASE_URL}/api/webhooks/razorpay -- node tests/mock-google/server.mjs`,
       url: `${MOCK_GOOGLE}/health`,
       reuseExistingServer: true,
       timeout: 20_000,

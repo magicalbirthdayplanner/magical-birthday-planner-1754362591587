@@ -7,6 +7,10 @@ import { AppButton, Card } from '@/components/app/ui'
 import { TextField } from '@/components/app/fields'
 import { db } from '@/lib/db/browser'
 import { friendlyError } from '@/lib/data/api'
+import { CountrySelect } from '@/components/app/CountrySelect'
+import { COUNTRIES, parseCountryCode, selectableCountries, type CountryCode } from '@/lib/country/countries'
+import { preferredCountry, rememberCountry } from '@/lib/country/preference'
+import { track } from '@/lib/analytics/client'
 
 /**
  * Name + RSVP email preference. Writes the caller's own `users` row (RLS); the
@@ -16,7 +20,7 @@ import { friendlyError } from '@/lib/data/api'
 export function AccountSettings() {
   const { user } = useAuth()
   const profile = useSWR(user ? ['profile', user.id] : null, async () => {
-    const { data, error } = await db.from('users').select('display_name, email_notifications').eq('id', user!.id).maybeSingle()
+    const { data, error } = await db.from('users').select('display_name, email_notifications, country_code').eq('id', user!.id).maybeSingle()
     if (error) throw error
     return data
   })
@@ -25,6 +29,25 @@ export function AccountSettings() {
   const current = (profile.data?.display_name ?? user?.user_metadata?.display_name ?? '').toString()
   useEffect(() => setName(current), [current])
   const notify = profile.data?.email_notifications !== false
+  const [country, setCountry] = useState<CountryCode>('US')
+  // The profile's choice follows the account to new devices; otherwise this device's preference.
+  const savedCountry = parseCountryCode(profile.data?.country_code)
+  useEffect(() => {
+    if (!savedCountry) setCountry(preferredCountry())
+    else {
+      setCountry(savedCountry)
+      rememberCountry(savedCountry)
+    }
+  }, [savedCountry])
+
+  async function saveCountry(next: CountryCode) {
+    setCountry(next)
+    rememberCountry(next)
+    track('country_selected', { country: next, from: 'account' })
+    const { error } = await db.from('users').update({ country_code: next }).eq('id', user!.id)
+    if (error) toast.error(friendlyError(error))
+    else toast.success(`New parties will start in ${COUNTRIES[next].name}`)
+  }
 
   async function saveName() {
     const next = name.trim().slice(0, 60)
@@ -49,8 +72,8 @@ export function AccountSettings() {
       await profile.mutate(async () => {
         const { error } = await db.from('users').update({ email_notifications: next }).eq('id', user!.id)
         if (error) throw error
-        return { display_name: profile.data?.display_name ?? null, email_notifications: next }
-      }, { optimisticData: { display_name: profile.data?.display_name ?? null, email_notifications: next }, rollbackOnError: true, revalidate: false })
+        return { display_name: profile.data?.display_name ?? null, email_notifications: next, country_code: profile.data?.country_code ?? null }
+      }, { optimisticData: { display_name: profile.data?.display_name ?? null, email_notifications: next, country_code: profile.data?.country_code ?? null }, rollbackOnError: true, revalidate: false })
     } catch (e) {
       toast.error(friendlyError(e))
     }
@@ -66,6 +89,9 @@ export function AccountSettings() {
           Save
         </AppButton>
       </div>
+      {selectableCountries().length > 1 || country !== 'US' ? (
+        <CountrySelect label="Your country" value={country} onChange={saveCountry} testId="account-country" hint="The default for new parties. Each party keeps its own country — you can plan a party anywhere." />
+      ) : null}
       <button type="button" role="switch" aria-checked={notify} onClick={toggleNotify} disabled={profile.isLoading} className="tap flex min-h-[56px] w-full items-center gap-3 text-left" data-testid="rsvp-email-toggle">
         <span className="flex-1">
           <span className="block font-medium">Email me when guests RSVP</span>

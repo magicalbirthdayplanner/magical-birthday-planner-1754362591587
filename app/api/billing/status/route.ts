@@ -35,13 +35,19 @@ export async function GET(req: Request) {
     auth.supabase.from('billing_purchases').select('plan, status, kind, scope, party_id, created_at, current_period_end').order('created_at', { ascending: false }).limit(20),
     auth.supabase.from('user_roles').select('role').eq('user_id', auth.user.id).maybeSingle(),
     checkoutParam && uuid.safeParse(checkoutParam).success
-      ? auth.supabase.from('billing_checkouts').select('plan, status, party_id, parties(child_name)').eq('id', checkoutParam).maybeSingle().then((r) => r.data)
+      ? auth.supabase.from('billing_checkouts').select('plan, status, party_id, provider, amount_minor, currency, parties(child_name)').eq('id', checkoutParam).maybeSingle().then((r) => r.data)
       : Promise.resolve(null),
   ])
   return NextResponse.json({
     plan, source, trialActive, override, partyId,
     superAdmin: role?.role === 'super_admin',
     purchases: purchases ?? [],
-    checkout: checkout ? { plan: checkout.plan, status: checkout.status, partyId: checkout.party_id, childName: (checkout.parties as { child_name?: string } | null)?.child_name ?? null } : null,
+    checkout: checkout
+      ? {
+          plan: checkout.plan, status: checkout.status, partyId: checkout.party_id, childName: (checkout.parties as { child_name?: string } | null)?.child_name ?? null,
+          // Non-Dodo (India) checkouts also report their provider and the server's amount/currency (US responses unchanged).
+          ...(checkout.provider !== 'dodo' ? { provider: checkout.provider, currency: checkout.currency, amountMinor: checkout.amount_minor } : {}),
+        }
+      : null,
   })
 }

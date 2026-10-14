@@ -169,6 +169,7 @@ export function normalizePlace(place: RawPlace, extraCategories: string[] = [], 
     city: component(place, 'locality') ?? component(place, 'postal_town'),
     state: component(place, 'administrative_area_level_1', true),
     postalCode: component(place, 'postal_code'),
+    country: component(place, 'country', true),
     lat,
     lng,
     rating: num(place.rating),
@@ -206,6 +207,8 @@ export interface TextSearchParams {
   center: LatLng
   radiusMeters: number
   pageSize?: number
+  /** CLDR region of the event country ('US', 'IN'): result formatting and biasing. Default 'US'. */
+  regionCode?: string
 }
 
 export interface PlacesApi {
@@ -284,7 +287,7 @@ export function createPlacesClient(opts: PlacesClientOptions = {}): PlacesApi {
   }
 
   const api: PlacesApi = {
-    async searchText({ textQuery, center, radiusMeters, pageSize = 20 }) {
+    async searchText({ textQuery, center, radiusMeters, pageSize = 20, regionCode = 'US' }) {
       // Hard restriction to the circle's bounding box: Google never returns (and we never
       // pay for) places outside it. Ranking then trims the corners to the true radius.
       const r = Math.min(85_000, Math.max(100, radiusMeters)) // 50 mi max radius + margin
@@ -294,7 +297,7 @@ export function createPlacesClient(opts: PlacesClientOptions = {}): PlacesApi {
         textQuery,
         pageSize: Math.min(20, Math.max(1, pageSize)),
         languageCode: 'en',
-        regionCode: 'US',
+        regionCode: /^[A-Z]{2}$/.test(regionCode) ? regionCode : 'US',
         locationRestriction: {
           rectangle: {
             low: { latitude: center.lat - dLat, longitude: center.lng - dLng },

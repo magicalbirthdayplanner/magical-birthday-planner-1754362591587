@@ -13,7 +13,7 @@ export interface Seeded {
 }
 
 /** Create a confirmed user (and optionally a party) directly in the local stack. */
-export async function seedUser(opts2: { zip?: string; lat?: number; lng?: number; withParty?: boolean } = {}): Promise<Seeded> {
+export async function seedUser(opts2: { zip?: string; lat?: number; lng?: number; withParty?: boolean; party?: Record<string, unknown> } = {}): Promise<Seeded> {
   const admin = createClient(URL, SERVICE, opts)
   const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.test`
   const password = 'e2e-password-123'
@@ -28,6 +28,7 @@ export async function seedUser(opts2: { zip?: string; lat?: number; lng?: number
     .insert({
       user_id: data.user!.id, child_name: 'Mia', child_age: 6, party_date: date, zip_code: opts2.zip ?? '48084', guest_count: 15, budget: 400,
       interests: ['science'], venue_type: 'mixed', latitude: opts2.lat ?? 42.5627, longitude: opts2.lng ?? -83.1799, search_radius_miles: 20,
+      ...(opts2.party ?? {}),
     })
     .select('id')
     .single()

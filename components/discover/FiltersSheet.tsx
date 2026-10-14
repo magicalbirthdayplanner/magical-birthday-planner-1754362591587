@@ -4,6 +4,8 @@ import { BottomSheet } from '@/components/app/BottomSheet'
 import { AppButton, Chip } from '@/components/app/ui'
 import { DEFAULT_FILTERS, type PartySizeBand, type VenueFilters } from '@/lib/discovery/filters'
 import { RADIUS_OPTIONS } from '@/lib/discovery/config'
+import { formatRadius } from '@/lib/country/format'
+import { useOptionalParty } from '@/components/app/PartyProvider'
 import { AGE_BANDS, INTERESTS, type AgeBandId, type InterestId } from '@/lib/discovery/taxonomy'
 
 const PARTY_SIZES: { id: PartySizeBand; label: string }[] = [
@@ -40,6 +42,7 @@ export function FiltersSheet({
   onApply: (f: VenueFilters, radius: number) => void
   resultCount: (f: VenueFilters) => number
 }) {
+  const country = useOptionalParty()?.party?.country_code
   const [f, setF] = useState(filters)
   const [r, setR] = useState(radius)
   useEffect(() => {
@@ -75,7 +78,7 @@ export function FiltersSheet({
       <Group title="Distance">
         {RADIUS_OPTIONS.map((m) => (
           <Chip key={m} active={r === m} onClick={() => setR(m)}>
-            {m} miles
+            {formatRadius(m, country)}
           </Chip>
         ))}
       </Group>

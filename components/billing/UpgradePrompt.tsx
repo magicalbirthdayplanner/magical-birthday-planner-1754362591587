@@ -11,8 +11,11 @@ import { Card } from '@/components/app/ui'
 import { track } from '@/lib/analytics/client'
 import { CAPABILITIES, formatPrice, PLAN_INFO, type Capability, type Plan } from '@/lib/entitlements'
 import { cn } from '@/lib/utils'
+import { usePlanPrices } from './usePlanPrices'
+import { usePartyCountry } from '@/components/app/useCountry'
 
-export function upgradeCopy(capability: Capability, plan?: Plan | null) {
+/** `priceLabel` = the plan's price in the party's currency (US default); null when it isn't on sale there yet. */
+export function upgradeCopy(capability: Capability, plan?: Plan | null, priceLabel?: (p: Plan) => string | null) {
   const info = CAPABILITIES[capability]
   const p = plan && plan !== 'FREE' ? plan : info.minPlan === 'FREE' ? 'STARTER' : info.minPlan
   const pi = PLAN_INFO[p]
@@ -20,13 +23,17 @@ export function upgradeCopy(capability: Capability, plan?: Plan | null) {
     plan: p,
     title: `${info.name} is part of ${pi.name}`,
     body: info.pitch,
-    cta: `See ${pi.name} — ${formatPrice(pi.priceCents)} per party`,
+    cta: (() => {
+      const price = priceLabel ? priceLabel(p) : formatPrice(pi.priceCents)
+      return price ? `See ${pi.name} — ${price} per party` : `See ${pi.name}`
+    })(),
     href: `/pricing?upgrade=${p.toLowerCase()}&from=${capability}`,
   }
 }
 
 export function UpgradePrompt({ capability, plan, compact, className }: { capability: Capability; plan?: Plan | null; compact?: boolean; className?: string }) {
-  const c = upgradeCopy(capability, plan)
+  const prices = usePlanPrices(usePartyCountry())
+  const c = upgradeCopy(capability, plan, prices.label)
   useEffect(() => {
     track('upgrade_prompt_viewed', { capability, plan: c.plan })
     if (CAPABILITIES[capability].ai) track('ai_feature_blocked', { feature: capability, plan: c.plan })

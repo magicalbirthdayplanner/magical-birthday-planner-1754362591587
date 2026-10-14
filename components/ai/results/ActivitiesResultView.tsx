@@ -3,8 +3,10 @@ import { Card } from '@/components/app/ui'
 import type { ActivitiesResult } from '@/lib/ai/schemas/activities'
 import { AddAllButton } from '../AddAllButton'
 import { ApplyControls } from '../ApplyControls'
+import { useMoney } from '@/components/app/useCountry'
 
 export function ActivitiesResultView({ r, generationId, partyId }: { r: ActivitiesResult; generationId: string; partyId: string }) {
+  const money = useMoney()
   return (
     <div className="space-y-3">
       <div className="flex justify-end">
@@ -16,7 +18,7 @@ export function ActivitiesResultView({ r, generationId, partyId }: { r: Activiti
             <div className="min-w-0">
               <p className="font-semibold">{a.name}</p>
               <p className="text-xs text-muted-foreground">
-                {[`${a.durationMin} min`, a.estimatedCost ? `~$${a.estimatedCost} (estimate)` : 'Free', a.difficulty, a.setting && a.setting !== 'either' ? a.setting : 'indoor or outdoor', a.ageSuitability].filter(Boolean).join(' · ')}
+                {[`${a.durationMin} min`, a.estimatedCost ? `~${money(a.estimatedCost)} (estimate)` : 'Free', a.difficulty, a.setting && a.setting !== 'either' ? a.setting : 'indoor or outdoor', a.ageSuitability].filter(Boolean).join(' · ')}
               </p>
             </div>
             <ApplyControls generationId={generationId} target="activities" itemId={a.id} label={a.name} partyId={partyId} />
