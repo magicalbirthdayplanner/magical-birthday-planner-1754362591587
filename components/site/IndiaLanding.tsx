@@ -16,7 +16,7 @@ export function IndiaLandingTracker() {
 /** INR prices once Razorpay is live with approved prices; until then an honest "coming soon". */
 export function IndiaPricingNote() {
   const prices = usePlanPrices('IN')
-  const { campaign, until } = useCampaign('IN')
+  const { campaign, until, loaded } = useCampaign('IN')
   if (campaign) {
     return (
       <p className="mx-auto mt-4 max-w-md rounded-2xl bg-secondary px-4 py-3 text-sm" data-testid="india-pricing-note">
@@ -24,7 +24,7 @@ export function IndiaPricingNote() {
       </p>
     )
   }
-  if (prices.loading) return null
+  if (prices.loading || !loaded) return null
   return (
     <p className="mx-auto mt-4 max-w-md rounded-2xl bg-secondary px-4 py-3 text-sm" data-testid="india-pricing-note">
       {prices.available ? `Paid plans from ${prices.label('STARTER')} per party, paid in rupees with Razorpay. No subscription.` : 'Paid plans in rupees are coming soon. Everything in Free works today.'}
