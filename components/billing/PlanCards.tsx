@@ -18,6 +18,7 @@ import { COUNTRIES, countryConfig, selectableCountries, type CountryCode } from 
 import { preferredCountry, rememberCountry } from '@/lib/country/preference'
 import { COMPARISON, PLAN_HIGHLIGHTS } from './planContent'
 import { cn } from '@/lib/utils'
+import { useCampaign } from './useCampaign'
 
 const ACCENT: Record<Plan, string> = {
   FREE: 'border-border',
@@ -37,6 +38,7 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
   const country = party ? countryConfig(party.country_code).code : visitorCountry
   const prices = usePlanPrices(country)
   const priceOf = (p: Plan) => prices.label(p) ?? 'Coming soon'
+  const { campaign, until } = useCampaign()
   const owned = user ? status.ownedPlan : null
   const firstName = party?.child_name.split(' ')[0]
   // Signed in inside the app context but no party yet: a plan needs a party to belong to.
@@ -95,6 +97,7 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
               <span className="font-display text-3xl font-extrabold" data-testid={`plan-price-${p}`}>{priceOf(p)}</span>
               <span className="ml-1 text-sm text-muted-foreground">{p === 'FREE' ? 'forever' : 'per party'}</span>
             </p>
+            {campaign && p !== 'FREE' ? <p className="mt-1 inline-flex w-fit rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800" data-testid={`plan-free-until-${p}`}>Free until {until}</p> : null}
             {h.intro ? <p className="mt-4 text-sm font-semibold">{h.intro}</p> : <div className="mt-4" />}
             <ul className="mt-2 flex-1 space-y-2 text-sm">
               {h.items.map((it) => (
@@ -107,6 +110,10 @@ export function PlanCards({ highlight }: { highlight?: Plan | null }) {
                 <span className="flex min-h-[44px] items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground" data-testid={`plan-current-${p}`}>{party ? 'This party’s plan' : 'Your current plan'}</span>
               ) : included ? (
                 <span className="flex min-h-[44px] items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">{party ? 'Included in this party’s plan' : 'Included in your plan'}</span>
+              ) : campaign && p !== 'FREE' && !user ? (
+                <Link href="/start" className="tap flex min-h-[44px] items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground" data-testid={`campaign-start-${p}`} onClick={() => track('plan_upgrade_clicked', { plan: p, from: 'pricing_campaign' })}>
+                  Start free — included until {until}
+                </Link>
               ) : p === 'FREE' ? (
                 <Link href={user ? '/home' : '/start'} className="tap flex min-h-[44px] items-center justify-center rounded-full border-2 border-border bg-background text-sm font-semibold" onClick={() => track('plan_upgrade_clicked', { plan: 'FREE', from: 'pricing' })}>
                   {user ? 'Keep planning' : 'Start free'}

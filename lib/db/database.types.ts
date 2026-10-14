@@ -797,6 +797,19 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"promo_campaigns": {
+                  Row: {
+                    "created_at": string,"ends_at": string,"ends_on": string,"id": string,"plan": string,"starts_at": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"ends_at": string,"ends_on": string,"id": string,"plan": string,"starts_at": string
+                  }
+                  Update: {
+                    "created_at"?: string,"ends_at"?: string,"ends_on"?: string,"id"?: string,"plan"?: string,"starts_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"saved_venues": {
                   Row: {
                     "created_at": string,"id": string,"notes": string | null,"party_id": string,"place_id": string,"updated_at": string,"user_id": string,"venue_id": string
@@ -943,7 +956,12 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "admin_market_report":
+            "active_campaign":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "ends_at": string,"ends_on": string,"id": string,"plan": string
+            }[]
+                           },
+"admin_market_report":
 { Args: { "p_days"?: number }; Returns: Json
                            },
 "ai_finalize":

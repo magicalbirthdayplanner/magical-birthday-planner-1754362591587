@@ -3,6 +3,13 @@
 Major milestones, newest first. Dates and commits are from Git history (`git log`). Configuration-only changes
 (no commit) are marked as such.
 
+## 2026-10-14 — free launch campaign
+
+- Every plan free for everyone (US + India) until the end of Nov 13, 2026 ET: `public.promo_campaigns` +
+  `active_campaign()` feed `has_paid_access` (RLS), `getUserPlan`/`getPartyPlan` (source `campaign`) and the
+  site-wide banner (`GET /api/campaign`). Checkout answers 409 while it runs. Migration
+  `20251014002300_free_launch_campaign`. See [docs/FREE_LAUNCH_CAMPAIGN.txt](docs/FREE_LAUNCH_CAMPAIGN.txt).
+
 ## Unreleased — India market expansion (branch `feat/india-market-expansion`, not deployed)
 
 - Country-aware parties (`US` / `IN`, separate from the profile country), PIN codes, Indian address fields, INR /

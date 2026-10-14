@@ -178,6 +178,9 @@ Dodo product ids and prices are unchanged since launch.
 | Party Host (incl. thank-you & reminder messages) · Party Experience | – | – | – | ✓ |
 | AI requests per party | 0 | 10 | 25 | 50 |
 
+> **Launch offer (2026-10-14 → end of Nov 13, 2026 ET): every plan is free for everyone, US and India** — see
+> [docs/FREE_LAUNCH_CAMPAIGN.txt](docs/FREE_LAUNCH_CAMPAIGN.txt). The prices below apply again afterwards.
+
 **Rules (as implemented):**
 - **Entitlement precedence for a party:** admin override (account-wide) → that party's purchase (best active plan) →
   24 h sign-up trial → Free. Legacy pre-2026-10-04 account-wide purchases are still honoured in code (production has none).

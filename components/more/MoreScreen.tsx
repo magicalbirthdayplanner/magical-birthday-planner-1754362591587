@@ -17,6 +17,7 @@ import { apiFetch } from '@/lib/data/api'
 import { cn } from '@/lib/utils'
 import { AccountSettings } from './AccountSettings'
 import { formatDateWith } from '@/lib/country/format'
+import { useCampaign } from '@/components/billing/useCampaign'
 
 function LinkRow({ href, icon: Icon, label, external }: { href: string; icon: typeof Settings; label: string; external?: boolean }) {
   return (
@@ -37,7 +38,8 @@ export function MoreScreen() {
   const [busy, setBusy] = useState(false)
   const [iosHelp, setIosHelp] = useState(false)
   // Plans are bought per party: show the active party's plan.
-  const billing = useSWR(user ? ['billing', user.id, party?.id ?? null] : null, () => apiFetch<{ plan: string; source?: 'founding' | 'admin_override' | 'purchase' | 'trial' | 'free'; trialActive: boolean }>(`/api/billing/status${party ? `?partyId=${party.id}` : ''}`), { revalidateOnFocus: true })
+  const { until: campaignUntil } = useCampaign()
+  const billing = useSWR(user ? ['billing', user.id, party?.id ?? null] : null, () => apiFetch<{ plan: string; source?: 'founding' | 'admin_override' | 'campaign' | 'purchase' | 'trial' | 'free'; trialActive: boolean }>(`/api/billing/status${party ? `?partyId=${party.id}` : ''}`), { revalidateOnFocus: true })
   // 200 only for a server-verified Super Admin (404 otherwise): never decided by the client.
   const adminSession = useSWR(user ? ['admin-session', user.id] : null, () => apiFetch<{ admin: boolean }>('/api/admin/session').catch(() => null), { revalidateOnFocus: false, shouldRetryOnError: false })
 
@@ -87,8 +89,8 @@ export function MoreScreen() {
           <span>
             <span className="block text-sm text-muted-foreground">{party ? `Plan for ${party.child_name.split(' ')[0]}’s party` : 'Your plan'}</span>
             <span className="block font-semibold">{billing.data ? (billing.data.source === 'trial' ? 'Free trial — Starter features for 24 h' : `${billing.data.plan.charAt(0)}${billing.data.plan.slice(1).toLowerCase()}`) : '…'}</span>
-            {billing.data?.source === 'founding' || billing.data?.source === 'admin_override' || billing.data?.source === 'purchase' ? (
-              <span className="block text-xs font-semibold text-muted-foreground" data-testid="plan-source">{billing.data.source === 'founding' ? 'Founding family — free, on every party' : billing.data.source === 'admin_override' ? 'Admin override' : 'Purchased'}</span>
+            {billing.data?.source === 'founding' || billing.data?.source === 'admin_override' || billing.data?.source === 'purchase' || billing.data?.source === 'campaign' ? (
+              <span className="block text-xs font-semibold text-muted-foreground" data-testid="plan-source">{billing.data.source === 'founding' ? 'Founding family — free, on every party' : billing.data.source === 'campaign' ? `Launch offer — every plan free${campaignUntil ? ` until ${campaignUntil}` : ''}` : billing.data.source === 'admin_override' ? 'Admin override' : 'Purchased'}</span>
             ) : null}
           </span>
           <span className="text-sm font-semibold text-primary">{billing.data?.plan === 'PRO' ? 'Manage' : 'Upgrade'}</span>

@@ -32,6 +32,7 @@ Start with the repository [README](../README.md), then [AI_AGENT_HANDOFF.md](AI_
 | [INDIA_LAUNCH_CHECKLIST.txt](INDIA_LAUNCH_CHECKLIST.txt) | What is implemented / tested / needs credentials, config or approval; deploy + rollback |
 | [INDIA_PRICING_PROPOSAL.txt](INDIA_PRICING_PROPOSAL.txt) | Proposed INR price table (not active), GST/fees, launch-offer options |
 | [RAZORPAY_SETUP.txt](RAZORPAY_SETUP.txt) | Razorpay flow, dashboard steps, env vars, test run, go-live checklist |
+| [FREE_LAUNCH_CAMPAIGN.txt](FREE_LAUNCH_CAMPAIGN.txt) | Every plan free for everyone until Nov 13, 2026: how it is granted, shown, ended or extended |
 | [WHATSAPP_INTEGRATION.txt](WHATSAPP_INTEGRATION.txt) | Manual WhatsApp sharing (built) and Business Platform requirements (not built) |
 
 ## Security

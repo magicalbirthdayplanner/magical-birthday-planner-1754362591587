@@ -296,7 +296,7 @@ export async function processWebhookEvent(admin: Admin, eventId: string, raw: un
 
 // ------------------------------------------------------------------ entitlement (read)
 export type AppPlan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO' | 'PROFESSIONAL'
-export type PlanSource = 'founding' | 'admin_override' | 'purchase' | 'trial' | 'free'
+export type PlanSource = 'founding' | 'admin_override' | 'campaign' | 'purchase' | 'trial' | 'free'
 export interface UserPlan {
   plan: AppPlan
   source: PlanSource
@@ -304,6 +304,18 @@ export interface UserPlan {
   override: { plan: string; expiresAt: string | null } | null
   /** Founding-family seat (1..25), when the account has one (migration 20251009001700). */
   foundingSeat: number | null
+  /** The site-wide free campaign running now, if any (migration 20251014002300). */
+  campaign: ActiveCampaign | null
+}
+
+export interface ActiveCampaign { id: string; plan: 'STARTER' | 'PLUS' | 'PRO'; endsAt: string; endsOn: string }
+
+/** The running free campaign (public.active_campaign), or null. Ends on its own at endsAt. */
+export async function getActiveCampaign(db: Admin): Promise<ActiveCampaign | null> {
+  const { data, error } = await db.rpc('active_campaign')
+  const row = !error && Array.isArray(data) ? data[0] : null
+  if (!row || (row.plan !== 'STARTER' && row.plan !== 'PLUS' && row.plan !== 'PRO')) return null
+  return { id: row.id, plan: row.plan, endsAt: row.ends_at, endsOn: row.ends_on }
 }
 
 const APP_PLANS = ['FREE', 'STARTER', 'PLUS', 'PRO', 'PROFESSIONAL'] as const
@@ -320,7 +332,7 @@ export async function getUserPlan(admin: Admin, userId: string): Promise<UserPla
       admin.from('users').select('email, current_plan, is_trial_active, trial_expires_at').eq('id', userId).maybeSingle(),
       admin.from('plan_overrides').select('plan, expires_at').eq('user_id', userId).maybeSingle(),
     ])
-  const [first, { data: founding }] = await Promise.all([read(), admin.from('founding_members').select('seat').eq('user_id', userId).maybeSingle()])
+  const [first, { data: founding }, campaign] = await Promise.all([read(), admin.from('founding_members').select('seat').eq('user_id', userId).maybeSingle(), getActiveCampaign(admin)])
   let [{ data: profile }, { data: override }] = first
   let recompute = false
   if (override?.expires_at && new Date(override.expires_at) <= now) {
@@ -334,19 +346,23 @@ export async function getUserPlan(admin: Admin, userId: string): Promise<UserPla
     const { error } = await admin.rpc('recompute_entitlement', { p_user: userId })
     if (!error) [{ data: profile }, { data: override }] = await read()
   }
-  const plan = APP_PLANS.find((p) => p === profile?.current_plan) ?? 'FREE'
+  let plan: AppPlan = APP_PLANS.find((p) => p === profile?.current_plan) ?? 'FREE'
   const trialActive = !!profile?.is_trial_active && !!profile.trial_expires_at && new Date(profile.trial_expires_at) > now
   const foundingSeat = founding?.seat ?? null
   let source: PlanSource
   // The founding-family gift is an override; it reads as "founding" until an admin changes it to another plan.
   if (override && foundingSeat && override.plan === 'PRO' && !override.expires_at) source = 'founding'
   else if (override) source = 'admin_override'
-  else if (plan !== 'FREE' && !trialActive) source = 'purchase'
+  // Free campaign (after overrides, as in has_paid_access): its plan, unless a legacy account purchase is higher.
+  else if (campaign && RANK[campaign.plan] >= RANK[plan]) {
+    source = 'campaign'
+    plan = campaign.plan
+  } else if (plan !== 'FREE' && !trialActive) source = 'purchase'
   else if (plan !== 'FREE' && trialActive) {
     const { count } = await admin.from('billing_purchases').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('scope', 'account').eq('status', 'active')
     source = count ? 'purchase' : 'trial'
   } else source = 'free'
-  return { plan, source, trialActive, override: override ? { plan: override.plan, expiresAt: override.expires_at } : null, foundingSeat }
+  return { plan, source, trialActive, override: override ? { plan: override.plan, expiresAt: override.expires_at } : null, foundingSeat, campaign }
 }
 
 /** The plan a party has: an admin override or founding-family gift (account-wide) wins; otherwise the best of the party's own purchase and
@@ -358,6 +374,6 @@ export async function getPartyPlan(admin: Admin, userId: string, partyId: string
   const [account, { data: bought }] = await Promise.all([getUserPlan(admin, userId), admin.rpc('party_plan', { p_party: partyId })])
   const partyPurchase = bought === 'STARTER' || bought === 'PLUS' || bought === 'PRO' ? bought : null
   if (account.source === 'admin_override' || account.source === 'founding' || !partyPurchase) return { ...account, partyId, partyPurchase }
-  if (account.source === 'purchase' && RANK[account.plan] >= RANK[partyPurchase]) return { ...account, partyId, partyPurchase }
+  if ((account.source === 'purchase' || account.source === 'campaign') && RANK[account.plan] >= RANK[partyPurchase]) return { ...account, partyId, partyPurchase }
   return { ...account, plan: partyPurchase, source: 'purchase', partyId, partyPurchase }
 }

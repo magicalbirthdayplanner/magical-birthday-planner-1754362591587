@@ -59,3 +59,21 @@ export async function deleteTestUser(user: TestUser | undefined) {
   if (!user) return
   await adminClient().auth.admin.deleteUser(user.id)
 }
+
+/**
+ * The site-wide free campaign (migration 20251014002300) makes everyone Pro while it runs. Tests of the normal paid
+ * model run with it switched off (tests/integration/campaign-setup.ts); campaign tests switch it on explicitly.
+ * Local database only.
+ */
+export async function setLaunchCampaign(active: boolean) {
+  const { error } = await adminClient()
+    .from('promo_campaigns')
+    .update(active ? { starts_at: '2026-10-13T04:00:00Z', ends_at: '2099-01-01T00:00:00Z' } : { starts_at: '2026-10-13T04:00:00Z', ends_at: '2026-10-13T04:00:01Z' })
+    .eq('id', 'launch-free-30')
+  if (error) throw error
+}
+
+/** Put the campaign back to its real window (end of Nov 13, 2026 ET). */
+export async function restoreLaunchCampaign() {
+  await adminClient().from('promo_campaigns').update({ starts_at: '2026-10-13T04:00:00Z', ends_at: '2026-11-14T05:00:00Z', ends_on: '2026-11-13' }).eq('id', 'launch-free-30')
+}

@@ -79,7 +79,7 @@ export const minPlanFor = (c: Capability): Plan => CAPABILITIES[c].minPlan
 /** Server-derived plan state (lib/billing/server getUserPlan → /api/billing/status). */
 export interface PlanState {
   plan: string
-  source: 'founding' | 'admin_override' | 'purchase' | 'trial' | 'free' | string
+  source: 'founding' | 'admin_override' | 'campaign' | 'purchase' | 'trial' | 'free' | string
 }
 
 const asPlan = (p: string): Plan => (p === 'PRO' || p === 'PROFESSIONAL' ? 'PRO' : p === 'PLUS' ? 'PLUS' : p === 'STARTER' ? 'STARTER' : 'FREE')

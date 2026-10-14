@@ -10,6 +10,7 @@ import { LinkButton } from '@/components/app/ui'
 import { usePlanStatus } from './usePlanStatus'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
+import { useCampaign } from './useCampaign'
 
 const fetchSeats = (url: string) => fetch(url).then((r) => (r.ok ? (r.json() as Promise<{ seats: number; left: number }>) : null))
 
@@ -18,8 +19,10 @@ export function FoundingOffer({ className, compact }: { className?: string; comp
   const { user, loading } = useAuth()
   const status = usePlanStatus()
   const { data } = useSWR(user ? null : '/api/founding', fetchSeats, { revalidateOnFocus: false })
+  const { campaign } = useCampaign()
 
-  if (loading) return null
+  // While the site-wide free campaign runs, its banner is the one offer people see.
+  if (loading || campaign) return null
   if (user) {
     if (!status.founding) return null
     return (

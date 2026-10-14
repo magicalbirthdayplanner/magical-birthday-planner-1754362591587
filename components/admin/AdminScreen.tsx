@@ -9,10 +9,11 @@ import { AppButton, Card, Chip, EmptyState, PageHeader, Section, Skeleton } from
 import { TextField } from '@/components/app/fields'
 import { apiFetch, friendlyError } from '@/lib/data/api'
 import { MarketsReport } from './MarketsReport'
+import { useCampaign } from '@/components/billing/useCampaign'
 
 type Plan = 'FREE' | 'STARTER' | 'PLUS' | 'PRO'
 type Duration = '24h' | '7d' | '30d' | 'none'
-type Source = 'founding' | 'admin_override' | 'purchase' | 'trial' | 'free'
+type Source = 'founding' | 'admin_override' | 'campaign' | 'purchase' | 'trial' | 'free'
 interface AdminUser {
   id: string
   email: string | null
@@ -34,7 +35,7 @@ const DURATIONS: { id: Duration; label: string }[] = [
   { id: 'none', label: 'No expiration' },
 ]
 const title = (p: string) => p.charAt(0) + p.slice(1).toLowerCase()
-export const SOURCE_LABEL: Record<Source, string> = { founding: 'Founding family (free Pro)', admin_override: 'Admin override', purchase: 'Purchased', trial: 'Trial', free: 'Free' }
+export const SOURCE_LABEL: Record<Source, string> = { founding: 'Founding family (free Pro)', admin_override: 'Admin override', campaign: 'Launch offer (free, all plans)', purchase: 'Purchased', trial: 'Trial', free: 'Free' }
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—')
 const ACTION_LABEL: Record<string, string> = { override_set: 'Override set', override_changed: 'Override changed', override_removed: 'Override removed', override_expired: 'Override expired', role_granted: 'Role granted', role_revoked: 'Role revoked' }
 
@@ -109,6 +110,7 @@ export function AdminScreen() {
   const [term, setTerm] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
   const isAdmin = !!session.data?.admin
+  const campaign = useCampaign()
   const stats = useSWR(isAdmin ? 'admin-stats' : null, () => apiFetch<{ users: number; paidUsers: number; freeUsers: number; overrides: number; unresolvedPayments: number; foundingMembers: number; foundingSeats: number }>('/api/admin/stats'))
   const me = useSWR(isAdmin && user?.email ? ['admin-me', user.email] : null, () => apiFetch<{ users: AdminUser[] }>(`/api/admin/users?q=${encodeURIComponent(user!.email!)}`).then((r) => r.users.find((u) => u.id === user!.id) ?? null))
   const users = useSWR(isAdmin ? ['admin-users', term] : null, () => apiFetch<{ users: AdminUser[] }>(`/api/admin/users?q=${encodeURIComponent(term)}`).then((r) => r.users))
@@ -158,6 +160,7 @@ export function AdminScreen() {
           <span>Paid users: <strong>{stats.data?.paidUsers ?? '…'}</strong></span>
           <span>Free users: <strong>{stats.data?.freeUsers ?? '…'}</strong></span>
           <span>Overrides: <strong>{stats.data?.overrides ?? '…'}</strong></span>
+          <span className="col-span-2" data-testid="admin-campaign">Launch offer: <strong>{campaign.campaign ? `every plan free for everyone until ${campaign.until}` : 'not running'}</strong></span>
           <span className="col-span-2" data-testid="admin-founding">Founding families: <strong>{stats.data ? `${stats.data.foundingMembers} of ${stats.data.foundingSeats}` : '…'}</strong></span>
           {stats.data?.unresolvedPayments ? (
             <span className="col-span-2 rounded-xl bg-destructive/10 px-3 py-2 font-semibold text-destructive" role="alert" data-testid="admin-unresolved-payments">

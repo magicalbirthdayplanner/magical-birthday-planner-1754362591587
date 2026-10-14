@@ -10,6 +10,7 @@ import { PartyProvider, useParty } from './PartyProvider'
 import { OfflineBanner } from './OfflineBanner'
 import { ErrorState, Skeleton } from './ui'
 import { Footer } from './Footer'
+import { CampaignBanner } from '@/components/billing/CampaignBanner'
 
 /** The founder footer sits under normal page content — not on the full-screen map (Discover). */
 function AppFooter() {
@@ -102,6 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AppHeader />
         <OfflineBanner />
         <main id="main" className="app-content-pb mx-auto w-full max-w-xl">
+          <CampaignBanner variant="app" />
           <RequireAuth>
             <PartyLoadGate>{children}</PartyLoadGate>
           </RequireAuth>

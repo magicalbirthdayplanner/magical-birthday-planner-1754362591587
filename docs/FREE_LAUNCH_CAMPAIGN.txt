@@ -1,0 +1,47 @@
+FREE LAUNCH CAMPAIGN — EVERY PLAN FREE UNTIL 13 NOVEMBER 2026
+============================================================
+
+Owner ruling 2026-10-14: "make it free for now — free for the first 30 days, all plans included", for everyone
+(US + India), with a fixed end: the end of Friday 13 November 2026, America/New_York (30 days after the Oct 13 launch).
+
+[IMPLEMENTED] [TESTED] (integration tests/integration/campaign.test.ts, E2E tests/e2e/campaign.spec.ts)
+
+What people get while it runs
+- Every account, every party, US and India: Pro — guests & RSVP, invitations (link, email, WhatsApp), every AI
+  feature with the Pro allowance (50 AI requests per party). No card, no sign-up step, nothing to claim.
+- AI fair-use limits still apply: per user per hour/day (AI_USER_DAILY_LIMIT) and the global daily breaker
+  (AI_GLOBAL_DAILY_LIMIT, production 50/day). With everyone on Pro the global breaker is the likely bottleneck —
+  raise it in Vercel if usage grows (cost: roughly $0.005–0.01 per request).
+- Checkout is not needed: pricing cards say "Free until 13 November", signed-in parents see their plan as included,
+  and /api/billing/checkout answers 409 "Every plan is free right now" (nobody can be charged by mistake).
+
+How it works
+- Table public.promo_campaigns (server-only) holds the window: id launch-free-30, plan PRO,
+  starts_at 2026-10-13 04:00 UTC, ends_at 2026-11-14 05:00 UTC (= end of 13 Nov ET), ends_on 2026-11-13 (shown).
+- public.active_campaign() is read by:
+    has_paid_access() / has_paid_access(party) — database access (RLS for guests and invitations);
+    getUserPlan / getPartyPlan — server plan (source 'campaign') → AI tiers and limits, checkout, /api/billing/status;
+    GET /api/campaign — the banner.
+  One source of truth, so the banner never promises more than is granted.
+- Precedence: Super Admin → admin override (incl. a FREE override for testing) and founding-family Pro → campaign →
+  the party's own purchase (a higher purchase would win) → trial → Free.
+- Nothing is written per user. When the window closes, every party returns to its own purchase or Free on its own;
+  all data stays (guests and invitations stay readable, RSVP links keep working, paid features lock again).
+- Founding families keep their permanent Pro. The "first 25 families" offer is hidden while the campaign runs and
+  reappears afterwards if seats are left.
+
+Where it shows
+- Public site (every page under app/(site), incl. /, /pricing, /in): gradient banner with "Start free".
+- App: the same banner at the top of every tab, dismissible (remembered per device per campaign).
+- Pricing page: "Free until …" on each paid plan, a FAQ entry, a note for signed-in parents.
+- Sign-up step of the wizard, More → plan row ("Launch offer — every plan free until …"), Super Admin → System.
+- Dates are written in the reader's style (US "November 13", India "13 November").
+
+Operate it (Supabase SQL editor or psql, production — owner decision each time)
+- End now:    update public.promo_campaigns set ends_at = now() where id = 'launch-free-30';
+- Extend:     update public.promo_campaigns set ends_at = '2026-12-01 05:00+00', ends_on = '2026-11-30' where id = 'launch-free-30';
+- New one:    insert into public.promo_campaigns (id, plan, starts_at, ends_at, ends_on) values (...);
+No redeploy needed: the site reads the window live.
+
+Tests: the regular suites run with the campaign switched off (vitest globalSetup tests/integration/campaign-setup.ts,
+Playwright global setup) and restore the real window afterwards; campaign tests switch it on themselves.

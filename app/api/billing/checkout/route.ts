@@ -53,6 +53,8 @@ export async function POST(req: Request) {
   }
   // Never sell a party a plan it already has (or exceeds).
   const current = await getPartyPlan(getSupabaseAdmin(), auth.user.id, body.partyId)
+  // During the free campaign every plan is already included: nothing to buy, nobody is charged.
+  if (current.source === 'campaign' && RANK[current.plan] >= RANK[body.plan]) return apiError(409, 'already_owned', 'Every plan is free right now — this party already has it.')
   if (current.source !== 'trial' && RANK[current.plan] >= RANK[body.plan]) return apiError(409, 'already_owned', 'This party already has this plan.')
   if (policy.provider === 'razorpay') return razorpayCheckout(auth.user, body.plan, body.partyId, policy, started)
   try {

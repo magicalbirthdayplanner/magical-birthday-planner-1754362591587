@@ -10,6 +10,10 @@ import { PartyProvider, useOptionalParty } from "@/components/app/PartyProvider"
 import { track } from "@/lib/analytics/client"
 import { PLAN_INFO, type Plan } from "@/lib/entitlements"
 import { countryConfig } from "@/lib/country/countries"
+import { useCampaign } from "@/components/billing/useCampaign"
+
+/** Shown only while the launch campaign runs. */
+const CAMPAIGN_FAQ = { q: "Is everything really free right now?", a: "Yes — during our launch offer every plan is free for everyone, on every party: guests & RSVP and every AI feature, with no card. The banner at the top shows the last free day. After that, parties go back to Free unless you choose a plan for them; everything you created stays. AI fair-use limits still apply." }
 
 /** Answers reflect actual behaviour (lib/entitlements.ts, lib/billing/*, lib/ai/*) and the Terms. */
 const FAQS: { q: string; a: string }[] = [
@@ -38,6 +42,8 @@ function PricingContent() {
   const highlight = (["STARTER", "PLUS", "PRO"] as const).find((p) => p === upgrade) ?? null
   const owned = status.ownedPlan
   const from = params.get("from")
+  const { campaign } = useCampaign()
+  const faqs = campaign ? [CAMPAIGN_FAQ, ...FAQS] : FAQS
 
   useEffect(() => {
     track("pricing_viewed", { highlight: highlight ?? undefined, from: from ?? undefined })
@@ -50,7 +56,11 @@ function PricingContent() {
         <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">Explore. Plan. Organize. Experience.</h1>
         <p className="mt-3 text-lg text-gray-600">Start free. Add AI when you want help building the plan, handling the details, or making the day itself magical.</p>
         <FoundingOffer className="mt-6" />
-        {status.founding ? null : status.onTrial ? (
+        {status.founding ? null : status.campaign ? (
+          <p className="mx-auto mt-4 max-w-xl rounded-2xl bg-white/80 px-4 py-3 text-sm text-gray-700" data-testid="campaign-note">
+            {party ? <>{party.child_name.split(" ")[0]}’s party has <strong>every plan, free</strong> during our launch offer.</> : <>You have <strong>every plan, free</strong> during our launch offer.</>} Nothing to buy until it ends.
+          </p>
+        ) : status.onTrial ? (
           <p className="mx-auto mt-4 max-w-xl rounded-2xl bg-white/80 px-4 py-3 text-sm text-gray-700" data-testid="trial-note">
             You’re on a free 24-hour trial with Starter’s guest &amp; RSVP features. You can choose any plan at any time.
           </p>
@@ -74,7 +84,7 @@ function PricingContent() {
       <section className="mx-auto mt-16 max-w-3xl px-4" aria-labelledby="faq">
         <h2 id="faq" className="text-center font-display text-3xl font-extrabold text-gray-900">Questions</h2>
         <div className="mt-6 space-y-3">
-          {FAQS.map((f) => (
+          {faqs.map((f) => (
             <details key={f.q} className="group rounded-2xl border border-border bg-white p-4">
               <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 font-semibold text-gray-900">
                 {f.q}

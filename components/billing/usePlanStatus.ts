@@ -31,6 +31,8 @@ export function usePlanStatus(partyId?: string | null) {
     onTrial: data?.source === 'trial',
     /** One of the first 25 accounts: Pro free on every party (an account-wide gift, not a purchase). */
     founding: data?.source === 'founding',
+    /** Covered by the site-wide free campaign (every plan free until it ends). */
+    campaign: data?.source === 'campaign',
     trialActive: !!data?.trialActive,
     superAdmin: !!data?.superAdmin,
     /** Display-only check; the server enforces. While loading, nothing is reported as locked. */

@@ -28,6 +28,7 @@ import {
   type WizardStep,
 } from '@/lib/planning/wizard'
 import { setAnalyticsMarket, track } from '@/lib/analytics/client'
+import { useCampaign } from '@/components/billing/useCampaign'
 import { COUNTRIES, countryConfig, parseCountryCode, selectableCountries, type CountryCode } from '@/lib/country/countries'
 import { formatMoney, formatPartyDate, formatRadius } from '@/lib/country/format'
 import { normalizePostal, postalInputFilter } from '@/lib/country/postal'
@@ -626,6 +627,7 @@ function Finale({
   onCreate: () => void
   onEdit: (stepIndex: number) => void
 }) {
+  const { until: campaignUntil } = useCampaign()
   const place = draft.zipPlace ? [draft.zipPlace.city, draft.zipPlace.state].filter(Boolean).join(', ') : draft.zip
   const items: [string, string, number][] = [
     ['🎂', `${first(draft)} turns ${draft.childAge}`, 1],
@@ -669,7 +671,10 @@ function Finale({
       ) : authLoading ? null : (
         <div className="mt-8 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <h2 className="text-lg font-semibold">{authMode === 'signup' ? 'Save your party' : 'Sign in to save your party'}</h2>
-          <p className="mb-4 text-sm text-muted-foreground">So you can come back to it from any device.</p>
+          <p className="mb-4 text-sm text-muted-foreground">
+            So you can come back to it from any device.
+            {campaignUntil ? <strong className="block text-foreground" data-testid="wizard-campaign">Every plan is free until {campaignUntil} — no card needed.</strong> : null}
+          </p>
           <AuthForm mode={authMode} compact onDone={onCreate} next="/start?resume=1" signupData={{ party_draft: draft }} />
           <p className="mt-4 text-center text-sm text-muted-foreground">
             {authMode === 'signup' ? 'Already have an account? ' : 'New here? '}

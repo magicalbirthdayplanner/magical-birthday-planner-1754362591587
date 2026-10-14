@@ -132,3 +132,17 @@ export async function addParty(email: string, password: string, childName: strin
   if (error) throw error
   return data!.id
 }
+
+/** Launch campaign switch for tests (local DB). Off = the normal paid model; on = every plan free. */
+export async function setLaunchCampaign(active: boolean) {
+  const admin = createClient(URL, SERVICE, opts)
+  await admin
+    .from('promo_campaigns')
+    .update(active ? { starts_at: '2026-10-13T04:00:00Z', ends_at: '2099-01-01T00:00:00Z' } : { starts_at: '2026-10-13T04:00:00Z', ends_at: '2026-10-13T04:00:01Z' })
+    .eq('id', 'launch-free-30')
+}
+
+export async function restoreLaunchCampaign() {
+  const admin = createClient(URL, SERVICE, opts)
+  await admin.from('promo_campaigns').update({ starts_at: '2026-10-13T04:00:00Z', ends_at: '2026-11-14T05:00:00Z', ends_on: '2026-11-13' }).eq('id', 'launch-free-30')
+}

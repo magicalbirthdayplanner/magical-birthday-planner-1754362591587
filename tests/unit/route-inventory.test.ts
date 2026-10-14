@@ -30,6 +30,8 @@ const EXPECTED = [
   '/api/waitlist/unsubscribe [api]',
   // founding-families offer: public seat count
   '/api/founding [api]',
+  // site-wide free launch campaign: public status for the banner
+  '/api/campaign [api]',
   // full-screen flows (public: auth, guest invitation, offline; wizard needs sign-in)
   '/login [page]', '/join [page]', '/reset-password [page]', '/offline [page]', '/invite/[token] [page]', '/start [page]', '/venue/[placeId] [page]',
   // signed-in app (bottom navigation)

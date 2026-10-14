@@ -15,6 +15,8 @@ export default defineConfig({
     include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
     // Integration tests talk to the local Supabase stack and share it.
     fileParallelism: false,
+    // The launch campaign is switched off for the suite (normal paid model) and restored afterwards.
+    globalSetup: ['tests/integration/campaign-setup.ts'],
     testTimeout: 20_000,
     coverage: {
       provider: 'v8',
