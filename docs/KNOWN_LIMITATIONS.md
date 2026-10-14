@@ -47,3 +47,18 @@ launch) · **FUTURE IMPROVEMENT** (works; could be better). There are **no BLOCK
 | The marketing homepage uses an older visual style (pink/purple gradient headings) than the app and pricing page. | FUTURE IMPROVEMENT |
 | Checklist tasks are not re-dated automatically when the party date changes; manual budget/shopping entry exists only through activities and AI results. | FUTURE IMPROVEMENT |
 | Legacy tables (`invitations`, `party_activities`, `activities`, `activity_favorites`, `theme_preferences`) and the unconfigured legacy `/api/themes/ai` route remain. | FUTURE IMPROVEMENT |
+
+## India market (branch `feat/india-market-expansion`, 2026-10-14)
+
+| Item | Label |
+|---|---|
+| Razorpay has only been tested against a local mock of its test mode — no Razorpay credentials exist yet. India checkout is off (`RAZORPAY_ENABLED` unset, no INR prices). | BLOCKING for India payments |
+| INR prices are a proposal ([INDIA_PRICING_PROPOSAL.txt](INDIA_PRICING_PROPOSAL.txt)); GST position not confirmed. | BLOCKING for India payments |
+| The production Google server key is not allowed to use the Geocoding API (REQUEST_DENIED). Indian PINs are located with Places Text Search instead (verified live for Mumbai, Bengaluru, Delhi, Hyderabad), with the offline GeoNames PIN centroids (can be several km off) as the last fallback. Enabling Geocoding on the key is optional. | NON-BLOCKING |
+| India venue coverage is whatever Google Places returns; verified with a handful of live searches only — not a coverage guarantee. | NON-BLOCKING (watch) |
+| WhatsApp is manual sharing only; the app cannot know whether an invitation was sent or delivered. Automated WhatsApp Business messaging is not built. | FUTURE IMPROVEMENT |
+| A party's country can be changed by its owner; amounts are not converted (the edit sheet warns). A US party relabelled "India" would see INR prices (revenue risk, not an access risk). | NON-BLOCKING |
+| US parties keep floating calendar times (no timezone stored); India parties store Asia/Kolkata. | FUTURE IMPROVEMENT |
+| Analytics events from before 2026-10-14 carry no `market`; the Markets report attributes them only through the party. | NON-BLOCKING |
+| UI language is English only (en-IN formats for India). | FUTURE IMPROVEMENT |
+| Privacy Policy / Terms do not yet name Razorpay as a processor (needed before India payments go live). | BLOCKING for India payments |

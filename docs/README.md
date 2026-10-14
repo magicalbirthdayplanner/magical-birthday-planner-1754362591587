@@ -25,11 +25,20 @@ Start with the repository [README](../README.md), then [AI_AGENT_HANDOFF.md](AI_
 | [LOCAL_DISCOVERY.md](LOCAL_DISCOVERY.md) | How venue discovery plans, ranks and caches |
 | [GOOGLE_PLACES.md](GOOGLE_PLACES.md) · [GOOGLE_PLACES_COST_CONTROL.md](GOOGLE_PLACES_COST_CONTROL.md) | Google APIs, keys, field masks, cost guards |
 
+## India market (2026-10-14, branch `feat/india-market-expansion`)
+| Document | What it covers |
+|---|---|
+| [INDIA_MARKET_EXPANSION_PLAN.txt](INDIA_MARKET_EXPANSION_PLAN.txt) | Audit, schema, integrations, security, stages, test and rollback plan |
+| [INDIA_LAUNCH_CHECKLIST.txt](INDIA_LAUNCH_CHECKLIST.txt) | What is implemented / tested / needs credentials, config or approval; deploy + rollback |
+| [INDIA_PRICING_PROPOSAL.txt](INDIA_PRICING_PROPOSAL.txt) | Proposed INR price table (not active), GST/fees, launch-offer options |
+| [RAZORPAY_SETUP.txt](RAZORPAY_SETUP.txt) | Razorpay flow, dashboard steps, env vars, test run, go-live checklist |
+| [WHATSAPP_INTEGRATION.txt](WHATSAPP_INTEGRATION.txt) | Manual WhatsApp sharing (built) and Business Platform requirements (not built) |
+
 ## Security
 | Document | What it covers |
 |---|---|
 | [SECURITY.md](SECURITY.md) | Security model, AI usage, RSVP, billing/admin, open items and trade-offs |
-| [BILLING_SECURITY.md](BILLING_SECURITY.md) | Dodo checkout, webhook and entitlement design |
+| [BILLING_SECURITY.md](BILLING_SECURITY.md) | Dodo (US) and Razorpay (India) checkout, webhook and entitlement design |
 
 ## Integrations, deployment & operations
 | Document | What it covers |

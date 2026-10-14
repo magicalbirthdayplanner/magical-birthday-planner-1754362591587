@@ -1,0 +1,84 @@
+WHATSAPP — INVITATION SHARING AND (FUTURE) BUSINESS MESSAGING
+=============================================================
+
+Status (2026-10-14):
+  Mode 1 — Manual share ............ [IMPLEMENTED] [TESTED] (unit + mobile E2E with a stubbed wa.me page)
+  Mode 2 — Automated delivery ...... [NOT IMPLEMENTED]. Needs Meta Business setup, credentials, approved templates,
+                                     a consent design and owner approval. Nothing in the app sends WhatsApp messages.
+We never claim an invitation was sent or delivered on WhatsApp: opening WhatsApp is all the app can know.
+
+
+1. MODE 1 — MANUAL SHARE (live in the code)
+-------------------------------------------
+Where: Plan → Invitation (/plan/invite). For parties whose event country lists WhatsApp as a share channel (India
+today — lib/country/countries.ts shareChannels) a green "Share on WhatsApp" button sits above "More ways to share".
+US parties keep their existing buttons (native share, Text, Email, Copy link) unchanged.
+
+What happens:
+ 1. The invitation is saved (if needed) and the message is built by lib/invite/share.ts invitationShareText():
+      🎉 You're invited to Aarav's 7th birthday party!
+      <headline>
+      📅 Saturday, 14 November 2026        (the event country's date style)
+      ⏰ 4 pm – 7:30 pm
+      📍 <the "Where" the host wrote>
+      ✨ Theme: <theme, if chosen>
+      <the host's message>
+      — <From>
+      Please RSVP here: https://magicalbirthdayplanner.app/invite/<48-hex token>
+ 2. The app opens the official click-to-chat link https://wa.me/?text=<URL-encoded message> (no phone number).
+    WhatsApp opens on the phone; the HOST chooses chats or groups and presses send.
+ 3. The app counts a share (party_invitations.share_count), ticks the "Send invitations" checklist task and records
+    analytics whatsapp_share_initiated + invitation_shared{channel:'whatsapp'} — country code and design only.
+ 4. The toast says "WhatsApp opened — choose who to send it to." (not "sent").
+ If the browser blocks the new window (installed PWA), WhatsApp opens in the same tab.
+
+Privacy:
+- The message contains only what the host put on the invitation + the public link. Never the guest list, guests'
+  phone numbers or emails, the host's email, internal ids or the street address fields of the party (the host
+  decides what goes in "Where").
+- The RSVP link is the existing token link (192-bit, revocable with "Reset link"); the public page shows the
+  invitation and the RSVP form only (get_invitation projection: first name, date, times, location text, message,
+  design, country, timezone).
+- Guest phone numbers are not used for sharing (no per-guest wa.me/<number> links) and never leave the guest list.
+
+RSVP from WhatsApp: guests tap the link → /invite/<token> → Yes / Maybe / Can't go, kids/adults, name, optional email
+and note — no app, no account. Duplicate protection is the existing respondent-key + email logic (one invitee = one
+guest row); India adds nothing new there. The page and its calendar file use the event's country formats and timezone.
+
+
+2. MODE 2 — OFFICIAL AUTOMATED DELIVERY (WhatsApp Business Platform / Cloud API) — NOT BUILT
+------------------------------------------------------------------------------------------
+Only the official Meta platform is acceptable. Never WhatsApp Web automation, scraping, session cookies or
+unofficial bulk tools.
+
+Requirements before any code:
+- Meta Business portfolio (Business Manager) for the company; business verification (required for higher messaging
+  limits and a display name; plan for it).
+- A WhatsApp Business Account (WABA) and a dedicated phone number registered on the Cloud API (a number already
+  used in the WhatsApp app must be migrated/deleted first). Display name approval.
+- A System User access token with whatsapp_business_messaging (+ management) permissions; phone number id; WABA id;
+  app id/secret for webhook signature (X-Hub-Signature-256) verification; a webhook verify token.
+- Message templates: business-initiated messages (an invitation, a reminder) must use pre-approved templates
+  (category "utility" or "marketing" — an invitation sent on behalf of a host is likely "utility"/"marketing"; Meta
+  decides on review). Free-form text is only allowed inside the 24-hour customer-service window after the guest
+  writes first.
+- Opt-in and consent: WhatsApp policy requires the recipient's opt-in to receive messages from the business. A
+  phone number typed into a guest list by a host is NOT the guest's opt-in. A compliant design would be, e.g.:
+    a) the guest opts in on the RSVP page ("Send me reminders on WhatsApp") — consent stored with timestamp and text,
+       revocable; reminders only to opted-in guests; or
+    b) the host sends the first message manually (Mode 1) and the guest replies to the business number.
+  Explicit host action for every send; never automatic because a number exists.
+- Costs: Meta charges per message by template category and recipient country (India rates differ from US); budget
+  and caps per party would be needed (similar to the email caps).
+- Limits: new numbers start at a low daily cap of business-initiated conversations, raised with quality and
+  verification; per-number throughput limits apply.
+- Delivery status: sent / delivered / read / failed arrive by webhook; only those (never "link opened") could be
+  shown to the host.
+- Privacy & retention: guest phone numbers would be shared with Meta as a processor → Privacy Policy update, DPA,
+  data-retention policy for message logs (store status + message id, not message bodies), deletion on party delete.
+
+Proposed shape (for a later phase, only after the above): env WHATSAPP_ENABLED (default off),
+WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_BUSINESS_ACCOUNT_ID, WHATSAPP_APP_SECRET,
+WHATSAPP_WEBHOOK_VERIFY_TOKEN (all server-only); a whatsapp_messages log table (party, guest, template, status,
+provider message id); POST /api/invitations/whatsapp (Starter+, per-party caps, consent check, host-initiated);
+GET/POST /api/webhooks/whatsapp (verify token + signature). None of these exist today.

@@ -2,11 +2,11 @@
 
 | Layer | Tool | Location | Needs | Count |
 |---|---|---|---|---|
-| Unit | Vitest | `tests/unit` | nothing | 256 (25 files) |
-| Integration (RLS, security, billing, email, AI, AI usage attacks, RSVP idempotency, observability) | Vitest + supabase-js | `tests/integration` | local Supabase | 276 (18 files) |
+| Unit | Vitest | `tests/unit` | nothing | 526 (40 files) |
+| Integration (RLS, security, billing, email, AI, AI usage attacks, RSVP idempotency, observability) | Vitest + supabase-js | `tests/integration` | local Supabase | 322 (21 files) |
 | E2E (mobile) | Playwright (Chromium, mobile emulation) | `tests/e2e` | local Supabase; starts mock Google/Resend/Dodo + a production build | 57 runs (13 spec files × phone/viewport projects) |
 
-Counts verified on 2026-10-04. AI tests use a deterministic mock provider; `vitest.live.config.ts` holds opt-in live
+Counts verified on 2026-10-14 (branch `feat/india-market-expansion`; baseline before it: 427 unit + 295 integration). AI tests use a deterministic mock provider; `vitest.live.config.ts` holds opt-in live
 provider checks (`AI_LIVE=1`). Production smoke tests use temporary accounts that are deleted afterwards.
 
 Google is **always mocked** in tests (`tests/mock-google/server.mjs` or injected fakes). No test
@@ -88,3 +88,18 @@ cache writes; checklist missed milestones done before it existed; ~1.8k px page 
   375/390/393/430 px with an overflow check at every step.
 * `scripts/scan-git-history-secrets.mjs` — masked history secret scan; `npm run check:secrets` —
   client bundle scan.
+
+## India market (2026-10-14)
+
+* Unit: `india-country` (config, PIN/ZIP, +91/+1 phones, INR/USD, en-IN/en-US dates and times, km, event timezone →
+  UTC), `india-discovery` (offline PIN dataset, Google-first PIN resolution and fallbacks, Places PIN locator,
+  regionCode, local phrasing, cache keys, rupee budget fit), `india-invite-share` (WhatsApp text + URL encoding,
+  privacy, ICS with timezone), `razorpay` (payment + webhook signatures, event decisions, provider policy, prices),
+  `india-app` (wizard, guest phones + duplicates, AI amounts in ₹, pixel currency, cost ranges, analytics).
+* Integration `india.test.ts`: country model + RLS, invitation projection, PIN endpoint, India/US discovery region,
+  provider selection (US → Dodo unchanged, India → Razorpay or 503), Razorpay verify/webhook (bad signature, foreign
+  order, other user, amount/currency mismatch, failure then success, duplicates, out-of-order, races, refunds,
+  deleted party).
+* E2E `india.spec.ts`: `/in`, India wizard with PIN and ₹ budget, discovery in km, INR pricing, mock Razorpay
+  Checkout (close + pay), +91 guests, WhatsApp share link, guest RSVP in Indian formats, 375 px overflow checks.
+* Live (opt-in, costs cents): `GOOGLE_LIVE=1 GOOGLE_PLACES_API_KEY=… npx vitest run tests/live/india-google-live.test.ts -c vitest.live.config.ts`.

@@ -1,0 +1,93 @@
+INDIA LAUNCH CHECKLIST — STATUS, DEPLOYMENT AND ROLLBACK
+========================================================
+
+Branch: feat/india-market-expansion (from origin/master c8ebf76 = production dpl_5uRmRVtgtiq5DBEdzoPrQQmKFzaZ).
+State on 2026-10-14: built and tested locally; NOT merged, NOT deployed, production migration NOT applied.
+
+Keys: [IMPLEMENTED] [TESTED] [NEEDS CREDENTIALS] [NEEDS DASHBOARD CONFIG] [NEEDS BUSINESS APPROVAL] [NOT IMPLEMENTED]
+
+
+1. FEATURE STATUS
+-----------------
+Country model (US / IN), event country per party, profile country ......... [IMPLEMENTED] [TESTED]
+  lib/country/*; parties.country_code/timezone; users.country_code; wizard + party details + account + pricing pickers
+India address + 6-digit PIN validation; US ZIP flow unchanged ................ [IMPLEMENTED] [TESTED]
+PIN → location: Google Geocoding → Places postal-code search → offline GeoNames [IMPLEMENTED] [TESTED]
+  (live-verified 2026-10-14: 400050 Mumbai, 560034 Bengaluru, 110016 Delhi, 500081 Hyderabad — via Places, because
+   the production key has no Geocoding API; US 48084 via the offline dataset as before)
+India venue discovery (regionCode IN, local phrasing, km, ₹ price-level fit) .. [IMPLEMENTED] [TESTED]
+  (live-verified: 10 Google results per query in each of the four cities; coverage beyond that is unknown)
+INR / en-IN formatting everywhere money, dates, times, distances appear ...... [IMPLEMENTED] [TESTED]
+AI estimates in the party's currency (prompts + ₹-scaled validation caps) ..... [IMPLEMENTED] [TESTED] (mock model;
+  no live-model run for an India party yet)
+Event timezone (Asia/Kolkata) in calendar files; US unchanged (floating) ...... [IMPLEMENTED] [TESTED]
+WhatsApp manual sharing (wa.me click-to-chat, host sends) ..................... [IMPLEMENTED] [TESTED]
+WhatsApp Business automated delivery ......................................... [NOT IMPLEMENTED] (docs/WHATSAPP_INTEGRATION.txt)
+Guest phones: +91/+1, E.164, one number = one guest, private ................. [IMPLEMENTED] [TESTED]
+Razorpay checkout + verify + webhook, per-party, idempotent ................... [IMPLEMENTED] [TESTED against a mock]
+  real Razorpay test mode ..................................................... [NEEDS CREDENTIALS] [NEEDS DASHBOARD CONFIG]
+  INR prices .................................................................. [NEEDS BUSINESS APPROVAL]
+  live payments ............................................................... [NEEDS BUSINESS APPROVAL] — disabled
+/in landing page (canonical, hreflang en-IN/en-US, sitemap when enabled) ....... [IMPLEMENTED] [TESTED]
+Market analytics ("market" on events, new events) + Super Admin Markets report  [IMPLEMENTED] [TESTED]
+US: prices, Dodo checkout, entitlements, Founding-25, existing flows .......... unchanged; full regression suite passes
+
+
+2. TEST RESULTS (local, 2026-10-14)
+-----------------------------------
+lint ✓ · typecheck ✓ · unit 526/526 ✓ · integration 322/322 ✓ (baseline before this branch: 427 + 295)
+E2E (Playwright, mobile emulation, mocked Google/Resend/Dodo/Razorpay): 67/67 ✓ (3 new India tests + every existing
+US suite) · production build ✓ · client secret scan ✓ (incl. RAZORPAY_KEY_SECRET/WEBHOOK_SECRET probes)
+Live (opt-in): tests/live/india-google-live.test.ts ✓ 5/5 with the production Google key (read-only, ~17 calls).
+Not run: real Razorpay (no credentials), real devices (iPhone Safari / Android Chrome), real WhatsApp app.
+
+
+3. PRODUCTION CONFIGURATION (none of it is set yet)
+---------------------------------------------------
+Required to ship the code safely (India hidden, nothing charged):  nothing — defaults are off.
+To open India to parents (no payments):  NEXT_PUBLIC_INDIA_ENABLED=true (build time) → redeploy.
+To sell plans in India:  RAZORPAY_ENABLED, RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET (Sensitive), RAZORPAY_WEBHOOK_SECRET
+  (Sensitive), RAZORPAY_PRICE_{STARTER,PLUS,PRO}_PAISE, and for live keys RAZORPAY_LIVE_PAYMENTS_ENABLED=true.
+  Dashboard: webhook URL https://magicalbirthdayplanner.app/api/webhooks/razorpay, events payment.captured,
+  payment.failed, payment.authorized, order.paid, refund.processed; automatic capture on; international off.
+Google Cloud: no change required. Optional: allow Geocoding API on the server key.
+Business: INR prices, GST registration/invoicing, Privacy Policy + Terms naming Razorpay (and WhatsApp/Meta only if
+  Mode 2 is ever built).
+
+
+4. DEPLOYMENT PLAN (each step needs the owner's go-ahead)
+--------------------------------------------------------
+ 0. Review the branch (feat/india-market-expansion) and this checklist.
+ 1. Production database — apply ONE additive migration BEFORE the code:
+      supabase db push --dry-run --db-url <session pooler URL>      (must list only 20251014002200_india_market)
+      supabase db push --db-url <session pooler URL>
+    Safe for the running app: new nullable/defaulted columns, CREATE OR REPLACE get_invitation (same signature, extra
+    keys), a new service-role-only function. Existing parties become country_code 'US' (default) — no behaviour change.
+ 2. Merge to master (fast-forward) → Vercel production build. With no new env vars set, production behaves as today:
+    US-only pickers, no /in (404), India checkout off.
+ 3. Smoke test production (temporary accounts, deleted afterwards): US sign-up, US party via ZIP, discovery + map,
+    pricing shows $9.99/$19.99/$29.99, Dodo checkout opens (do not pay), invitation + RSVP, /api/health.
+ 4. When the owner wants India visible: set NEXT_PUBLIC_INDIA_ENABLED=true → redeploy → smoke: /in, India party with
+    a real PIN, discovery, WhatsApp share, RSVP page, India pricing shows "coming soon".
+ 5. Razorpay test mode (docs/RAZORPAY_SETUP.txt §4) on a preview or with approval in production; then go-live
+    checklist (§5) and live keys only with explicit approval.
+
+
+5. ROLLBACK
+-----------
+- Code: promote the previous production deployment in Vercel (today: dpl_5uRmRVtgtiq5DBEdzoPrQQmKFzaZ / c8ebf76).
+  The old code ignores the new columns, so the migration can stay.
+- India visibility only: NEXT_PUBLIC_INDIA_ENABLED=false → redeploy (India parties that exist keep working).
+- India payments only: RAZORPAY_ENABLED unset/false → redeploy; India checkout answers "not available yet";
+  purchases already made keep their plans.
+- Database (only with approval and only if no India data must be kept): the reversal statements are in the header
+  of supabase/migrations/20251014002200_india_market.sql. Never run destructive SQL in production without approval.
+
+
+6. AFTER LAUNCH — VALIDATING INDIA DEMAND
+----------------------------------------
+- Watch /admin → "Markets — US vs India" weekly: visitors, sign-ups, parties, venue searches, saves, invitations,
+  WhatsApp shares, RSVPs, checkouts, purchases, revenue per currency, sign-up sources.
+- Drive traffic to /in with UTM tags (utm_source / utm_campaign) so the report can compare channels.
+- Decision gates (suggested): 30 days or 100 India parties, whichever first — compare party → invitation share →
+  RSVP rates with the US; only then decide INR prices and Razorpay go-live.

@@ -1,7 +1,14 @@
 # Billing security
 
-Dodo Payments is the only payment provider. **Live charging is impossible** unless
-`DODO_PAYMENTS_ENVIRONMENT=live_mode` **and** `DODO_LIVE_PAYMENTS_ENABLED=true`.
+Two providers, chosen **on the server from the party's stored event country** (`lib/billing/providers.ts`), never
+from anything the browser sends, with no fallback between them:
+
+* **US parties → Dodo Payments** (everything below). **Live charging is impossible** unless
+  `DODO_PAYMENTS_ENVIRONMENT=live_mode` **and** `DODO_LIVE_PAYMENTS_ENABLED=true`.
+* **India parties → Razorpay**, only when `RAZORPAY_ENABLED=true`, keys are set and all three INR prices
+  (`RAZORPAY_PRICE_<PLAN>_PAISE`) are configured; a `rzp_live_` key also needs `RAZORPAY_LIVE_PAYMENTS_ENABLED=true`.
+  Otherwise checkout answers 503 "not available yet" — an India party is never sent to a USD checkout. See
+  "Razorpay (India)" at the end and [RAZORPAY_SETUP.txt](RAZORPAY_SETUP.txt).
 
 ## Flow
 
@@ -57,6 +64,30 @@ Dodo Payments is the only payment provider. **Live charging is impossible** unle
   refunds, subscriptions, hijack attempts, client write denial, server-side trial expiry.
 * `tests/e2e/integrations-journey.spec.ts`: checkout → signed webhook → plan active; a declined
   card and URL tampering grant nothing.
+
+## Razorpay (India)
+
+1. `POST /api/billing/checkout` for an India party: server price (paise) → `billing_checkouts` row
+   (`provider='razorpay'`, `amount_minor`, `currency='INR'`) → Razorpay order (`POST /v1/orders`, key secret) →
+   order id stored as `session_id`. Only the key id goes to the browser. An open order for the same party/plan/price
+   (< 30 min) is reused (double taps).
+2. `POST /api/billing/razorpay/verify` (signed in): the checkout must be the caller's own (RLS); the signature is
+   checked against **our** order id (`HMAC_SHA256(order_id|payment_id, key_secret)`, constant time); then the payment
+   is fetched server-side (`GET /v1/payments/:id`) and must belong to that order.
+3. `POST /api/webhooks/razorpay`: `X-Razorpay-Signature` = HMAC-SHA256 of the **raw** body with the webhook secret;
+   idempotent on `x-razorpay-event-id` (`billing_webhook_events`, `razorpay:` prefix); 401 bad signature, 503 no
+   secret, 500 transient (Razorpay retries).
+4. One recorder for both (`lib/billing/razorpay-server.ts`): the party comes **only** from our checkout row (party
+   must still belong to the payer, else `party_unavailable` → unlocks nothing); captured payments whose amount or
+   currency differ from the order → `review`; unique `(provider, provider_ref)` makes verify/webhook races and
+   replays a single purchase; older events never overwrite newer ones; a settled payment is never downgraded by a
+   late `authorized`/`failed` view. Full refund (`refund.processed`) → `refunded` (plan ends); partial refund → kept.
+5. Same per-party invariants as Dodo: `scope='party'`, scope guard trigger, `party_plan()` / `has_paid_access(party)`,
+   `reconcile_purchase()` for unmatched payments.
+
+Tested in `tests/unit/razorpay.test.ts`, `tests/integration/india.test.ts` (checkout, verify, webhook, tampering,
+duplicates, races, refunds, deleted party) and `tests/e2e/india.spec.ts` (mobile Checkout against a mock).
+**Not yet run against Razorpay itself** (no credentials).
 
 ## Not yet done
 

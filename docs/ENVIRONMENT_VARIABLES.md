@@ -53,6 +53,24 @@ Preview environment (scoped to the `mobile-first` branch) at the v1.0 baseline (
 | `DODO_ALLOW_DISCOUNTS` | Accept payments below the plan price (default off → held for review) | no | no | — | — |
 | `DODO_API_BASE_URL` | Test-only override (mock server) | no | no | never | never |
 
+## India market
+
+Details: [INDIA_LAUNCH_CHECKLIST.txt](INDIA_LAUNCH_CHECKLIST.txt), [RAZORPAY_SETUP.txt](RAZORPAY_SETUP.txt). None is set
+in Vercel yet: production behaves exactly as the US-only app until they are.
+
+| Variable | Purpose | Secret | Public | Prod | Preview |
+|---|---|:-:|:-:|:-:|:-:|
+| `NEXT_PUBLIC_INDIA_ENABLED` | `true` shows India in the country pickers (wizard, party details, account, pricing) and serves `/in` (+ sitemap/hreflang). Build-time. Existing India parties render as India either way | no | yes | — | — |
+| `RAZORPAY_ENABLED` | Exactly `true` allows India checkout; anything else → India shows "coming soon", checkout 503 | no | no | — | — |
+| `RAZORPAY_KEY_ID` | `rzp_test_…` / `rzp_live_…`; sent to the browser for Checkout (by design); the mode is read from it | no (public by design) | no | — | — |
+| `RAZORPAY_KEY_SECRET` | Orders API, Fetch Payment, payment-signature verification | **yes** | no | — | — |
+| `RAZORPAY_WEBHOOK_SECRET` | Webhook signature (HMAC of the raw body) | **yes** | no | — | — |
+| `RAZORPAY_LIVE_PAYMENTS_ENABLED` | Second switch required with a `rzp_live_` key | no | no | — | — |
+| `RAZORPAY_PRICE_STARTER_PAISE`, `RAZORPAY_PRICE_PLUS_PAISE`, `RAZORPAY_PRICE_PRO_PAISE` | Approved INR prices in paise (integers ≥ 100). No defaults — unset = not for sale | no | no | — | — |
+| `RAZORPAY_API_BASE_URL`, `NEXT_PUBLIC_RAZORPAY_CHECKOUT_URL` | Test-only overrides (mock server) | no | — | never | never |
+
+`npm run check:secrets` also scans the client bundle for `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET`.
+
 ## Sentry
 
 | Variable | Purpose | Secret | Public | Prod | Preview |

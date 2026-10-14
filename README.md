@@ -75,10 +75,15 @@ Everything below exists in the code and is enabled in production unless marked o
 [docs/FEATURES.md](docs/FEATURES.md).
 
 ### Party creation
-- **Wizard** (`/start`, 9 steps with a summary): child's name, age, party date, ZIP/location (offline ZIP dataset,
-  Google geocoding fallback), guest count, budget, vibe (indoor / outdoor / either), interests, optional theme.
+- **Wizard** (`/start`, 9 steps with a summary): child's name, age, party date, location — the **event country**
+  (United States / India, behind `NEXT_PUBLIC_INDIA_ENABLED`) and its postal code (US ZIP: offline dataset + Google
+  fallback; Indian 6-digit PIN: Google, offline GeoNames fallback), guest count, budget (in the party's currency),
+  vibe (indoor / outdoor / either), interests, optional theme.
   Optional steps can be skipped ("Skip for now").
-- Multiple parties per account; edit details later; the active party is chosen in More.
+- Multiple parties per account; edit details later (incl. country and an optional event address); the active party is
+  chosen in More. Each party has its own country; the account's preferred country (More) is only the default.
+- **Markets:** US and India from the same app (`lib/country/`): currency (USD / INR), en-US / en-IN dates and times,
+  miles / km, phone codes, payment provider, share channels. See [docs/INDIA_LAUNCH_CHECKLIST.txt](docs/INDIA_LAUNCH_CHECKLIST.txt).
 
 ### Discovery
 - **Google Places (New)** venue search around the party ZIP, ranked for the child's age, interests, budget, setting and
@@ -98,7 +103,8 @@ Everything below exists in the code and is enabled in production unless marked o
 
 ### Guests & RSVP (Starter+, and during the 24 h sign-up trial)
 - **Guests** (`/guests`): add/edit/remove, kids/adults counts, notes, RSVP status filters, headcount summary.
-- **Invitation** (`/plan/invite`): designed card (3 designs), share link / text / email / copy, reset link,
+- **Invitation** (`/plan/invite`): designed card (3 designs), share link / text / email / copy (+ **WhatsApp** share
+  for India parties — the host sends it; nothing is sent automatically), reset link,
   **emailed invitations** via Resend (daily caps).
 - **Public RSVP page** (`/invite/[token]`, no account): Yes / Maybe / Can't go, kids/adults, note, calendar file.
 - **RSVP changes & duplicate protection**: one invitee = one guest row. Identity is a per-device respondent key
@@ -229,7 +235,8 @@ User (browser, Bearer JWT)
 |---|---|---|
 | **Supabase** | Auth (email/password, Google), PostgreSQL, RLS, RPCs, migrations, persistence | anon key public; service role server-only |
 | **Google Places API (New) / Maps JS / Geocoding** | Venue discovery, details, photos, map, ZIP fallback | server key (Places) vs. separate referrer-restricted browser key (Maps); cost guards ([GOOGLE_PLACES_COST_CONTROL](docs/GOOGLE_PLACES_COST_CONTROL.md)) |
-| **Dodo Payments** (live mode) | Hosted checkout for Starter $9.99 / Plus $19.99 / Pro $29.99 **per party** (non-recurring products), signed webhooks → `billing_purchases` → party entitlement | server picks product + price; Standard Webhooks HMAC; product ids in env |
+| **Dodo Payments** (live mode) | US parties: hosted checkout for Starter $9.99 / Plus $19.99 / Pro $29.99 **per party** (non-recurring products), signed webhooks → `billing_purchases` → party entitlement | server picks product + price; Standard Webhooks HMAC; product ids in env |
+| **Razorpay** (built, **not enabled**) | India parties: INR orders, Checkout, signature + server-side payment check, signed webhooks → same per-party entitlement | off until credentials + approved INR prices ([docs/RAZORPAY_SETUP.txt](docs/RAZORPAY_SETUP.txt)) |
 | **Sentry** | Errors, tracing, logs, metrics, AI monitoring, billing/auth/Google telemetry, uptime on `/api/health`, alerts | DSN public; auth token build-only |
 | **Resend** | Invitation emails, RSVP confirmations, host notifications | sender `noreply@magicalbirthdayplanner.app` |
 | **OpenCode (AI provider)** | All AI features | `AI_API_KEY` server-only |
@@ -287,8 +294,7 @@ payments → Vercel deployment logs for build/runtime context. Full catalogue: [
 
 ## Database
 
-Supabase PostgreSQL (with PostGIS). **Migrations in `supabase/migrations/` are the source of truth** (15 files, all
-applied in production; the baseline file `20251001000000` is local/CI only). Generated types:
+Supabase PostgreSQL (with PostGIS). **Migrations in `supabase/migrations/` are the source of truth** (23 files: everything up to `20251011002100` is applied in production; `20251014002200_india_market` is local only and must be applied before the India release; the baseline file `20251001000000` is local/CI only). Generated types:
 `lib/db/database.types.ts` (`npm run db:types`).
 
 | Area | Tables |

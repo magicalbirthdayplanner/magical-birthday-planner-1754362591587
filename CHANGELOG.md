@@ -3,6 +3,15 @@
 Major milestones, newest first. Dates and commits are from Git history (`git log`). Configuration-only changes
 (no commit) are marked as such.
 
+## Unreleased — India market expansion (branch `feat/india-market-expansion`, not deployed)
+
+- Country-aware parties (`US` / `IN`, separate from the profile country), PIN codes, Indian address fields, INR /
+  en-IN / km formatting, event timezones (ICS), India venue discovery (Places regionCode IN, local phrasing, PIN →
+  location via Google with an offline GeoNames fallback), WhatsApp invitation sharing (manual), +91 guest phones,
+  Razorpay checkout for India parties (disabled until configured and prices approved), `/in` landing page, market
+  analytics + Super Admin "Markets — US vs India". US behaviour, prices and Dodo checkout unchanged. Needs migration
+  `20251014002200_india_market` before deploy. See [docs/INDIA_LAUNCH_CHECKLIST.txt](docs/INDIA_LAUNCH_CHECKLIST.txt).
+
 ## Unreleased — X growth engine (same branch, not deployed)
 
 - 8 posts/day inside a $5/month X budget: weekly 56-slot plan, one AI call per day, evergreen library fallback,

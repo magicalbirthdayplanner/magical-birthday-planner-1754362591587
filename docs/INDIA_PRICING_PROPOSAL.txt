@@ -1,0 +1,83 @@
+MAGICAL BIRTHDAY PLANNER — INDIA PRICING PROPOSAL
+=================================================
+
+Status: PROPOSAL ONLY. [NEEDS BUSINESS APPROVAL]. No INR price is active anywhere.
+Written 2026-10-14 on branch feat/india-market-expansion.
+
+India checkout stays switched off until (1) the owner approves a price table, (2) the prices are set as
+RAZORPAY_PRICE_{STARTER,PLUS,PRO}_PAISE in the production environment, and (3) Razorpay is configured and tested
+(docs/RAZORPAY_SETUP.txt). Until then India parties show "Paid plans in rupees are coming soon" and every Free
+feature works.
+
+
+1. WHAT DOES NOT CHANGE
+-----------------------
+- US prices and the Dodo checkout: Starter $9.99 · Plus $19.99 · Pro $29.99 per party (lib/entitlements.ts, live Dodo
+  products). Untouched by this work.
+- Product structure: Free · Starter · Plus · Pro, the same features and AI allowances (10 / 25 / 50 per party).
+- Billing model: one payment per party, no subscription, upgrade = full price of the higher plan, no account-wide
+  purchases. The Founding-25 gift (Pro, account-wide) is unchanged and applies to Indian accounts like any other.
+
+
+2. HOW PRICES WORK TECHNICALLY (implemented)
+--------------------------------------------
+- One source of truth on the server: lib/billing/providers.ts → providerPolicy(country).
+  US → Dodo, USD, existing prices. India → Razorpay, INR, RAZORPAY_PRICE_<PLAN>_PAISE.
+- Prices are integers in paise (₹499 = 49900). No conversion rates exist anywhere in the code; nothing is derived
+  from USD prices.
+- The pricing cards (/pricing, upgrade prompts, /in) read the SAME numbers through GET /api/billing/catalog, so the
+  displayed price is always the charged price. Before approval the catalogue returns no India prices at all.
+- Checkout creates the Razorpay order server-side at that price; verify/webhook accept a payment only if amount and
+  currency equal the order exactly (otherwise it is held as 'review' and unlocks nothing).
+
+
+3. RECOMMENDED PRICE TABLE (to validate, not to assume)
+------------------------------------------------------
+                    Recommended launch test   Alternative (premium)   Env value (recommended)
+  Starter "Plan"    ₹299 per party            ₹499                    RAZORPAY_PRICE_STARTER_PAISE=29900
+  Plus "Organize"   ₹599 per party            ₹999                    RAZORPAY_PRICE_PLUS_PAISE=59900
+  Pro "Experience"  ₹999 per party            ₹1,499                  RAZORPAY_PRICE_PRO_PAISE=99900
+
+Reasoning (assumptions — please challenge them):
+- Keeps the US ladder shape (1 : 2 : 3.3 vs 1 : 2 : 3) so plan upgrades feel the same in both markets.
+- Pro stays under ₹1,000, a strong psychological threshold for a one-off consumer digital purchase in India.
+- Relative to the party: typical urban kids' birthday budgets in India are in the ₹10,000–₹50,000+ range; ₹299–₹999 is
+  ~1–5 % of the event, comparable to the US ratio ($10–$30 on a $250–$1,000 party).
+- Not a USD conversion: at ~₹85–90 per US$, $9.99 would be ~₹870. A straight conversion would price India out;
+  a purchasing-power view puts a "$10 feeling" closer to ₹250–₹350.
+- AI cost per party is small at these prices: the provider costs ≈ $0.005–$0.01 per request (docs/ai), i.e. a fully
+  used Pro allowance (50 requests) ≈ $0.50 ≈ ₹45; Starter (10) ≈ ₹9.
+
+Validation plan (cheap, reversible): launch with the recommended table for 30 days, watch the India funnel in
+/admin → "Markets — US vs India" (party → checkout → purchase), then decide between keeping, lowering Starter to
+₹199, or moving to the premium table. Prices are env values: changing them needs no code change, only a redeploy
+(and existing purchases keep the amount they paid).
+
+
+4. OPERATIONAL CONSIDERATIONS (need the owner / an accountant)
+-------------------------------------------------------------
+- GST: prices shown to consumers in India should be GST-inclusive. Whether MBP must register for GST (and at what
+  turnover threshold) depends on the legal entity and where it is registered — confirm with a chartered accountant
+  BEFORE going live. If registered, 18 % of each price is GST (₹999 incl. GST → ₹846.61 + ₹152.39 GST), and invoices/
+  receipts must carry the required details (Razorpay can issue payment receipts; tax invoices are the merchant's
+  responsibility). [NEEDS BUSINESS APPROVAL]
+- Razorpay fees: a percentage per payment plus GST on the fee (check the current Razorpay pricing page for your
+  account; UPI and card rates differ). Budget ~2–3 % of revenue.
+- Settlement: Razorpay settles to an Indian bank account (T+2 typical for standard accounts).
+- International cards: off by default on new Razorpay accounts. Keep them off at first — it also stops people
+  relabelling a US party as "India" to buy at INR prices with a foreign card.
+- Refunds: done in the Razorpay dashboard. A FULL refund automatically ends that party's plan (webhook
+  refund.processed); a partial refund is recorded but keeps the plan (goodwill credits).
+- Price arbitrage: a parent can set a party's country to India. Entitlements stay per party, so the risk is revenue
+  (a US event paid at INR prices), not access. With international cards off, paying requires an Indian payment
+  method. Monitor in the Markets report; revisit if it appears.
+- Currency in reports: USD and INR revenue are reported separately and never added together.
+
+
+5. OPTIONAL INDIA LAUNCH OFFER (NOT implemented, NOT active)
+------------------------------------------------------------
+Option A — "First 50 India parties get Starter free": a per-PARTY gift for parties whose country is India, capped in
+the database (same advisory-lock pattern as founding_members), granting STARTER for that party only. Needs a new
+migration + server checks; must not stack with Founding-25 (those accounts already have Pro).
+Option B — Launch price: show ₹199 Starter for the first 30 days (just a price env change; no code).
+Recommendation: Option B first (no new entitlement code, fully reversible). Either needs explicit approval.

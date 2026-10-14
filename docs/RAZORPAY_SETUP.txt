@@ -1,0 +1,113 @@
+RAZORPAY SETUP — INDIA CHECKOUT
+===============================
+
+Status (2026-10-14):
+  [IMPLEMENTED]            server order creation, Checkout in the browser, signature verification, server-side
+                           Fetch Payment check, signed + idempotent webhook, refunds, per-party entitlement
+  [TESTED]                 against a local mock of Razorpay test mode (unit, integration and mobile E2E) — NOT
+                           against Razorpay itself: no Razorpay credentials exist yet
+  [NEEDS CREDENTIALS]      Razorpay test keys, then live keys; webhook secret
+  [NEEDS DASHBOARD CONFIG] webhook endpoint + events, automatic capture, international payments off
+  [NEEDS BUSINESS APPROVAL] INR prices (docs/INDIA_PRICING_PROPOSAL.txt), GST position, going live
+Live payments are impossible today: RAZORPAY_ENABLED is unset in every environment and no price is configured.
+
+Official docs used: Standard Checkout integration steps, Orders API, Fetch a Payment, payment/order/refund webhooks,
+"Validate and test webhooks" (razorpay.com/docs, read 2026-10-14).
+
+
+1. HOW IT WORKS
+---------------
+  Parent (India party) taps "Choose Starter — ₹…"
+   → POST /api/billing/checkout {plan, partyId}            (signed in; party must be theirs; 409 if already owned)
+       server: party.country_code = IN → provider Razorpay → price from RAZORPAY_PRICE_STARTER_PAISE
+       server: billing_checkouts row (user, party, plan, amount_minor, currency=INR, provider=razorpay)
+       server: POST https://api.razorpay.com/v1/orders {amount, currency, receipt=<checkout id>, notes}
+       server: stores the order id in billing_checkouts.session_id; returns {checkoutId, keyId, orderId, amount}
+   → browser opens checkout.js with that order (key id only — never the secret)
+   → Razorpay handler → POST /api/billing/razorpay/verify {checkoutId, razorpay_order_id, payment_id, signature}
+       server: checkout must be the caller's own Razorpay checkout (RLS)
+       server: HMAC_SHA256(<OUR order id>|payment_id, KEY_SECRET) == signature (constant time)
+       server: GET /v1/payments/<id> → must belong to our order; captured → plan; authorized → pending
+       server: amount + currency must equal our order exactly, else status 'review' (unlocks nothing)
+   → /checkout-success?ref=<checkoutId> polls /api/billing/status (server truth only)
+  In parallel: Razorpay → POST /api/webhooks/razorpay (HMAC of the RAW body with WEBHOOK_SECRET, idempotent on
+  x-razorpay-event-id) → same recorder. If the browser closes after paying, the webhook alone grants the plan.
+
+Data: billing_checkouts(provider='razorpay', amount_minor, currency, session_id=order id) → billing_purchases
+(provider='razorpay', provider_ref=payment id [unique], provider_order_ref=order id, scope='party', party_id).
+Entitlement: party_plan(party) / has_paid_access(party) — the same per-party functions Dodo uses.
+
+
+2. DASHBOARD STEPS (owner)
+--------------------------
+ 1. Create/activate a Razorpay account for the business (KYC, bank account). [NEEDS BUSINESS APPROVAL]
+ 2. Test mode → Account & Settings → API Keys → Generate Test Key. Note the Key Id (rzp_test_…) and Key Secret.
+ 3. Test mode → Account & Settings → Webhooks → Add New Webhook:
+      URL:     https://magicalbirthdayplanner.app/api/webhooks/razorpay
+               (for a preview deployment: that deployment's URL + /api/webhooks/razorpay)
+      Secret:  a long random string (this becomes RAZORPAY_WEBHOOK_SECRET)
+      Events:  payment.captured, payment.failed, payment.authorized, order.paid, refund.processed
+ 4. Account & Settings → Payment Capture → Automatic capture (recommended by Razorpay; payments that are never
+    captured are auto-refunded and would never unlock a plan).
+ 5. Keep International Payments OFF at launch (see the pricing proposal).
+ 6. Optional: Checkout branding (logo/colour) in the dashboard. The app passes name "Magical Birthday Planner".
+ 7. Repeat 2–3 in LIVE mode only after test mode passed and the go-live checklist below is complete.
+
+
+3. ENVIRONMENT VARIABLES (names only — never commit values)
+-----------------------------------------------------------
+  RAZORPAY_ENABLED                 "true" to allow India checkout. Anything else = off (India shows "coming soon").
+  RAZORPAY_KEY_ID                  rzp_test_… / rzp_live_…  (sent to the browser by design; mode is read from it)
+  RAZORPAY_KEY_SECRET              SECRET. Server only (orders, payment fetch, payment signatures).
+  RAZORPAY_WEBHOOK_SECRET          SECRET. Server only (webhook signatures).
+  RAZORPAY_LIVE_PAYMENTS_ENABLED   must be "true" in addition when the key is rzp_live_ (two-key rule, like Dodo).
+  RAZORPAY_PRICE_STARTER_PAISE     approved price in paise, e.g. 29900 (no defaults: unset = not for sale)
+  RAZORPAY_PRICE_PLUS_PAISE
+  RAZORPAY_PRICE_PRO_PAISE
+  NEXT_PUBLIC_INDIA_ENABLED        "true" shows India in the country pickers and serves /in (build time).
+  Test-only (never in Preview/Production): RAZORPAY_API_BASE_URL, NEXT_PUBLIC_RAZORPAY_CHECKOUT_URL.
+Set them in Vercel → Project → Settings → Environment Variables, secrets as "Sensitive". Redeploy after changes
+(NEXT_PUBLIC_* are build-time).
+
+
+4. TEST-MODE RUN (once test keys exist)
+---------------------------------------
+ 1. Apply migration 20251014002200_india_market.sql to the target database first.
+ 2. Preview (or production with test keys — only with approval): set RAZORPAY_ENABLED=true, the three test-mode
+    variables, three TEST prices, NEXT_PUBLIC_INDIA_ENABLED=true; redeploy.
+ 3. On a phone: create a party with country India and a real PIN → /pricing shows ₹ prices → Choose Starter →
+    Razorpay test Checkout → pay with a Razorpay TEST method (test cards / UPI success VPA from Razorpay's
+    "Test Card Details" docs page) → /checkout-success shows "Your STARTER plan is active for <child>'s party".
+ 4. Check: billing_purchases row provider=razorpay, status=active, party_id set, amount_minor = price, currency INR;
+    billing_webhook_events has a processed razorpay:<event id> row; Razorpay dashboard shows the payment captured.
+ 5. Failure cases: a failing test method → no plan; close Checkout → "you haven't been charged"; refund the test
+    payment fully in the dashboard → the party's plan ends after the refund.processed webhook.
+ 6. Local equivalent without credentials (already passing): npm run test:integration (tests/integration/india.test.ts)
+    and npx playwright test tests/e2e/india.spec.ts (mock Razorpay in tests/mock-google/server.mjs).
+
+
+5. GO-LIVE CHECKLIST (all required; owner approval for the last step)
+---------------------------------------------------------------------
+ [ ] INR prices approved and set (paise integers).
+ [ ] GST position confirmed with an accountant; prices are GST-inclusive; receipts/invoices handled.
+ [ ] Razorpay account fully activated (KYC done, settlements enabled).
+ [ ] Test-mode run (section 4) passed end to end on a real phone, including a refund.
+ [ ] Live webhook created with the same events; RAZORPAY_WEBHOOK_SECRET updated to the LIVE webhook's secret.
+ [ ] Live keys set (RAZORPAY_KEY_ID=rzp_live_…, RAZORPAY_KEY_SECRET) as Sensitive, Production scope only.
+ [ ] RAZORPAY_LIVE_PAYMENTS_ENABLED=true and RAZORPAY_ENABLED=true; redeploy.
+ [ ] First real payment watched: plan active for the right party, Markets report shows it, no PAYMENT_UNRESOLVED.
+ [ ] Terms/Privacy mention Razorpay as a payment processor for India (privacy processor list). [NEEDS BUSINESS APPROVAL]
+
+
+6. OPERATIONS
+-------------
+- Unmatched payment (party deleted before payment): unlocks nothing, Sentry PAYMENT_UNRESOLVED; fix with
+  select public.reconcile_purchase('<purchase id>', '<party id>');  (service role; same as Dodo).
+- Amount/currency mismatch: purchase status 'review' — investigate in Razorpay; refund or grant via admin override.
+- Turn India checkout off immediately: set RAZORPAY_ENABLED=false (or unset) and redeploy. Existing purchases keep
+  their plans; new India checkouts show "coming soon".
+- Telemetry (Sentry): RAZORPAY_VERIFY, RAZORPAY_WEBHOOK(_INVALID_SIGNATURE), RAZORPAY_CHECKOUT_UNAVAILABLE,
+  razorpay.webhook.latency; errors fingerprinted razorpay-webhook / razorpay-webhook-config.
+- Rotate secrets: create a new key / webhook secret in the dashboard, update Vercel, redeploy. During webhook secret
+  rotation, Razorpay retries of older events are signed with the OLD secret — expect a few 401s, then retries succeed
+  only if re-sent; reconcile from the dashboard if needed.
