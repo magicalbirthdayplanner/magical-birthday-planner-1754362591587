@@ -83,3 +83,6 @@ secrets/
 # Local QA / scratch artifacts
 .qa*
 /tmp/
+
+.claude/settings.local.json
+CLAUDE.md.bak
