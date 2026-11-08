@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Paid-acquisition funnel report (read-only). Counts per day (America/New_York) and per ad (utm_source / utm_content):
- * landing views → sign-ups → confirmed → founding seats → parties → activated → checkouts → purchases.
+ * landing views → wizard starts → sign-ups → confirmed → founding seats → parties → activated → checkouts → purchases.
  *
  *   SUPABASE_URL=… SUPABASE_SECRET_KEY=… node scripts/funnel-report.mjs [--since 2026-10-10] [--until 2026-10-14]
  *
@@ -17,9 +17,14 @@ const until = arg('until', '2026-10-14')
 const { SUPABASE_URL: url, SUPABASE_SECRET_KEY: key } = process.env
 if (!url || !key) throw new Error('Set SUPABASE_URL and SUPABASE_SECRET_KEY')
 const H = { apikey: key, Authorization: `Bearer ${key}` }
-// ET midnight ≈ 04:00Z in October (EDT).
-const sinceZ = `${since}T04:00:00Z`
-const untilZ = `${until}T04:00:00Z`
+// Midnight in New York as UTC: 04:00Z in summer time (EDT), 05:00Z in winter (EST).
+const etMidnightZ = (d) => {
+  const h = ['04', '05'].find((hh) => new Date(`${d}T${hh}:00:00Z`).toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', hourCycle: 'h23' }) === '00')
+  if (!h) throw new Error(`Bad date ${d} (use YYYY-MM-DD)`)
+  return `${d}T${h}:00:00Z`
+}
+const sinceZ = etMidnightZ(since)
+const untilZ = etMidnightZ(until)
 
 async function rest(path) {
   const out = []
@@ -51,7 +56,7 @@ const [users, admins, founding, parties, events, purchases] = await Promise.all(
   rest('user_roles?select=user_id&role=eq.super_admin'),
   rest(`founding_members?select=user_id,granted_at`),
   rest(`parties?select=id,user_id,created_at&created_at=gte.${sinceZ}&created_at=lt.${untilZ}`),
-  rest(`analytics_events?select=event,user_id,anonymous_id,properties,created_at&created_at=gte.${sinceZ}&created_at=lt.${untilZ}&event=in.(landing_page_view,signup_started,signup_completed,checkout_started,venue_saved,venue_added_to_party,theme_selected,ai_feature_used,guest_added,invitation_shared,checklist_completed)`),
+  rest(`analytics_events?select=event,user_id,anonymous_id,properties,created_at&created_at=gte.${sinceZ}&created_at=lt.${untilZ}&event=in.(landing_page_view,party_creation_started,signup_started,signup_completed,checkout_started,venue_saved,venue_added_to_party,theme_selected,ai_feature_used,guest_added,invitation_shared,checklist_completed)`),
   rest(`billing_purchases?select=user_id,plan,status,amount_minor,created_at&created_at=gte.${sinceZ}&created_at=lt.${untilZ}`),
 ])
 const staff = new Set(admins.map((a) => a.user_id))
@@ -64,7 +69,7 @@ const adOf = (u) => {
 const rows = {}
 const byAd = {}
 const bump = (t, k, f, n = 1) => {
-  t[k] ??= { landing: 0, signups: 0, confirmed: 0, founding: 0, parties: 0, activated: 0, checkouts: 0, purchases: 0, revenue: 0 }
+  t[k] ??= { landing: 0, started: 0, signups: 0, confirmed: 0, founding: 0, parties: 0, activated: 0, checkouts: 0, purchases: 0, revenue: 0 }
   t[k][f] += n
 }
 for (const u of real.values()) {
@@ -75,6 +80,7 @@ for (const u of real.values()) {
 for (const f of founding) if (real.has(f.user_id) && f.granted_at >= sinceZ && f.granted_at < untilZ) { bump(rows, day(f.granted_at), 'founding'); bump(byAd, adOf(real.get(f.user_id)), 'founding') }
 for (const p of parties) if (real.has(p.user_id)) { bump(rows, day(p.created_at), 'parties'); bump(byAd, adOf(real.get(p.user_id)), 'parties') }
 const landed = new Set()
+const started = new Set()
 const activated = new Set()
 const checkout = new Set()
 for (const e of events) {
@@ -83,6 +89,11 @@ for (const e of events) {
     if (landed.has(k)) continue
     landed.add(k)
     bump(rows, day(e.created_at), 'landing'); bump(byAd, `${e.properties?.utm_source ?? '(none)'} / ${e.properties?.utm_content ?? '-'}`, 'landing')
+  } else if (e.event === 'party_creation_started') {
+    const k = e.user_id ?? e.anonymous_id ?? e.created_at
+    if (started.has(k)) continue
+    started.add(k)
+    bump(rows, day(e.created_at), 'started'); bump(byAd, `${e.properties?.utm_source ?? '(none)'} / ${e.properties?.utm_content ?? '-'}`, 'started')
   } else if (e.event === 'checkout_started') {
     if (!real.has(e.user_id) || checkout.has(e.user_id)) continue
     checkout.add(e.user_id); bump(rows, day(e.created_at), 'checkouts'); bump(byAd, adOf(real.get(e.user_id)), 'checkouts')
@@ -99,7 +110,7 @@ for (const p of purchases) {
 }
 
 const left = await (await fetch(`${url}/rest/v1/rpc/founding_seats_left`, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: '{}' })).json()
-console.log(`Funnel ${since} → ${until} (ET). Founding seats left now: ${left}/25. "landing" = unique devices on the homepage.\n`)
+console.log(`Funnel ${since} → ${until} (ET). Founding seats left now: ${left}/25. "landing" = unique devices on the homepage; "started" = began the party wizard.\n`)
 const sorted = (t) => Object.fromEntries(Object.entries(t).sort(([a], [b]) => a.localeCompare(b)))
 console.log('By day'); console.table(sorted(rows))
 console.log('By ad (utm_source / utm_content; sign-ups attributed from the account, landing from the visit)'); console.table(byAd)
