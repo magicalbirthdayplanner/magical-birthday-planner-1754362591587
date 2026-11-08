@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, MailCheck } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -12,21 +12,21 @@ import { GoogleIcon, TextField } from './fields'
 import { safeNext } from '@/lib/security/redirect'
 import { authFailed } from '@/lib/observability/auth'
 import { isInAppBrowser } from '@/lib/analytics/attribution'
+import { EMAIL_CODE_LENGTH, RESEND_AFTER_SECONDS, friendlyAuthError, isValidEmail, normalizeCode, retryAfterSeconds } from '@/lib/auth/email-code'
 
 export { safeNext }
 
-function friendlyAuthError(message: string): string {
-  if (/invalid login credentials/i.test(message)) return 'That email and password don’t match. Try again?'
-  if (/already registered|already exists/i.test(message)) return 'You already have an account — sign in instead.'
-  if (/password.*(at least|short|weak)/i.test(message)) return 'Use at least 8 characters for your password.'
-  if (/email.*not confirmed/i.test(message)) return 'Please confirm your email first — check your inbox.'
-  if (/rate limit|too many/i.test(message)) return 'Too many attempts. Please wait a minute and try again.'
-  if (/fetch|network/i.test(message)) return 'We couldn’t reach our servers. Check your connection.'
-  return 'Something went wrong. Please try again.'
-}
+type AuthError = { message?: string; code?: string } | null | undefined
+const errorText = (e: AuthError) => friendlyAuthError(e?.message ?? '', e?.code)
 
+/**
+ * Sign up / sign in. Default: email → a 6-digit code by email → signed in, without leaving the page (no password, no
+ * link to tap — the link in the same email still works as a fallback, e.g. opened in another browser). Google sits on
+ * top except inside the Facebook / Instagram in-app browsers, where Google refuses to sign in. Accounts that already
+ * have a password can still use it ("Sign in with a password instead").
+ */
 export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: { mode: 'signin' | 'signup'; onDone?: () => void; compact?: boolean; next?: string; signupData?: Record<string, unknown> }) {
-  const { signIn, signUp, signInWithGoogle } = useAuth()
+  const { signIn, sendEmailCode, verifyEmailCode, signInWithGoogle } = useAuth()
   useEffect(() => {
     if (mode === 'signup') track('signup_started')
   }, [mode])
@@ -36,14 +36,28 @@ export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [usePassword, setUsePassword] = useState(false)
   const [show, setShow] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [checkEmail, setCheckEmail] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  // Code step: the address the code went to, the digits typed so far, and the resend countdown.
+  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [code, setCode] = useState('')
+  const [resendIn, setResendIn] = useState(0)
+  const [resent, setResent] = useState(false)
+  const verifying = useRef(false)
   // Google refuses sign-in inside the Facebook / Instagram in-app browsers (where ad clicks open): email only there.
   const [inApp, setInApp] = useState(false)
   useEffect(() => setInApp(isInAppBrowser(navigator.userAgent)), [])
+  useEffect(() => {
+    if (resendIn <= 0) return
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [resendIn])
+
+  // Pre-existing (password) users switch to the password form from sign-in; the sign-up form never asks for one.
+  const passwordMode = mode === 'signin' && usePassword
 
   async function finish() {
     const { data } = await db.auth.getUser()
@@ -52,27 +66,75 @@ export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: 
     else router.replace(next)
   }
 
-  async function submit(e: React.FormEvent) {
+  async function requestCode(to: string) {
+    const { error } = await sendEmailCode(to, { create: mode === 'signup', displayName: name.trim() || undefined, next, data: signupData })
+    if (error) {
+      setError(errorText(error))
+      const wait = retryAfterSeconds(error.message ?? '')
+      if (wait !== null) setResendIn(wait)
+      return false
+    }
+    track('email_code_sent', { mode })
+    setResendIn(RESEND_AFTER_SECONDS)
+    return true
+  }
+
+  async function submitEmail(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError('Please enter a valid email.')
-    if (password.length < (mode === 'signup' ? 8 : 1)) return setError(mode === 'signup' ? 'Use at least 8 characters for your password.' : 'Please enter your password.')
+    const to = email.trim()
+    if (!isValidEmail(to)) return setError('Please enter a valid email.')
     setBusy(true)
     try {
-      if (mode === 'signin') {
-        const { error } = await signIn(email.trim(), password)
-        if (error) return setError(friendlyAuthError(error.message ?? ''))
+      if (passwordMode) {
+        if (!password) return setError('Please enter your password.')
+        const { error } = await signIn(to, password)
+        if (error) return setError(errorText(error))
         track('sign_in', { method: 'password' })
         await finish()
-      } else {
-        const { error } = await signUp(email.trim(), password, name.trim() || undefined, { next, data: signupData })
-        if (error) return setError(friendlyAuthError(error.message ?? ''))
-        track('sign_up', { method: 'password' })
-        track('signup_completed', { method: 'password' })
-        const { data } = await db.auth.getSession()
-        if (data.session) await finish()
-        else setCheckEmail(true)
+        return
       }
+      if (await requestCode(to)) {
+        setCode('')
+        setResent(false)
+        setSentTo(to)
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function verify(value: string) {
+    if (!sentTo || verifying.current) return
+    setError(null)
+    if (value.length !== EMAIL_CODE_LENGTH) return setError(`Enter the ${EMAIL_CODE_LENGTH}-digit code from the email.`)
+    verifying.current = true
+    setBusy(true)
+    try {
+      const { error, isNewAccount } = await verifyEmailCode(sentTo, value)
+      if (error) {
+        setCode('')
+        return setError(errorText(error))
+      }
+      if (isNewAccount) {
+        track('sign_up', { method: 'email_code' })
+        track('signup_completed', { method: 'email_code' })
+      } else {
+        track('sign_in', { method: 'email_code' })
+      }
+      await finish()
+    } finally {
+      verifying.current = false
+      setBusy(false)
+    }
+  }
+
+  async function resend() {
+    if (!sentTo || resendIn > 0) return
+    setError(null)
+    setBusy(true)
+    try {
+      if (await requestCode(sentTo)) setResent(true)
     } finally {
       setBusy(false)
     }
@@ -81,22 +143,84 @@ export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: 
   async function google() {
     setError(null)
     const { error } = await signInWithGoogle(next)
-    if (error) setError(friendlyAuthError(error.message ?? ''))
+    if (error) setError(errorText(error))
   }
 
-  if (checkEmail) {
+  const alert = error ? (
+    <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+      {error}
+    </p>
+  ) : null
+
+  if (sentTo) {
     return (
-      <div className="px-6 py-10 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary">
-          <MailCheck className="h-8 w-8" />
-        </div>
-        <h2 className="font-display text-2xl font-extrabold">Check your inbox</h2>
-        <p className="mt-2 text-muted-foreground">
-          We sent a confirmation link to <strong className="text-foreground">{email}</strong>. Open it on this phone to continue planning.
-        </p>
-        <Link href={`/login?next=${encodeURIComponent(next)}`} className="mt-6 inline-block font-semibold text-primary">
-          I’ve confirmed — sign in
-        </Link>
+      <div className={compact ? '' : 'px-4'}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void verify(code)
+          }}
+          noValidate
+          className="space-y-4"
+          data-testid="email-code-step"
+        >
+          <div className="flex items-start gap-3 rounded-2xl bg-secondary px-4 py-3 text-sm text-secondary-foreground">
+            <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
+            <p>
+              We emailed a {EMAIL_CODE_LENGTH}-digit code to <strong className="break-all text-foreground">{sentTo}</strong>. Type it below — it’s valid for 1 hour.
+            </p>
+          </div>
+          <TextField
+            label={`${EMAIL_CODE_LENGTH}-digit code`}
+            name="code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]*"
+            autoFocus
+            value={code}
+            onChange={(e) => {
+              const v = normalizeCode(e.target.value)
+              setCode(v)
+              // Typed or pasted the whole code: check it straight away.
+              if (v.length === EMAIL_CODE_LENGTH) void verify(v)
+            }}
+            placeholder={'•'.repeat(EMAIL_CODE_LENGTH)}
+            style={{ letterSpacing: '0.35em', fontSize: 22, textAlign: 'center' }}
+          />
+          {alert}
+          {resent && !error ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              New code sent. Use the newest email — older codes stop working.
+            </p>
+          ) : null}
+          <AppButton type="submit" size="lg" block loading={busy}>
+            {mode === 'signup' ? 'Verify and continue' : 'Sign in'}
+          </AppButton>
+          <div className="space-y-1 text-center text-sm text-muted-foreground">
+            <p>
+              Didn’t get it? Check your spam folder, or{' '}
+              {resendIn > 0 ? (
+                <span>send a new code in {resendIn}s</span>
+              ) : (
+                <button type="button" className="inline-flex min-h-[44px] items-center font-semibold text-primary" onClick={resend}>
+                  send a new code
+                </button>
+              )}
+              .
+            </p>
+            <button
+              type="button"
+              className="inline-flex min-h-[44px] items-center font-semibold text-primary"
+              onClick={() => {
+                setSentTo(null)
+                setCode('')
+                setError(null)
+              }}
+            >
+              Use a different email
+            </button>
+          </div>
+        </form>
       </div>
     )
   }
@@ -113,59 +237,83 @@ export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: 
           </div>
         </>
       )}
-      <form onSubmit={submit} noValidate className="space-y-4">
+      <form onSubmit={submitEmail} noValidate className="space-y-4">
         {mode === 'signup' ? (
           <TextField label="Your first name" name="name" autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sam" />
         ) : null}
-        <TextField label="Email" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
         <TextField
-          label="Password"
-          name="password"
-          type={show ? 'text' : 'password'}
-          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          hint={mode === 'signup' ? 'At least 8 characters.' : undefined}
+          label="Email"
+          name="email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          autoCapitalize="none"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          hint={passwordMode ? undefined : `We’ll email you a ${EMAIL_CODE_LENGTH}-digit code — no password needed.`}
           required
-          trailing={
-            <IconButton label={show ? 'Hide password' : 'Show password'} onClick={() => setShow((s) => !s)}>
-              {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </IconButton>
-          }
         />
-        {mode === 'signin' ? (
-          <div className="-mt-1 text-right">
-            <button
-              type="button"
-              className="-my-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-primary"
-              onClick={async () => {
-                setError(null)
-                if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError('Enter your email above, then tap “Forgot password?”.')
-                // Supabase Auth sends the reset email; we never reveal whether the account exists.
-                await db.auth
-                  .resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` })
-                  .then(({ error }) => error && authFailed('password_reset', error))
-                  .catch((err) => authFailed('password_reset', err))
-                setResetSent(true)
-              }}
-            >
-              Forgot password?
-            </button>
-          </div>
+        {passwordMode ? (
+          <>
+            <TextField
+              label="Password"
+              name="password"
+              type={show ? 'text' : 'password'}
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              trailing={
+                <IconButton label={show ? 'Hide password' : 'Show password'} onClick={() => setShow((s) => !s)}>
+                  {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </IconButton>
+              }
+            />
+            <div className="-mt-1 text-right">
+              <button
+                type="button"
+                className="-my-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-primary"
+                onClick={async () => {
+                  setError(null)
+                  if (!isValidEmail(email)) return setError('Enter your email above, then tap “Forgot password?”.')
+                  // Supabase Auth sends the reset email; we never reveal whether the account exists.
+                  await db.auth
+                    .resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` })
+                    .then(({ error }) => error && authFailed('password_reset', error))
+                    .catch((err) => authFailed('password_reset', err))
+                  setResetSent(true)
+                }}
+              >
+                Forgot password?
+              </button>
+            </div>
+          </>
         ) : null}
         {resetSent ? (
           <p role="status" className="rounded-xl bg-secondary px-4 py-3 text-sm text-secondary-foreground">
             If an account exists for that email, we’ve sent a link to reset your password.
           </p>
         ) : null}
-        {error ? (
-          <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error}
+        {alert}
+        <AppButton type="submit" size="lg" block loading={busy}>
+          {passwordMode ? 'Sign in' : 'Email me a code'}
+        </AppButton>
+        {mode === 'signin' ? (
+          <p className="text-center">
+            <button
+              type="button"
+              className="inline-flex min-h-[44px] items-center text-sm font-semibold text-primary"
+              onClick={() => {
+                setUsePassword((p) => !p)
+                setError(null)
+                setResetSent(false)
+              }}
+            >
+              {passwordMode ? 'Email me a code instead' : 'Sign in with a password instead'}
+            </button>
           </p>
         ) : null}
-        <AppButton type="submit" size="lg" block loading={busy}>
-          {mode === 'signin' ? 'Sign in' : 'Create account'}
-        </AppButton>
       </form>
       {!compact ? (
         <p className="mt-6 text-center text-sm text-muted-foreground">

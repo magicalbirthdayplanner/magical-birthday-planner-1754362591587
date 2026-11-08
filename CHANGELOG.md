@@ -3,6 +3,14 @@
 Major milestones, newest first. Dates and commits are from Git history (`git log`). Configuration-only changes
 (no commit) are marked as such.
 
+## Unreleased — sign in with an emailed 6-digit code
+
+- Email sign-up and sign-in send a 6-digit code (Supabase email OTP) typed on the same screen: no password, no
+  confirmation link, no leaving the page (the link in the same email still works as a fallback). Signing up with an
+  existing address just signs in. Password sign-in stays for accounts that have one. `signup_completed` now fires
+  after the code is verified (method `email_code`); new event `email_code_sent`. Needs the two Supabase email
+  templates in `supabase/templates/` pasted into the dashboard first — see docs/INTEGRATIONS.md.
+
 ## 2026-10-14 — free launch campaign
 
 - Every plan free for everyone (US + India) until the end of Nov 13, 2026 ET: `public.promo_campaigns` +

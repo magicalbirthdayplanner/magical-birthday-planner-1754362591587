@@ -3,7 +3,7 @@
  * checking at every step that the layout never exceeds the phone width.
  */
 import { expect, test, type Page } from '@playwright/test'
-import { seedUser } from './helpers'
+import { choosePassword, seedUser } from './helpers'
 
 const WIDTHS = [375, 390, 393, 430]
 
@@ -31,6 +31,7 @@ for (const width of WIDTHS) {
     await page.goto('/login?next=/start')
     await noOverflow(page, 'login')
     await page.getByLabel('Email').fill(seeded.email)
+    await choosePassword(page)
     await page.getByLabel('Password', { exact: true }).fill(seeded.password)
     await page.getByRole('button', { name: 'Sign in' }).click()
     await page.waitForURL('**/start')
@@ -150,6 +151,7 @@ for (const width of WIDTHS) {
     await page.goto('/plan')
     await expect(page).toHaveURL(/\/login/)
     await page.getByLabel('Email').fill(seeded.email)
+    await choosePassword(page)
     await page.getByLabel('Password', { exact: true }).fill(seeded.password)
     await page.getByRole('button', { name: 'Sign in' }).click()
     await expect(page.getByRole('heading', { name: /Noor’s party is/ })).toBeVisible()

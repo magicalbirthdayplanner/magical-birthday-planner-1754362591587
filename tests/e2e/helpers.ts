@@ -36,9 +36,31 @@ export async function seedUser(opts2: { zip?: string; lat?: number; lng?: number
   return { email, password, partyId: party!.id }
 }
 
+/** On /login the default is an emailed code; seeded test users sign in with their password. */
+export async function choosePassword(page: Page) {
+  await page.getByRole('button', { name: 'Sign in with a password instead' }).click()
+}
+
+/** The newest sign-in code emailed to `email` (local Supabase delivers auth email to Mailpit). */
+export async function emailCode(email: string, after = 0): Promise<string> {
+  for (let i = 0; i < 40; i++) {
+    const r = await fetch(`http://127.0.0.1:54324/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}`)
+    const { messages = [] } = (await r.json()) as { messages?: { ID: string; Created: string }[] }
+    const newest = messages.filter((m) => Date.parse(m.Created) >= after).sort((a, b) => Date.parse(b.Created) - Date.parse(a.Created))[0]
+    if (newest) {
+      const { Text } = (await (await fetch(`http://127.0.0.1:54324/api/v1/message/${newest.ID}`)).json()) as { Text: string }
+      const code = /\b(\d{6})\b/.exec(Text)?.[1]
+      if (code) return code
+    }
+    await new Promise((res) => setTimeout(res, 250))
+  }
+  throw new Error(`No sign-in code emailed to ${email}`)
+}
+
 export async function login(page: Page, s: Seeded, next = '/home') {
   await page.goto(`/login?next=${encodeURIComponent(next)}`)
   await page.getByLabel('Email').fill(s.email)
+  await choosePassword(page)
   await page.getByLabel('Password', { exact: true }).fill(s.password)
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.waitForURL(`**${next}`)

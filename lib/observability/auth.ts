@@ -2,16 +2,18 @@
  * Authentication observability (browser + callback route). Sends the flow, Supabase's error code and HTTP status
  * only — never the email, password, tokens, magic/reset links or the raw error message.
  *
- * Expected failures (wrong password, unconfirmed email, rate limits, weak password, offline) are low-noise
+ * Expected failures (wrong password or code, unconfirmed email, rate limits, weak password, offline) are low-noise
  * metrics. Only server-side failures (5xx / unknown) become Sentry issues.
  */
 import { reportError, track } from './telemetry'
 
-export type AuthFlow = 'login' | 'signup' | 'password_reset' | 'password_update' | 'google' | 'callback' | 'session'
+export type AuthFlow = 'login' | 'signup' | 'email_code_send' | 'email_code_verify' | 'password_reset' | 'password_update' | 'google' | 'callback' | 'session'
 
 const EVENT: Record<AuthFlow, string> = {
   login: 'AUTH_LOGIN_FAILED',
   signup: 'AUTH_SIGNUP_FAILED',
+  email_code_send: 'AUTH_EMAIL_CODE_SEND_FAILED',
+  email_code_verify: 'AUTH_EMAIL_CODE_VERIFY_FAILED',
   password_reset: 'AUTH_PASSWORD_RESET_FAILED',
   password_update: 'AUTH_PASSWORD_RESET_FAILED',
   google: 'AUTH_GOOGLE_SIGNIN_FAILED',

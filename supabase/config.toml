@@ -234,6 +234,17 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
+# Sign-in codes (components/app/AuthForm.tsx): a NEW account gets the "confirmation" email, an existing one the
+# "magic_link" email — both must show {{ .Token }}. Production: paste the same files into Supabase → Authentication →
+# Emails (Confirm signup / Magic link). Local copies arrive in Mailpit (http://127.0.0.1:54324).
+[auth.email.template.confirmation]
+subject = "Your Magical Birthday Planner code"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.magic_link]
+subject = "Your Magical Birthday Planner sign-in code"
+content_path = "./supabase/templates/magic_link.html"
+
 # Use a production-ready SMTP server
 # [auth.email.smtp]
 # enabled = true

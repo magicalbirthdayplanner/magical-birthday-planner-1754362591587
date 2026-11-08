@@ -58,7 +58,7 @@ entry is read by the code.
    local-Supabase integration tests and Playwright E2E.
 2. **Deploy.**
 3. **Smoke test on production:**
-   * sign up → confirmation email → wizard with your ZIP;
+   * sign up → 6-digit code by email → wizard with your ZIP; sign out, sign back in with a new code;
    * results with photos on a real Google map;
    * open a venue → save → add to party;
    * add a guest → email invitation → RSVP from another phone;

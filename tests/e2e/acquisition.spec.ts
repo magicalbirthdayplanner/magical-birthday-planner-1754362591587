@@ -5,6 +5,7 @@
  */
 import { createClient } from '@supabase/supabase-js'
 import { expect, test } from '@playwright/test'
+import { choosePassword, emailCode } from './helpers'
 
 const URL = 'http://127.0.0.1:54321'
 const SERVICE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
@@ -25,15 +26,16 @@ test('landing from an ad: offer above the button, UTMs on events and on the new 
   const email = `e2e-acq-${Date.now()}@example.test`
   await page.goto('/join')
   await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password', { exact: true }).fill('e2e-password-123')
-  await page.getByRole('button', { name: /create account/i }).click()
+  const sentAt = Date.now() - 1000
+  await page.getByRole('button', { name: 'Email me a code' }).click()
+  await page.getByLabel('6-digit code').fill(await emailCode(email, sentAt))
   await page.waitForURL('**/home')
   const db = admin()
   const { data: users } = await db.auth.admin.listUsers({ perPage: 1000 })
   const u = users.users.find((x) => x.email === email)!
   expect(u.user_metadata.signup_attribution).toMatchObject({ utm_source: 'instagram', utm_medium: 'paid_social', utm_campaign: 'mbp_founding_25', utm_content: 'tabs', fbclid: true })
   await expect.poll(async () => (await db.from('analytics_events').select('properties').eq('user_id', u.id).eq('event', 'signup_completed')).data?.[0]?.properties ?? null, { timeout: 10_000 })
-    .toMatchObject({ utm_source: 'instagram', utm_content: 'tabs', method: 'password' })
+    .toMatchObject({ utm_source: 'instagram', utm_content: 'tabs', method: 'email_code' })
   await db.auth.admin.deleteUser(u.id)
 })
 
@@ -47,6 +49,7 @@ test('email confirmed in another browser: the party draft travels with the sign-
   const page = await (await browser.newContext()).newPage() // a fresh browser: no local draft
   await page.goto('/login?next=' + encodeURIComponent('/start?resume=1'))
   await page.getByLabel('Email').fill(email)
+  await choosePassword(page)
   await page.getByLabel('Password', { exact: true }).fill('e2e-password-123')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page.getByRole('heading', { name: 'Let’s find your perfect party.' })).toBeVisible()

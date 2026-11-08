@@ -5,9 +5,9 @@
  * invitation shared + public RSVP → reload / new session → party still there.
  */
 import { expect, test, type Page } from '@playwright/test'
+import { emailCode } from './helpers'
 
 const email = `e2e-${Date.now()}@example.test`
-const password = 'e2e-password-123'
 
 async function continueStep(page: Page) {
   await page.getByRole('button', { name: /^(Continue|Skip|Skip for now)$/ }).click()
@@ -27,8 +27,9 @@ test('parent plans a party end-to-end on a phone', async ({ page, context, brows
   await expect(page).toHaveURL(/\/join/)
   await page.getByLabel('Your first name').fill('Sam')
   await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password', { exact: true }).fill(password)
-  await page.getByRole('button', { name: 'Create account' }).click()
+  const sentAt = Date.now() - 1000
+  await page.getByRole('button', { name: 'Email me a code' }).click()
+  await page.getByLabel('6-digit code').fill(await emailCode(email, sentAt))
   await expect(page).toHaveURL(/\/home/)
   await expect(page.getByRole('heading', { name: 'Let’s plan your first party.' })).toBeVisible()
 

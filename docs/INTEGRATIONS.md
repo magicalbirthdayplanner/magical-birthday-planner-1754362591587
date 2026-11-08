@@ -26,8 +26,21 @@ in the repository, and tooling never prints values. Variable list: [`.env.exampl
   for Production and the `mobile-first` Preview.
 * `EMAIL_FROM` empty (local/tests) → Resend's shared test sender, which only reaches the account owner.
 * Recommended before volume sending: a DMARC record (`_dmarc` TXT, e.g. `v=DMARC1; p=none; rua=mailto:…`).
-* Sign-up confirmation and password-reset emails are sent by **Supabase Auth**, not by this
+* Sign-in codes, sign-up confirmation and password-reset emails are sent by **Supabase Auth**, not by this
   integration. Point Supabase → Auth → SMTP at the same verified domain (Resend offers SMTP).
+
+### Supabase Auth email codes (dashboard → Authentication)
+Sign-up and sign-in use a **6-digit code sent by email** (`signInWithOtp` → `verifyOtp`, components/app/AuthForm.tsx);
+passwords remain only for accounts that already have one ("Sign in with a password instead"). Supabase sends a NEW
+account its **Confirm signup** email and an EXISTING account its **Magic link** email, so **both** must show the code:
+* **Emails → Templates → Confirm signup:** subject `Your Magical Birthday Planner code`, body =
+  `supabase/templates/confirmation.html`.
+* **Emails → Templates → Magic link:** subject `Your Magical Birthday Planner sign-in code`, body =
+  `supabase/templates/magic_link.html`.
+* **Providers → Email:** Confirm email ON; **Email OTP length 6** (must match `EMAIL_CODE_LENGTH` in
+  lib/auth/email-code.ts); Email OTP expiration 3600 s.
+* **Rate limits:** every sign-in now sends an email — keep "Rate limit for sending emails" well above expected
+  sign-ins per hour (custom SMTP default is 30/hour).
 
 ### Supabase Auth (dashboard → Authentication → URL Configuration)
 * **Site URL:** `https://magicalbirthdayplanner.app`

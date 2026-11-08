@@ -1,6 +1,6 @@
 /** Polished error and empty states (spec §40). No stack traces, always a way forward. */
 import { expect, test } from '@playwright/test'
-import { appAlert, clearArea, clearSearches, login, mockMode, seedUser } from './helpers'
+import { appAlert, choosePassword, clearArea, clearSearches, login, mockMode, seedUser } from './helpers'
 
 test.afterEach(async () => {
   await mockMode('ok')
@@ -11,6 +11,7 @@ test('signed-out visitors are sent to sign in, then back', async ({ page }) => {
   await page.goto('/discover')
   await expect(page).toHaveURL(/\/login\?next=%2Fdiscover/)
   await page.getByLabel('Email').fill(s.email)
+  await choosePassword(page)
   await page.getByLabel('Password', { exact: true }).fill(s.password)
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(/\/discover/)
@@ -20,6 +21,7 @@ test('wrong password shows a friendly message', async ({ page }) => {
   const s = await seedUser({ withParty: false })
   await page.goto('/login')
   await page.getByLabel('Email').fill(s.email)
+  await choosePassword(page)
   await page.getByLabel('Password', { exact: true }).fill('nope-nope-nope')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(appAlert(page)).toHaveText('That email and password don’t match. Try again?')

@@ -12,7 +12,7 @@
     "test:integration": "vitest run tests/integration",
     "test:all": "vitest run",
     "test:e2e": "playwright test",
-    "db:start": "supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta,mailpit",
+    "db:start": "supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > lib/db/database.types.ts",

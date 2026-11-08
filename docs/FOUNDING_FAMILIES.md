@@ -16,7 +16,8 @@ first 25 accounts get **Pro, free, on every party, with no time limit**. AI fair
 ## How a seat is given
 
 - When an account's email becomes **confirmed** (`auth.users.email_confirmed_at`): Google sign-in at once, email
-  sign-up when the confirmation link is clicked. Unconfirmed sign-ups never use a seat.
+  sign-up when the emailed 6-digit code is entered (or the link in the same email is opened). Unconfirmed sign-ups
+  never use a seat.
 - Lowest free seat 1..25, under a transaction advisory lock — concurrent confirmations never exceed 25.
 - The seat writes `plan_overrides` (PRO, no expiry). Everything already enforced for overrides applies: RLS
   (`has_paid_access`), AI tiers, pricing CTAs. An override an admin set earlier is never replaced.

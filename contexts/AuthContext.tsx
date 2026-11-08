@@ -13,9 +13,12 @@ interface AuthContextType {
   session: Session | null
   loading: boolean
   isSigningOut: boolean
-  /** `next`: where the confirmation link returns to. `data`: extra sign-up metadata (e.g. the wizard's party draft,
-   *  so the party can be created after confirming in another browser). */
-  signUp: (email: string, password: string, displayName?: string, opts?: { next?: string; data?: Record<string, unknown> }) => Promise<{ error: any }>
+  /** Email a sign-in code. `create`: sign-up (makes the account). `next`: where the link in the same email returns to.
+   *  `data`: extra sign-up metadata (e.g. the wizard's party draft, so the party survives opening the link in another
+   *  browser). */
+  sendEmailCode: (email: string, opts: { create: boolean; displayName?: string; next?: string; data?: Record<string, unknown> }) => Promise<{ error: any }>
+  /** Check the emailed code and sign in. `isNewAccount`: this code finished a sign-up (count it once). */
+  verifyEmailCode: (email: string, code: string) => Promise<{ error: any; isNewAccount: boolean }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signInWithGoogle: (next?: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
@@ -45,6 +48,25 @@ function clearLocalUserData(includeAuth: boolean) {
   }
   // In-memory SWR data (parties, guests…) of the previous user.
   void mutateAll(() => true, undefined, { revalidate: false })
+}
+
+/** Old pre-account localStorage keys that must not leak into a signed-in session. */
+function clearLegacyPartyStorage() {
+  if (typeof window === 'undefined') return
+  try {
+    for (const k of ['partyData', 'partyChecklist', 'partyGuests', 'partyGuests_timestamp', 'partyInvitations', 'partyInvitations_timestamp', 'partyBudget', 'partyShoppingList', 'demoPartyData', 'hasPurchasedPlan', 'userSubscriptionPlan', 'userPlanPurchased', 'hasValidSubscription', 'subscriptionPurchaseDate']) {
+      localStorage.removeItem(k)
+    }
+  } catch (error) {
+    console.warn('Failed to clear localStorage on sign-in:', error)
+  }
+}
+
+/** Where emailed links return to: /auth/callback, then a same-origin `next` (default /home). */
+function callbackUrl(next?: string) {
+  const origin = (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL || '').trim().replace(/\/$/, '')
+  const safe = next && next.startsWith('/') && !next.startsWith('//') ? next : '/home'
+  return `${origin}/auth/callback?next=${encodeURIComponent(safe)}`
 }
 
 const LAST_USER_KEY = 'mbp.uid'
@@ -126,61 +148,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [supabase.auth])
 
-  const signUp = async (email: string, password: string, displayName?: string, opts?: { next?: string; data?: Record<string, unknown> }) => {
+  /**
+   * Email a one-time sign-in code (and a fallback link). `create`: make the account if it doesn't exist yet (sign-up);
+   * otherwise only existing accounts get a code. Supabase sends its "Confirm signup" email to a new account and its
+   * "Magic Link" email to an existing one — both templates carry {{ .Token }} (supabase/templates/).
+   */
+  const sendEmailCode = async (email: string, opts: { create: boolean; displayName?: string; next?: string; data?: Record<string, unknown> }) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        password,
         options: {
-          emailRedirectTo: `${(typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL || '').trim().replace(/\/$/, '')}/auth/callback?next=${encodeURIComponent(opts?.next && opts.next.startsWith('/') && !opts.next.startsWith('//') ? opts.next : '/home')}`,
-          data: {
-            ...opts?.data,
-            display_name: displayName,
-            // The ad that brought this parent in (campaign tags only), kept with the account for acquisition reports.
-            signup_attribution: attributionProps(),
-          },
+          shouldCreateUser: opts.create,
+          // The link in the same email (opened in another browser) confirms and returns here.
+          emailRedirectTo: callbackUrl(opts.next),
+          // Only stored when the account is created.
+          data: opts.create
+            ? {
+                ...opts.data,
+                display_name: opts.displayName,
+                // The ad that brought this parent in (campaign tags only), kept with the account for acquisition reports.
+                signup_attribution: attributionProps(),
+              }
+            : undefined,
         },
       })
-      
+      if (error) authFailed('email_code_send', error)
+      return { error }
+    } catch (error) {
+      authFailed('email_code_send', error)
+      return { error }
+    }
+  }
+
+  /** Check the emailed code. Confirms a new account's email (which also claims a founding seat) and signs in. */
+  const verifyEmailCode = async (email: string, code: string) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
       if (error) {
-        authFailed('signup', error)
-        return { error }
+        authFailed('email_code_verify', error)
+        return { error, isNewAccount: false }
       }
-      
-      // If signup successful and user is confirmed, update local state
       if (data.user && data.session) {
         setUser(data.user)
         setSession(data.session)
-        
-        // Clear localStorage to prevent fallback data conflicts
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.removeItem('partyData')
-            localStorage.removeItem('partyChecklist')
-            localStorage.removeItem('partyGuests')
-            localStorage.removeItem('partyGuests_timestamp')
-            localStorage.removeItem('partyInvitations')
-            localStorage.removeItem('partyInvitations_timestamp')
-            localStorage.removeItem('partyBudget')
-            localStorage.removeItem('partyShoppingList')
-            localStorage.removeItem('demoPartyData')
-            // Clear subscription-related localStorage items
-            localStorage.removeItem('hasPurchasedPlan')
-            localStorage.removeItem('userSubscriptionPlan')
-            localStorage.removeItem('userPlanPurchased')
-            localStorage.removeItem('hasValidSubscription')
-            localStorage.removeItem('subscriptionPurchaseDate')
-          } catch (error) {
-            console.warn('Failed to clear localStorage on signup:', error)
-          }
+        clearLegacyPartyStorage()
+      }
+      // New = created within the code's lifetime (1 h) and not yet counted on this device; an existing account that
+      // used the sign-up form is a sign-in.
+      let isNewAccount = false
+      const u = data.user
+      if (u && Date.now() - new Date(u.created_at).getTime() < 2 * 3_600_000) {
+        try {
+          isNewAccount = localStorage.getItem(SIGNUP_TRACKED_KEY) !== u.id
+          localStorage.setItem(SIGNUP_TRACKED_KEY, u.id)
+        } catch {
+          isNewAccount = true
         }
       }
-      
-      return { error: null }
+      return { error: null, isNewAccount }
     } catch (error) {
-      console.error('Signup failed:', error)
-      authFailed('signup', error)
-      return { error }
+      authFailed('email_code_verify', error)
+      return { error, isNewAccount: false }
     }
   }
 
@@ -201,28 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user)
         setSession(data.session)
         
-        // Clear localStorage to prevent fallback data conflicts
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.removeItem('partyData')
-            localStorage.removeItem('partyChecklist')
-            localStorage.removeItem('partyGuests')
-            localStorage.removeItem('partyGuests_timestamp')
-            localStorage.removeItem('partyInvitations')
-            localStorage.removeItem('partyInvitations_timestamp')
-            localStorage.removeItem('partyBudget')
-            localStorage.removeItem('partyShoppingList')
-            localStorage.removeItem('demoPartyData')
-            // Clear subscription-related localStorage items
-            localStorage.removeItem('hasPurchasedPlan')
-            localStorage.removeItem('userSubscriptionPlan')
-            localStorage.removeItem('userPlanPurchased')
-            localStorage.removeItem('hasValidSubscription')
-            localStorage.removeItem('subscriptionPurchaseDate')
-          } catch (error) {
-            console.warn('Failed to clear localStorage on signin:', error)
-          }
-        }
+        clearLegacyPartyStorage()
       }
       
       return { error: null }
@@ -293,7 +300,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     loading,
     isSigningOut,
-    signUp,
+    sendEmailCode,
+    verifyEmailCode,
     signIn,
     signInWithGoogle,
     signOut,

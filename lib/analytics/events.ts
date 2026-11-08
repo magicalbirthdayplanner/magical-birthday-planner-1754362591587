@@ -28,6 +28,7 @@ export const ANALYTICS_EVENTS = [
   'party_creation_started',
   'party_creation_completed',
   'signup_started',
+  'email_code_sent',
   'signup_completed',
   'pricing_viewed',
   'upgrade_prompt_viewed',
