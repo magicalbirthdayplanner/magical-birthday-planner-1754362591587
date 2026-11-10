@@ -28,6 +28,7 @@ import {
 } from '@/lib/planning/wizard'
 import { setAnalyticsMarket, track } from '@/lib/analytics/client'
 import { useCampaign } from '@/components/billing/useCampaign'
+import { FoundingOffer } from '@/components/billing/FoundingOffer'
 import { COUNTRIES, countryConfig, parseCountryCode, selectableCountries, type CountryCode } from '@/lib/country/countries'
 import { formatDistance, formatPartyDate, formatRadius } from '@/lib/country/format'
 import { normalizePostal, postalInputFilter } from '@/lib/country/postal'
@@ -680,6 +681,8 @@ function Results({
                 </strong>
               ) : null}
             </p>
+            {/* After the launch offer: the founding-families seat count (hidden while the free campaign runs). */}
+            <FoundingOffer compact className="mb-4" />
             <AuthForm mode={authMode} compact onDone={onCreate} next="/start?resume=1" signupData={{ party_draft: draft }} />
             <p className="mt-4 text-center text-sm text-muted-foreground">
               {authMode === 'signup' ? 'Already have an account? ' : 'New here? '}
