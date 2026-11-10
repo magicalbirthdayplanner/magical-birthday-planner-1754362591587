@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   applicationName: 'Magical Birthday Planner',
   appleWebApp: { capable: true, title: 'Party Planner', statusBarStyle: 'default' },
   formatDetection: { telephone: false },
+  // Pinterest claims the domain from this tag (business account → Settings → Claimed accounts → Websites).
+  verification: { other: { 'p:domain_verify': '777615a16d8246fe7c7423777ef1e396' } },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
