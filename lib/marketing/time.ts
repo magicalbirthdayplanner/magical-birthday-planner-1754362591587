@@ -77,6 +77,11 @@ export function weekday(date: string): string {
   const [y, m, d] = date.split('-').map(Number)
   return WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
 }
+/** Day of the week of a calendar date, Monday = 0 … Sunday = 6 (the planner's weeks start on Monday). */
+export function weekdayIndex(date: string): number {
+  const [y, m, d] = date.split('-').map(Number)
+  return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7
+}
 export function daysBetween(a: string, b: string): number {
   const t = (s: string) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10))
   return Math.round((t(b) - t(a)) / 86_400_000)

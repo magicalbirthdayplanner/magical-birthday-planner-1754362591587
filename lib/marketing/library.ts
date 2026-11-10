@@ -4,7 +4,7 @@
  * Facts used here are in facts.ts. No links (links are paid extras on X); no prices; no invented anecdotes.
  */
 import type { CardSpec } from './images/templates'
-import type { Pillar, PollSpec, PostFormat, SlotRole } from './types'
+import type { Pillar, Platform, PollSpec, PostFormat, SlotRole } from './types'
 
 export interface LibraryItem {
   key: string
@@ -18,6 +18,8 @@ export interface LibraryItem {
   poll?: PollSpec
   card?: Omit<CardSpec, 'seed'>
   thread?: string[]
+  /** Only these platforms use the item (unset = every platform). */
+  platforms?: Platform[]
 }
 
 const POLL_DAY = 1440
@@ -31,6 +33,22 @@ export const LIBRARY: LibraryItem[] = [
   { key: 'f-claim', role: 'founder_story', pillar: 'founder_journey', category: 'founder_stories', format: 'text', text: 'A pre-launch audit found my old prototype homepage claiming “10,000+ parents”.\n\nIt wasn’t true, so it’s gone. Building in public means the boring honest version.' },
   { key: 'f-feedback', role: 'founder_story', pillar: 'founder_journey', category: 'founder_stories', format: 'text', text: 'The product is brand new and I’d rather hear what’s confusing now than later.\n\nIf you plan kids’ parties: what would make you trust a planning app with yours?' },
   { key: 'f-ai-nochat', role: 'founder_story', pillar: 'ai_thinking', category: 'ai_content', format: 'text', text: 'Early decision: the AI in Magical Birthday Planner is not a chatbot.\n\nIt fills in planning pieces inside your plan, and nothing changes until you tap Add.' },
+
+  // ---- X: building in public as a solo founder, and asking for feedback (founder-led X only) ----------------------
+  { key: 'x-solo', role: 'founder_story', pillar: 'founder_journey', category: 'build_in_public', format: 'text', platforms: ['x'], text: 'I’m building Magical Birthday Planner alone, around being a parent.\n\nThe hardest part isn’t the code. It’s deciding what not to build.' },
+  { key: 'x-early', role: 'founder_story', pillar: 'founder_journey', category: 'build_in_public', format: 'text', platforms: ['x'], text: 'Honest early-stage update: very few parents have signed up so far.\n\nThat’s normal for something this new, and it means every piece of feedback still changes the product.' },
+  { key: 'x-posting-less', role: 'founder_story', pillar: 'founder_journey', category: 'build_in_public', format: 'text', platforms: ['x'], text: 'Lesson from the first weeks after launch: posting a lot from a brand-new account reaches almost nobody.\n\nSo I’m posting less and asking more.' },
+  { key: 'x-ad-test', role: 'founder_story', pillar: 'founder_journey', category: 'build_in_public', format: 'text', platforms: ['x'], text: 'I ran a small ad test after launch. People clicked. Nobody signed up.\n\nThe lesson wasn’t that ads don’t work. It was that my homepage didn’t explain the product fast enough.' },
+  { key: 'x-no-password', role: 'founder_story', pillar: 'founder_journey', category: 'build_in_public', format: 'text', platforms: ['x'], text: 'Small change, real friction cut: signing up for Magical Birthday Planner no longer needs a password.\n\nYou get a code by email and type it on the same screen. Fewer steps on a phone.' },
+  { key: 'x-two-countries', role: 'founder_story', pillar: 'founder_journey', category: 'build_in_public', format: 'text', platforms: ['x'], text: 'Recently added: planning parties in India, with PIN codes, rupees and invitations you can share on WhatsApp.\n\nSupporting a second country alone is a great way to find every hidden assumption in your code.' },
+  { key: 'x-cut', role: 'educational', pillar: 'founder_journey', category: 'build_in_public', format: 'text', platforms: ['x'], text: 'The most useful thing I do as a solo founder is cut features.\n\nEvery feature is one more thing a busy parent has to understand. Fewer, clearer things win.' },
+  { key: 'x-distribution', role: 'educational', pillar: 'founder_journey', category: 'build_in_public', format: 'text', platforms: ['x'], text: 'Building the product turned out to be the easy part.\n\nGetting it in front of the right parents is the real work, and nobody can do that part for you.' },
+  { key: 'x-one-parent', role: 'educational', pillar: 'founder_journey', category: 'build_in_public', format: 'text', platforms: ['x'], text: 'One conversation with a real parent planning a party teaches me more than a week of guessing.\n\nSolo building only works if you keep talking to the people you build for.' },
+  { key: 'x-ask-confusing', role: 'conversation', pillar: 'community_question', category: 'feedback', format: 'text', platforms: ['x'], text: 'If you’ve tried Magical Birthday Planner: what was the first moment that confused you?\n\nI’d rather fix that than add anything new.' },
+  { key: 'x-ask-next', role: 'conversation', pillar: 'community_question', category: 'feedback', format: 'text', platforms: ['x'], text: 'If you could add one thing to a kids’ birthday planner, what would it be?\n\nI’m deciding what to build next and would love one concrete idea.' },
+  { key: 'x-ask-builders', role: 'conversation', pillar: 'community_question', category: 'feedback', format: 'text', platforms: ['x'], text: 'Question for other solo builders: how did you find your first real users?\n\nNot the playbook version. What actually worked.' },
+  { key: 'x-ask-group-chat', role: 'conversation', pillar: 'community_question', category: 'feedback', format: 'text', platforms: ['x'], text: 'Parents: what would make you plan a birthday in an app instead of the group chat?\n\nHonest answers help more than polite ones.' },
+  { key: 'x-try-blunt', role: 'soft_conversion', pillar: 'launch_invitation', category: 'feedback', format: 'text', platforms: ['x'], cta: 'Tell me what’s confusing.', text: 'Looking for a few parents with a birthday coming up to try Magical Birthday Planner and tell me what’s confusing.\n\nBlunt feedback is the most useful kind right now.' },
 
   // ---- parent tips -----------------------------------------------------------------------------------------------
   { key: 't-before-invites', role: 'parent_tip', pillar: 'useful_tips', category: 'planning_tips', format: 'image', text: 'Before you send invitations, lock down three things: the date, the place and a realistic headcount.\n\nEverything else is easier to change later.', card: { template: 'tip', headline: 'Lock these before the invites go out', bullets: ['The date', 'The place', 'A realistic headcount'] } },

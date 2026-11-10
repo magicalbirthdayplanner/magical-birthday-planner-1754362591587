@@ -21,7 +21,7 @@ import { claimIssues, fixProductName, pollIssues, validatePost } from '@/lib/mar
 import { MemoryMarketingStore } from '../../helpers/marketing-memory-store'
 
 const NOW = new Date('2026-10-19T10:00:00Z') // Monday 06:00 EDT
-const cfg = (env: Record<string, string> = {}): MarketingConfig => readMarketingConfig(env)
+const cfg = (env: Record<string, string> = {}): MarketingConfig => readMarketingConfig({ MARKETING_X_MIX: 'full', ...env })
 let store: MemoryMarketingStore
 
 class FakeX implements MarketingProvider {

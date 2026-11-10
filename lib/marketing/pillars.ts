@@ -2,9 +2,13 @@
  * Content pillars: default weekly mix, what each pillar is for, a topic bank, and link/image policy.
  * Topics are starting angles, not copy — the model writes the post. Rotation and learning live in strategy.ts.
  */
-import type { Pillar } from './types'
+import type { Pillar, Platform } from './types'
 
-export interface Topic { key: string; angle: string }
+/** `platforms`: only these platforms use the topic (unset = every platform). */
+export interface Topic { key: string; angle: string; platforms?: Platform[] }
+
+/** Topics a platform may use: shared ones plus its own. */
+export const topicFits = (t: Topic, platform: Platform) => !t.platforms || t.platforms.includes(platform)
 
 export interface PillarSpec {
   /** Share of the default weekly mix (launch_invitation is not part of the mix: see strategy.ts). */
@@ -33,6 +37,19 @@ export const PILLAR_SPECS: Record<Pillar, PillarSpec> = {
       { key: 'hardest-part-building', angle: 'The part of building this that turned out harder than expected' },
       { key: 'what-im-cutting', angle: 'Deciding what NOT to build for launch' },
       { key: 'feedback-ask', angle: 'What kind of honest feedback I want from the first parents' },
+      // X (founder-led): building in public as a solo founder.
+      { key: 'solo-founder', angle: 'Building this alone, around being a parent — what that actually looks like', platforms: ['x'] },
+      { key: 'early-numbers', angle: 'Being honest that very few people use it yet, and why that is fine this early', platforms: ['x'] },
+      { key: 'posting-less', angle: 'Lesson: posting a lot from a new account reaches almost nobody — so post less, talk more', platforms: ['x'] },
+      { key: 'ad-test-lesson', angle: 'A small ad test brought clicks but no sign-ups: the homepage had to explain the product faster', platforms: ['x'] },
+      { key: 'signup-friction', angle: 'Replacing the sign-up password with a code by email to cut steps on a phone', platforms: ['x'] },
+      { key: 'two-countries', angle: 'Adding parties in India (PIN codes, rupees, WhatsApp invitations) as a solo founder', platforms: ['x'] },
+      { key: 'cut-features', angle: 'Cutting features is the most useful thing a solo founder does', platforms: ['x'] },
+      { key: 'distribution-hard', angle: 'Building the product was the easy part; getting it in front of parents is the hard part', platforms: ['x'] },
+      { key: 'talk-to-users', angle: 'Why talking to one real parent beats a week of guessing', platforms: ['x'] },
+      { key: 'shipping-small', angle: 'Shipping small changes often instead of one big release', platforms: ['x'] },
+      { key: 'what-feedback-changed', angle: 'How early feedback changes what gets built next', platforms: ['x'] },
+      { key: 'focus-one-thing', angle: 'Choosing one problem to solve well instead of a feature list', platforms: ['x'] },
     ],
   },
   parent_pain: {
@@ -137,6 +154,15 @@ export const PILLAR_SPECS: Record<Pillar, PillarSpec> = {
       { key: 'theme-changes', angle: 'How many times your kid changed the theme' },
       { key: 'host-stress', angle: 'The moment during a party you stress most' },
       { key: 'invite-method', angle: 'How you send invitations now' },
+      // X (founder-led): questions that ask for feedback on the product and the build.
+      { key: 'fb-first-confusing', angle: 'If you tried it: what was the first confusing moment?', platforms: ['x'] },
+      { key: 'fb-what-to-cut', angle: 'What would you cut from a birthday planner to make it simpler?', platforms: ['x'] },
+      { key: 'fb-build-next', angle: 'What should I build next — ask for one concrete suggestion', platforms: ['x'] },
+      { key: 'fb-why-not-try', angle: 'What would stop you from trying a new tool for your kid’s next party?', platforms: ['x'] },
+      { key: 'fb-group-chat', angle: 'What would make you plan in an app instead of the group chat?', platforms: ['x'] },
+      { key: 'fb-builders', angle: 'Asking other solo builders how they found their first users', platforms: ['x'] },
+      { key: 'fb-homepage', angle: 'Asking for a blunt first impression of the homepage', platforms: ['x'] },
+      { key: 'fb-phone-or-desk', angle: 'Do parents plan parties on the phone or at a desk?', platforms: ['x'] },
     ],
   },
   launch_invitation: {
@@ -156,6 +182,17 @@ export const PILLAR_SPECS: Record<Pillar, PillarSpec> = {
     ],
   },
 }
+
+/**
+ * X is founder-led (MARKETING_X_MIX=founder): what each slot role asks for there. Overrides the pillar brief in the
+ * batch prompt. The audience is other builders and curious parents; the goal is honest feedback, not reach.
+ */
+export const X_FOUNDER_BRIEF = {
+  founder_story: 'Build in public as a solo founder: a decision, a mistake, a lesson, what is hard right now, or what just shipped — and the honest early-stage reality (very few users so far). Only true events from the fact sheet; otherwise an opinion or a lesson. No parenting tips.',
+  educational: 'A lesson from building and running this alone (solopreneur): focus, shipping, cutting scope, distribution, talking to users. Practical and honest, first person, no hype, no generic startup advice. No parenting tips.',
+  conversation: 'Ask ONE specific question that gets honest feedback on the product or the build — from parents and from other builders (what is confusing, what to cut, what to build next, what would make them try it). Short. No link, no pitch.',
+  soft_conversion: 'Ask people to try Magical Birthday Planner and tell you what is confusing or missing. Honest and low-pressure: the feedback is the point, not the sign-up.',
+} as const
 
 /** The default weekly mix (sums to 100). */
 export function defaultWeights(): Record<Pillar, number> {

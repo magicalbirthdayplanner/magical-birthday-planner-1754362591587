@@ -133,10 +133,12 @@ cadence 8 posts/day inside the monthly budgets.
 | `MARKETING_UTM_CAMPAIGN` | `utm_campaign` for X links (`mbp_x_growth`) | no | no | — | — |
 | `MARKETING_PLATFORMS` | Channels the engine runs: `x`, `instagram`, `facebook` (default `x`) | no | no | — | — |
 | `FB_PAGE_ID`, `FB_PAGE_ACCESS_TOKEN` | Facebook Page id and Page access token (non-expiring, derived from the owner's long-lived user token) | no / **yes** | no | — | — |
-| `MARKETING_FB_POSTS_PER_DAY`, `MARKETING_FB_POST_TIMES` | Facebook cadence (2; `09:00,17:00`) | no | no | — | — |
-| `MARKETING_BANK_DAYS` | Days of content kept written ahead (30) | no | no | — | — |
+| `MARKETING_FB_POSTS_PER_DAY`, `MARKETING_FB_POST_TIMES`, `MARKETING_FB_POST_DAYS` | Facebook cadence: posts on each posting day (1), times (`09:00`), weekdays (`Mon,Wed,Fri`; `daily` = every day) | no | no | — | — |
+| `MARKETING_BANK_DAYS` | Days of content kept written ahead (30); the 5-minute publish ticks top it up one day at a time | no | no | — | — |
 | `IG_ACCESS_TOKEN`, `IG_USER_ID` | Instagram API with Instagram Login: long-lived token (60 days, refresh) and the professional account id | **yes** / no | no | — | — |
-| `MARKETING_IG_POSTS_PER_DAY`, `MARKETING_IG_POST_TIMES` | Instagram cadence (2; `12:30,20:00`) — times should match existing publish crons | no | no | — | — |
+| `MARKETING_IG_POSTS_PER_DAY`, `MARKETING_IG_POST_TIMES`, `MARKETING_IG_POST_DAYS` | Instagram cadence: posts per posting day (1), times (`12:30`), weekdays (`Tue,Thu,Sat`) | no | no | — | — |
+| `MARKETING_X_MIX` | `founder` (default): X is founder-led — founder story, building in public, solo-founder lessons, feedback asks; no tips, polls or product cards. `full`: the original eight-role mix | no | no | — | — |
+| `MARKETING_X_POST_DAYS` | X posting weekdays (default every day) | no | no | — | — |
 | `MARKETING_MEDIA_SOURCE_DIR` | Seed script only: where the campaign media files are | no | no | never | never |
 | `MARKETING_X_MAX_CHARS` | Weighted-character limit (280) | no | no | — | — |
 | `MARKETING_IMAGE_PROVIDER` | `brand` (default, no API) · `openai` · `none` | no | no | — | — |

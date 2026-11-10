@@ -20,6 +20,11 @@ export const FOUNDER_FACTS: Fact[] = [
   { id: 'F-signups-open', text: 'Sign-ups opened before launch (October 9, 2026); the early waitlist was retired because it added friction.' },
   { id: 'F-fake-claim', text: 'A pre-launch audit found the old prototype homepage claimed "10,000+ parents". It was not true and was removed.' },
   { id: 'F-early', text: 'The product is brand new: there are very few users so far, and the founder wants honest feedback from parents.' },
+  { id: 'F-solo', text: 'The founder builds and runs Magical Birthday Planner alone (a solo founder), alongside being a parent.' },
+  { id: 'F-ad-test', text: 'A small Facebook and Instagram ad test right after launch (October 2026) brought visitors but no sign-ups; the lesson was that the homepage had to explain the product faster.' },
+  { id: 'F-posting-lesson', text: 'In the first weeks after launch, frequent automated posting from the new accounts reached very few people, so the founder changed course: fewer posts, more conversations and asking for feedback.' },
+  { id: 'F-email-code', text: 'In November 2026 sign-up stopped needing a password: parents get a code by email and type it on the same screen, to cut steps on a phone.' },
+  { id: 'F-india', text: 'In October 2026 the founder added planning for parties in India: PIN codes, rupees and invitations shared on WhatsApp.' },
 ]
 
 export const PRODUCT_FACTS: Fact[] = [

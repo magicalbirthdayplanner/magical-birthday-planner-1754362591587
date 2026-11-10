@@ -12,7 +12,13 @@ import { planSlots, planWeek, weekStartOf, type PlanSlot } from './planner'
 import { getMarketingProvider, MarketingProviderError } from './providers'
 import { engagements } from './scoring'
 import type { MarketingStore } from './store'
-import { addDays, localDate } from './time'
+import { addDays, localDate, weekdayIndex } from './time'
+
+/** Posting days in the content bank's horizon (MARKETING_BANK_DAYS from today). */
+function postingDays(cfg: MarketingConfig, days: number[], now: Date): number {
+  const today = localDate(now, cfg.timezone)
+  return Array.from({ length: cfg.bankDays }, (_, i) => addDays(today, i)).filter((d) => days.includes(weekdayIndex(d))).length
+}
 import { PILLAR_LABEL, SLOT_ROLE_LABEL, type MarketingPost, type Platform, type SlotRole } from './types'
 import { forbiddenTermsFromEnv, platformRules, validatePost } from './validation'
 
@@ -100,7 +106,7 @@ async function views(store: MarketingStore, cfg: MarketingConfig, posts: Marketi
 export async function generalOverview(store: MarketingStore, cfg: MarketingConfig, now = new Date()) {
   const settings = await store.getSettings()
   const [budget, insights, briefs, audit] = await Promise.all([budgetSnapshot(store, cfg, now), store.latestInsights(), store.latestBriefs(1), store.recentAudit(30)])
-  const platforms: { platform: Platform; label: string; enabled: boolean; paused: boolean; credentials: boolean; postsPerDay: number; postTimes: string[]; queued: number; drafts: number; daysWritten: number; bankDays: number }[] = []
+  const platforms: { platform: Platform; label: string; enabled: boolean; paused: boolean; credentials: boolean; postsPerDay: number; postTimes: string[]; postDays: number[]; queued: number; drafts: number; daysWritten: number; bankDays: number }[] = []
   for (const p of CONSOLE_PLATFORMS) {
     const cad = cadenceFor(cfg, p)
     const unwritten = cfg.platforms.includes(p) ? await daysToWrite(store, cfg, { platform: p, now, limit: 60 }) : []
@@ -113,10 +119,12 @@ export async function generalOverview(store: MarketingStore, cfg: MarketingConfi
       credentials: credentialsPresent(p),
       postsPerDay: cad.postsPerDay,
       postTimes: cad.postTimes,
+      postDays: cad.postDays,
       queued: queued.filter((x) => x.status !== 'draft').length,
       drafts: queued.filter((x) => x.status === 'draft').length,
-      daysWritten: cfg.bankDays - unwritten.length,
-      bankDays: cfg.bankDays,
+      // Counted in posting days (a 3-a-week platform has ~13 in a 30-day bank).
+      daysWritten: postingDays(cfg, cad.postDays, now) - unwritten.length,
+      bankDays: postingDays(cfg, cad.postDays, now),
     })
   }
   return {
@@ -193,7 +201,7 @@ export async function platformOverview(store: MarketingStore, cfg: MarketingConf
     credentials: credentialsPresent(platform),
     dryRun: cfg.dryRun,
     autonomousEffective: autonomousEffective(cfg, settings.autonomousEnabled),
-    cadence: { postsPerDay: cad.postsPerDay, postTimes: cad.postTimes, timezone: cfg.timezone, maxChars: cad.maxChars },
+    cadence: { postsPerDay: cad.postsPerDay, postTimes: cad.postTimes, postDays: cad.postDays, timezone: cfg.timezone, maxChars: cad.maxChars },
     days: [...dayMap.values()],
     recent: await views(store, cfg, recent),
     performance: {
