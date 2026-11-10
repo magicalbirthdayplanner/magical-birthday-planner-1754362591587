@@ -15,7 +15,7 @@ import { timelineSpec } from '@/lib/ai/features/timeline'
 import { mergeCandidates, shoppingListSpec } from '@/lib/ai/features/shoppingList'
 
 const live = process.env.AI_LIVE === '1' && !!process.env.AI_API_KEY
-const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: 'opencode' } as NodeJS.ProcessEnv)
+const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: process.env.AI_PROVIDER ?? 'opencode' } as NodeJS.ProcessEnv)
 const ctx: PartyAIContext = {
   childAge: 6, childInterests: ['dinosaurs', 'science'], partyDate: null, daysUntilParty: 18, city: 'Troy', state: 'MI', country: 'US', currency: 'USD', guestCountEstimate: 14, budget: 280,
   venue: { name: 'Backyard', type: 'home', booked: true }, theme: 'Dino Dig', durationMinutes: 120, indoorOutdoor: 'outdoor', foodPreferences: ['one child is gluten-free'],

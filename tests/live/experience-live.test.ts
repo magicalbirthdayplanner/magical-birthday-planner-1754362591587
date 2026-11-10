@@ -17,7 +17,7 @@ import { FoodAISchema } from '@/lib/ai/schemas/food'
 import { ACTIVITY_EDITS } from '@/lib/experience/model'
 
 const live = process.env.AI_LIVE === '1' && !!process.env.AI_API_KEY
-const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: 'opencode' } as NodeJS.ProcessEnv)
+const cfg = readAIConfig({ ...process.env, AI_ENABLED: 'true', AI_PROVIDER: process.env.AI_PROVIDER ?? 'opencode' } as NodeJS.ProcessEnv)
 const space: PartyAIContext = {
   childAge: 7, childInterests: ['science', 'art'], partyDate: null, daysUntilParty: 21, city: 'Troy', state: 'MI', country: 'US', currency: 'USD', guestCountEstimate: 15, budget: 200, venue: null, theme: 'Space',
   durationMinutes: 120, indoorOutdoor: 'indoor', foodPreferences: [], existingActivities: [], existingChecklist: [], currentBudgetLines: [], existingShoppingItems: [],
