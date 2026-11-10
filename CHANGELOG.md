@@ -3,7 +3,15 @@
 Major milestones, newest first. Dates and commits are from Git history (`git log`). Configuration-only changes
 (no commit) are marked as such.
 
-## Unreleased — sign in with an emailed 6-digit code
+## Unreleased — party ideas before sign-up
+
+- The wizard is 3 screens (child name + age, date, ZIP/PIN) instead of 9, then shows the top party places near them
+  and theme ideas straight away, without an account (new public `POST /api/discovery/preview`: cache-first, top 6,
+  per-IP limits + the shared Google budget). Interests refine the ideas on the same screen. Saving the party is the
+  only ask (email code / Google). Guests, budget and vibe default and are edited in the party details. New events
+  `preview_save_tapped`; `venue_search_completed` carries `preview: true` for the signed-out search.
+
+## 2026-11-08 — sign in with an emailed 6-digit code
 
 - Email sign-up and sign-in send a 6-digit code (Supabase email OTP) typed on the same screen: no password, no
   confirmation link, no leaving the page (the link in the same email still works as a fallback). Signing up with an

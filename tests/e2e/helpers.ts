@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 
 const URL = 'http://127.0.0.1:54321'
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
@@ -167,4 +167,23 @@ export async function setLaunchCampaign(active: boolean) {
 export async function restoreLaunchCampaign() {
   const admin = createClient(URL, SERVICE, opts)
   await admin.from('promo_campaigns').update({ starts_at: '2026-10-13T04:00:00Z', ends_at: '2026-11-14T05:00:00Z', ends_on: '2026-11-13' }).eq('id', 'launch-free-30')
+}
+
+/**
+ * The quick wizard on /start: child (name + age) → date → postal code → results ("<name>’s party ideas").
+ * `postal` is typed into the ZIP/PIN field; `place` is the located town shown under it.
+ */
+export async function quickWizard(page: Page, o: { name: string; age: number; postal: string; place?: string | RegExp; date?: string }) {
+  await expect(page.getByRole('heading', { name: 'Who are we celebrating?' })).toBeVisible()
+  await page.getByLabel('Child’s name').fill(o.name)
+  await page.getByRole('radio', { name: String(o.age), exact: true }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await expect(page.getByRole('heading', { name: 'When is the party?' })).toBeVisible()
+  await page.getByRole('button', { name: o.date ?? 'In a month' }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await expect(page.getByRole('heading', { name: 'Where are you planning?' })).toBeVisible()
+  await page.getByLabel(/^(ZIP|PIN) code$/).fill(o.postal)
+  await expect(page.getByText(o.place ?? 'Troy, MI')).toBeVisible()
+  await page.getByRole('button', { name: 'Show party ideas' }).click()
+  await expect(page.getByRole('heading', { name: `${o.name}’s party ideas` })).toBeVisible()
 }

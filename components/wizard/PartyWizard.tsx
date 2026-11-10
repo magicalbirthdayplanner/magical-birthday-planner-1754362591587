@@ -2,10 +2,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSWRConfig } from 'swr'
-import { Check, ChevronLeft, Loader2, MapPin, Minus, Plus, Sparkles, X } from 'lucide-react'
+import { Check, ChevronLeft, Heart, Loader2, MapPin, Pencil, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useParty } from '@/components/app/PartyProvider'
-import { AppButton, Chip, IconButton } from '@/components/app/ui'
+import { AppButton, Card, Chip, IconButton, Skeleton, Stars } from '@/components/app/ui'
 import { TextField } from '@/components/app/fields'
 import { AuthForm } from '@/components/app/AuthForm'
 import { createParty, ensureProfile } from '@/lib/data/parties'
@@ -17,7 +17,6 @@ import { localToday } from '@/lib/planning/checklist'
 import { recommendThemes, type ScoredTheme } from '@/lib/planning/themes'
 import {
   EMPTY_DRAFT,
-  GUEST_PRESETS,
   MAX_AGE,
   MIN_AGE,
   WIZARD_STEPS,
@@ -30,35 +29,28 @@ import {
 import { setAnalyticsMarket, track } from '@/lib/analytics/client'
 import { useCampaign } from '@/components/billing/useCampaign'
 import { COUNTRIES, countryConfig, parseCountryCode, selectableCountries, type CountryCode } from '@/lib/country/countries'
-import { formatMoney, formatPartyDate, formatRadius } from '@/lib/country/format'
+import { formatDistance, formatPartyDate, formatRadius } from '@/lib/country/format'
 import { normalizePostal, postalInputFilter } from '@/lib/country/postal'
 import { preferredCountry, rememberCountry } from '@/lib/country/preference'
 import { cn } from '@/lib/utils'
 import type { ClassicTheme } from '@/data/themes-data'
+import type { ClientVenue } from '@/lib/discovery/client-venue'
+import { VenuePhoto } from '@/components/discover/VenuePhoto'
 
 const DRAFT_KEY = 'mbp.partyDraft'
 
 const QUESTIONS: Record<WizardStep, { title: (d: WizardDraft) => string; sub?: (d: WizardDraft) => string }> = {
-  name: { title: () => 'Who are we celebrating?', sub: () => 'Just a first name is perfect.' },
-  age: { title: (d) => `How old is ${first(d)} turning?` },
+  child: { title: () => 'Who are we celebrating?', sub: () => 'A first name and the age they’re turning.' },
   date: { title: () => 'When is the party?', sub: () => 'A rough date is fine — you can change it later.' },
   zip: { title: () => 'Where are you planning?', sub: (d) => `We’ll find party places within ${formatRadius(20, d.country)}.` },
-  guests: { title: () => 'How many guests?', sub: () => 'Kids and grown-ups. A best guess is fine.' },
-  budget: { title: () => 'What’s your budget?', sub: () => 'We’ll favor places that fit it.' },
-  vibe: { title: () => 'What’s the vibe?' },
-  interests: { title: (d) => `What is ${first(d)} into?`, sub: () => 'Pick as many as you like.' },
-  theme: { title: () => 'Want a theme?', sub: () => 'Optional — you can choose one later.' },
 }
 
 function first(d: WizardDraft) {
   return d.childName.trim().split(/\s+/)[0] || 'your child'
 }
 
-/** Budget preset label in the event country's currency; the top preset reads "and up". */
-const fmtMoney = (n: number, country: CountryCode) => {
-  const presets = countryConfig(country).budget.presets
-  return `${formatMoney(n, country)}${n >= presets[presets.length - 1] ? '+' : ''}`
-}
+/** The signed-out "ideas near you" list (POST /api/discovery/preview). */
+type Preview = { status: 'idle' | 'loading' } | { status: 'ok'; venues: ClientVenue[]; total: number } | { status: 'error'; message: string }
 
 export function PartyWizard() {
   const router = useRouter()
@@ -76,6 +68,7 @@ export function PartyWizard() {
   const [zipState, setZipState] = useState<'idle' | 'checking' | 'ok' | 'bad'>('idle')
   const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup')
   const [themes, setThemes] = useState<ScoredTheme<ClassicTheme>[] | null>(null)
+  const [preview, setPreview] = useState<Preview>({ status: 'idle' })
   const started = useRef(false)
 
   const step = WIZARD_STEPS[stepIdx]
@@ -166,13 +159,48 @@ export function PartyWizard() {
     return () => ctrl.abort()
   }, [step, draft.zip, draft.zipPlace, draft.country])
 
-  // Theme recommendations (catalogue loaded lazily, only on this step).
+  // Theme ideas on the results screen (catalogue loaded lazily), following age and interests.
+  const interestsKey = draft.interests.join(',')
   useEffect(() => {
-    if (step !== 'theme' || themes) return
+    if (!finale) return
+    let live = true
     import('@/data/themes-data').then(({ classicThemes }) => {
-      setThemes(recommendThemes(classicThemes, { age: draft.childAge, interests: draft.interests }, 6))
+      if (live) setThemes(recommendThemes(classicThemes, { age: draft.childAge, interests: draft.interests }, 4))
     })
-  }, [step, themes, draft.childAge, draft.interests])
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- interestsKey stands for draft.interests
+  }, [finale, draft.childAge, interestsKey])
+
+  // Party places near them, before any account: the same discovery a saved party gets, top few only.
+  useEffect(() => {
+    if (!finale || !draft.zipPlace) return
+    const ctrl = new AbortController()
+    const t = setTimeout(() => {
+      setPreview({ status: 'loading' })
+      track('venue_search_started', { preview: true, interests: draft.interests.length })
+      fetch('/api/discovery/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country: draft.country, zip: normalizePostal(draft.country, draft.zip) ?? draft.zip, childAge: draft.childAge, interests: draft.interests }),
+        signal: ctrl.signal,
+      })
+        .then(async (r) => {
+          const j = (await r.json().catch(() => null)) as { venues?: ClientVenue[]; total?: number; error?: { message?: string } } | null
+          if (!r.ok || !j?.venues) return setPreview({ status: 'error', message: j?.error?.message ?? 'We couldn’t load places right now. Save your party and we’ll keep looking.' })
+          setPreview({ status: 'ok', venues: j.venues, total: j.total ?? j.venues.length })
+        })
+        .catch((e) => {
+          if ((e as Error).name !== 'AbortError') setPreview({ status: 'error', message: 'We couldn’t reach our servers. Check your connection, or save your party and look again later.' })
+        })
+    }, 300)
+    return () => {
+      clearTimeout(t)
+      ctrl.abort()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- interestsKey stands for draft.interests
+  }, [finale, draft.country, draft.zip, draft.zipPlace, draft.childAge, interestsKey])
 
   function next() {
     const err = validateStep(step, draft, today)
@@ -273,8 +301,11 @@ export function PartyWizard() {
       </div>
 
       {finale ? (
-        <Finale
+        <Results
           draft={draft}
+          update={update}
+          themes={themes}
+          preview={preview}
           signedIn={!!user}
           authLoading={authLoading}
           authMode={authMode}
@@ -299,7 +330,7 @@ export function PartyWizard() {
             <h1 className="font-display text-[30px] font-extrabold leading-tight tracking-tight text-balance">{q.title(draft)}</h1>
             {q.sub ? <p className="mt-2 text-muted-foreground">{q.sub(draft)}</p> : null}
             <div className="mt-8">
-              <StepBody step={step} draft={draft} update={update} today={today} zipState={zipState} themes={themes} />
+              <StepBody step={step} draft={draft} update={update} today={today} zipState={zipState} />
             </div>
             {error ? (
               <p role="alert" className="mt-4 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -309,7 +340,7 @@ export function PartyWizard() {
           </div>
           <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-background/0 px-5 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-4">
             <AppButton type="submit" size="lg" block disabled={step === 'zip' && zipState === 'checking'}>
-              {step === 'theme' ? (draft.theme ? 'Continue' : 'Skip for now') : step === 'interests' && draft.interests.length === 0 ? 'Skip' : 'Continue'}
+              {step === 'zip' ? 'Show party ideas' : 'Continue'}
             </AppButton>
           </div>
         </form>
@@ -324,50 +355,51 @@ function StepBody({
   update,
   today,
   zipState,
-  themes,
 }: {
   step: WizardStep
   draft: WizardDraft
   update: (p: Partial<WizardDraft>) => void
   today: string
   zipState: 'idle' | 'checking' | 'ok' | 'bad'
-  themes: ScoredTheme<ClassicTheme>[] | null
 }) {
   switch (step) {
-    case 'name':
+    case 'child':
       return (
-        <TextField
-          label="Child’s name"
-          hideLabel
-          autoFocus
-          autoComplete="off"
-          autoCapitalize="words"
-          enterKeyHint="next"
-          placeholder="e.g. Ava"
-          value={draft.childName}
-          maxLength={40}
-          onChange={(e) => update({ childName: e.target.value })}
-        />
-      )
-    case 'age':
-      return (
-        <div className="grid grid-cols-4 gap-3" role="radiogroup" aria-label="Age">
-          {Array.from({ length: MAX_AGE - MIN_AGE + 1 }, (_, i) => i + MIN_AGE).map((age) => (
-            <button
-              key={age}
-              type="button"
-              role="radio"
-              aria-checked={draft.childAge === age}
-              onClick={() => update({ childAge: age })}
-              className={cn(
-                'tap flex h-16 items-center justify-center rounded-2xl border text-2xl font-semibold transition active:scale-95',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                draft.childAge === age ? 'border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25' : 'border-border bg-card',
-              )}
-            >
-              {age}
-            </button>
-          ))}
+        <div className="space-y-6">
+          <TextField
+            label="Child’s name"
+            autoFocus
+            autoComplete="off"
+            autoCapitalize="words"
+            enterKeyHint="next"
+            placeholder="e.g. Ava"
+            value={draft.childName}
+            maxLength={40}
+            onChange={(e) => update({ childName: e.target.value })}
+          />
+          <div>
+            <p id="age-label" className="mb-1.5 text-sm font-medium">
+              Turning
+            </p>
+            <div className="grid grid-cols-7 gap-2" role="radiogroup" aria-labelledby="age-label">
+              {Array.from({ length: MAX_AGE - MIN_AGE + 1 }, (_, i) => i + MIN_AGE).map((age) => (
+                <button
+                  key={age}
+                  type="button"
+                  role="radio"
+                  aria-checked={draft.childAge === age}
+                  onClick={() => update({ childAge: age })}
+                  className={cn(
+                    'tap flex h-12 items-center justify-center rounded-xl border text-lg font-semibold transition active:scale-95',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    draft.childAge === age ? 'border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25' : 'border-border bg-card',
+                  )}
+                >
+                  {age}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )
     case 'date':
@@ -447,167 +479,99 @@ function StepBody({
         </div>
       )
     }
-    case 'guests':
-      return (
-        <div>
-          <div className="flex items-center justify-center gap-6">
-            <IconButton label="Fewer guests" className="h-14 w-14 border border-border bg-card" onClick={() => update({ guestCount: Math.max(1, draft.guestCount - 1) })}>
-              <Minus className="h-6 w-6" />
-            </IconButton>
-            <output aria-live="polite" className="w-28 text-center font-display text-6xl font-extrabold tabular-nums">
-              {draft.guestCount}
-            </output>
-            <IconButton label="More guests" className="h-14 w-14 border border-border bg-card" onClick={() => update({ guestCount: Math.min(200, draft.guestCount + 1) })}>
-              <Plus className="h-6 w-6" />
-            </IconButton>
-          </div>
-          <div className="mt-8 flex flex-wrap justify-center gap-2">
-            {GUEST_PRESETS.map((n) => (
-              <Chip key={n} active={draft.guestCount === n} onClick={() => update({ guestCount: n })}>
-                {n}
-              </Chip>
-            ))}
-          </div>
-        </div>
-      )
-    case 'budget':
-      return (
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
-            {countryConfig(draft.country).budget.presets.map((b) => (
-              <button
-                key={b}
-                type="button"
-                aria-pressed={!draft.budgetUnsure && draft.budget === b}
-                onClick={() => update({ budget: b, budgetUnsure: false })}
-                className={cn(
-                  'tap h-14 rounded-2xl border text-lg font-semibold transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  !draft.budgetUnsure && draft.budget === b ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card',
-                )}
-              >
-                {fmtMoney(b, draft.country)}
-              </button>
-            ))}
-          </div>
-          <TextField
-            label="Or enter an amount"
-            inputMode="numeric"
-            placeholder={countryConfig(draft.country).budget.placeholder}
-            value={draft.budget != null && !countryConfig(draft.country).budget.presets.includes(draft.budget) && !draft.budgetUnsure ? String(draft.budget) : ''}
-            onChange={(e) => {
-              const n = Number(e.target.value.replace(/[^\d]/g, ''))
-              update({ budget: e.target.value ? n : null, budgetUnsure: false })
-            }}
-          />
-          <Chip active={draft.budgetUnsure} onClick={() => update({ budgetUnsure: !draft.budgetUnsure, budget: null })}>
-            Not sure yet
-          </Chip>
-          {!draft.budgetUnsure && draft.budget ? (
-            <p className="text-sm text-muted-foreground">About {formatMoney(Math.round(draft.budget / Math.max(1, draft.guestCount)), draft.country)} per guest.</p>
-          ) : null}
-        </div>
-      )
-    case 'vibe':
-      return (
-        <div className="grid gap-3" role="radiogroup" aria-label="Indoor or outdoor">
-          {(
-            [
-              ['indoor', '🏠', 'Indoor', 'Play centers, studios, museums'],
-              ['outdoor', '🌳', 'Outdoor', 'Parks, farms, splash pads'],
-              ['either', '✨', 'Either', 'Show me everything'],
-            ] as const
-          ).map(([id, emoji, label, sub]) => (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={draft.setting === id}
-              onClick={() => update({ setting: id })}
-              className={cn(
-                'tap flex items-center gap-4 rounded-3xl border p-4 text-left transition active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                draft.setting === id ? 'border-primary bg-secondary ring-2 ring-primary' : 'border-border bg-card',
-              )}
-            >
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-background text-3xl">{emoji}</span>
-              <span>
-                <span className="block text-lg font-semibold">{label}</span>
-                <span className="block text-sm text-muted-foreground">{sub}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      )
-    case 'interests':
-      return (
-        <div className="grid grid-cols-3 gap-3">
-          {INTERESTS.map((i) => {
-            const on = draft.interests.includes(i.id)
-            return (
-              <button
-                key={i.id}
-                type="button"
-                aria-pressed={on}
-                onClick={() => update({ interests: on ? draft.interests.filter((x) => x !== i.id) : [...draft.interests, i.id as InterestId] })}
-                className={cn(
-                  'tap flex h-24 flex-col items-center justify-center gap-1 rounded-2xl border text-sm font-medium transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  on ? 'border-primary bg-secondary text-secondary-foreground ring-2 ring-primary' : 'border-border bg-card',
-                )}
-              >
-                <span className="text-3xl" aria-hidden>
-                  {i.emoji}
-                </span>
-                {i.label}
-              </button>
-            )
-          })}
-        </div>
-      )
-    case 'theme':
-      if (!themes) {
-        return (
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="mbp-skeleton h-40 rounded-3xl" />
-            ))}
-          </div>
-        )
-      }
-      return (
-        <div className="grid grid-cols-2 gap-3">
-          {themes.map(({ theme, matched }) => {
-            const on = draft.theme === theme.id
-            return (
-              <button
-                key={theme.id}
-                type="button"
-                aria-pressed={on}
-                onClick={() => update({ theme: on ? null : theme.id })}
-                className={cn(
-                  'tap relative flex h-40 flex-col justify-end overflow-hidden rounded-3xl bg-gradient-to-br p-3 text-left text-white transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring',
-                  theme.color,
-                  on && 'ring-4 ring-primary ring-offset-2 ring-offset-background',
-                )}
-              >
-                <span className="absolute right-3 top-2 text-5xl drop-shadow" aria-hidden>
-                  {theme.emoji}
-                </span>
-                {on ? (
-                  <span className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white text-primary">
-                    <Check className="h-4 w-4" />
-                  </span>
-                ) : null}
-                <span className="text-base font-semibold leading-tight drop-shadow">{theme.name}</span>
-                <span className="text-xs opacity-90">{matched.length ? `Loves ${matched.join(' & ')}` : `Ages ${theme.ageRange}`}</span>
-              </button>
-            )
-          })}
-        </div>
-      )
   }
 }
 
-function Finale({
+/** Optional on the results screen: re-ranks places and theme ideas as they tap. */
+function InterestChips({ draft, update }: { draft: WizardDraft; update: (p: Partial<WizardDraft>) => void }) {
+  return (
+    <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none]" data-testid="wizard-interests">
+      {INTERESTS.map((i) => {
+        const on = draft.interests.includes(i.id)
+        return (
+          <Chip key={i.id} active={on} aria-pressed={on} className="shrink-0" onClick={() => update({ interests: on ? draft.interests.filter((x) => x !== i.id) : [...draft.interests, i.id as InterestId] })}>
+            <span aria-hidden>{i.emoji}</span> {i.label}
+          </Chip>
+        )
+      })}
+    </div>
+  )
+}
+
+function ThemeCards({ themes, draft, update }: { themes: ScoredTheme<ClassicTheme>[] | null; draft: WizardDraft; update: (p: Partial<WizardDraft>) => void }) {
+  if (!themes) {
+    return (
+      <div className="grid grid-cols-2 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="mbp-skeleton h-40 rounded-3xl" />
+        ))}
+      </div>
+    )
+  }
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {themes.map(({ theme, matched }) => {
+        const on = draft.theme === theme.id
+        return (
+          <button
+            key={theme.id}
+            type="button"
+            aria-pressed={on}
+            onClick={() => update({ theme: on ? null : theme.id })}
+            className={cn(
+              'tap relative flex h-40 flex-col justify-end overflow-hidden rounded-3xl bg-gradient-to-br p-3 text-left text-white transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring',
+              theme.color,
+              on && 'ring-4 ring-primary ring-offset-2 ring-offset-background',
+            )}
+          >
+            <span className="absolute right-3 top-2 text-5xl drop-shadow" aria-hidden>
+              {theme.emoji}
+            </span>
+            {on ? (
+              <span className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white text-primary">
+                <Check className="h-4 w-4" />
+              </span>
+            ) : null}
+            <span className="text-base font-semibold leading-tight drop-shadow">{theme.name}</span>
+            <span className="text-xs opacity-90">{matched.length ? `Loves ${matched.join(' & ')}` : `Ages ${theme.ageRange}`}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Selected place card for the signed-out preview: photo, name, rating, distance. Saving needs the party first. */
+function PreviewVenueCard({ venue, country, onSave }: { venue: ClientVenue; country: CountryCode; onSave: () => void }) {
+  const distance = formatDistance(venue.distanceMiles, country)
+  const [tag] = venue.tags
+  return (
+    <Card className="flex overflow-hidden" data-testid="preview-venue">
+      <VenuePhoto photo={venue.photo} categories={venue.categories} alt={venue.name} className="aspect-square w-28 shrink-0" />
+      <div className="min-w-0 flex-1 p-3">
+        <h3 className="line-clamp-2 font-semibold leading-snug">{venue.name}</h3>
+        <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
+          <Stars rating={venue.rating} count={venue.reviewCount} />
+          {distance ? <span>· {distance}</span> : null}
+        </div>
+        {tag ? <span className="mt-1.5 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">{tag}</span> : null}
+      </div>
+      <button type="button" onClick={onSave} aria-label={`Save ${venue.name}`} className="tap flex w-12 shrink-0 items-center justify-center text-muted-foreground">
+        <Heart className="h-5 w-5" />
+      </button>
+    </Card>
+  )
+}
+
+/**
+ * The end of the quick wizard: party places and theme ideas near them right away (no account needed), then one ask —
+ * save the party (sign up / sign in, or one tap when signed in) to see every place, invite guests and plan.
+ */
+function Results({
   draft,
+  update,
+  themes,
+  preview,
   signedIn,
   authLoading,
   authMode,
@@ -618,6 +582,9 @@ function Finale({
   onEdit,
 }: {
   draft: WizardDraft
+  update: (p: Partial<WizardDraft>) => void
+  themes: ScoredTheme<ClassicTheme>[] | null
+  preview: Preview
   signedIn: boolean
   authLoading: boolean
   authMode: 'signup' | 'signin'
@@ -628,62 +595,101 @@ function Finale({
   onEdit: (stepIndex: number) => void
 }) {
   const { until: campaignUntil } = useCampaign()
+  const [nudge, setNudge] = useState(false)
+  const name = first(draft)
   const place = draft.zipPlace ? [draft.zipPlace.city, draft.zipPlace.state].filter(Boolean).join(', ') : draft.zip
-  const items: [string, string, number][] = [
-    ['🎂', `${first(draft)} turns ${draft.childAge}`, 1],
-    ['📅', formatPartyDate(draft.partyDate, draft.country, 'medium'), 2],
-    ['📍', `${place} · ${formatRadius(20, draft.country)}`, 3],
-    ['👥', `${draft.guestCount} guests`, 4],
-    ['💰', draft.budgetUnsure || draft.budget == null ? 'Budget TBD' : fmtMoney(draft.budget, draft.country), 5],
-    ['✨', draft.setting === 'either' ? 'Indoor or outdoor' : draft.setting === 'indoor' ? 'Indoor' : 'Outdoor', 6],
+  const saveIntent = () => {
+    setNudge(true)
+    track('preview_save_tapped')
+    document.getElementById('save-party')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  const edits: [string, string, number][] = [
+    ['🎂', `${name} turns ${draft.childAge}`, 0],
+    ['📅', formatPartyDate(draft.partyDate, draft.country, 'medium'), 1],
+    ['📍', place, 2],
   ]
   return (
-    <div className="mbp-rise flex flex-1 flex-col px-5 pt-8">
-      <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-hero text-white shadow-lg shadow-primary/30">
-        <Sparkles className="h-6 w-6" />
-      </div>
-      <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Let’s find your perfect party.</h1>
-      <div className="mt-5 flex flex-wrap gap-2">
-        {items.map(([emoji, label, idx]) => (
-          <button key={emoji} type="button" onClick={() => onEdit(idx)} className="tap inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm">
-            <span aria-hidden>{emoji}</span> {label}
+    <div className="mbp-rise flex flex-1 flex-col px-5 pt-6">
+      <h1 className="font-display text-[30px] font-extrabold leading-tight tracking-tight text-balance">{name}’s party ideas</h1>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {edits.map(([emoji, label, idx]) => (
+          <button key={emoji} type="button" onClick={() => onEdit(idx)} className="tap inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm">
+            <span aria-hidden>{emoji}</span> {label} <Pencil className="h-3 w-3 text-muted-foreground" aria-hidden />
           </button>
         ))}
-        {draft.interests.length ? (
-          <button type="button" onClick={() => onEdit(7)} className="tap inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm">
-            <span aria-hidden>💜</span> {draft.interests.map((i) => INTERESTS.find((x) => x.id === i)?.label).join(', ')}
-          </button>
-        ) : null}
       </div>
 
+      <section className="mt-6" aria-labelledby="into-h">
+        <h2 id="into-h" className="mb-2 font-semibold">
+          What is {name} into? <span className="font-normal text-muted-foreground">(optional)</span>
+        </h2>
+        <InterestChips draft={draft} update={update} />
+      </section>
+
+      <section className="mt-7" aria-labelledby="places-h" aria-busy={preview.status === 'loading'}>
+        <h2 id="places-h" className="font-display text-xl font-extrabold">
+          Party places near {draft.zipPlace?.city ?? 'you'}
+        </h2>
+        {preview.status === 'ok' ? (
+          <p className="mt-1 text-sm text-muted-foreground" data-testid="preview-count">
+            {preview.total > 0 ? `We found ${preview.total} ${preview.total === 1 ? 'place' : 'places'} within ${formatRadius(20, draft.country)}. Here are the best matches.` : `We didn’t find places within ${formatRadius(20, draft.country)} yet — save your party and we’ll widen the search.`}
+          </p>
+        ) : null}
+        <div className="mt-3 space-y-3">
+          {preview.status === 'ok' ? (
+            preview.venues.map((v) => <PreviewVenueCard key={v.placeId} venue={v} country={draft.country} onSave={saveIntent} />)
+          ) : preview.status === 'error' ? (
+            <p role="status" className="rounded-xl bg-secondary px-4 py-3 text-sm text-secondary-foreground">
+              {preview.message}
+            </p>
+          ) : (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-3xl" />)
+          )}
+        </div>
+      </section>
+
+      <section className="mt-7" aria-labelledby="themes-h">
+        <h2 id="themes-h" className="font-display text-xl font-extrabold">
+          Theme ideas for {name}
+        </h2>
+        <p className="mb-3 mt-1 text-sm text-muted-foreground">Tap one you like — you can change it any time.</p>
+        <ThemeCards themes={themes} draft={draft} update={update} />
+      </section>
+
       {error ? (
-        <p role="alert" className="mt-4 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <p role="alert" className="mt-5 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
         </p>
       ) : null}
 
-      {signedIn ? (
-        <div className="mt-auto pb-[calc(env(safe-area-inset-bottom)+16px)] pt-6">
+      <section id="save-party" className="mt-8 scroll-mt-4 pb-[calc(env(safe-area-inset-bottom)+16px)]" aria-labelledby="save-h">
+        {signedIn ? (
           <AppButton size="lg" variant="magic" block loading={creating} onClick={onCreate}>
-            {creating ? 'Creating your party…' : 'Find party places near me'}
+            {creating ? 'Saving your party…' : 'Save party & see all places'}
           </AppButton>
-        </div>
-      ) : authLoading ? null : (
-        <div className="mt-8 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <h2 className="text-lg font-semibold">{authMode === 'signup' ? 'Save your party' : 'Sign in to save your party'}</h2>
-          <p className="mb-4 text-sm text-muted-foreground">
-            So you can come back to it from any device.
-            {campaignUntil ? <strong className="block text-foreground" data-testid="wizard-campaign">Every plan is free until {campaignUntil} — no card needed.</strong> : null}
-          </p>
-          <AuthForm mode={authMode} compact onDone={onCreate} next="/start?resume=1" signupData={{ party_draft: draft }} />
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            {authMode === 'signup' ? 'Already have an account? ' : 'New here? '}
-            <button type="button" className="font-semibold text-primary" onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}>
-              {authMode === 'signup' ? 'Sign in' : 'Create an account'}
-            </button>
-          </p>
-        </div>
-      )}
+        ) : authLoading ? null : (
+          <Card className="p-5">
+            <h2 id="save-h" className="font-display text-xl font-extrabold">
+              {authMode === 'signup' ? `Save ${name}’s party — free` : `Sign in to save ${name}’s party`}
+            </h2>
+            <p className="mb-4 mt-1 text-sm text-muted-foreground">
+              {nudge ? 'Save the party first to keep places you like. ' : ''}See every place, invite guests, track RSVPs and plan from any device.
+              {campaignUntil ? (
+                <strong className="block text-foreground" data-testid="wizard-campaign">
+                  Every plan is free until {campaignUntil} — no card needed.
+                </strong>
+              ) : null}
+            </p>
+            <AuthForm mode={authMode} compact onDone={onCreate} next="/start?resume=1" signupData={{ party_draft: draft }} />
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              {authMode === 'signup' ? 'Already have an account? ' : 'New here? '}
+              <button type="button" className="font-semibold text-primary" onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}>
+                {authMode === 'signup' ? 'Sign in' : 'Create an account'}
+              </button>
+            </p>
+          </Card>
+        )}
+      </section>
     </div>
   )
 }

@@ -43,7 +43,7 @@ unaffected (`app/globals.css`).
 | Screen | Answers / does |
 |---|---|
 | Home | “What should I do next?” — greeting, countdown, % complete, next step + *Continue planning*, recommended venues, saved count, guest progress, theme, next 3 tasks. Signed-out: welcome |
-| Wizard `/start` | 9 questions → account (inline) → party → straight to Discover |
+| Wizard `/start` | 3 screens → party places + theme ideas (no account) → save (inline sign-up) → party → Discover |
 | Discover | “We found N party options near you.” — search, filter sheet, list/map toggle (persisted), chips, infinite list |
 | Map | Google map (or schematic fallback) with clustered markers; tap marker → sheet shows it first |
 | Venue | photos (swipe), rating, distance, price, hours, phone, website, directions, share, why recommended, Save / Add to party |

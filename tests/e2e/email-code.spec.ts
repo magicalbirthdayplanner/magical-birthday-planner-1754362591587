@@ -3,41 +3,24 @@
  * Supabase's Mailpit inbox, so the real email template is exercised too.
  */
 import { createClient } from '@supabase/supabase-js'
-import { expect, test, type Page } from '@playwright/test'
-import { appAlert, emailCode, seedUser } from './helpers'
+import { expect, test } from '@playwright/test'
+import { appAlert, emailCode, quickWizard, seedUser } from './helpers'
 
 const URL = 'http://127.0.0.1:54321'
 const SERVICE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 const admin = () => createClient(URL, SERVICE, { auth: { persistSession: false, autoRefreshToken: false } })
 const userByEmail = async (email: string) => (await admin().auth.admin.listUsers({ perPage: 1000 })).data.users.find((u) => u.email === email)
 
-async function continueStep(page: Page) {
-  await page.getByRole('button', { name: /^(Continue|Skip|Skip for now)$/ }).click()
-}
-
 test('signed-out parent saves the wizard party with an emailed code', async ({ page }) => {
   const email = `e2e-code-wiz-${Date.now()}@example.test`
   await page.goto('/start')
-  await page.getByLabel('Child’s name').fill('Ivy')
-  await continueStep(page)
-  await page.getByRole('radio', { name: '5', exact: true }).click()
-  await continueStep(page)
-  await page.getByRole('button', { name: 'In a month' }).click()
-  await continueStep(page)
-  await page.getByLabel('ZIP code').fill('48084')
-  await expect(page.getByText('Troy, MI')).toBeVisible()
-  await continueStep(page)
-  await page.getByRole('button', { name: '20', exact: true }).click()
-  await continueStep(page)
-  await page.getByRole('button', { name: '$500' }).click()
-  await continueStep(page)
-  await page.getByRole('radio', { name: /Either/ }).click()
-  await continueStep(page)
-  await page.getByRole('button', { name: 'Art', exact: true }).click()
-  await continueStep(page)
-  await continueStep(page) // theme: later
+  await quickWizard(page, { name: 'Ivy', age: 5, postal: '48084' })
+  // Ideas first, no account needed.
+  await expect(page.getByTestId('preview-venue').first()).toBeVisible()
+  await page.getByTestId('preview-venue').first().getByRole('button', { name: /^Save / }).click()
+  await expect(page.getByText('Save the party first to keep places you like.')).toBeVisible()
 
-  await expect(page.getByRole('heading', { name: 'Save your party' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Save Ivy’s party — free' })).toBeVisible()
   await expect(page.getByLabel('Password', { exact: true })).toHaveCount(0)
   await page.getByLabel('Your first name').fill('Jo')
   await page.getByLabel('Email').fill(email)
@@ -52,7 +35,7 @@ test('signed-out parent saves the wizard party with an emailed code', async ({ p
   expect(u?.email_confirmed_at).toBeTruthy()
   expect(u?.user_metadata.display_name).toBe('Jo')
   const { data: parties } = await admin().from('parties').select('child_name, guest_count').eq('user_id', u!.id)
-  expect(parties).toEqual([{ child_name: 'Ivy', guest_count: 20 }])
+  expect(parties).toEqual([{ child_name: 'Ivy', guest_count: 15 }])
   await admin().auth.admin.deleteUser(u!.id)
 })
 

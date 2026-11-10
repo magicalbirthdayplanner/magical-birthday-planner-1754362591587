@@ -6,6 +6,8 @@ export const ANALYTICS_EVENTS = [
   'party_created',
   'zip_entered',
   'venue_search_started',
+  // signed-out wizard preview: tapped save on a place before having an account
+  'preview_save_tapped',
   'venue_search_completed',
   'venue_viewed',
   'venue_saved',

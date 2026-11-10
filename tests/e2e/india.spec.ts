@@ -34,7 +34,6 @@ test('a parent plans, pays and invites for a party in India', async ({ page, bro
   // ------------------------------------------------------------ wizard: event country India, PIN, rupees
   await page.goto('/start?country=IN')
   await page.getByLabel('Child’s name').fill('Aarav')
-  await continueStep(page)
   await page.getByRole('radio', { name: '7', exact: true }).click()
   await continueStep(page)
   await page.getByRole('button', { name: 'In a month' }).click()
@@ -45,25 +44,15 @@ test('a parent plans, pays and invites for a party in India', async ({ page, bro
   await expect(page.getByTestId('wizard-country-IN')).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByText('We’ll find party places within 32 km.')).toBeVisible()
   await page.getByLabel('PIN code').fill('48084')
-  await continueStep(page)
+  await page.getByRole('button', { name: 'Show party ideas' }).click()
   await expect(page.getByRole('alert').filter({ hasText: '6-digit PIN' })).toBeVisible()
   await page.getByLabel('PIN code').fill('560 001')
   await expect(page.getByText('Bengaluru, Karnataka')).toBeVisible()
-  await continueStep(page)
-
-  await page.getByRole('button', { name: '20', exact: true }).click()
-  await continueStep(page)
-  await expect(page.getByRole('button', { name: '₹15,000' })).toBeVisible()
-  await page.getByRole('button', { name: '₹15,000' }).click()
-  await expect(page.getByText('About ₹750 per guest.')).toBeVisible()
-  await continueStep(page)
-  await page.getByRole('radio', { name: /Indoor/ }).click()
-  await continueStep(page)
-  await continueStep(page) // interests: skip
-  await continueStep(page) // theme: skip
-  await expect(page.getByRole('button', { name: /₹15,000/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: /32 km/ })).toBeVisible()
-  await page.getByRole('button', { name: 'Find party places near me' }).click()
+  await page.getByRole('button', { name: 'Show party ideas' }).click()
+  await expect(page.getByRole('heading', { name: 'Aarav’s party ideas' })).toBeVisible()
+  await expect(page.getByTestId('preview-count')).toContainText('within 32 km')
+  await expect(page.getByTestId('preview-venue').first()).toContainText(/km/)
+  await page.getByRole('button', { name: 'Save party & see all places' }).click()
 
   // ------------------------------------------------------------ discovery near the PIN, in km
   await expect(page).toHaveURL(/\/discover/)
@@ -72,9 +61,6 @@ test('a parent plans, pays and invites for a party in India', async ({ page, bro
   await page.getByRole('button', { name: 'Start browsing' }).click()
   await expect(page.getByTestId('venue-card').first()).toBeVisible()
   await expect(page.getByTestId('venue-card').first()).toContainText(/km/)
-
-  await page.goto('/plan')
-  await expect(page.getByText(/₹15,000 budget · about ₹750\/guest/)).toBeVisible()
 
   // ------------------------------------------------------------ INR pricing → Razorpay (mock test mode) → verified plan
   await page.goto('/pricing')

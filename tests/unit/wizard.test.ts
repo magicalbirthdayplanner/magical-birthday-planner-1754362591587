@@ -16,12 +16,22 @@ const complete = {
 }
 
 describe('wizard validation', () => {
-  it('has the nine questions from the product spec, in order', () => {
-    expect(WIZARD_STEPS).toEqual(['name', 'age', 'date', 'zip', 'guests', 'budget', 'vibe', 'interests', 'theme'])
+  it('asks three quick questions before showing ideas (child, date, place)', () => {
+    expect(WIZARD_STEPS).toEqual(['child', 'date', 'zip'])
   })
 
   it('accepts a complete draft', () => {
-    for (const s of WIZARD_STEPS) expect(validateStep(s, complete, today), s).toBeNull()
+    for (const s of [...WIZARD_STEPS, 'name', 'age', 'guests', 'budget', 'vibe', 'interests', 'theme'] as const) expect(validateStep(s, complete, today), s).toBeNull()
+  })
+
+  it('needs the name and the age on the first screen', () => {
+    expect(validateStep('child', { ...complete, childName: '' }, today)).toBe('Please enter a name.')
+    expect(validateStep('child', { ...complete, childAge: null }, today)).toBe('Please choose an age.')
+  })
+
+  it('works with the defaults for everything asked later', () => {
+    const quick = { ...EMPTY_DRAFT, childName: 'Ava', childAge: 7, partyDate: '2026-10-13', zip: '48084', zipPlace: complete.zipPlace }
+    for (const s of ['guests', 'vibe', 'interests', 'theme'] as const) expect(validateStep(s, quick, today), s).toBeNull()
   })
 
   it.each([
@@ -47,8 +57,9 @@ describe('wizard validation', () => {
 
   it('resumes at the first incomplete step', () => {
     expect(firstIncompleteStep(EMPTY_DRAFT, today)).toBe(0)
-    expect(firstIncompleteStep({ ...complete, zipPlace: null }, today)).toBe(3)
-    expect(firstIncompleteStep(complete, today)).toBe(8)
+    expect(firstIncompleteStep({ ...complete, childAge: null }, today)).toBe(0)
+    expect(firstIncompleteStep({ ...complete, zipPlace: null }, today)).toBe(2)
+    expect(firstIncompleteStep(complete, today)).toBe(2)
   })
 
   it('parses drafts defensively', () => {

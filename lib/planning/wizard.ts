@@ -5,8 +5,15 @@ import { countryConfig, parseCountryCode, type CountryCode } from '@/lib/country
 import { normalizePostal, postalFormatError } from '@/lib/country/postal'
 import { daysBetween } from './checklist'
 
-export const WIZARD_STEPS = ['name', 'age', 'date', 'zip', 'guests', 'budget', 'vibe', 'interests', 'theme'] as const
+/**
+ * The quick path: three screens (child = name + age, date, postal code), then party ideas near them — before any
+ * account is needed. Guests, budget, vibe, interests and theme have defaults and are refined later (interests and a
+ * theme on the results screen, the rest in the party details).
+ */
+export const WIZARD_STEPS = ['child', 'date', 'zip'] as const
 export type WizardStep = (typeof WIZARD_STEPS)[number]
+/** Everything validateStep can check (the wizard's steps plus the fields refined later). */
+export type DraftCheck = WizardStep | 'name' | 'age' | 'guests' | 'budget' | 'vibe' | 'interests' | 'theme'
 
 export interface WizardDraft {
   childName: string
@@ -44,8 +51,10 @@ export const MIN_AGE = 1
 export const MAX_AGE = 14
 
 /** Returns an error message for the step, or null when it is complete. */
-export function validateStep(step: WizardStep, d: WizardDraft, today: string): string | null {
+export function validateStep(step: DraftCheck, d: WizardDraft, today: string): string | null {
   switch (step) {
+    case 'child':
+      return validateStep('name', d, today) ?? validateStep('age', d, today)
     case 'name': {
       const n = d.childName.trim()
       if (!n) return 'Please enter a name.'

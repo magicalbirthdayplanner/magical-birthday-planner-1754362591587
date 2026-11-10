@@ -42,7 +42,7 @@ const EXPECTED = [
   '/auth/callback [api]',
   // APIs
   '/api/analytics [api]', '/api/health [api]',
-  '/api/discovery/search [api]', '/api/discovery/places/[placeId] [api]', '/api/discovery/photo [api]', '/api/discovery/zip [api]',
+  '/api/discovery/search [api]', '/api/discovery/preview [api]', '/api/discovery/places/[placeId] [api]', '/api/discovery/photo [api]', '/api/discovery/zip [api]',
   '/api/themes/ai [api]', '/api/invitations/send [api]', '/api/invite/[token]/rsvp [api]',
   '/api/billing/checkout [api]', '/api/billing/status [api]', '/api/webhooks/dodo [api]',
   // India: public price catalogue, Razorpay post-checkout verification (signed-in) and signed webhooks

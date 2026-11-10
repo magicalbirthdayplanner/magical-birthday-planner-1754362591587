@@ -4,11 +4,14 @@ What a parent can do in the current production build (verified against the code 
 detailed in [ai/AI_FEATURES.md](ai/AI_FEATURES.md); plan gating in `lib/ai/capabilities.ts`.
 
 ### Party creation
-- 9-step wizard (`/start`, `components/wizard/PartyWizard.tsx`): child's first name, age (1–14), date (presets or
-  picker, no past dates), ZIP (resolved to city/state; unknown ZIPs rejected), guests, budget (presets, custom amount
-  or "Not sure yet"), vibe (indoor / outdoor / either), interests, optional theme → summary → "Find party places".
-- Works before sign-up: answers are kept as a draft on the device. After sign-up (and email confirmation) the
-  parent re-opens the wizard with the answers pre-filled and confirms them (known limitation: not created automatically).
+- Quick wizard (`/start`, `components/wizard/PartyWizard.tsx`), 3 screens: child's first name + age (1–14), date
+  (presets or picker, no past dates), ZIP/PIN (resolved to a place; unknown codes rejected) → **"<name>’s party ideas"**:
+  the top 6 party places near them (public `POST /api/discovery/preview`, same cache-first discovery, per-IP limits
+  and the Google call budget) and 4 theme ideas, refined by optional interests — all before any account. One ask at
+  the end: save the party (email code / Google, or one tap when signed in) → full Discover. Guests (default 15),
+  budget (not set) and vibe (either) are edited later in Plan → party details.
+- The draft is kept on the device and travels with the sign-up (user metadata), so the link in the email also works
+  in another browser.
 - Several parties per account; switch from Home or More; edit details in Plan → party details; delete with
   confirmation (cascades the party's data; AI usage history is kept anonymised).
 

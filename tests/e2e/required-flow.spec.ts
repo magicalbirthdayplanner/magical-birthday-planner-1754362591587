@@ -1,17 +1,13 @@
 /**
  * The required mobile flow (product spec §37) plus the Definition of Done (§46):
- * account → party (age 7, ZIP 48084, 20 guests, $500, Art, Either) → automatic
+ * account → quick party (age 7, ZIP 48084) → ideas → Art → automatic
  * discovery → open venue → map → save (persists) → theme → guest → checklist →
  * invitation shared + public RSVP → reload / new session → party still there.
  */
-import { expect, test, type Page } from '@playwright/test'
-import { emailCode } from './helpers'
+import { expect, test } from '@playwright/test'
+import { emailCode, quickWizard } from './helpers'
 
 const email = `e2e-${Date.now()}@example.test`
-
-async function continueStep(page: Page) {
-  await page.getByRole('button', { name: /^(Continue|Skip|Skip for now)$/ }).click()
-}
 
 test.describe.configure({ mode: 'serial' })
 
@@ -37,45 +33,13 @@ test('parent plans a party end-to-end on a phone', async ({ page, context, brows
   await page.getByRole('link', { name: /Plan a party/ }).click()
   await expect(page).toHaveURL(/\/start/)
 
-  await expect(page.getByRole('heading', { name: 'Who are we celebrating?' })).toBeVisible()
-  await page.getByLabel('Child’s name').fill('Ava')
-  await continueStep(page)
-
-  await expect(page.getByRole('heading', { name: 'How old is Ava turning?' })).toBeVisible()
-  await page.getByRole('radio', { name: '7', exact: true }).click()
-  await continueStep(page)
-
-  await expect(page.getByRole('heading', { name: 'When is the party?' })).toBeVisible()
-  await page.getByRole('button', { name: 'In a month' }).click()
-  await continueStep(page)
-
-  await expect(page.getByRole('heading', { name: 'Where are you planning?' })).toBeVisible()
-  await page.getByLabel('ZIP code').fill('48084')
-  await expect(page.getByText('Troy, MI')).toBeVisible()
-  await continueStep(page)
-
-  await expect(page.getByRole('heading', { name: 'How many guests?' })).toBeVisible()
-  await page.getByRole('button', { name: '20', exact: true }).click()
-  await expect(page.locator('output')).toHaveText('20')
-  await continueStep(page)
-
-  await expect(page.getByRole('heading', { name: 'What’s your budget?' })).toBeVisible()
-  await page.getByRole('button', { name: '$500' }).click()
-  await continueStep(page)
-
-  await expect(page.getByRole('heading', { name: 'What’s the vibe?' })).toBeVisible()
-  await page.getByRole('radio', { name: /Either/ }).click()
-  await continueStep(page)
-
-  await expect(page.getByRole('heading', { name: 'What is Ava into?' })).toBeVisible()
-  await page.getByRole('button', { name: 'Art', exact: true }).click()
-  await continueStep(page)
-
-  await expect(page.getByRole('heading', { name: 'Want a theme?' })).toBeVisible()
-  await continueStep(page) // skip for now — chosen later from the Theme screen
-
-  await expect(page.getByRole('heading', { name: 'Let’s find your perfect party.' })).toBeVisible()
-  await page.getByRole('button', { name: 'Find party places near me' }).click()
+  await quickWizard(page, { name: 'Ava', age: 7, postal: '48084' })
+  // Ideas show before anything else is asked; interests refine them (art places for an art-loving 7-year-old).
+  await expect(page.getByTestId('preview-venue').first()).toBeVisible()
+  await expect(page.getByTestId('preview-count')).toHaveText(/We found \d+ places within 20 miles/)
+  await page.getByTestId('wizard-interests').getByRole('button', { name: /Art/ }).click()
+  await expect(page.getByTestId('preview-venue').first()).toContainText(/art|paint|clay|glaze|picasso|easel|brush|kiln/i)
+  await page.getByRole('button', { name: 'Save party & see all places' }).click()
 
   // ------------------------------------------------------------ discovery happens automatically
   await expect(page).toHaveURL(/\/discover/)
