@@ -86,10 +86,12 @@ in Vercel yet: production behaves exactly as the US-only app until they are.
 |---|---|:-:|:-:|:-:|:-:|
 | `AI_ENABLED` | Master switch (`true`) | no | no | ✓ | — |
 | `AI_ENABLED_FEATURES` | Comma list of enabled feature ids (production: the 11 sold features) | no | no | ✓ | — |
-| `AI_PROVIDER` | `opencode` · `openai` · `anthropic` · `mock` (tests) | no | no | ✓ (`opencode`) | — |
+| `AI_PROVIDER` | `opencode` · `openai` · `azure` · `anthropic` · `mock` (tests) | no | no | ✓ (`opencode`) | — |
 | `AI_API_KEY` | Provider key | **yes** | no | ✓ | — |
 | `AI_MODEL`, `AI_BASE_URL` | Model (production `deepseek-v4-pro`) / endpoint override | no | no | ✓ / — | — |
 | `AI_THINKING` | Reasoning mode (production `off`) | no | no | ✓ | — |
+| `AI_API_VERSION` | Azure only: `v1` (default, `/openai/v1`) or a dated api-version for `/openai/deployments/<AI_MODEL>` | no | no | — | — |
+| `AI_REASONING_EFFORT` | Azure reasoning deployments (`gpt-5*`, `o*`): `minimal`/`none`/`low`/`medium`/`high` (default `low`) | no | no | — | — |
 | `AI_TIMEOUT_MS`, `AI_LONG_TIMEOUT_MS` | Timeouts (production 45000; long default 55000) | no | no | ✓ / — | — |
 | `AI_MAX_OUTPUT_TOKENS`, `AI_MAX_RETRIES` | Output cap 3000, 1 repair retry | no | no | ✓ | — |
 | `AI_USER_DAILY_LIMIT` | Per-user generations per rolling 24 h (production 10) | no | no | ✓ | — |

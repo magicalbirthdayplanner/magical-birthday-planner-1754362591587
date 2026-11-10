@@ -1,5 +1,5 @@
 /**
- * OpenAI-compatible chat completions over fetch (OpenCode Go, OpenAI, others). No SDK: explicit timeout/abort,
+ * OpenAI-compatible chat completions over fetch (OpenCode Go, OpenAI, others; Azure has its own adapter). No SDK: explicit timeout/abort,
  * headers and error mapping. The key is sent only in the Authorization header and never logged.
  */
 import 'server-only'
@@ -43,20 +43,33 @@ export class OpenAICompatibleProvider implements AIProvider {
       if (req.signal.aborted) throw new ProviderError(String(req.signal.reason ?? '').includes('timeout') ? 'timeout' : 'aborted', 'request aborted')
       throw new ProviderError('unavailable', 'network error')
     }
-    if (res.status === 429) throw new ProviderError('rate_limited', 'provider rate limited', 429)
-    if (res.status === 401 || res.status === 403) throw new ProviderError('auth', 'provider rejected credentials', res.status)
-    if (res.status >= 500) throw new ProviderError('unavailable', `provider ${res.status}`, res.status)
-    if (!res.ok) throw new ProviderError('bad_request', `provider ${res.status}`, res.status)
-    let body: { model?: string; choices?: { message?: { content?: string | null }; finish_reason?: string }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } }
+    const err = errorForStatus(res.status)
+    if (err) throw err
+    let body: unknown
     try {
       body = await res.json()
     } catch {
       throw new ProviderError('unavailable', 'provider returned non-JSON')
     }
-    // reasoning_content (DeepSeek) is deliberately ignored — never shown or stored.
-    const text = body.choices?.[0]?.message?.content ?? ''
-    // Out of tokens before any answer (e.g. all spent reasoning): a provider problem, not something a retry fixes.
-    if (!text.trim() && body.choices?.[0]?.finish_reason === 'length') throw new ProviderError('unavailable', 'no answer before the token limit')
-    return { text, model: body.model ?? this.cfg.model, inputTokens: body.usage?.prompt_tokens ?? null, outputTokens: body.usage?.completion_tokens ?? null, truncated: body.choices?.[0]?.finish_reason === 'length' }
+    return completionFromBody(body, this.cfg.model)
   }
+}
+
+/** HTTP status → provider error (null when the call succeeded). Shared with the Azure adapter. */
+export function errorForStatus(status: number): ProviderError | null {
+  if (status === 429) return new ProviderError('rate_limited', 'provider rate limited', 429)
+  if (status === 401 || status === 403) return new ProviderError('auth', 'provider rejected credentials', status)
+  if (status >= 500) return new ProviderError('unavailable', `provider ${status}`, status)
+  if (status < 200 || status >= 300) return new ProviderError('bad_request', `provider ${status}`, status)
+  return null
+}
+
+/** An OpenAI-style chat completion body → our result. Shared with the Azure adapter. */
+export function completionFromBody(raw: unknown, fallbackModel: string): CompletionResult {
+  const body = (raw ?? {}) as { model?: string; choices?: { message?: { content?: string | null }; finish_reason?: string }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } }
+  // reasoning_content (DeepSeek) is deliberately ignored — never shown or stored.
+  const text = body.choices?.[0]?.message?.content ?? ''
+  // Out of tokens before any answer (e.g. all spent reasoning): a provider problem, not something a retry fixes.
+  if (!text.trim() && body.choices?.[0]?.finish_reason === 'length') throw new ProviderError('unavailable', 'no answer before the token limit')
+  return { text, model: body.model ?? fallbackModel, inputTokens: body.usage?.prompt_tokens ?? null, outputTokens: body.usage?.completion_tokens ?? null, truncated: body.choices?.[0]?.finish_reason === 'length' }
 }

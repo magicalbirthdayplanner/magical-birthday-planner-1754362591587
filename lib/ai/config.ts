@@ -5,7 +5,7 @@
 import 'server-only'
 import { AI_FEATURES, type AIFeature } from './types'
 
-export type ProviderName = 'opencode' | 'openai' | 'anthropic' | 'mock'
+export type ProviderName = 'opencode' | 'openai' | 'azure' | 'anthropic' | 'mock'
 
 export interface AIConfig {
   enabled: boolean
@@ -24,6 +24,10 @@ export interface AIConfig {
   userDailyLimit: number
   /** Reasoning-model 'thinking' (DeepSeek V4): off by default — measured: on = 3000 reasoning tokens, empty answer, >45 s; off = valid JSON in ~12 s. */
   thinking: boolean
+  /** Azure only: "v1" (default, /openai/v1) or a dated api-version for the deployments API (AI_API_VERSION). */
+  apiVersion: string
+  /** Reasoning models (Azure gpt-5* / o*): AI_REASONING_EFFORT (minimal | none | low | medium | high); default low. */
+  reasoningEffort: string | null
   /** True when the provider can actually be called (mock always can; others need a key). */
   configured: boolean
 }
@@ -32,6 +36,8 @@ export interface AIConfig {
 const DEFAULTS: Record<ProviderName, { baseUrl: string; model: string }> = {
   opencode: { baseUrl: 'https://opencode.ai/zen/go/v1', model: 'deepseek-v4-pro' },
   openai: { baseUrl: 'https://api.openai.com/v1', model: '' },
+  // Azure OpenAI / AI Foundry: AI_BASE_URL = the resource endpoint, AI_MODEL = the deployment name (no defaults).
+  azure: { baseUrl: '', model: '' },
   anthropic: { baseUrl: 'https://api.anthropic.com/v1', model: '' },
   mock: { baseUrl: '', model: 'mock-1' },
 }
@@ -46,13 +52,15 @@ let warned = false
 
 export function readAIConfig(env: NodeJS.ProcessEnv = process.env): AIConfig {
   const raw = (env.AI_PROVIDER ?? 'opencode').trim().toLowerCase()
-  const provider: ProviderName = raw === 'openai' || raw === 'anthropic' || raw === 'mock' ? raw : 'opencode'
+  const provider: ProviderName = raw === 'openai' || raw === 'azure' || raw === 'anthropic' || raw === 'mock' ? raw : 'opencode'
   const apiKey = env.AI_API_KEY?.trim() || null
   const features = new Set<AIFeature>(
     (env.AI_ENABLED_FEATURES ?? '').split(',').map((s) => s.trim()).filter((s): s is AIFeature => (AI_FEATURES as readonly string[]).includes(s)),
   )
   const model = env.AI_MODEL?.trim() || DEFAULTS[provider].model
-  const configured = provider === 'mock' ? true : Boolean(apiKey && model)
+  const baseUrl = (env.AI_BASE_URL?.trim() || DEFAULTS[provider].baseUrl).replace(/\/+$/, '')
+  const configured = provider === 'mock' ? true : Boolean(apiKey && model && baseUrl)
+  const effort = env.AI_REASONING_EFFORT?.trim().toLowerCase() ?? ''
   if (provider === 'mock' && env.NODE_ENV === 'production' && !warned) {
     warned = true
     console.warn('[ai] WARNING: AI_PROVIDER=mock in production — AI features return fixture output, not real suggestions.')
@@ -62,7 +70,7 @@ export function readAIConfig(env: NodeJS.ProcessEnv = process.env): AIConfig {
     features,
     provider,
     apiKey,
-    baseUrl: (env.AI_BASE_URL?.trim() || DEFAULTS[provider].baseUrl).replace(/\/+$/, ''),
+    baseUrl,
     model,
     maxOutputTokens: int(env.AI_MAX_OUTPUT_TOKENS, 3000, 256, 8000),
     timeoutMs: int(env.AI_TIMEOUT_MS, 45_000, 2_000, 120_000),
@@ -71,6 +79,8 @@ export function readAIConfig(env: NodeJS.ProcessEnv = process.env): AIConfig {
     globalDailyLimit: int(env.AI_GLOBAL_DAILY_LIMIT, 2000, 0, 1_000_000),
     userDailyLimit: int(env.AI_USER_DAILY_LIMIT, 30, 1, 1000),
     thinking: env.AI_THINKING?.trim().toLowerCase() === 'on',
+    apiVersion: env.AI_API_VERSION?.trim() || 'v1',
+    reasoningEffort: ['minimal', 'none', 'low', 'medium', 'high'].includes(effort) ? effort : null,
     configured,
   }
 }

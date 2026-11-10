@@ -41,6 +41,10 @@ export async function getProvider(cfg: AIConfig = aiConfig()): Promise<AIProvide
       const { MockProvider } = await import('./providers/mock')
       return new MockProvider()
     }
+    case 'azure': {
+      const { AzureOpenAIProvider } = await import('./providers/azure')
+      return new AzureOpenAIProvider(cfg)
+    }
     case 'anthropic': {
       const { AnthropicProvider } = await import('./providers/anthropic')
       return new AnthropicProvider(cfg)
