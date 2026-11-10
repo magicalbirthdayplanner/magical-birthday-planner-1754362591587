@@ -116,8 +116,20 @@ overrides) · `MARKETING_MEDIA_SOURCE_DIR` (seed script only). Changed defaults:
 
 `MARKETING_PLATFORMS=x,instagram` adds Instagram to the same plan → batch → validate → publish → measure loop
 (`lib/marketing/providers/instagram.ts`, Instagram API with Instagram Login, `graph.instagram.com`).
-- Cadence `MARKETING_IG_POSTS_PER_DAY` (2) at `MARKETING_IG_POST_TIMES` (12:30, 20:00 — the X publish crons also publish
-  Instagram, one post per platform per run).
+- Cadence (owner ruling 2026-11-09): three posts a week — `MARKETING_IG_POST_DAYS` (Tue,Thu,Sat) ×
+  `MARKETING_IG_POSTS_PER_DAY` (1) at `MARKETING_IG_POST_TIMES` (12:30). Facebook likewise: `MARKETING_FB_POST_DAYS`
+  (Mon,Wed,Fri) × 1 at 09:00. Weekly cadences rotate two role sets week to week; off days get no slots.
+
+## Founder-led X and the content bank (2026-11-09)
+
+- `MARKETING_X_MIX=founder` (default): X carries only the founder story, building in public, solo-founder lessons and
+  feedback asks (questions; invitations to try it — the only posts that may carry the link). No parenting tips, polls,
+  product cards or visuals; X-only topics/library items never reach Instagram or Facebook. `full` restores the mix below.
+- The bank is no longer written only by the daily `prepare`: that run used to reach its content step after ~45 s of
+  metrics/learning with < 30 s left and silently wrote nothing from Oct 11 to Nov 9. Now `prepare` writes today and
+  tomorrow FIRST, measurement steps run only while time is left, and every 5-minute publish tick tops up the bank by
+  one day (at most one write per 10 minutes, paused for an hour after an AI failure; the reason, e.g.
+  `ai_provider_error:auth`, is in the `batch_generated` audit entry).
 - Every post carries media (carousels from the reviewed 4:5 slides, Reels from the reviewed videos, or a free branded
   card); no polls, threads or links (captions can't link — the plain domain may appear); up to 5 hashtags, 3 emoji,
   2,200 characters (aim 200–600).

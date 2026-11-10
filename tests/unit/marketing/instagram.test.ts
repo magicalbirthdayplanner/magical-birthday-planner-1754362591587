@@ -96,7 +96,7 @@ describe('InstagramProvider', () => {
 })
 
 describe('Instagram planning, captions and publishing', () => {
-  const cfg = readMarketingConfig({ MARKETING_PLATFORMS: 'x,instagram', MARKETING_IG_POSTS_PER_DAY: '2', MARKETING_IG_POST_TIMES: '12:30,20:00' })
+  const cfg = readMarketingConfig({ MARKETING_X_MIX: 'full', MARKETING_PLATFORMS: 'x,instagram', MARKETING_IG_POSTS_PER_DAY: '2', MARKETING_IG_POST_TIMES: '12:30,20:00', MARKETING_IG_POST_DAYS: 'daily' })
 
   it('cadence: 2 posts/day, captions up to 2,200 chars, no links, 5 hashtags', () => {
     expect(cfg.platforms).toEqual(['x', 'instagram'])

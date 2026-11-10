@@ -3,7 +3,7 @@
  * image, and the UTM link itself. Deterministic (same history → same choice), so it is testable and explainable.
  */
 import { PRODUCT_URL } from './facts'
-import { PILLAR_SPECS, defaultWeights } from './pillars'
+import { PILLAR_SPECS, defaultWeights, type Topic } from './pillars'
 import { addDays, localDate } from './time'
 import { PILLAR_LABEL, type MarketingPost, type Pillar, type Platform } from './types'
 
@@ -87,9 +87,14 @@ function clampMultiplier(m: number | undefined): number {
 }
 const pct = (x: number | undefined) => `${Math.round((x ?? 0) * 100)}%`
 
-/** The pillar's topic used least recently (never one used in the last 14 days unless every topic was). */
-export function selectTopic(pillar: Pillar, history: StrategyPost[], now: Date, preferred?: string | null) {
-  const topics = PILLAR_SPECS[pillar].topics
+/**
+ * The pillar's topic used least recently (never one used in the last 14 days unless every topic was). `fits` narrows
+ * the bank (default: topics shared by every platform; platform-specific ones are opted into by the planner).
+ */
+export function selectTopic(pillar: Pillar, history: StrategyPost[], now: Date, preferred?: string | null, fits: (t: Topic) => boolean = (t) => !t.platforms) {
+  const all = PILLAR_SPECS[pillar].topics
+  const narrowed = all.filter(fits)
+  const topics = narrowed.length ? narrowed : all
   if (preferred) {
     const t = topics.find((x) => x.key === preferred)
     if (t) return t

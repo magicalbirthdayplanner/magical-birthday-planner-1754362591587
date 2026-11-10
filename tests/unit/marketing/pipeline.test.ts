@@ -4,6 +4,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { resetAIConfig } from '@/lib/ai/config'
+import { ProviderError } from '@/lib/ai/provider'
 import { mockCalls, resetMock, scriptMock } from '@/lib/ai/providers/mock'
 import { runPrepare, runPublish } from '@/lib/marketing/agent'
 import { readMarketingConfig, type MarketingConfig } from '@/lib/marketing/config'
@@ -108,7 +109,7 @@ class FakeX implements MarketingProvider {
 let store: MemoryMarketingStore
 let x: FakeX
 let image: FakeImage
-const cfg = (env: Record<string, string> = {}): MarketingConfig => readMarketingConfig({ MARKETING_POST_TIMES: '10:00,19:30', MARKETING_POSTS_PER_DAY: '1', MARKETING_MIN_GAP_MINUTES: '240', MARKETING_BANK_DAYS: '2', ...env })
+const cfg = (env: Record<string, string> = {}): MarketingConfig => readMarketingConfig({ MARKETING_X_MIX: 'full', MARKETING_POST_TIMES: '10:00,19:30', MARKETING_POSTS_PER_DAY: '1', MARKETING_MIN_GAP_MINUTES: '240', MARKETING_BANK_DAYS: '2', ...env })
 
 beforeEach(() => {
   Object.assign(process.env, { AI_PROVIDER: 'mock', AI_ENABLED: 'true', ...SECRETS })
@@ -302,6 +303,12 @@ describe('publishPost', () => {
 
 describe('scheduler (runPrepare / runPublish)', () => {
   const at = (iso: string) => new Date(iso)
+  /** A publish tick on Oct 20 at hh:mm UTC (the store's clock moves with it, so audit times are real). */
+  const tick = (c: MarketingConfig, hhmm: string) => {
+    const now = at(`2026-10-20T${hhmm}:00Z`)
+    store.clock = () => now
+    return runPublish({ store, provider: x, cfg: c, now })
+  }
 
   it('AUTONOMOUS_PUBLISHING is the kill switch; with the admin switch OFF only human-approved posts go out', async () => {
     const p = await approvedPost(0, { autonomous: true })
@@ -320,9 +327,9 @@ describe('scheduler (runPrepare / runPublish)', () => {
     const p = await approvedPost()
     await store.setAutonomous(true)
     const c = cfg({ AUTONOMOUS_PUBLISHING: 'true' })
-    const r1 = await runPublish({ store, provider: x, cfg: c, now: at('2026-10-20T14:05:00Z') })
+    const r1 = await runPublish({ store, provider: x, cfg: c, now: at('2026-10-20T14:05:00Z'), topUp: false })
     expect(r1.publish).toEqual([{ platform: 'x', id: p.id, ok: true, status: 'dry_run', reason: undefined }])
-    const r2 = await runPublish({ store, provider: x, cfg: c, now: at('2026-10-20T14:10:00Z') })
+    const r2 = await runPublish({ store, provider: x, cfg: c, now: at('2026-10-20T14:10:00Z'), topUp: false })
     expect(r2.publish).toEqual([])
     expect(x.posted).toHaveLength(0)
   })
@@ -369,14 +376,41 @@ describe('scheduler (runPrepare / runPublish)', () => {
     expect(store.usage.filter((u) => u.provider === 'ai')).toHaveLength(2)
   })
 
-  it('prepare keeps the bank topped up toward 30 days (earliest unwritten days first, one call per day)', async () => {
+  it('prepare writes only today and tomorrow; the publish ticks top up the rest of the 30-day bank, one day at a time', async () => {
     batchDrafts()
-    const c = cfg({ MARKETING_BANK_DAYS: '30' })
+    const c = cfg({ MARKETING_BANK_DAYS: '30', AUTONOMOUS_PUBLISHING: 'true' })
     const r = await runPrepare({ store, provider: x, cfg: c, now: NOW, attribution: null, countCampaign: null, sendEmail: null })
-    expect((r.content as { date: string }[]).map((d) => d.date)).toEqual(['2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23'])
-    const r2 = await runPrepare({ store, provider: x, cfg: c, now: new Date('2026-10-20T11:30:00Z'), attribution: null, countCampaign: null, sendEmail: null })
+    expect((r.content as { date: string }[]).map((d) => d.date)).toEqual(['2026-10-20', '2026-10-21'])
+    // Ticks 5 minutes apart: the first right after prepare's writes waits; then one day per 10 minutes, earliest first.
+    expect((await tick(c, '11:05')).bank).toBe('recently_written')
+    expect((await tick(c, '11:15')).bank).toEqual(expect.objectContaining({ platform: 'x', date: '2026-10-22', aiCalls: 1 }))
+    expect((await tick(c, '11:20')).bank).toBe('recently_written')
+    expect((await tick(c, '11:30')).bank).toEqual(expect.objectContaining({ date: '2026-10-23' }))
+    // A longer prepare (e.g. by hand) can still write further ahead.
+    const r2 = await runPrepare({ store, provider: x, cfg: c, now: at('2026-10-20T11:45:00Z'), attribution: null, countCampaign: null, sendEmail: null, contentHorizonDays: 30 })
     expect((r2.content as { date: string }[])[0].date).toBe('2026-10-24')
-    expect([...store.rows.values()].filter((p) => p.status === 'draft').length).toBeGreaterThan(4)
+  })
+
+  it('the bank top-up pauses for an hour after the AI fails (library items still fill in) and stops when the bank is full', async () => {
+    scriptMock(new ProviderError('auth', 'provider rejected credentials', 401))
+    const c = cfg({ MARKETING_BANK_DAYS: '3', AUTONOMOUS_PUBLISHING: 'true' })
+    const first = (await tick(c, '11:05')).bank as { aiSkipped: string; date: string }
+    expect(first).toMatchObject({ date: '2026-10-20', aiCalls: 1 })
+    expect(first.aiSkipped).toBe('ai_provider_error:auth') // the reason is kept, so a broken AI key is visible
+    expect((await tick(c, '11:35')).bank).toBe('ai_backoff')
+    batchDrafts()
+    expect((await tick(c, '12:10')).bank).toEqual(expect.objectContaining({ date: '2026-10-21', aiSkipped: null }))
+    for (const t of ['12:25', '12:40', '12:55']) await tick(c, t)
+    expect((await tick(c, '13:10')).bank).toBe('bank_full')
+  })
+
+  it('prepare runs the content step first; measurement waits for tomorrow when the run is out of time', async () => {
+    batchDrafts()
+    const r = await runPrepare({ store, provider: x, cfg: cfg(), now: NOW, attribution: null, countCampaign: null, sendEmail: null, budgetMs: 5_000 })
+    expect(r.content).toEqual([]) // < 30 s left: no day started (it would not finish)
+    expect(r.platformMetrics).toBe('time_budget')
+    expect(r.learning).toBe('time_budget')
+    expect(r.brief).toEqual(expect.objectContaining({ date: expect.any(String) }))
   })
 
   it('prepare with autonomous OFF writes the same bank as drafts for review', async () => {

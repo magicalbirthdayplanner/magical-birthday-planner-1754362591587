@@ -60,22 +60,45 @@ export interface MarketingConfig {
   scoreWeights: Record<string, number>
   /** Channels the engine runs (MARKETING_PLATFORMS, default "x"). */
   platforms: Platform[]
-  /** Instagram cadence (MARKETING_IG_POSTS_PER_DAY 1–5, default 2; MARKETING_IG_POST_TIMES). */
+  /** X posting days (MARKETING_X_POST_DAYS, weekday names; default every day). Monday = 0 … Sunday = 6. */
+  xPostDays: number[]
+  /**
+   * What X is for (MARKETING_X_MIX): 'founder' (default) = founder-led only — the founder story, building in public, the
+   * solo-founder journey, lessons and explicit feedback asks; no parenting tips, polls or product cards. 'full' = the
+   * original eight-role mix.
+   */
+  xMix: 'founder' | 'full'
+  /** Instagram cadence (MARKETING_IG_POSTS_PER_DAY 1–5, default 1; MARKETING_IG_POST_TIMES, default 12:30). */
   igPostsPerDay: number
   igPostTimes: string[]
-  /** Facebook Page cadence (MARKETING_FB_POSTS_PER_DAY 1–8, default 2; MARKETING_FB_POST_TIMES). */
+  /** Instagram posting days (MARKETING_IG_POST_DAYS, default Tue,Thu,Sat). */
+  igPostDays: number[]
+  /** Facebook Page cadence (MARKETING_FB_POSTS_PER_DAY 1–8, default 1; MARKETING_FB_POST_TIMES, default 09:00). */
   fbPostsPerDay: number
   fbPostTimes: string[]
+  /** Facebook posting days (MARKETING_FB_POST_DAYS, default Mon,Wed,Fri). */
+  fbPostDays: number[]
   /** How many days ahead the content bank is kept written (MARKETING_BANK_DAYS, default 30). */
   bankDays: number
 }
 
-/** Per-platform cadence and copy limits. */
-export interface Cadence { postsPerDay: number; postTimes: string[]; maxChars: number; targetMaxChars: number; links: boolean; maxHashtags: number; maxEmoji: number }
+/** Per-platform cadence and copy limits. `postDays`: the weekdays with posts (Monday = 0); the others have none. */
+export interface Cadence { postsPerDay: number; postTimes: string[]; postDays: number[]; maxChars: number; targetMaxChars: number; links: boolean; maxHashtags: number; maxEmoji: number }
 export function cadenceFor(cfg: MarketingConfig, platform: Platform): Cadence {
-  if (platform === 'facebook') return { postsPerDay: cfg.fbPostsPerDay, postTimes: cfg.fbPostTimes.slice(0, cfg.fbPostsPerDay), maxChars: 2000, targetMaxChars: 500, links: true, maxHashtags: 3, maxEmoji: 3 }
-  if (platform === 'instagram') return { postsPerDay: cfg.igPostsPerDay, postTimes: cfg.igPostTimes.slice(0, cfg.igPostsPerDay), maxChars: 2200, targetMaxChars: 600, links: false, maxHashtags: 5, maxEmoji: 3 }
-  return { postsPerDay: cfg.postsPerDay, postTimes: cfg.postTimes.slice(0, cfg.postsPerDay), maxChars: cfg.xMaxChars, targetMaxChars: cfg.targetMaxChars, links: true, maxHashtags: 2, maxEmoji: 2 }
+  if (platform === 'facebook') return { postsPerDay: cfg.fbPostsPerDay, postTimes: cfg.fbPostTimes.slice(0, cfg.fbPostsPerDay), postDays: cfg.fbPostDays, maxChars: 2000, targetMaxChars: 500, links: true, maxHashtags: 3, maxEmoji: 3 }
+  if (platform === 'instagram') return { postsPerDay: cfg.igPostsPerDay, postTimes: cfg.igPostTimes.slice(0, cfg.igPostsPerDay), postDays: cfg.igPostDays, maxChars: 2200, targetMaxChars: 600, links: false, maxHashtags: 5, maxEmoji: 3 }
+  return { postsPerDay: cfg.postsPerDay, postTimes: cfg.postTimes.slice(0, cfg.postsPerDay), postDays: cfg.xPostDays, maxChars: cfg.xMaxChars, targetMaxChars: cfg.targetMaxChars, links: true, maxHashtags: 2, maxEmoji: 2 }
+}
+
+export const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+/** "Mon,Wed,Fri" / "monday, wednesday" / "daily" → weekday indexes (Monday = 0), sorted; invalid or empty → fallback. */
+export function parsePostDays(v: string | undefined, fallback: number[]): number[] {
+  const raw = (v ?? '').trim().toLowerCase()
+  if (!raw) return fallback
+  if (raw === 'daily' || raw === 'all' || raw === 'every day') return [...ALL_DAYS]
+  const days = raw.split(',').map((x) => DAY_KEYS.indexOf(x.trim().slice(0, 3))).filter((i) => i >= 0)
+  return days.length ? [...new Set(days)].sort((a, b) => a - b) : fallback
 }
 
 export const MAX_POSTS_PER_DAY = 8
@@ -137,10 +160,15 @@ export function readMarketingConfig(env: Record<string, string | undefined> = pr
     metricsWindows: parseWindows(env.MARKETING_METRICS_WINDOWS) ?? [[24, 48], [168, 192]],
     scoreWeights: parseWeights(env.MARKETING_SCORE_WEIGHTS),
     platforms: parsePlatforms(env.MARKETING_PLATFORMS),
-    igPostsPerDay: int(env.MARKETING_IG_POSTS_PER_DAY, 2, 1, 5),
-    igPostTimes: slotTimes(env.MARKETING_IG_POST_TIMES, ['12:30', '20:00']),
-    fbPostsPerDay: int(env.MARKETING_FB_POSTS_PER_DAY, 2, 1, 8),
-    fbPostTimes: slotTimes(env.MARKETING_FB_POST_TIMES, ['09:00', '17:00']),
+    xPostDays: parsePostDays(env.MARKETING_X_POST_DAYS, ALL_DAYS),
+    xMix: env.MARKETING_X_MIX?.trim().toLowerCase() === 'full' ? 'full' : 'founder',
+    // Instagram and Facebook: three posts a week each (owner ruling 2026-11-09), on alternating days.
+    igPostsPerDay: int(env.MARKETING_IG_POSTS_PER_DAY, 1, 1, 5),
+    igPostTimes: slotTimes(env.MARKETING_IG_POST_TIMES, ['12:30']),
+    igPostDays: parsePostDays(env.MARKETING_IG_POST_DAYS, [1, 3, 5]),
+    fbPostsPerDay: int(env.MARKETING_FB_POSTS_PER_DAY, 1, 1, 8),
+    fbPostTimes: slotTimes(env.MARKETING_FB_POST_TIMES, ['09:00']),
+    fbPostDays: parsePostDays(env.MARKETING_FB_POST_DAYS, [0, 2, 4]),
     bankDays: int(env.MARKETING_BANK_DAYS, 30, 2, 45),
   }
 }

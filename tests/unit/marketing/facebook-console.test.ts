@@ -88,7 +88,7 @@ describe('FacebookProvider', () => {
 })
 
 describe('marketing console', () => {
-  const cfg = readMarketingConfig({ MARKETING_PLATFORMS: 'x,instagram,facebook', MARKETING_FB_POSTS_PER_DAY: '2', MARKETING_BANK_DAYS: '30' })
+  const cfg = readMarketingConfig({ MARKETING_PLATFORMS: 'x,instagram,facebook', MARKETING_X_MIX: 'full', MARKETING_FB_POSTS_PER_DAY: '2', MARKETING_FB_POST_TIMES: '09:00,17:00', MARKETING_FB_POST_DAYS: 'daily', MARKETING_IG_POST_DAYS: 'daily', MARKETING_IG_POSTS_PER_DAY: '2', MARKETING_IG_POST_TIMES: '12:30,20:00', MARKETING_BANK_DAYS: '30' })
 
   it('Facebook days are written with Facebook rules (links free on soft conversions, polls as questions)', async () => {
     scriptMock(reply, reply, reply)
@@ -145,7 +145,7 @@ describe('marketing console', () => {
 describe('re-plan', () => {
   it('cancels unpublished future posts of one platform and re-plans its weeks (2-a-day mix includes soft conversions)', async () => {
     const { replanFrom } = await import('@/lib/marketing/console')
-    const cfg = readMarketingConfig({ MARKETING_PLATFORMS: 'facebook', MARKETING_FB_POSTS_PER_DAY: '2', MARKETING_BANK_DAYS: '14' })
+    const cfg = readMarketingConfig({ MARKETING_PLATFORMS: 'facebook', MARKETING_X_MIX: 'full', MARKETING_FB_POSTS_PER_DAY: '2', MARKETING_FB_POST_TIMES: '09:00,17:00', MARKETING_FB_POST_DAYS: 'daily', MARKETING_IG_POST_DAYS: 'daily', MARKETING_IG_POSTS_PER_DAY: '2', MARKETING_IG_POST_TIMES: '12:30,20:00', MARKETING_BANK_DAYS: '14' })
     scriptMock(reply, reply)
     await generateDay(store, cfg, { date: '2026-10-20', now: NOW, env: {}, platform: 'facebook' })
     const other = store.seed({ platform: 'x', content_pillar: 'useful_tips', topic: 't', text: 'x'.repeat(60), status: 'scheduled', scheduled_at: '2026-10-21T13:00:00Z' })
@@ -161,7 +161,7 @@ describe('re-plan', () => {
 
 describe('cancelled slots reopen', () => {
   it('a cancelled planned post leaves its slot open for "Write this day"', async () => {
-    const cfg = readMarketingConfig({ MARKETING_PLATFORMS: 'facebook', MARKETING_FB_POSTS_PER_DAY: '2' })
+    const cfg = readMarketingConfig({ MARKETING_PLATFORMS: 'facebook', MARKETING_X_MIX: 'full', MARKETING_FB_POSTS_PER_DAY: '2', MARKETING_FB_POST_TIMES: '09:00,17:00', MARKETING_FB_POST_DAYS: 'daily', MARKETING_IG_POST_DAYS: 'daily', MARKETING_IG_POSTS_PER_DAY: '2', MARKETING_IG_POST_TIMES: '12:30,20:00' })
     scriptMock(reply, reply, reply)
     await generateDay(store, cfg, { date: '2026-10-20', now: NOW, env: {}, platform: 'facebook' })
     const first = [...store.rows.values()][0]

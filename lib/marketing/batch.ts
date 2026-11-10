@@ -22,8 +22,11 @@ import { voiceRules } from './prompts'
 import { checkRepetition, toHistoryItem, type HistoryItem } from './repetition'
 import type { MarketingStore } from './store'
 import { currentObjective, utmUrl } from './strategy'
-import { addDays, localDate, weekday } from './time'
-import { SLOT_ROLE_LABEL, type Platform, type PollSpec } from './types'
+import { addDays, localDate, weekday, weekdayIndex } from './time'
+import { SLOT_ROLE_LABEL, type Pillar, type Platform, type PollSpec } from './types'
+
+/** Pillars founder-led X may fall back to from the library (plus items written for X). */
+const X_FOUNDER_PILLARS: Pillar[] = ['founder_journey', 'ai_thinking', 'launch_invitation']
 import { claimIssues, dateIssues, fixProductName, forbiddenTermsFromEnv, inventedSpecifics, platformRules, pollIssues, validatePost } from './validation'
 
 const CardSchema = z.object({
@@ -49,9 +52,10 @@ type Item = z.infer<typeof ItemSchema>
 const KNOWN_FACTS = new Set([...FOUNDER_FACTS, ...PRODUCT_FACTS].map((f) => f.id))
 const POLL_MINUTES = 1440
 
-export function batchSystemPrompt(platform: Platform = 'x'): string {
+export function batchSystemPrompt(platform: Platform = 'x', founderX = false): string {
   return [
     ...voiceRules(platform === 'instagram' || platform === 'facebook' ? platform : 'x'),
+    ...(founderX ? ['On X you write as a solo founder building in public, for other builders and curious parents: decisions, mistakes, lessons, the honest early-stage reality, and asks for feedback. No parenting or party-planning tips, no product feature tours.'] : []),
     'You are writing a whole day of posts at once. Make each post clearly different from the others: different idea, different opening words, different call to action (most posts have none).',
     'Return ONLY a JSON object: {"posts": [ {',
     ' "slot": number (copy the slot number),',
@@ -69,7 +73,7 @@ export function batchSystemPrompt(platform: Platform = 'x'): string {
 
 function slotInstruction(s: PlanSlot, maxChars: number, platform: Platform = 'x'): string {
   const spec = PILLAR_SPECS[s.pillar]
-  const parts = [`SLOT ${s.index} — ${s.time} — ${SLOT_ROLE_LABEL[s.role]} — ${spec.brief}`, `  Angle: ${s.topicAngle} (your own take).`]
+  const parts = [`SLOT ${s.index} — ${s.time} — ${SLOT_ROLE_LABEL[s.role]} — ${s.brief ?? spec.brief}`, `  Angle: ${s.topicAngle} (your own take).`]
   if (s.format === 'poll') parts.push(platform === 'facebook' ? '  Format: QUESTION with answer options (posted as text). paragraphs = the question (≤ 200 characters). poll.options = 2–4 short answers (≤ 25 characters each). No link, no card.' : '  Format: POLL. paragraphs = the question (≤ 200 characters). poll.options = 2–4 short answers (≤ 25 characters each). No link, no card.')
   else if (s.format === 'thread') parts.push('  Format: THREAD. paragraphs = the first post (a strong hook, ≤ 240 characters). thread = 3–4 follow-up posts (≤ 260 characters each), numbered "2/", "3/"…')
   else if (s.media.source === 'library') parts.push(`  Format: ${s.format.toUpperCase()} — the post carries an existing ${s.media.kind}: ${s.media.libraryNote ?? ''}. Write a caption that fits it (don’t describe things it doesn’t show). No card.`)
@@ -170,8 +174,10 @@ export function buildCandidate(slot: PlanSlot, item: Pick<Item, 'paragraphs' | '
 }
 
 /** Library items that fit a slot, best first: same role, then same pillar, then anything of a compatible format. */
-function libraryCandidates(slot: PlanSlot, used: Set<string>): LibraryItem[] {
-  const fits = (i: LibraryItem) => !used.has(libraryKey(i.key)) && (slot.format === 'poll' ? i.format === 'poll' : i.format !== 'poll')
+function libraryCandidates(slot: PlanSlot, used: Set<string>, platform: Platform = 'x', founderX = false): LibraryItem[] {
+  // Founder-led X only falls back to founder, build-in-public and feedback items; other platforms never get X-only ones.
+  const forPlatform = (i: LibraryItem) => (founderX ? !!i.platforms?.includes('x') || X_FOUNDER_PILLARS.includes(i.pillar) : !i.platforms || i.platforms.includes(platform))
+  const fits = (i: LibraryItem) => forPlatform(i) && !used.has(libraryKey(i.key)) && (slot.format === 'poll' ? i.format === 'poll' : i.format !== 'poll')
   const all = LIBRARY.filter(fits)
   return [...all.filter((i) => i.role === slot.role), ...all.filter((i) => i.role !== slot.role && i.pillar === slot.pillar), ...all.filter((i) => i.role !== slot.role && i.pillar !== slot.pillar)]
 }
@@ -224,20 +230,24 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
     const gate = allowAI(budget, estimate)
     if (!gate.ok) { result.aiSkipped = gate.reason; break }
     if (attempt > 0 && Date.now() - started > (opts.budgetMs ?? 50_000) - 25_000) { result.aiSkipped = 'time_budget'; break }
+    // Never let the model call outlive the run: a function killed mid-call records nothing at all.
+    const left = (opts.budgetMs ?? 50_000) - (Date.now() - started) - 5_000
+    if (left < 10_000) { result.aiSkipped = 'time_budget'; break }
     const res = await callStructured({
       feature: 'marketing_batch',
       schema: BatchSchema as unknown as z.ZodType<z.infer<typeof BatchSchema>>,
-      system: batchSystemPrompt(platform),
+      system: batchSystemPrompt(platform, platform === 'x' && cfg.xMix === 'founder'),
       user: batchUserPrompt({ date: opts.date, today, launchDate: cfg.launchDate, objective, slots: pending, recent: [...promptHistory, ...[...accepted.values()].map((b) => ({ id: b.id, text: b.text, hook: b.hook, cta: b.cta, topicKey: b.slot.topicKey, status: 'scheduled', at: b.slot.at }))].sort((a, b) => b.at.localeCompare(a.at)), learnings: opts.learnings ?? [], maxChars: cad.maxChars, feedback, platform }),
       sessionId: `mkt-batch-${platform}-${plan.id}-${opts.date}-${attempt}`,
       maxTokens: Math.min(8000, 700 + pending.length * 450),
-      cfg: aiCfg,
+      cfg: { ...aiCfg, timeoutMs: Math.min(aiCfg.timeoutMs, left) },
     })
     result.aiCalls++
     const tokens = (res.inputTokens ?? 0) + (res.outputTokens ?? 0)
     result.aiTokens += tokens
     await recordAI(store, cfg, 'batch_generate', tokens, res.ok, { date: opts.date, slots: pending.length, attempt, platform })
-    if (!res.ok) { result.aiSkipped = `ai_${res.code}`; break }
+    // Keep the provider's reason (auth, bad_request, unavailable…) so a broken AI key shows up in the audit log.
+    if (!res.ok) { result.aiSkipped = `ai_${res.code}${res.detail && res.detail !== res.code ? `:${res.detail}` : ''}`; break }
     const byIndex = new Map(res.data.posts.map((p) => [p.slot, p]))
     const next: PlanSlot[] = []
     feedback = {}
@@ -255,7 +265,7 @@ export async function generateDay(store: MarketingStore, cfg: MarketingConfig, o
   for (const slot of pending) {
     let lastReason = feedback[slot.index]?.[0] ?? 'nothing valid'
     let placed = false
-    for (const lib of libraryCandidates(slot, usedLibrary).slice(0, 12)) {
+    for (const lib of libraryCandidates(slot, usedLibrary, platform, platform === 'x' && cfg.xMix === 'founder').slice(0, 12)) {
       // Instagram needs media on every post: a text-only library item gets a branded card from its first line.
       const igCard = platform === 'instagram' && !lib.card ? { template: (lib.role === 'founder_story' ? 'founder_quote' : lib.role === 'conversation' ? 'poll_companion' : 'tip') as NonNullable<LibraryItem['card']>['template'], headline: (lib.hook ?? lib.text.split(/[.!?\n]/)[0]).split(/\s+/).slice(0, 8).join(' ') } : null
       const card: LibraryItem['card'] | null = lib.card ?? igCard
@@ -369,12 +379,14 @@ export async function daysToWrite(store: MarketingStore, cfg: MarketingConfig, o
   const out: string[] = []
   const cancelled = new Set((await store.listPosts({ platform: opts.platform, statuses: ['cancelled'], limit: 5000 })).map((p) => p.id))
   const plans = new Map<string, PlanSlot[] | null>()
+  const postDays = cadenceFor(cfg, opts.platform).postDays
   for (let i = 0; i < (opts.horizonDays ?? cfg.bankDays) && out.length < (opts.limit ?? 60); i++) {
     const date = addDays(today, i)
     const week = weekStartOf(date)
     if (!plans.has(week)) plans.set(week, (await store.getPlan(opts.platform, week)) ? planSlots(await store.getPlan(opts.platform, week)) : null)
     const slots = plans.get(week)
-    if (!slots) out.push(date)
+    // No plan yet: only posting days need writing (a week plan has no slots on the platform's off days).
+    if (!slots) { if (postDays.includes(weekdayIndex(date))) out.push(date) }
     else if (slots.some((s) => s.date === date && retryable(s, now, cancelled) && new Date(s.at).getTime() > now.getTime() + 5 * 60_000)) out.push(date)
   }
   return out

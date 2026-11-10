@@ -9,8 +9,9 @@ import { cadenceFor, type MarketingConfig } from './config'
 import type { TemplateKey } from './images/templates'
 import { pickLibraryMedia } from './media'
 import type { MarketingStore, PlanRow } from './store'
+import { X_FOUNDER_BRIEF, topicFits, type Topic } from './pillars'
 import { selectTopic, toStrategyPost, type StrategyPost } from './strategy'
-import { addDays, localDate, weekday, zonedToUtc } from './time'
+import { addDays, localDate, weekday, weekdayIndex, zonedToUtc } from './time'
 import type { Pillar, Platform, PostFormat, SlotRole } from './types'
 
 export interface PlanSlot {
@@ -32,6 +33,8 @@ export interface PlanSlot {
   note?: string
   /** Times this slot was skipped by validation (retried up to 3 times). */
   retries?: number
+  /** What this slot asks for, when it differs from the pillar's brief (founder-led X). */
+  brief?: string
 }
 
 export interface PlanWeights { roles?: Partial<Record<SlotRole, number>>; formats?: Partial<Record<PostFormat, number>> }
@@ -88,7 +91,53 @@ function instagramShape(s: SlotShape, role: SlotRole, day: number): SlotShape {
   return { ...s, thread: false }
 }
 
-function rolesForDay(day: number, perDay: number, weights: PlanWeights, platform: Platform = 'x'): SlotRole[] {
+/**
+ * Founder-led X (MARKETING_X_MIX=founder): the founder story first every day, then a solo-founder lesson, and a
+ * feedback ask — a question one day, an invitation to try it (the only slot that may carry the link) the next.
+ */
+const X_FOUNDER_ORDER: SlotRole[] = ['founder_story', 'conversation', 'educational', 'soft_conversion', 'founder_story', 'educational', 'conversation', 'founder_story']
+export const X_FOUNDER_ROLES: readonly SlotRole[] = ['founder_story', 'educational', 'conversation', 'soft_conversion']
+export function xFounderRoles(day: number, perDay: number): SlotRole[] {
+  const ask: SlotRole = day % 2 === 0 ? 'conversation' : 'soft_conversion'
+  if (perDay <= 1) return [day % 3 === 2 ? ask : 'founder_story']
+  if (perDay === 2) return ['founder_story', ask]
+  if (perDay === 3) return ['founder_story', 'educational', ask]
+  return X_FOUNDER_ORDER.slice(0, Math.min(perDay, X_FOUNDER_ORDER.length))
+}
+
+function xFounderShape(role: SlotRole, day: number, weights: PlanWeights, budgetGreen: boolean): SlotShape {
+  const imageOk = (weights.formats?.image ?? 1) >= 0.75
+  switch (role) {
+    case 'educational':
+      return day % 3 === 1 && imageOk
+        ? { pillar: day % 2 ? 'ai_thinking' : 'founder_journey', category: 'build_in_public', format: 'image', template: 'founder_quote' }
+        : { pillar: day % 2 ? 'ai_thinking' : 'founder_journey', category: 'build_in_public', format: 'text' }
+    case 'conversation':
+      return { pillar: 'community_question', category: 'feedback', format: 'text' }
+    case 'soft_conversion':
+      return { pillar: 'launch_invitation', category: 'feedback', format: 'text' }
+    default:
+      return shape('founder_story', day, weights, budgetGreen)
+  }
+}
+
+/**
+ * Weekly cadences (a post on a few days only, e.g. 3 a week): roles by the post's place in the week, alternating two
+ * sets week to week so the mix stays as varied as the daily plan.
+ */
+const WEEKLY_ROLES: Partial<Record<Platform, [SlotRole[], SlotRole[]]>> = {
+  instagram: [['educational', 'founder_story', 'parent_tip'], ['product', 'conversation', 'visual']],
+  facebook: [['founder_story', 'parent_tip', 'conversation'], ['product', 'poll', 'soft_conversion']],
+}
+export function weeklyRole(platform: Platform, weekStart: string, ordinal: number): SlotRole {
+  const sets = WEEKLY_ROLES[platform] ?? [['founder_story', 'parent_tip', 'conversation'], ['product', 'educational', 'soft_conversion']]
+  const week = Math.floor(Date.parse(`${weekStart}T00:00:00Z`) / (7 * 86_400_000))
+  const set = sets[week % 2]
+  return set[ordinal % set.length]
+}
+
+function rolesForDay(day: number, perDay: number, weights: PlanWeights, platform: Platform = 'x', founderX = false): SlotRole[] {
+  if (founderX) return xFounderRoles(day, perDay)
   if (platform === 'instagram') return instagramRoles(day, perDay)
   let roles = perDay >= DAILY_ROLES.length ? [...DAILY_ROLES] : compactRoles(day, perDay)
   // Learning: on alternate days, swap up to two weak roles (< 0.75) for strong ones (≥ 1.25); never 3 of a role a day.
@@ -165,20 +214,27 @@ export async function planWeek(store: MarketingStore, cfg: MarketingConfig, opts
   // Media similarity: nothing already queued or used in the last 14 days is planned again.
   const usedMedia = new Set<string>(recent.filter((p) => p.status !== 'cancelled' && now.getTime() - new Date(p.publishedAt ?? p.createdAt).getTime() < 14 * 86_400_000).flatMap((p) => p.mediaIds))
   // X bills links ($0.20): only what the budget absorbs. Facebook links are free: one soft-conversion link a day.
-  let links = !cad.links ? 0 : platform === 'x' ? affordableLinks(opts.budget ?? null, cfg, cad.postsPerDay * 7) : 7
+  let links = !cad.links ? 0 : platform === 'x' ? affordableLinks(opts.budget ?? null, cfg, cad.postsPerDay * cad.postDays.length) : 7
   const today = localDate(now, cfg.timezone)
+  const founderX = platform === 'x' && cfg.xMix === 'founder'
+  // A few days a week (Instagram/Facebook default: 3): roles follow the post's place in the week, not the weekday.
+  const weekly = cad.postDays.length < 7 && times.length === 1
+  let ordinal = 0
 
   for (let day = 0; day < 7; day++) {
     const date = addDays(opts.weekStart, day)
-    const roles = rolesForDay(day, times.length, weights, platform)
+    if (!cad.postDays.includes(weekdayIndex(date))) continue // not a posting day for this platform
+    const roles = weekly ? [weeklyRole(platform, opts.weekStart, ordinal++)] : rolesForDay(day, times.length, weights, platform, founderX)
     for (let i = 0; i < times.length; i++) {
       const role = roles[i]
       const at = zonedToUtc(date, times[i], cfg.timezone)
-      const base = shape(role, day, weights, budgetGreen && platform === 'x')
+      const base = founderX ? xFounderShape(role, day, weights, budgetGreen) : shape(role, day, weights, budgetGreen && platform === 'x')
       const s = platform === 'instagram' ? instagramShape(base, role, day) : platform === 'facebook' ? { ...base, thread: false, format: base.format === 'thread' ? ('text' as const) : base.format } : base
       const plannedHistory = slots.map((x): StrategyPost => ({ id: `plan-${x.index}`, pillar: x.pillar, topicKey: x.topicKey, status: 'scheduled', hasLink: x.link, hasImage: x.media.source !== 'none', at: x.at }))
       const preferVenue = s.category === 'venue_content'
-      const topic = selectTopic(s.pillar, [...history, ...plannedHistory], at, preferVenue ? (day % 2 ? 'age-fit-venues' : 'venue-discovery') : null)
+      // Founder-led X asks for feedback in its questions; every platform may use the shared topics plus its own.
+      const fits = founderX && role === 'conversation' ? (t: Topic) => !!t.platforms?.includes('x') : (t: Topic) => topicFits(t, platform)
+      const topic = selectTopic(s.pillar, [...history, ...plannedHistory], at, preferVenue ? (day % 2 ? 'age-fit-venues' : 'venue-discovery') : null, fits)
       let media: PlanSlot['media'] = { source: 'none' }
       if (s.library) {
         const pick = await pickLibraryMedia(store, { kind: s.library, now: at, exclude: usedMedia, prefer: [s.category, s.pillar, role] })
@@ -215,6 +271,7 @@ export async function planWeek(store: MarketingStore, cfg: MarketingConfig, opts
         media,
         status: date < today ? 'skipped' : 'planned',
         note: date < today ? 'In the past when planned.' : undefined,
+        ...(founderX && role in X_FOUNDER_BRIEF ? { brief: X_FOUNDER_BRIEF[role as keyof typeof X_FOUNDER_BRIEF] } : {}),
       })
     }
   }
