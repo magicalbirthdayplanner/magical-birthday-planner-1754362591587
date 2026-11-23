@@ -1,4 +1,4 @@
-/** GET /api/cron/santa (Vercel Cron, every minute): end stale Santa sessions at the provider and settle them. */
+/** GET /api/cron/santa (Vercel Cron, daily on Hobby; every start also reaps): end stale Santa sessions and settle them. */
 import { timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin, hasServiceRole } from '@/lib/server/supabase-admin'

@@ -62,7 +62,20 @@ async function withAvatar(admin: Admin, session: SessionRow) {
 }
 
 // ---------------------------------------------------------------- paid call
+/**
+ * Stale sessions (never connected / ran past their cap) hold concurrency slots. The daily cron cleans up too (Vercel
+ * Hobby allows only daily crons), so every new start first clears any stale ones — usually a single empty query.
+ */
+async function reapStale(admin: Admin) {
+  try {
+    await reap(admin)
+  } catch {
+    /* never block a start on cleanup */
+  }
+}
+
 export async function startCall(admin: Admin, userId: string, childId: string) {
+  await reapStale(admin)
   const { data, error } = await admin.rpc('santa_start_session', {
     p_user: userId, p_child: childId, p_notice_version: SANTA_NOTICE_VERSION, p_provider: providerLabel(), p_prompt_version: SANTA_PROMPT_VERSION,
   })
@@ -73,6 +86,7 @@ export async function startCall(admin: Admin, userId: string, childId: string) {
 
 // ---------------------------------------------------------------- free preview (no sign-up)
 export async function startPreview(admin: Admin, ip: string) {
+  await reapStale(admin)
   const token = randomBytes(24).toString('base64url')
   const { data, error } = await admin.rpc('santa_start_preview', { p_client_hash: clientHash(ip), p_token_hash: sha256(token), p_provider: providerLabel(), p_prompt_version: SANTA_PROMPT_VERSION })
   if (error) return { ok: false as const, error: errorCode(error.message) }

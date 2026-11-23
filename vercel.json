@@ -37,7 +37,7 @@
     },
     {
       "path": "/api/cron/santa",
-      "schedule": "* * * * *"
+      "schedule": "30 8 * * *"
     }
   ]
 }
