@@ -38,6 +38,11 @@ const EXPECTED = [
   '/home [page]', '/plan [page]', '/activities [page]', '/plan/theme [page]', '/plan/checklist [page]', '/plan/invite [page]', '/discover [page]', '/discover/saved [page]', '/guests [page]', '/more [page]',
   // Super Admin (server-verified role; 404 for everyone else)
   '/admin [page]', '/admin/marketing [page]', '/admin/marketing/x [page]',
+  // Magical Santa: live-call proof of concept (dev; production only with SANTA_POC_ENABLED + Super Admin)
+  '/santa/poc [page]', '/api/santa/poc [api]',
+  // Magical Santa product: landing, parent setup, Santa page, the call; APIs (all signed-in except none) + reaper cron
+  '/santa [page]', '/santa/try [page]', '/santa/create [page]', '/santa/ready [page]', '/santa/call [page]',
+  '/api/santa/me [api]', '/api/santa/children [api]', '/api/santa/approve [api]', '/api/santa/checkout [api]', '/api/santa/sessions [api]', '/api/santa/sessions/[id] [api]', '/api/santa/preview [api]', '/api/santa/preview/[id] [api]', '/api/cron/santa [api]',
   // auth return point
   '/auth/callback [api]',
   // APIs

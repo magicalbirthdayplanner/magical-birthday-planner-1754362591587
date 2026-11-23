@@ -183,6 +183,11 @@ export async function processWebhookEvent(admin: Admin, eventId: string, raw: un
   }
 
   try {
+    // Magical Santa packs have their own products and ledger (lib/santa/billing.ts). Null = not a Santa event.
+    const { processSantaEvent } = await import('@/lib/santa/billing')
+    const santa = await processSantaEvent(admin, eventId, event)
+    if (santa) return santa
+
     const action = decide(event)
     if (action.kind === 'ignore') {
       await markEvent(admin, eventId, 'ignored', action.reason)

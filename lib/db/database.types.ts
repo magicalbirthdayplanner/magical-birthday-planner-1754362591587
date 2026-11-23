@@ -810,6 +810,102 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"santa_checkouts": {
+                  Row: {
+                    "amount_minor": number,"completed_at": string | null,"created_at": string,"currency": string,"id": string,"pack": string,"product_id": string,"provider": string,"quantity": number,"session_id": string | null,"status": string,"user_id": string
+                  }
+                  Insert: {
+                    "amount_minor": number,"completed_at"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"pack": string,"product_id": string,"provider"?: string,"quantity"?: number,"session_id"?: string | null,"status"?: string,"user_id": string
+                  }
+                  Update: {
+                    "amount_minor"?: number,"completed_at"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"pack"?: string,"product_id"?: string,"provider"?: string,"quantity"?: number,"session_id"?: string | null,"status"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"santa_children": {
+                  Row: {
+                    "age": number,"approved_at": string | null,"created_at": string,"first_name": string,"id": string,"profile": NonNullable<Json>,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "age": number,"approved_at"?: string | null,"created_at"?: string,"first_name": string,"id"?: string,"profile"?: NonNullable<Json>,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "age"?: number,"approved_at"?: string | null,"created_at"?: string,"first_name"?: string,"id"?: string,"profile"?: NonNullable<Json>,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"santa_consents": {
+                  Row: {
+                    "accepted_at": string,"affirmations": (string)[],"child_id": string | null,"id": string,"method": string,"notice_version": string,"user_id": string,"withdrawn_at": string | null
+                  }
+                  Insert: {
+                    "accepted_at"?: string,"affirmations": (string)[],"child_id"?: string | null,"id"?: string,"method": string,"notice_version": string,"user_id": string,"withdrawn_at"?: string | null
+                  }
+                  Update: {
+                    "accepted_at"?: string,"affirmations"?: (string)[],"child_id"?: string | null,"id"?: string,"method"?: string,"notice_version"?: string,"user_id"?: string,"withdrawn_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "santa_consents_child_id_fkey"
+      columns: ["child_id"]
+isOneToOne: false
+      referencedRelation: "santa_children"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"santa_orders": {
+                  Row: {
+                    "amount_minor": number | null,"checkout_id": string | null,"created_at": string,"currency": string | null,"id": string,"last_event_at": string | null,"pack": string,"product_id": string | null,"provider": string,"provider_ref": string,"quantity": number,"seconds_granted": number,"status": string,"updated_at": string,"user_id": string | null
+                  }
+                  Insert: {
+                    "amount_minor"?: number | null,"checkout_id"?: string | null,"created_at"?: string,"currency"?: string | null,"id"?: string,"last_event_at"?: string | null,"pack": string,"product_id"?: string | null,"provider"?: string,"provider_ref": string,"quantity"?: number,"seconds_granted": number,"status": string,"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Update: {
+                    "amount_minor"?: number | null,"checkout_id"?: string | null,"created_at"?: string,"currency"?: string | null,"id"?: string,"last_event_at"?: string | null,"pack"?: string,"product_id"?: string | null,"provider"?: string,"provider_ref"?: string,"quantity"?: number,"seconds_granted"?: number,"status"?: string,"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "santa_orders_checkout_id_fkey"
+      columns: ["checkout_id"]
+isOneToOne: false
+      referencedRelation: "santa_checkouts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"santa_sessions": {
+                  Row: {
+                    "billed_seconds": number | null,"charged_seconds": number,"child_id": string | null,"client_hash": string | null,"connected_at": string | null,"connected_seconds": number | null,"created_at": string,"end_reason": string | null,"ended_at": string | null,"id": string,"kind": string,"max_seconds": number,"preview_token_hash": string | null,"prompt_version": string,"provider": string,"provider_cost_cents": number | null,"provider_session_id": string | null,"status": string,"updated_at": string,"user_id": string | null
+                  }
+                  Insert: {
+                    "billed_seconds"?: number | null,"charged_seconds"?: number,"child_id"?: string | null,"client_hash"?: string | null,"connected_at"?: string | null,"connected_seconds"?: number | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"kind": string,"max_seconds": number,"preview_token_hash"?: string | null,"prompt_version": string,"provider": string,"provider_cost_cents"?: number | null,"provider_session_id"?: string | null,"status"?: string,"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Update: {
+                    "billed_seconds"?: number | null,"charged_seconds"?: number,"child_id"?: string | null,"client_hash"?: string | null,"connected_at"?: string | null,"connected_seconds"?: number | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"kind"?: string,"max_seconds"?: number,"preview_token_hash"?: string | null,"prompt_version"?: string,"provider"?: string,"provider_cost_cents"?: number | null,"provider_session_id"?: string | null,"status"?: string,"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "santa_sessions_child_id_fkey"
+      columns: ["child_id"]
+isOneToOne: false
+      referencedRelation: "santa_children"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"santa_settings": {
+                  Row: {
+                    "calls_enabled": boolean,"daily_preview_cap": number,"daily_session_cap": number,"id": boolean,"max_call_seconds": number,"max_concurrent_sessions": number,"min_charge_seconds": number,"preview_seconds": number,"previews_enabled": boolean,"previews_per_client_per_day": number,"updated_at": string,"updated_by": string | null
+                  }
+                  Insert: {
+                    "calls_enabled"?: boolean,"daily_preview_cap"?: number,"daily_session_cap"?: number,"id"?: boolean,"max_call_seconds"?: number,"max_concurrent_sessions"?: number,"min_charge_seconds"?: number,"preview_seconds"?: number,"previews_enabled"?: boolean,"previews_per_client_per_day"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "calls_enabled"?: boolean,"daily_preview_cap"?: number,"daily_session_cap"?: number,"id"?: boolean,"max_call_seconds"?: number,"max_concurrent_sessions"?: number,"min_charge_seconds"?: number,"preview_seconds"?: number,"previews_enabled"?: boolean,"previews_per_client_per_day"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"saved_venues": {
                   Row: {
                     "created_at": string,"id": string,"notes": string | null,"party_id": string,"place_id": string,"updated_at": string,"user_id": string,"venue_id": string
@@ -1037,6 +1133,154 @@ isOneToOne: false
 "remove_party_activity":
 { Args: { "p_activity": string }; Returns: Json
                            },
+"santa_admit":
+{ Args: { "p_kind": string }; Returns: {
+              "calls_enabled": boolean,
+"daily_preview_cap": number,
+"daily_session_cap": number,
+"id": boolean,
+"max_call_seconds": number,
+"max_concurrent_sessions": number,
+"min_charge_seconds": number,
+"preview_seconds": number,
+"previews_enabled": boolean,
+"previews_per_client_per_day": number,
+"updated_at": string,
+"updated_by": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "santa_settings"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"santa_attach_session":
+{ Args: { "p_provider_session": string,"p_session": string }; Returns: undefined
+                           },
+"santa_balance":
+{ Args: { "p_user": string }; Returns: {
+              "seconds_granted": number,"seconds_remaining": number,"seconds_used": number
+            }[]
+                           },
+"santa_end_session":
+{ Args: { "p_billed_seconds": number,"p_cost_cents": number,"p_ended_at": string,"p_reason": string,"p_session": string,"p_status": string }; Returns: {
+              "billed_seconds": number | null,
+"charged_seconds": number,
+"child_id": string | null,
+"client_hash": string | null,
+"connected_at": string | null,
+"connected_seconds": number | null,
+"created_at": string,
+"end_reason": string | null,
+"ended_at": string | null,
+"id": string,
+"kind": string,
+"max_seconds": number,
+"preview_token_hash": string | null,
+"prompt_version": string,
+"provider": string,
+"provider_cost_cents": number | null,
+"provider_session_id": string | null,
+"status": string,
+"updated_at": string,
+"user_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "santa_sessions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"santa_mark_connected":
+{ Args: { "p_at": string,"p_session": string }; Returns: undefined
+                           },
+"santa_stale_sessions":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "billed_seconds": number | null,
+"charged_seconds": number,
+"child_id": string | null,
+"client_hash": string | null,
+"connected_at": string | null,
+"connected_seconds": number | null,
+"created_at": string,
+"end_reason": string | null,
+"ended_at": string | null,
+"id": string,
+"kind": string,
+"max_seconds": number,
+"preview_token_hash": string | null,
+"prompt_version": string,
+"provider": string,
+"provider_cost_cents": number | null,
+"provider_session_id": string | null,
+"status": string,
+"updated_at": string,
+"user_id": string | null
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "santa_sessions"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
+"santa_start_preview":
+{ Args: { "p_client_hash": string,"p_prompt_version": string,"p_provider": string,"p_token_hash": string }; Returns: {
+              "billed_seconds": number | null,
+"charged_seconds": number,
+"child_id": string | null,
+"client_hash": string | null,
+"connected_at": string | null,
+"connected_seconds": number | null,
+"created_at": string,
+"end_reason": string | null,
+"ended_at": string | null,
+"id": string,
+"kind": string,
+"max_seconds": number,
+"preview_token_hash": string | null,
+"prompt_version": string,
+"provider": string,
+"provider_cost_cents": number | null,
+"provider_session_id": string | null,
+"status": string,
+"updated_at": string,
+"user_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "santa_sessions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"santa_start_session":
+{ Args: { "p_child": string,"p_notice_version": string,"p_prompt_version": string,"p_provider": string,"p_user": string }; Returns: {
+              "billed_seconds": number | null,
+"charged_seconds": number,
+"child_id": string | null,
+"client_hash": string | null,
+"connected_at": string | null,
+"connected_seconds": number | null,
+"created_at": string,
+"end_reason": string | null,
+"ended_at": string | null,
+"id": string,
+"kind": string,
+"max_seconds": number,
+"preview_token_hash": string | null,
+"prompt_version": string,
+"provider": string,
+"provider_cost_cents": number | null,
+"provider_session_id": string | null,
+"status": string,
+"updated_at": string,
+"user_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "santa_sessions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "start_24_hour_trial":
 { Args: { "user_id": string }; Returns: undefined
                            },

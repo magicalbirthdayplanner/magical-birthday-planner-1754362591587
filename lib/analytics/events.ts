@@ -47,6 +47,17 @@ export const ANALYTICS_EVENTS = [
   'invitation_created',
   'whatsapp_share_initiated',
   'payment_failed',
+  // Magical Santa funnel (never the child's name or anything said in a call)
+  'santa_landing_view',
+  'santa_setup_started',
+  'santa_setup_step',
+  'santa_setup_completed',
+  'santa_signin_completed',
+  'santa_checkout_started',
+  'santa_purchase_confirmed',
+  'santa_call_started',
+  'santa_call_connected',
+  'santa_call_ended',
 ] as const
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number]

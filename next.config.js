@@ -26,6 +26,8 @@ const nextConfig = {
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },
+      // Santa calls need the microphone (never the camera: Santa does not see the child). Later rule wins for the same key.
+      { source: '/santa/:path*', headers: [{ key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(), payment=(self)' }] },
       { source: '/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }, { key: 'Content-Type', value: 'application/javascript; charset=utf-8' }] },
       // Photo redirects and ZIP lookups set their own public caching.
       { source: '/api/:path((?!discovery/photo|discovery/zip).*)', headers: [{ key: 'Cache-Control', value: 'no-store' }] },

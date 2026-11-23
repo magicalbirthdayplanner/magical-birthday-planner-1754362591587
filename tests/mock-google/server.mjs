@@ -173,8 +173,8 @@ async function deliverWebhook(event) {
 }
 
 // Like Dodo, the price lives on the PRODUCT (USD cents), mirroring the live products: $9.99 / $19.99 / $29.99.
-const PRICES = { [process.env.DODO_PRODUCT_STARTER]: 999, [process.env.DODO_PRODUCT_PLUS]: 1999, [process.env.DODO_PRODUCT_PRO]: 2999 }
-const priceOf = (session) => PRICES[session.product_cart?.[0]?.product_id] ?? 0
+const PRICES = { [process.env.DODO_PRODUCT_STARTER]: 999, [process.env.DODO_PRODUCT_PLUS]: 1999, [process.env.DODO_PRODUCT_PRO]: 2999, [process.env.DODO_PRODUCT_SANTA_TIME]: 499 }
+const priceOf = (session) => (PRICES[session.product_cart?.[0]?.product_id] ?? 0) * (session.product_cart?.[0]?.quantity ?? 1)
 
 async function handleServices(req, res, url) {
   const path = url.pathname
