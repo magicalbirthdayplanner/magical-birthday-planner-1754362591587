@@ -7,7 +7,7 @@ const description = 'Santa knows your child’s name, what they love and what th
 export const metadata: Metadata = {
   metadataBase: new URL(santaUrl()),
   manifest: '/brands/holidays/manifest.webmanifest',
-  title: { default: title, template: '%s · Magical Santa' },
+  title: { absolute: title, template: '%s · Magical Santa' },
   description,
   applicationName: 'Magical Santa',
   appleWebApp: { capable: true, title: 'Magical Santa', statusBarStyle: 'default' },
