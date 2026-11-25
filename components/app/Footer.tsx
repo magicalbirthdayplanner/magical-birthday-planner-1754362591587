@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { SocialLinks } from './SocialLinks'
 
 /** Matches the address published in the Privacy Policy and Terms. */
 const CONTACT_EMAIL = 'magicalbirthdayplanner@gmail.com'
@@ -12,6 +13,7 @@ export function Footer({ className }: { className?: string }) {
       <p className="mx-auto max-w-md text-[15px] font-medium leading-relaxed text-foreground/80 text-balance">
         Made with <span role="img" aria-label="love">❤️</span> by a busy parent who wants to make every birthday magical.
       </p>
+      <SocialLinks className="mt-4" />
       <nav aria-label="Legal" className="mt-2 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-muted-foreground">
         <span>© {new Date().getFullYear()} Magical Birthday Planner</span>
         <span aria-hidden>·</span>

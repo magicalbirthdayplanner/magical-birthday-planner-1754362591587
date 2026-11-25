@@ -4,6 +4,7 @@ import { INDIA_ENABLED } from '@/lib/country/countries'
 import { SiteHeader } from '@/components/site/SiteHeader'
 import { SiteFooter } from '@/components/site/SiteFooter'
 import { CampaignBanner } from '@/components/billing/CampaignBanner'
+import { OrganizationJsonLd } from '@/components/site/OrganizationJsonLd'
 
 /** Canonical for the landing page; pricing, legal, help and /in set their own. With India on, the landing page and
  *  /in point at each other as the en-US / en-IN versions. */
@@ -13,6 +14,7 @@ export const metadata: Metadata = { alternates: { canonical: '/', ...(INDIA_ENAB
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <OrganizationJsonLd />
       <SiteHeader />
       <main className="min-h-screen pt-14 sm:pt-16">
         <CampaignBanner />

@@ -1,5 +1,6 @@
 import './globals.css';
 import { siteUrl } from '@/lib/site-url';
+import { X_HANDLE } from '@/lib/social';
 import type { Metadata, Viewport } from 'next';
 import { Nunito } from 'next/font/google';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -40,6 +41,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    site: X_HANDLE,
+    creator: X_HANDLE,
     title: 'Plan your child’s birthday in minutes',
     description: 'Local party venues and ideas, a party plan and RSVPs — matched to your child, your budget and your ZIP code.',
     images: ['/og-image.png'],

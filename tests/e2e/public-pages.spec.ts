@@ -37,3 +37,26 @@ test('help page links to pricing, terms, privacy and the support email; footer l
   await page.getByRole('contentinfo').getByRole('link', { name: 'Help' }).click()
   await expect(page).toHaveURL(/\/help$/)
 })
+
+test('footer links to the official Facebook, Instagram, X and YouTube profiles; structured data lists them', async ({ page }) => {
+  await page.goto('/')
+  const follow = page.getByRole('contentinfo').getByRole('navigation', { name: 'Follow Magical Birthday Planner' })
+  const expected = {
+    Facebook: 'https://www.facebook.com/profile.php?id=61595155950282',
+    Instagram: 'https://www.instagram.com/magicalbirthdayplanner/',
+    X: 'https://x.com/MagicalBPlanner',
+    YouTube: 'https://www.youtube.com/@magicalbirthdayplanner',
+  }
+  for (const [name, href] of Object.entries(expected)) {
+    const a = follow.getByRole('link', { name: `Magical Birthday Planner on ${name} (opens in a new tab)` })
+    await expect(a).toBeVisible()
+    await expect(a).toHaveAttribute('href', href)
+    await expect(a).toHaveAttribute('target', '_blank')
+    await expect(a).toHaveAttribute('rel', 'me noopener noreferrer')
+    expect((await a.boundingBox())!.width).toBeGreaterThanOrEqual(44)
+  }
+  const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').first().textContent())!)
+  const org = ld['@graph'].find((n: { '@type': string }) => n['@type'] === 'Organization')
+  expect(org.sameAs).toEqual(Object.values(expected))
+  await expect(page.locator('meta[name="twitter:site"]')).toHaveAttribute('content', '@MagicalBPlanner')
+})
