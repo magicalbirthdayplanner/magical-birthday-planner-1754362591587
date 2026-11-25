@@ -1,6 +1,6 @@
 'use client'
 /**
- * Founding-families offer: the first 25 accounts get Pro free on every party (migration 20251009001700). Signed-out
+ * Founding-families offer: the first 10 accounts get Pro free on every party (migrations 20251009001700, 20251124002500). Signed-out
  * visitors see the spots left and a way in; a founding family sees that it has the gift. Hidden once the seats are
  * gone, and for everyone else. Display only: the database hands out the seats.
  */

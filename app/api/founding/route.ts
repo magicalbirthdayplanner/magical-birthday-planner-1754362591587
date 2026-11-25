@@ -6,8 +6,8 @@ export const fetchCache = 'force-no-store'
 export const dynamic = 'force-dynamic'
 
 /**
- * GET /api/founding → { seats, left }: the founding-families offer (first 25 accounts get Pro free; migration
- * 20251009001700). Public, counts only. Seats are given by the database when an account's email is confirmed.
+ * GET /api/founding → { seats, left }: the founding-families offer (first 10 accounts get Pro free;
+ * migrations 20251009001700, 20251124002500). Public, counts only. Seats are given by the database when an account's email is confirmed.
  */
 export async function GET() {
   if (!hasServiceRole()) return NextResponse.json({ seats: 0, left: 0 }, { headers: { 'Cache-Control': 'no-store' } })

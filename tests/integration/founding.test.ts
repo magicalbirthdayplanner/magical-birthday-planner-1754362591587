@@ -1,6 +1,6 @@
 /**
  * Founding families (migration 20251009001700): the first 25 accounts get Pro free. A seat is taken only once the
- * email is confirmed, never by test/staff accounts, never beyond 25 (even under concurrent confirmations), and it
+ * email is confirmed, never by test/staff accounts, never beyond 10 (even under concurrent confirmations), and it
  * unlocks Pro through the normal override path (RLS + server plan). Clients can't take or fake a seat.
  */
 import { afterAll, afterEach, describe, expect, it } from 'vitest'
@@ -70,20 +70,20 @@ describe.skipIf(!up)('founding families', () => {
     expect(await seatOf(id)).toBeNull()
   })
 
-  it('never more than 25, even when everyone confirms at once; a deleted account frees its seat', async () => {
+  it('never more than 10, even when everyone confirms at once; a deleted account frees its seat', async () => {
     const free = (await left()) as number
     const ids = await Promise.all(Array.from({ length: free + 3 }, (_, i) => createUser(email(`rush${i}`))))
     const all = await Promise.all(ids.map(seatOf))
     const seats = all.filter((s) => s !== null)
     expect(seats).toHaveLength(free)
     expect(new Set(seats).size).toBe(free)
-    expect((await adminClient().from('founding_members').select('seat')).data).toHaveLength(25)
+    expect((await adminClient().from('founding_members').select('seat')).data).toHaveLength(10)
     expect(await left()).toBe(0)
     const late = ids[all.indexOf(null)] // who lost the race: no seat, no Pro
     expect((await adminClient().from('plan_overrides').select('user_id').eq('user_id', late)).data).toEqual([])
 
     const route = await import('@/app/api/founding/route')
-    expect(await (await route.GET()).json()).toEqual({ seats: 25, left: 0 })
+    expect(await (await route.GET()).json()).toEqual({ seats: 10, left: 0 })
 
     const holder = ids[all.findIndex((s) => s !== null)]
     await adminClient().auth.admin.deleteUser(holder)
@@ -97,7 +97,7 @@ describe.skipIf(!up)('founding families', () => {
     await client.auth.signInWithPassword({ email: email('c'), password: `pw-${stamp}-A1!` }).catch(() => null)
     for (const c of [anonClient(), client]) {
       expect((await c.rpc('claim_founding_seat', { p_user: id })).error).not.toBeNull()
-      await c.from('founding_members').insert({ user_id: id, seat: 25 })
+      await c.from('founding_members').insert({ user_id: id, seat: 10 })
     }
     expect(await seatOf(id)).toBeNull()
     expect((await anonClient().from('founding_members').select('user_id')).data ?? []).toEqual([])

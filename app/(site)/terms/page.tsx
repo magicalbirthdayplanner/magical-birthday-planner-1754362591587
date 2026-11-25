@@ -15,7 +15,7 @@ export default function TermsConditionsPage() {
           
           <div className="prose prose-gray dark:prose-invert max-w-none">
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              <strong>Last updated:</strong> October 6, 2026
+              <strong>Last updated:</strong> November 24, 2026
             </p>
 
             <section className="mb-8">
@@ -71,7 +71,7 @@ export default function TermsConditionsPage() {
                 We reserve the right to change our pricing with 30 days' notice.
               </p>
               <p className="text-gray-600 dark:text-gray-300 mt-4">
-                Founding families: the first 25 accounts whose email address is confirmed (or that sign in with Google) receive Pro
+                Founding families: the first 10 accounts whose email address is confirmed (or that sign in with Google) receive Pro
                 free of charge on every party they plan, with no time limit. This is a gift, not a purchase: AI fair-use limits still
                 apply, and it ends if the account is deleted or used in breach of these Terms. Test, duplicate and staff accounts are not eligible.
               </p>

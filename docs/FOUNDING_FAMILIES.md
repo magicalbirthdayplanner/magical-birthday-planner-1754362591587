@@ -1,7 +1,7 @@
-# Founding families — first 25 accounts get Pro free
+# Founding families — first 10 accounts get Pro free
 
 Owner ruling 2026-10-09 (replaces the pre-launch waitlist, see [PRELAUNCH.md](PRELAUNCH.md)): to drive adoption the
-first 25 accounts get **Pro, free, on every party, with no time limit**. AI fair-use limits still apply
+first 10 accounts get **Pro, free, on every party, with no time limit**. AI fair-use limits still apply
 (`AI_USER_DAILY_LIMIT`, `AI_GLOBAL_DAILY_LIMIT`, per-party caps).
 
 | Piece | Where |
@@ -10,7 +10,7 @@ first 25 accounts get **Pro, free, on every party, with no time limit**. AI fair
 | Plan source `founding` | `lib/billing/server.ts` (`getUserPlan`, `getPartyPlan`) |
 | Public count `GET /api/founding` → `{ seats, left }` | `app/api/founding/route.ts` (CDN-cached 30 s) |
 | Offer banner (landing + pricing), founding note | `components/billing/FoundingOffer.tsx` |
-| Admin | `/admin` → System → "Founding families: N of 25"; users list shows source "Founding family (free Pro)" |
+| Admin | `/admin` → System → "Founding families: N of 10"; users list shows source "Founding family (free Pro)" |
 | Tests | `tests/integration/founding.test.ts` |
 
 ## How a seat is given
@@ -18,7 +18,7 @@ first 25 accounts get **Pro, free, on every party, with no time limit**. AI fair
 - When an account's email becomes **confirmed** (`auth.users.email_confirmed_at`): Google sign-in at once, email
   sign-up when the emailed 6-digit code is entered (or the link in the same email is opened). Unconfirmed sign-ups
   never use a seat.
-- Lowest free seat 1..25, under a transaction advisory lock — concurrent confirmations never exceed 25.
+- Lowest free seat 1..10 (`founding_seats_total()`), under a transaction advisory lock — concurrent confirmations never exceed 10. Cut from 25 to 10 on 2026-11-24 (migration `20251124002500_founding_seats_10.sql`); seats 1–3 were already taken.
 - The seat writes `plan_overrides` (PRO, no expiry). Everything already enforced for overrides applies: RLS
   (`has_paid_access`), AI tiers, pricing CTAs. An override an admin set earlier is never replaced.
 - Never a seat: Super Admins, `*.test`, `*.invalid`, `@resend.dev` (prod smoke-test inboxes).

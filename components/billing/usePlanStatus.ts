@@ -29,7 +29,7 @@ export function usePlanStatus(partyId?: string | null) {
     /** The plan the user bought (or was given). A trial owns nothing. */
     ownedPlan: owned,
     onTrial: data?.source === 'trial',
-    /** One of the first 25 accounts: Pro free on every party (an account-wide gift, not a purchase). */
+    /** One of the first 10 accounts: Pro free on every party (an account-wide gift, not a purchase). */
     founding: data?.source === 'founding',
     /** Covered by the site-wide free campaign (every plan free until it ends). */
     campaign: data?.source === 'campaign',

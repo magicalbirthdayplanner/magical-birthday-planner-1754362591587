@@ -6,7 +6,7 @@
  *
  * A paid plan is bought for one party (migration 20251004001400). Enforcement lives on the server, per party:
  * lib/ai/handler.ts (AI, via getPartyPlan), the guests/party_invitations RLS policies (`public.has_paid_access(party)`)
- * and /api/invitations/send. Admin overrides, the founding-family gift (first 25 accounts: Pro, free) and the sign-up
+ * and /api/invitations/send. Admin overrides, the founding-family gift (first 10 accounts: Pro, free) and the sign-up
  * trial are account-wide. The UI only displays this.
  */
 
