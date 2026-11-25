@@ -3,7 +3,7 @@ import { useState } from 'react'
 import useSWR from 'swr'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Megaphone, Search, ShieldCheck } from 'lucide-react'
+import { BarChart3, Megaphone, Search, ShieldCheck } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { AppButton, Card, Chip, EmptyState, PageHeader, Section, Skeleton } from '@/components/app/ui'
 import { TextField } from '@/components/app/fields'
@@ -146,6 +146,12 @@ export function AdminScreen() {
           <p className="text-xs text-muted-foreground">Quick test plan — an admin override, never a purchase.</p>
           {me.data ? <PlanControls key={`${me.data.plan}-${me.data.source}`} user={me.data} onChanged={refresh} testId="my-plan" /> : <Skeleton className="h-32 w-full" />}
         </Card>
+      </Section>
+
+      <Section title="Usage">
+        <Link href="/admin/insights" className="tap flex min-h-[56px] items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold shadow-sm active:bg-muted" data-testid="admin-insights-link">
+          <BarChart3 className="h-4 w-4 text-primary" /> Usage — drop-off, problems, users, parties, visitors
+        </Link>
       </Section>
 
       <Section title="Marketing">

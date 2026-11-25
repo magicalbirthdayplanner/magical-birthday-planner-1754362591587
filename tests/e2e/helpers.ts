@@ -71,6 +71,9 @@ export async function mockMode(mode: 'ok' | 'empty' | 'quota' | 'timeout' | 'err
 }
 
 /** App alerts, excluding Next.js's own route announcer (also role="alert"). */
+/** Service-role client for the local test stack (seeding rows the app itself never writes directly). */
+export const serviceClient = () => createClient(URL, SERVICE, opts)
+
 export const appAlert = (page: Page) => page.locator('[role="alert"]:not(#__next-route-announcer__)')
 
 /** Remove cached searches and stored venues around a point so a test starts from "nothing known". */
