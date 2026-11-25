@@ -5,7 +5,7 @@
  *
  *   SUPABASE_URL=… SUPABASE_SECRET_KEY=… node scripts/funnel-report.mjs [--since 2026-10-10] [--until 2026-10-14]
  *
- * Test, smoke and staff accounts (*.test, *.invalid, @resend.dev, super admins) are left out. Prints no emails or
+ * Test, smoke and staff accounts (*.test, *.invalid, @resend.dev, super admins, REPORT_EXCLUDE_EMAILS) are left out. Prints no emails or
  * names — only counts. Ad spend comes from Ads Manager; add it to the daily template by hand.
  */
 const arg = (k, d) => {
@@ -48,7 +48,9 @@ async function authUsers() {
 }
 
 const day = (iso) => new Date(iso).toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
-const isTest = (email) => !email || /\.(test|invalid)$/i.test(email) || /@resend\.dev$/i.test(email)
+// The owner's own non-admin accounts (comma-separated, kept outside the repo in the report env file) are left out too.
+const excluded = new Set((process.env.REPORT_EXCLUDE_EMAILS ?? '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean))
+const isTest = (email) => !email || /\.(test|invalid)$/i.test(email) || /@resend\.dev$/i.test(email) || excluded.has(email.toLowerCase())
 const PRICE = { STARTER: 9.99, PLUS: 19.99, PRO: 29.99 }
 
 const [users, admins, founding, parties, events, purchases] = await Promise.all([
@@ -109,8 +111,9 @@ for (const p of purchases) {
   bump(byAd, adOf(real.get(p.user_id)), 'purchases'); bump(byAd, adOf(real.get(p.user_id)), 'revenue', v)
 }
 
-const left = await (await fetch(`${url}/rest/v1/rpc/founding_seats_left`, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: '{}' })).json()
-console.log(`Funnel ${since} → ${until} (ET). Founding seats left now: ${left}/25. "landing" = unique devices on the homepage; "started" = began the party wizard.\n`)
+const rpc = async (fn) => (await fetch(`${url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: '{}' })).json()
+const [left, total] = await Promise.all([rpc('founding_seats_left'), rpc('founding_seats_total')])
+console.log(`Funnel ${since} → ${until} (ET). Founding seats left now: ${left}/${total}. "landing" = unique devices on the homepage; "started" = began the party wizard.\n`)
 const sorted = (t) => Object.fromEntries(Object.entries(t).sort(([a], [b]) => a.localeCompare(b)))
 console.log('By day'); console.table(sorted(rows))
 console.log('By ad (utm_source / utm_content; sign-ups attributed from the account, landing from the visit)'); console.table(byAd)
