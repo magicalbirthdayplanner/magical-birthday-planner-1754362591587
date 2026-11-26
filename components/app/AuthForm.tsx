@@ -8,10 +8,9 @@ import { ensureProfile } from '@/lib/data/parties'
 import { track } from '@/lib/analytics/client'
 import { db } from '@/lib/db/browser'
 import { AppButton, IconButton, PageHeader } from './ui'
-import { GoogleIcon, TextField } from './fields'
+import { TextField } from './fields'
 import { safeNext } from '@/lib/security/redirect'
 import { authFailed } from '@/lib/observability/auth'
-import { isInAppBrowser } from '@/lib/analytics/attribution'
 import { EMAIL_CODE_LENGTH, RESEND_AFTER_SECONDS, friendlyAuthError, isValidEmail, normalizeCode, retryAfterSeconds } from '@/lib/auth/email-code'
 
 export { safeNext }
@@ -21,12 +20,12 @@ const errorText = (e: AuthError) => friendlyAuthError(e?.message ?? '', e?.code)
 
 /**
  * Sign up / sign in. Default: email → a 6-digit code by email → signed in, without leaving the page (no password, no
- * link to tap — the link in the same email still works as a fallback, e.g. opened in another browser). Google sits on
- * top except inside the Facebook / Instagram in-app browsers, where Google refuses to sign in. Accounts that already
- * have a password can still use it ("Sign in with a password instead").
+ * link to tap — the link in the same email still works as a fallback, e.g. opened in another browser). Accounts that
+ * already have a password can still use it ("Sign in with a password instead"). Accounts made with Google before it was
+ * removed sign in with an emailed code to the same address.
  */
 export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: { mode: 'signin' | 'signup'; onDone?: () => void; compact?: boolean; next?: string; signupData?: Record<string, unknown> }) {
-  const { signIn, sendEmailCode, verifyEmailCode, signInWithGoogle } = useAuth()
+  const { signIn, sendEmailCode, verifyEmailCode } = useAuth()
   useEffect(() => {
     if (mode === 'signup') track('signup_started')
   }, [mode])
@@ -47,9 +46,6 @@ export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: 
   const [resendIn, setResendIn] = useState(0)
   const [resent, setResent] = useState(false)
   const verifying = useRef(false)
-  // Google refuses sign-in inside the Facebook / Instagram in-app browsers (where ad clicks open): email only there.
-  const [inApp, setInApp] = useState(false)
-  useEffect(() => setInApp(isInAppBrowser(navigator.userAgent)), [])
   useEffect(() => {
     if (resendIn <= 0) return
     const t = setTimeout(() => setResendIn((s) => s - 1), 1000)
@@ -140,12 +136,6 @@ export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: 
     }
   }
 
-  async function google() {
-    setError(null)
-    const { error } = await signInWithGoogle(next)
-    if (error) setError(errorText(error))
-  }
-
   const alert = error ? (
     <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
       {error}
@@ -227,16 +217,6 @@ export function AuthForm({ mode, onDone, compact, next: nextProp, signupData }: 
 
   return (
     <div className={compact ? '' : 'px-4'}>
-      {inApp ? null : (
-        <>
-          <AppButton type="button" variant="outline" size="lg" block onClick={google} className="font-medium">
-            <GoogleIcon /> Continue with Google
-          </AppButton>
-          <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
-            <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
-          </div>
-        </>
-      )}
       <form onSubmit={submitEmail} noValidate className="space-y-4">
         {mode === 'signup' ? (
           <TextField label="Your first name" name="name" autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sam" />

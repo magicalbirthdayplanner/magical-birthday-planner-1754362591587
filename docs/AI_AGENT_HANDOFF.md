@@ -59,7 +59,7 @@ Supabase, Google (Places/Maps/Geocoding), Dodo Payments, Resend, OpenCode, Sentr
 Cloudflare DNS. See README § External integrations and [INTEGRATIONS.md](INTEGRATIONS.md).
 
 ## 8. Authentication
-Supabase Auth (email/password with confirmation, password reset, Google OAuth via `/auth/callback`). API routes call
+Supabase Auth (email/password with confirmation, password reset; email links return via `/auth/callback`). API routes call
 `getAuthedRequest()` (`lib/server/auth.ts`) and query **as the user**. Signed-in pages redirect to `/login?next=…`
 without a session (`components/app/AppShell.tsx`). Super Admin = `user_roles.role = 'super_admin'`, checked server-side
 (`lib/server/admin.ts`); `/api/admin/*` returns 404 to everyone else.

@@ -7,7 +7,7 @@ in the repository, and tooling never prints values. Variable list: [`.env.exampl
 
 | Service | Used for | Code | Automated tests | Real-service status | Blocker |
 |---|---|---|---|---|---|
-| **Supabase** | Auth (email/password + Google OAuth), Postgres + RLS, RPCs | Complete (`supabase/migrations`, 13 migrations) | Integration suite on local Supabase | Production: all migrations through `20251004001200` applied; RLS verified cross-user | — |
+| **Supabase** | Auth (email code + password), Postgres + RLS, RPCs | Complete (`supabase/migrations`, 13 migrations) | Integration suite on local Supabase | Production: all migrations through `20251004001200` applied; RLS verified cross-user | — |
 | **Google Places API (New)** | Venue search, details, photos | Complete: field masks, hard `locationRestriction`, cache-first (24 h / 7 d), in-flight dedupe, deadline, budgets | Unit + integration + E2E against `tests/mock-google` | Live in production (real results, details, photos) | Keep GCP quota caps + billing alerts |
 | **Google Maps JavaScript API** | Map (`GoogleMapView`: Advanced Markers, clustering) | Complete. Simplified map when no key | E2E (simplified map) | Live in production (referrer-restricted browser key + Map ID) | — |
 | **Resend** | Invitation, RSVP confirmation, host notification; Supabase auth email via SMTP | Complete: escaped templates, idempotency keys, `email_logs`, daily caps; failures never break the action | Integration + E2E (mock) | Production sends from the verified domain's `noreply@` address (delivered in production smoke tests) | — |

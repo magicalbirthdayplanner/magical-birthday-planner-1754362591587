@@ -5,7 +5,6 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase-client'
 import { authFailed } from '@/lib/observability/auth'
-import { track } from '@/lib/analytics/client'
 import { attributionProps } from '@/lib/analytics/attribution'
 
 interface AuthContextType {
@@ -20,7 +19,6 @@ interface AuthContextType {
   /** Check the emailed code and sign in. `isNewAccount`: this code finished a sign-up (count it once). */
   verifyEmailCode: (email: string, code: string) => Promise<{ error: any; isNewAccount: boolean }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
-  signInWithGoogle: (next?: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
 }
 
@@ -122,13 +120,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const last = localStorage.getItem(LAST_USER_KEY)
               if (last && last !== session.user.id) clearLocalUserData(false)
               localStorage.setItem(LAST_USER_KEY, session.user.id)
-              // A brand-new Google account: the sign-up happened at Google, so record it here (once per account).
-              const u = session.user
-              if (u.app_metadata?.provider === 'google' && Date.now() - new Date(u.created_at).getTime() < 10 * 60_000 && localStorage.getItem(SIGNUP_TRACKED_KEY) !== u.id) {
-                localStorage.setItem(SIGNUP_TRACKED_KEY, u.id)
-                track('sign_up', { method: 'google' })
-                track('signup_completed', { method: 'google' })
-              }
             } catch {
               /* storage unavailable */
             }
@@ -240,26 +231,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signInWithGoogle = async (next?: string) => {
-    try {
-      // Same-origin return path only; tokens come back to /auth/callback and on to `next`.
-      const safe = next && next.startsWith('/') && !next.startsWith('//') ? next : '/home'
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(safe)}`
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo, queryParams: { access_type: 'offline', prompt: 'consent' }, scopes: 'openid email profile' },
-      })
-      if (error) {
-        console.warn('Google sign-in failed to start', error.name)
-        authFailed('google', error)
-      }
-      return { error }
-    } catch (err) {
-      authFailed('google', err)
-      return { error: err }
-    }
-  }
-
   const signOut = async () => {
     if (isSigningOut) return { error: new Error('Signout already in progress') }
     
@@ -303,7 +274,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sendEmailCode,
     verifyEmailCode,
     signIn,
-    signInWithGoogle,
     signOut,
   }
 

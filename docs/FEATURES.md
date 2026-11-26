@@ -107,5 +107,5 @@ detailed in [ai/AI_FEATURES.md](ai/AI_FEATURES.md); plan gating in `lib/ai/capab
   bottom navigation, sheets, 44 px touch targets, tested at 375 / 390 / 393 / 430 px. See [PWA.md](PWA.md), [MOBILE_UX.md](MOBILE_UX.md).
 
 ### Accounts & email
-- Sign-up and sign-in with a 6-digit code sent by email (confirms the email in the same step; the link in the email still works in another browser), password sign-in and reset for accounts that already have a password, Google sign-in (OAuth via Supabase), sign-out
+- Sign-up and sign-in with a 6-digit code sent by email (confirms the email in the same step; the link in the email still works in another browser), password sign-in and reset for accounts that already have a password, sign-out. No Google sign-in (removed Nov 2026; accounts made with Google sign in with a code to the same email)
   that clears the device's party data, RSVP email preference. Transactional email via Resend from the verified domain.

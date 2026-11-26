@@ -48,7 +48,7 @@ per-plan accents: Starter purple, Plus blue ("Most popular"), Pro emerald.
 - **Cards** — `Card` (white, `rounded-2xl`, hairline border, soft shadow), `Section` (titled block), `PageHeader`,
   `StickyCTA` (above the bottom nav), `EmptyState`, `ErrorState` (plain language + retry), `Skeleton` (shimmer,
   respects reduced motion), `Chip` (pill toggle, `aria-pressed`/radio), `ProgressRing`, `Stars`.
-- **Forms** — `TextField` and `TextArea` in `fields.tsx` (label, hint, error), correct `inputmode`/`autocomplete`; `GoogleIcon` for the sign-in button.
+- **Forms** — `TextField` and `TextArea` in `fields.tsx` (label, hint, error), correct `inputmode`/`autocomplete`.
 - **Sheets** — `BottomSheet` (vaul) for forms, AI results, filters, confirmations; a draggable non-modal sheet over
   the map.
 - **Upgrade prompts** — `components/billing/UpgradePrompt.tsx`: what the feature does, which plan includes it,

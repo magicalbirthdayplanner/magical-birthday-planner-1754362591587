@@ -61,12 +61,16 @@ test('email confirmed in another browser: the party draft travels with the sign-
   await db.auth.admin.deleteUser(data.user!.id)
 })
 
-test('Instagram in-app browser: no Google button (Google blocks it there), email sign-up only', async ({ browser }) => {
+test('sign-up and sign-in are email + code only (no Google), in the Instagram in-app browser too', async ({ browser }) => {
   const page = await (await browser.newContext({ userAgent: IG_UA, viewport: { width: 390, height: 844 } })).newPage()
   await page.goto('/join')
   await expect(page.getByLabel('Email')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Continue with Google' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Email me a code' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /google/i })).toHaveCount(0)
   const normal = await (await browser.newContext()).newPage()
-  await normal.goto('/join')
-  await expect(normal.getByRole('button', { name: 'Continue with Google' })).toBeVisible()
+  for (const path of ['/join', '/login']) {
+    await normal.goto(path)
+    await expect(normal.getByRole('button', { name: 'Email me a code' })).toBeVisible()
+    await expect(normal.getByRole('button', { name: /google/i })).toHaveCount(0)
+  }
 })

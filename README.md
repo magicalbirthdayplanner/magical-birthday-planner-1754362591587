@@ -250,8 +250,8 @@ More: [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) · variables: [docs/ENVIRONME
 
 ## Authentication
 
-- **Supabase Auth**: email + password (email confirmation), password reset (`/reset-password`), Google OAuth
-  (`/auth/callback`). Sessions live in the browser (Supabase client); API routes require `Authorization: Bearer <JWT>`
+- **Supabase Auth**: 6-digit email code (OTP), password sign-in for older accounts, password reset (`/reset-password`);
+  email links return via `/auth/callback`. Sessions live in the browser (Supabase client); API routes require `Authorization: Bearer <JWT>`
   and query **as the user**, so RLS applies (`lib/server/auth.ts`).
 - **Protected routes**: the signed-in app (`app/(app)`, wizard) redirects to `/login?next=…` without a session
   (`components/app/AppShell.tsx`); private pages carry `noindex`.

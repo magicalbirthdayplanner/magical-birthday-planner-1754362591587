@@ -7,7 +7,7 @@
  */
 import { reportError, track } from './telemetry'
 
-export type AuthFlow = 'login' | 'signup' | 'email_code_send' | 'email_code_verify' | 'password_reset' | 'password_update' | 'google' | 'callback' | 'session'
+export type AuthFlow = 'login' | 'signup' | 'email_code_send' | 'email_code_verify' | 'password_reset' | 'password_update' | 'callback' | 'session'
 
 const EVENT: Record<AuthFlow, string> = {
   login: 'AUTH_LOGIN_FAILED',
@@ -16,7 +16,6 @@ const EVENT: Record<AuthFlow, string> = {
   email_code_verify: 'AUTH_EMAIL_CODE_VERIFY_FAILED',
   password_reset: 'AUTH_PASSWORD_RESET_FAILED',
   password_update: 'AUTH_PASSWORD_RESET_FAILED',
-  google: 'AUTH_GOOGLE_SIGNIN_FAILED',
   callback: 'AUTH_CALLBACK_FAILED',
   session: 'AUTH_SESSION_ERROR',
 }
